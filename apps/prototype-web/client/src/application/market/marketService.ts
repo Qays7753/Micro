@@ -68,19 +68,35 @@ export interface ListingDraftInput {
   notes?: string;
 }
 
+/** Keyset cursor pagination (continuation 2026-11-12): filters stay
+ * independent params; the cursor is opaque and only encodes the position. */
 export async function browseMarketListings(filters: {
   search?: string;
   category?: string;
   governorate?: string;
   availableOnly?: boolean;
-}): Promise<{ listings: PublicListingSummary[]; count: number }> {
+  cursor?: string | null;
+  limit?: number;
+}): Promise<{
+  listings: PublicListingSummary[];
+  count: number;
+  nextCursor: string | null;
+  hasMore: boolean;
+}> {
   const params = new URLSearchParams();
   if (filters.search) params.set("search", filters.search);
   if (filters.category) params.set("category", filters.category);
   if (filters.governorate) params.set("governorate", filters.governorate);
   if (filters.availableOnly) params.set("available", "1");
+  if (filters.cursor) params.set("cursor", filters.cursor);
+  if (typeof filters.limit === "number") params.set("limit", String(filters.limit));
   const query = params.size > 0 ? `?${params.toString()}` : "";
-  return apiFetch<{ listings: PublicListingSummary[]; count: number }>(`/api/market/listings${query}`);
+  return apiFetch<{
+    listings: PublicListingSummary[];
+    count: number;
+    nextCursor: string | null;
+    hasMore: boolean;
+  }>(`/api/market/listings${query}`);
 }
 
 export async function fetchListingDetail(id: string): Promise<{
@@ -136,7 +152,12 @@ export interface VendorListingDraft {
   governorate: string;
   description: string;
   contact: { type?: string; value?: string };
-  pricing: { mode?: string; priceMicroJod?: string; basis?: { units?: string; unit?: string } } | null;
+  pricing: {
+    mode?: string;
+    priceMicroJod?: string;
+    basis?: { units?: string; unit?: string };
+    tiers?: { minQuantityMilli: string; priceMicroJod: string }[];
+  } | null;
   quantity: { unit?: string; minQuantityMilli?: string; stepMilli?: string; unpacked?: boolean } | null;
   mediaIds: string[];
 }
@@ -169,19 +190,33 @@ export async function confirmListingAvailability(id: string): Promise<void> {
   );
 }
 
-/** OD-09: direct numeric price update on a published FIXED-price listing —
- * verified server-side, re-anchors nothing else, and logs a moderation event. */
+/** OD-09 (contract 20 §3.3): approved direct updates — the numeric price
+ * WITHIN the same pricing mode (fixed scalar / tiered list), the declared
+ * quantity figures (minimum + step), and availability. Verified and logged
+ * server-side; re-anchors nothing else. */
 export async function directUpdateListing(
   id: string,
   input: {
     priceMicroJod?: string;
+    tiers?: { minQuantityMilli: string; priceMicroJod: string }[];
+    minQuantityMilli?: string;
+    stepMilli?: string;
     availabilityStatus?: "available" | "made_to_order" | "temporarily_unavailable";
   },
 ): Promise<void> {
   await apiFetch(
     `/api/market/vendor/listings/${encodeURIComponent(id)}/direct-update`,
     { method: "POST", body: JSON.stringify(input) },
-    { idempotencyKey: `direct-update:${id}:${input.priceMicroJod ?? input.availabilityStatus ?? ""}` },
+    {
+      idempotencyKey: `direct-update:${id}:${JSON.stringify(Object.keys(input).sort())}:${JSON.stringify(
+        input.priceMicroJod ??
+          input.tiers ??
+          input.minQuantityMilli ??
+          input.stepMilli ??
+          input.availabilityStatus ??
+          "",
+      )}`,
+    },
   );
 }
 

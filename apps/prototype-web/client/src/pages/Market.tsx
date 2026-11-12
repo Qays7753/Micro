@@ -39,6 +39,9 @@ export default function Market() {
   const { session, signIn } = useNetworkSession();
   const [meta, setMeta] = useState<MarketMeta | null>(null);
   const [listings, setListings] = useState<PublicListingSummary[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [moreState, setMoreState] = useState<"idle" | "loading" | "error">("idle");
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -51,11 +54,34 @@ export default function Market() {
     try {
       const result = await browseMarketListings({ search, category, governorate, availableOnly });
       setListings(result.listings);
+      setNextCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+      setMoreState("idle");
       setState("ready");
     } catch {
       setState("error");
     }
   }, [search, category, governorate, availableOnly]);
+
+  const loadMore = useCallback(async () => {
+    if (nextCursor === null || moreState === "loading") return;
+    setMoreState("loading");
+    try {
+      const result = await browseMarketListings({
+        search,
+        category,
+        governorate,
+        availableOnly,
+        cursor: nextCursor,
+      });
+      setListings(current => [...current, ...result.listings]);
+      setNextCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+      setMoreState("idle");
+    } catch {
+      setMoreState("error");
+    }
+  }, [search, category, governorate, availableOnly, nextCursor, moreState]);
 
   useEffect(() => {
     void load();
@@ -201,6 +227,18 @@ export default function Market() {
           </li>
         ))}
       </ul>
+      {state === "ready" && hasMore ? (
+        <div className="micro-market-more" data-testid="market-load-more">
+          {moreState === "error" ? (
+            <p role="status" className="micro-market-status">
+              تعذر تحميل المزيد — أعد المحاولة.
+            </p>
+          ) : null}
+          <Button action="outline" disabled={moreState === "loading"} onClick={() => void loadMore()}>
+            {moreState === "loading" ? "جارٍ التحميل…" : "تحميل المزيد"}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

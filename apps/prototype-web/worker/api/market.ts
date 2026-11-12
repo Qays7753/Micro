@@ -66,7 +66,58 @@ function publicListingView(row: Record<string, unknown>, now: number) {
   };
 }
 
-/** GET /api/market/listings — public browse (approved + not hidden). */
+/** Cursor pagination for the public browse (continuation 2026-11-12): a
+ * stable keyset over (published_at DESC, id DESC). The cursor is opaque and
+ * only encodes the position — filters stay independent query params, so any
+ * filter combination works with any page. Page size is bounded (1..50). */
+interface BrowseCursor {
+  v: 1;
+  p: number;
+  i: string;
+}
+
+function decodeBrowseCursor(raw: string | null): BrowseCursor | null {
+  if (raw === null) return null;
+  if (raw.length > 200 || !/^[A-Za-z0-9_-]+$/.test(raw)) {
+    throw new HttpError(400, "bad_request", { field: "cursor", reason: "malformed_cursor" });
+  }
+  let decoded: unknown;
+  try {
+    decoded = JSON.parse(atobUrl(raw));
+  } catch {
+    throw new HttpError(400, "bad_request", { field: "cursor", reason: "malformed_cursor" });
+  }
+  const cursor = decoded as Partial<BrowseCursor> | null;
+  if (
+    cursor === null ||
+    typeof cursor !== "object" ||
+    cursor.v !== 1 ||
+    typeof cursor.p !== "number" ||
+    !Number.isInteger(cursor.p) ||
+    cursor.p <= 0 ||
+    typeof cursor.i !== "string" ||
+    !/^lst_/.test(cursor.i)
+  ) {
+    throw new HttpError(400, "bad_request", { field: "cursor", reason: "malformed_cursor" });
+  }
+  return { v: 1, p: cursor.p, i: cursor.i };
+}
+
+function atobUrl(value: string): string {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+  return atob(padded);
+}
+
+function btoaUrl(value: string): string {
+  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+const BROWSE_PAGE_SIZE_MAX = 50;
+
+/** GET /api/market/listings — public browse (approved + not hidden), keyset
+ * paginated. Malformed cursors are a 400; a stale (older-than-oldest) cursor
+ * is a valid empty final page — never an error, never a silent restart. */
 export async function browseListings(ctx: RouteContext): Promise<Response> {
   const now = nowMs();
   await enforceGuestReadLimit(ctx.env.DB, ctx.request, now);
@@ -74,18 +125,23 @@ export async function browseListings(ctx: RouteContext): Promise<Response> {
   const category = ctx.url.searchParams.get("category");
   const governorate = ctx.url.searchParams.get("governorate");
   const availableOnly = ctx.url.searchParams.get("available") === "1";
-  const limit = Math.min(Number(ctx.url.searchParams.get("limit") ?? 20) || 20, 50);
+  const limitParam = Number(ctx.url.searchParams.get("limit") ?? 20) || 20;
+  const limit = Math.min(Math.max(Math.trunc(limitParam), 1), BROWSE_PAGE_SIZE_MAX);
+  const cursor = decodeBrowseCursor(ctx.url.searchParams.get("cursor"));
   const like = `%${search}%`;
+  // Fetch one extra row to know whether a next page exists without lying.
   const rows = await db(ctx)
     .prepare(
       "SELECT l.*, p.public_copy_json AS profile_public FROM supplier_listing l " +
         "JOIN supplier_profile p ON p.id = l.supplier_profile_id " +
         "WHERE l.status = 'approved_for_publish' AND p.status = 'approved' " +
+        "AND l.published_at IS NOT NULL " +
         "AND l.availability_confirmed_at > ? " +
         "AND (? IS NULL OR l.category = ?) AND (? IS NULL OR l.governorate = ?) " +
         "AND (? = '' OR l.title LIKE ? OR l.description LIKE ? OR l.category LIKE ?) " +
         (availableOnly ? "AND l.availability_status = 'available' " : "") +
-        "ORDER BY l.published_at DESC LIMIT ?",
+        (cursor === null ? "" : "AND (l.published_at < ? OR (l.published_at = ? AND l.id < ?)) ") +
+        "ORDER BY l.published_at DESC, l.id DESC LIMIT ?",
     )
     .bind(
       now - LISTING_FRESHNESS_HIDE_MS,
@@ -97,11 +153,25 @@ export async function browseListings(ctx: RouteContext): Promise<Response> {
       like,
       like,
       like,
-      limit,
+      ...(cursor === null ? [] : [cursor.p, cursor.p, cursor.i]),
+      limit + 1,
     )
     .all<Record<string, unknown>>();
-  const listings = rows.results.map(row => publicListingView(row, now));
-  return jsonResponse({ listings, count: listings.length });
+  const hasMore = rows.results.length > limit;
+  const page = rows.results.slice(0, limit);
+  const listings = page.map(row => publicListingView(row, now));
+  const last = page.length > 0 ? page[page.length - 1] : null;
+  const nextCursor =
+    hasMore && last !== null
+      ? btoaUrl(
+          JSON.stringify({
+            v: 1 as const,
+            p: Number(last.published_at ?? 0),
+            i: String(last.id),
+          }),
+        )
+      : null;
+  return jsonResponse({ listings, count: listings.length, nextCursor, hasMore });
 }
 
 /** GET /api/market/listings/:id — public detail of a published listing. */
