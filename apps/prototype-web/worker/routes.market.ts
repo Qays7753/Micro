@@ -23,6 +23,7 @@ import {
   vendorListingLifecycle,
 } from "./api/marketListings.ts";
 import { reviewListing, reviewMedia, reviewProfile, reviewQueue } from "./api/marketReview.ts";
+import { runDueRemindersNow } from "./api/reminders.ts";
 import { command } from "./commands.ts";
 import { authedRoute } from "./routes.ts";
 import type { ApiRouter } from "./router.ts";
@@ -157,6 +158,15 @@ export function registerMarketRoutes(router: ApiRouter): void {
     command(
       "review-media",
       authedRoute((ctx, auth) => reviewMedia(ctx, auth)),
+    ),
+  );
+  // In-app reminders due-processing (contract 19 §9): admin-only manual run —
+  // the same idempotent processor as the worker `scheduled` export.
+  router.post(
+    "api/admin/reminders/due",
+    command(
+      "admin-reminders-due",
+      authedRoute((ctx, auth) => runDueRemindersNow(ctx, auth)),
     ),
   );
 }

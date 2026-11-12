@@ -11,6 +11,7 @@
 import { assertSameOrigin } from "./auth/csrf.ts";
 import type { Env } from "./env.ts";
 import { errorResponse, jsonResponse } from "./http.ts";
+import { processDueReminders } from "./api/reminders.ts";
 import type { RouteContext } from "./router.ts";
 import { buildRouter } from "./routes.ts";
 
@@ -71,6 +72,19 @@ export default {
     if (url.pathname === "/api") return jsonResponse({ api: "micro-network/1" });
     return serveStatic(request, url, env);
   },
-} satisfies { fetch(request: Request, env: Env): Promise<Response> };
+
+  /** In-app reminders due-processing (contract 19 §9). Enabled repository-side;
+   * the trigger itself is an owner/Manus Cloudflare setup step (Cron Trigger
+   * on the Pages project — see worker/README.md), with the admin endpoint
+   * POST /api/admin/reminders/due as the manual fallback. Idempotent; never
+   * transitions product state (no auto-close ever). */
+  async scheduled(_controller: unknown, env: Env, _ctx: unknown): Promise<void> {
+    if (!env.DB) return;
+    await processDueReminders(env.DB, Date.now());
+  },
+} satisfies {
+  fetch(request: Request, env: Env): Promise<Response>;
+  scheduled(controller: unknown, env: Env, ctx: unknown): Promise<void>;
+};
 
 export { router as apiRouter };

@@ -61,6 +61,9 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
     compatibilityDate: "2024-12-01",
     d1Databases: ["DB"],
     r2Buckets: ["MEDIA"],
+    // Enables directly triggering the worker's `scheduled` export through
+    // dispatchFetch("/cdn-cgi/handler/scheduled") — used by reminders tests.
+    unsafeTriggerHandlers: true,
     bindings: {
       GOOGLE_CLIENT_ID: "test-client-id",
       GOOGLE_CLIENT_SECRET: "test-client-secret-value",
