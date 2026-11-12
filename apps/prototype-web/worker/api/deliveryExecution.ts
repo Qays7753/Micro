@@ -24,10 +24,16 @@ import {
   type StatementItem,
 } from "../domain/delivery.ts";
 import { DRIVER_RESPONSE_WINDOW_MS } from "../env.ts";
+import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
-import { buildAgreementCopy, recordEvent, requireDriverProfile } from "./deliveryShared.ts";
+import {
+  advanceMoneyAxisForItems,
+  buildAgreementCopy,
+  recordEvent,
+  requireDriverProfile,
+} from "./deliveryShared.ts";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
@@ -95,19 +101,25 @@ export async function driverAcceptRequest(ctx: RouteContext, auth: Authenticated
   );
   const requesterIdentity = String(row.requester_identity_id);
   const agreement = await buildAgreementCopy(ctx.env.DB, row, null, now);
-  await db(ctx).batch([
+  const results = await db(ctx).batch([
     db(ctx)
       .prepare(
-        "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ?",
+        // Conditional update: a concurrent requester withdrawal wins and this
+        // acceptance becomes a 409 instead of overwriting it (spec §8 — one
+        // server-decided outcome for simultaneous actions).
+        "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ? AND status = 'awaiting_driver_response'",
       )
       .bind(agreement, now, String(row.id)),
     db(ctx)
       .prepare(
         "INSERT OR IGNORE INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
-          "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', 'none', ?)",
+          "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ? IS NULL THEN 'none' ELSE 'agreed' END, ?)",
       )
-      .bind(String(row.id), now),
+      .bind(String(row.id), row.collection_minor, now),
   ]);
+  if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
   await recordEvent(
     ctx,
     String(row.id),
@@ -168,19 +180,40 @@ export async function driverSubmitQuote(ctx: RouteContext, auth: AuthenticatedCo
   const fareMinor = parseMinorAmount(body.fareMinor, "fareMinor");
   const scope = typeof body.scope === "string" && body.scope.length > 0 ? body.scope : "{}";
   const now = nowMs();
-  // Replacing a pending quote voids the old copy (no piling up — spec §8).
-  const previous = await db(ctx)
-    .prepare("SELECT id FROM delivery_quote WHERE request_id = ? AND superseded_by IS NULL")
-    .bind(String(row.id))
-    .all<Record<string, unknown>>();
+  const currentStatus = String(row.status) as RequestStatus;
+  // The quote follows the request state machine: a first quote only from
+  // awaiting_driver_response, a replacement only before the requester decides
+  // — never on a confirmed/cancelled/expired request (contract 21 §3.2-2/§8).
+  const quoteEvent =
+    currentStatus === "awaiting_requester_decision" ? "driver_replace_quote" : "driver_submit_quote";
+  transitionRequest(
+    {
+      status: currentStatus,
+      responseDeadlineAt: Number(row.response_deadline_at),
+      quoteValidUntil: null,
+    },
+    quoteEvent,
+    now,
+  );
   const quoteId = newId("qte", randomToken);
   const validUntil = now + DRIVER_RESPONSE_WINDOW_MS;
-  const statements = previous.results.map(prev =>
+  // Conditional update first: a concurrent requester decision/withdrawal wins
+  // and this submission becomes a 409 instead of overwriting it (spec §8).
+  const moved = await db(ctx)
+    .prepare(
+      "UPDATE delivery_request SET status = 'awaiting_requester_decision', response_deadline_at = ?, updated_at = ? WHERE id = ? AND status = ?",
+    )
+    .bind(validUntil, now, String(row.id), currentStatus)
+    .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
+  await db(ctx).batch([
+    // Set-based voiding inside the same batch: no piling-up race between two
+    // concurrent replacements (OD05 — exactly one active final quote).
     db(ctx)
-      .prepare("UPDATE delivery_quote SET superseded_by = ? WHERE id = ?")
-      .bind(quoteId, String(prev.id)),
-  );
-  statements.push(
+      .prepare("UPDATE delivery_quote SET superseded_by = ? WHERE request_id = ? AND superseded_by IS NULL")
+      .bind(quoteId, String(row.id)),
     db(ctx)
       .prepare(
         "INSERT INTO delivery_quote (id, request_id, driver_profile_id, fare_minor, scope_json, valid_until, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -188,11 +221,10 @@ export async function driverSubmitQuote(ctx: RouteContext, auth: AuthenticatedCo
       .bind(quoteId, String(row.id), String(row.driver_profile_id), fareMinor, scope, validUntil, now),
     db(ctx)
       .prepare(
-        "UPDATE delivery_request SET status = 'awaiting_requester_decision', quote_id = ?, response_deadline_at = ?, updated_at = ? WHERE id = ?",
+        "UPDATE delivery_request SET quote_id = ? WHERE id = ? AND status = 'awaiting_requester_decision'",
       )
-      .bind(quoteId, validUntil, now, String(row.id)),
-  );
-  await db(ctx).batch(statements);
+      .bind(quoteId, String(row.id)),
+  ]);
   await recordEvent(
     ctx,
     String(row.id),
@@ -243,6 +275,7 @@ export async function driverDeclare(ctx: RouteContext, auth: AuthenticatedContex
     start: "start",
     arrive: "arrive",
     pickup_declared: "pickup_declared",
+    pickup_failed: "pickup_failed",
     transit_started: "transit_started",
     delivery_declared: "delivery_declared",
     delivery_failed: "delivery_failed",
@@ -251,13 +284,29 @@ export async function driverDeclare(ctx: RouteContext, auth: AuthenticatedContex
     holding_agreed: "holding_agreed",
     return_agreed: "return_agreed",
     return_declared: "return_declared",
+    // Resume events after a declared outcome (contract 21 §3.2-3): without
+    // these the execution axis is stuck after undeliverable/instructions.
+    retry_started_pickup: "retry_started_pickup",
+    retry_started_transit: "retry_started_transit",
+    return_started: "return_started",
+    transit_resumed: "transit_resumed",
+    instructions_transit: "instructions_transit",
+    instructions_return: "instructions_return",
+    instructions_holding: "instructions_holding",
   };
   const contactMap: Record<string, string> = {
     contact_attempt_no_answer: "attempt_no_answer",
     contact_reported: "contact_reported",
   };
   if (kind !== null && eventMap[kind] !== undefined) {
-    if (kind === "delivery_failed") assertContactAttemptBeforeFailure(state, "delivery_failed");
+    if (kind === "delivery_failed" || kind === "pickup_failed") {
+      // OD15: a recorded contact attempt (with its outcome) precedes any
+      // failure declaration; a reason is always recorded (contract 21 §3.2-3).
+      assertContactAttemptBeforeFailure(state, kind);
+      if (typeof body.reason !== "string" || body.reason.trim().length === 0) {
+        throw new HttpError(400, "bad_request", { field: "reason", reason: "failure_requires_reason" });
+      }
+    }
     const nextExecution = transitionExecution(state, eventMap[kind]!);
     const goods = goodsAfterExecution(nextExecution, state.goods);
     const confirmation = confirmationAfterDeclaration(nextExecution, state.confirmation);
@@ -304,12 +353,17 @@ export async function driverDeclare(ctx: RouteContext, auth: AuthenticatedContex
   }
   if (kind === "collection_declared") {
     const declared = parseMinorAmount(body.amountMinor, "amountMinor");
-    await db(ctx)
+    const advanced = await db(ctx)
       .prepare(
-        "UPDATE delivery_execution SET money_status = 'collection_declared', updated_at = ? WHERE request_id = ?",
+        // Forward-only money ladder (§3.2-6): a booking already at/after the
+        // statement stage can never regress to a fresh collection declaration.
+        "UPDATE delivery_execution SET money_status = 'collection_declared', updated_at = ? WHERE request_id = ? AND money_status IN ('none', 'agreed')",
       )
       .bind(now, String(row.id))
       .run();
+    if (Number(advanced.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "money_axis_already_advanced" });
+    }
     await recordEvent(
       ctx,
       String(row.id),
@@ -344,6 +398,19 @@ export async function submitDailyStatement(ctx: RouteContext, auth: Authenticate
   if (!requesterIdentityId || !Array.isArray(body.items) || body.items.length === 0) {
     throw new HttpError(400, "bad_request", { field: "statement" });
   }
+  // D1 caps bound parameters per statement (~100): keep items well inside it
+  // and answer honestly instead of a late 500.
+  if (body.items.length > 50) {
+    throw new HttpError(400, "bad_request", { field: "items", reason: "statement_too_many_items" });
+  }
+  const statementLimits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("statement-submit", auth.identityId, nowMs()),
+    statementLimits.submissionsPerDay,
+    24 * 60 * 60 * 1000,
+    nowMs(),
+  );
   const items = (body.items as Record<string, unknown>[]).map((item, index) => ({
     requestId: typeof item.requestId === "string" ? item.requestId : `item-${index}`,
     description: typeof item.description === "string" ? item.description : "",
@@ -359,6 +426,34 @@ export async function submitDailyStatement(ctx: RouteContext, auth: Authenticate
     .first();
   if (pending) throw new HttpError(409, "conflict", { reason: "one_awaiting_statement_per_pair_day" });
   const supplementOf = typeof body.supplementOf === "string" ? body.supplementOf : null;
+  if (supplementOf !== null) {
+    // Contract 21 §3.2-6: a supplement follows a CONFIRMED statement of the
+    // same pair and day, carrying only new items.
+    const parent = await db(ctx)
+      .prepare(
+        "SELECT driver_profile_id, requester_identity_id, statement_date, status FROM daily_statement WHERE id = ?",
+      )
+      .bind(supplementOf)
+      .first<Record<string, unknown>>();
+    if (
+      !parent ||
+      String(parent.driver_profile_id) !== driverProfileId ||
+      String(parent.requester_identity_id) !== requesterIdentityId ||
+      String(parent.statement_date) !== statementDate ||
+      String(parent.status) !== "full_receipt_confirmed"
+    ) {
+      throw new HttpError(409, "conflict", { reason: "invalid_supplement_parent" });
+    }
+  }
+  // The statement recipient must be an actual requester of this driver (no
+  // cross-inbox statement spam).
+  const pairRequest = await db(ctx)
+    .prepare(
+      "SELECT id FROM delivery_request WHERE driver_profile_id = ? AND requester_identity_id = ? LIMIT 1",
+    )
+    .bind(driverProfileId, requesterIdentityId)
+    .first();
+  if (!pairRequest) throw new HttpError(409, "conflict", { reason: "no_booking_relationship" });
   const id = newId("stmt", randomToken);
   const now = nowMs();
   await db(ctx)
@@ -377,6 +472,16 @@ export async function submitDailyStatement(ctx: RouteContext, auth: Authenticate
       now,
     )
     .run();
+  // OD13/contract 21 §3.2-6: submission advances the money axis of exactly the
+  // bookings fixed in this statement's items (items are immutable afterwards).
+  await advanceMoneyAxisForItems(
+    ctx,
+    driverProfileId,
+    requesterIdentityId,
+    items.map(item => item.requestId),
+    "statement_submitted",
+    now,
+  );
   await notify(
     db(ctx),
     {

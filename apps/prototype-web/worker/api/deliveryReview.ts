@@ -8,6 +8,7 @@
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import type { Db } from "../db/d1.ts";
+import { advanceMoneyAxisForItems } from "./deliveryShared.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
@@ -284,7 +285,9 @@ export async function ownerStatements(ctx: RouteContext, auth: AuthenticatedCont
 /** POST /api/delivery/statements/:id/confirm — FULL receipt or difference (OD13). */
 export async function confirmStatement(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const statement = await db(ctx)
-    .prepare("SELECT id, status, requester_identity_id, driver_profile_id FROM daily_statement WHERE id = ?")
+    .prepare(
+      "SELECT id, status, requester_identity_id, driver_profile_id, items_json FROM daily_statement WHERE id = ?",
+    )
     .bind(ctx.params.id!)
     .first<Record<string, unknown>>();
   if (!statement || String(statement.requester_identity_id) !== auth.identityId)
@@ -309,6 +312,18 @@ export async function confirmStatement(ctx: RouteContext, auth: AuthenticatedCon
   } else {
     throw new HttpError(400, "bad_request", { field: "decision" });
   }
+  // OD13/contract 21 §3.2-6: the decision advances the money axis of exactly
+  // the bookings fixed in this statement's items (never a pair-wide sweep,
+  // never re-opening a decided axis §3.2-7).
+  const statementItems = JSON.parse(String(statement.items_json)) as Array<{ requestId?: unknown }>;
+  await advanceMoneyAxisForItems(
+    ctx,
+    String(statement.driver_profile_id),
+    String(statement.requester_identity_id),
+    statementItems.map(item => (typeof item.requestId === "string" ? item.requestId : "")),
+    body.decision === "full" ? "full_receipt_confirmed" : "difference_under_review",
+    now,
+  );
   const driverIdentity = await db(ctx)
     .prepare("SELECT identity_id FROM driver_profile WHERE id = ?")
     .bind(String(statement.driver_profile_id))

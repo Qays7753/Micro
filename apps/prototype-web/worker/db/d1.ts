@@ -5,11 +5,11 @@
  * state.
  */
 
-import type { D1Database, D1PreparedStatement } from "../env.ts";
+import type { D1Database, D1Meta, D1PreparedStatement, D1ResultRow } from "../env.ts";
 
 export interface Db {
   prepare(query: string): D1PreparedStatement;
-  batch(statements: D1PreparedStatement[]): Promise<unknown>;
+  batch(statements: D1PreparedStatement[]): Promise<Array<{ results: D1ResultRow[]; meta: D1Meta }>>;
 }
 
 export function dbOf(env: { DB: D1Database }): Db {

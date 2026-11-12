@@ -9,6 +9,7 @@ import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/d1.ts";
+import { enforceGuestReadLimit } from "../ratelimit.ts";
 import {
   conformsToQuantityRules,
   freshnessFrom,
@@ -68,6 +69,7 @@ function publicListingView(row: Record<string, unknown>, now: number) {
 /** GET /api/market/listings — public browse (approved + not hidden). */
 export async function browseListings(ctx: RouteContext): Promise<Response> {
   const now = nowMs();
+  await enforceGuestReadLimit(ctx.env.DB, ctx.request, now);
   const search = (ctx.url.searchParams.get("search") ?? "").trim();
   const category = ctx.url.searchParams.get("category");
   const governorate = ctx.url.searchParams.get("governorate");
@@ -104,6 +106,7 @@ export async function browseListings(ctx: RouteContext): Promise<Response> {
 
 /** GET /api/market/listings/:id — public detail of a published listing. */
 export async function listingDetail(ctx: RouteContext): Promise<Response> {
+  await enforceGuestReadLimit(ctx.env.DB, ctx.request, nowMs());
   const row = await loadListing(ctx, ctx.params.id!);
   const profile = await db(ctx)
     .prepare("SELECT status, public_copy_json FROM supplier_profile WHERE id = ?")
@@ -152,15 +155,35 @@ export async function marketMeta(ctx: RouteContext): Promise<Response> {
 /** GET /api/market/vendor/overview — the signed-in user's own workspace. */
 export async function vendorOverview(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const profile = await vendorStatus(db(ctx), auth.identityId);
+  const profileRow = await db(ctx)
+    .prepare(
+      "SELECT review_reason, work_copy_json, public_copy_json FROM supplier_profile WHERE identity_id = ? ORDER BY created_at LIMIT 1",
+    )
+    .bind(auth.identityId)
+    .first<Record<string, unknown>>();
   const listings = await db(ctx)
     .prepare(
       "SELECT id, title, status, revision_status, freshness_state, availability_confirmed_at, availability_status, " +
-        "price_mode, price_micro_jod, updated_at FROM supplier_listing WHERE identity_id = ? ORDER BY updated_at DESC",
+        "price_mode, price_micro_jod, review_reason, updated_at FROM supplier_listing WHERE identity_id = ? ORDER BY updated_at DESC",
     )
     .bind(auth.identityId)
     .all<Record<string, unknown>>();
   return jsonResponse({
     vendor: profile,
+    vendorReviewReason:
+      profileRow === null
+        ? null
+        : profileRow.review_reason === null
+          ? null
+          : String(profileRow.review_reason),
+    profileFields:
+      profileRow === null
+        ? null
+        : (JSON.parse(String(profileRow.work_copy_json)) as {
+            displayName?: string;
+            contactPhone?: string;
+            governorate?: string;
+          }),
     listings: listings.results.map(row => ({
       id: String(row.id),
       title: String(row.title),

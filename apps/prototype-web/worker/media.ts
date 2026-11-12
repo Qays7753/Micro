@@ -112,10 +112,13 @@ export async function readMediaBody(
   return { body: object.body, contentType: media.content_type };
 }
 
-/** Delete bytes + metadata (draft cleanup / admin removal). */
+/** Delete bytes + metadata (draft cleanup / admin removal).
+ * The D1 row goes FIRST: if a referencing row still blocks the delete, the
+ * bytes stay intact (recoverable) instead of an orphaned metadata row whose
+ * bytes are gone. */
 export async function deleteMedia(env: Env, db: Db, media: MediaObjectRow): Promise<void> {
-  await bucket(env).delete(media.r2_key);
   await db.prepare("DELETE FROM media_object WHERE id = ?").bind(media.id).run();
+  await bucket(env).delete(media.r2_key);
 }
 
 /**
@@ -125,10 +128,15 @@ export async function deleteMedia(env: Env, db: Db, media: MediaObjectRow): Prom
 export async function isPubliclyAttachedListingMedia(db: Db, mediaId: string): Promise<boolean> {
   const row = await db
     .prepare(
-      "SELECT l.status FROM listing_media lm JOIN supplier_listing l ON l.id = lm.listing_id " +
+      "SELECT l.status AS listing_status, m.status AS media_status FROM listing_media lm " +
+        "JOIN supplier_listing l ON l.id = lm.listing_id JOIN media_object m ON m.id = lm.media_id " +
         "WHERE lm.media_id = ? LIMIT 1",
     )
     .bind(mediaId)
     .first<Record<string, unknown>>();
-  return row !== null && String(row.status) === "approved_for_publish";
+  return (
+    row !== null &&
+    String(row.listing_status) === "approved_for_publish" &&
+    String(row.media_status) === "approved"
+  );
 }

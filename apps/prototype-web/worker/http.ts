@@ -111,13 +111,18 @@ export function parseCookies(header: string | null): Map<string, string> {
     if (eq <= 0) continue;
     const name = part.slice(0, eq).trim();
     const value = part.slice(eq + 1).trim();
-    if (name) jar.set(name, decodeURIComponent(value));
+    if (!name) continue;
+    try {
+      jar.set(name, decodeURIComponent(value));
+    } catch {
+      /* malformed pair — skipped, never a 500 */
+    }
   }
   return jar;
 }
 
-export function sessionCookie(token: string, maxAgeSeconds: number): string {
-  return `micro_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
+export function sessionCookie(token: string, maxAgeSeconds: number, secure: boolean): string {
+  return `micro_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax;${secure ? " Secure;" : ""} Max-Age=${maxAgeSeconds}`;
 }
 
 export function clearedSessionCookie(): string {

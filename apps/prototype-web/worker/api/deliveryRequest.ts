@@ -14,6 +14,7 @@ import {
   type RequestStatus,
 } from "../domain/delivery.ts";
 import { DRIVER_RESPONSE_WINDOW_MS } from "../env.ts";
+import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { buildAgreementCopy, loadRequest, notifyDriver, recordEvent } from "./deliveryShared.ts";
@@ -25,6 +26,14 @@ function db(ctx: RouteContext): Db {
 
 /** POST /api/delivery/requests — create a DRAFT directed request (OD03). */
 export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const limits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("delivery-create", auth.identityId, nowMs()),
+    limits.submissionsPerDay,
+    24 * 60 * 60 * 1000,
+    nowMs(),
+  );
   const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
   const driverProfileId = typeof body.driverProfileId === "string" ? body.driverProfileId : null;
   const needType =
@@ -144,10 +153,17 @@ export async function withdrawRequest(ctx: RouteContext, auth: AuthenticatedCont
     "requester_withdraw",
     nowMs(),
   );
-  await db(ctx)
-    .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ?")
-    .bind(next, nowMs(), String(row.id))
+  const moved = await db(ctx)
+    .prepare(
+      // Conditional update: a concurrent driver acceptance/quote wins and
+      // this withdrawal becomes a 409 (spec §8 — one server-decided outcome).
+      "UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ? AND status = ?",
+    )
+    .bind(next, nowMs(), String(row.id), String(row.status))
     .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
   await recordEvent(ctx, String(row.id), "request", "withdrawn", String(row.status), next, auth.identityId);
   return jsonResponse({ ok: true });
 }
@@ -179,10 +195,13 @@ export async function decideQuote(
   if (accept) {
     await confirmBooking(ctx, row, now);
   } else {
-    await db(ctx)
-      .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ?")
-      .bind(next, now, String(row.id))
+    const moved = await db(ctx)
+      .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ? AND status = ?")
+      .bind(next, now, String(row.id), String(row.status))
       .run();
+    if (Number(moved.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+    }
   }
   await recordEvent(
     ctx,
@@ -226,7 +245,7 @@ async function confirmBooking(ctx: RouteContext, row: Record<string, unknown>, n
   });
   await db(ctx)
     .prepare(
-      "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ?",
+      "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ? AND status = 'awaiting_requester_decision'",
     )
     .bind(agreementCopy, now, String(row.id))
     .run();
@@ -248,10 +267,13 @@ export async function cancelRequest(ctx: RouteContext, auth: AuthenticatedContex
     nowMs(),
   );
   const now = nowMs();
-  await db(ctx)
-    .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ?")
-    .bind(next, now, String(row.id))
+  const moved = await db(ctx)
+    .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ? AND status = ?")
+    .bind(next, now, String(row.id), String(row.status))
     .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
   await recordEvent(
     ctx,
     String(row.id),
@@ -313,6 +335,10 @@ export async function answerContactAttempt(ctx: RouteContext, auth: Authenticate
     .bind(String(row.id))
     .first<Record<string, unknown>>();
   if (!execution) throw new HttpError(409, "conflict", { reason: "no_execution" });
+  // Unknown outcomes are rejected honestly instead of silently read as "denied".
+  if (body.outcome !== "confirmed" && body.outcome !== "denied") {
+    throw new HttpError(400, "bad_request", { field: "outcome" });
+  }
   const current = String(execution.contact_status) as import("../domain/delivery.ts").ContactStatus;
   const confirmed = body.outcome === "confirmed";
   const event =

@@ -11,9 +11,11 @@ export {
   createListingDraft,
   fetchListingDetail,
   fetchMarketMeta,
+  fetchVendorListingDraft,
   fetchVendorOverview,
   listingLifecycleAction,
   reportListing,
+  updateListingDraft,
   upsertVendorProfile,
   submitListing,
   submitVendorProfile,
@@ -25,6 +27,7 @@ export type {
   MarketMeta,
   PublicListingDetail,
   PublicListingSummary,
+  VendorListingDraft,
   VendorOverview,
 } from "./marketService";
 export { estimateMaterialValue, formatMicroJodAsJod } from "./marketEstimate";

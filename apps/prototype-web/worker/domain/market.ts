@@ -32,7 +32,7 @@ export const DEFAULT_CATEGORIES = [
   { id: "construction", label: "البناء" },
 ] as const;
 
-const MAX_PRICE_MICRO = 1_000_000n * 1_000_000n; // 1,000,000 JOD
+export const MAX_PRICE_MICRO = 1_000_000n * 1_000_000n; // 1,000,000 JOD
 const MAX_QUANTITY_MILLI = 1_000_000_000n * 1_000n; // 1,000,000,000 units
 
 export type PriceMode = "fixed" | "tiered" | "quote_required";

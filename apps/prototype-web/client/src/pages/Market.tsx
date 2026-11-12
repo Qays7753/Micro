@@ -21,12 +21,6 @@ const FRESHNESS_LABELS: Record<string, string> = {
   hidden_stale: "مخفي لعدم تأكيد التوفر",
 };
 
-const PRICE_MODE_LABELS: Record<string, string> = {
-  fixed: "سعر ثابت",
-  tiered: "حسب الكمية",
-  quote_required: "يحتاج تسعيرًا",
-};
-
 function milliToDisplay(milli: string): string {
   const value = BigInt(milli);
   const whole = value / 1000n;
@@ -76,9 +70,9 @@ export default function Market() {
   return (
     <section className="micro-page micro-market-page" data-testid="market-browse-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">توسعة E-00</span>
+        <span className="micro-overline">تصفح حر بلا تسجيل</span>
         <h1>السوق</h1>
-        <p>مواد ومستلزمات بمعلنين معتمدين في كل الأردن — تصفح حر بلا تسجيل.</p>
+        <p>مواد ومستلزمات بمعلنين معتمدين في كل الأردن.</p>
       </div>
 
       <div className="micro-market-actions">
@@ -194,10 +188,11 @@ export default function Market() {
                 {listing.quantityUnit}
               </span>
               <span className="micro-market-card__price">
-                {listing.priceMode === "quote_required"
-                  ? PRICE_MODE_LABELS.quote_required
-                  : `${microToJod(listing.priceMicroJod)} د.أ`}{" "}
-                · {PRICE_MODE_LABELS[listing.priceMode]}
+                {listing.priceMode === "fixed"
+                  ? `${microToJod(listing.priceMicroJod) ?? "0"} د.أ · سعر ثابت`
+                  : listing.priceMode === "tiered"
+                    ? "السعر حسب الكمية"
+                    : "يحتاج تسعيرًا"}
               </span>
               {FRESHNESS_LABELS[listing.freshness] ? (
                 <span className="micro-market-card__freshness">{FRESHNESS_LABELS[listing.freshness]}</span>

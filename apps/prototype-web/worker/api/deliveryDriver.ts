@@ -45,6 +45,10 @@ async function requireDriverProfile(ctx: RouteContext, auth: AuthenticatedContex
 export async function driverPortal(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const status = await driverStatus(db(ctx), auth.identityId, nowMs());
   if (!status) return jsonResponse({ driver: null, step: "apply" });
+  const profileFull = await db(ctx)
+    .prepare("SELECT status, review_reason, work_copy_json FROM driver_profile WHERE id = ?")
+    .bind(status.driverProfileId)
+    .first<Record<string, unknown>>();
   const evidence = await db(ctx)
     .prepare(
       "SELECT id, category, status, expires_at, media_id FROM driver_evidence WHERE driver_profile_id = ?",
@@ -60,6 +64,16 @@ export async function driverPortal(ctx: RouteContext, auth: AuthenticatedContext
   return jsonResponse({
     driver: {
       status: status.profileStatus,
+      reviewReason:
+        profileFull === null || profileFull.review_reason === null ? null : String(profileFull.review_reason),
+      profileFields:
+        profileFull === null
+          ? null
+          : (JSON.parse(String(profileFull.work_copy_json)) as {
+              displayName?: string;
+              phone?: string;
+              serviceAreas?: string[];
+            }),
       eligibleForNewWork: status.eligibleForNewWork,
       acceptingNew: status.acceptingNew,
       evidenceValid: status.requiredEvidenceValid,

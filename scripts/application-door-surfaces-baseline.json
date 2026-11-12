@@ -447,15 +447,17 @@
         "estimateMaterialValue",
         "fetchListingDetail",
         "fetchMarketMeta",
+        "fetchVendorListingDraft",
         "fetchVendorOverview",
         "formatMicroJodAsJod",
         "listingLifecycleAction",
         "reportListing",
-        "upsertVendorProfile",
         "submitListing",
         "submitVendorProfile",
         "toggleSavedListing",
-        "uploadListingImage"
+        "updateListingDraft",
+        "uploadListingImage",
+        "upsertVendorProfile"
       ],
       "type": [
         "EstimateInput",
@@ -464,6 +466,7 @@
         "MarketMeta",
         "PublicListingDetail",
         "PublicListingSummary",
+        "VendorListingDraft",
         "VendorOverview"
       ]
     },
@@ -475,31 +478,36 @@
         "confirmStatement",
         "createDeliveryRequest",
         "decideDeliveryQuote",
+        "declareCollection",
         "driverAcceptRequest",
         "driverDeclare",
         "driverDeclineRequest",
+        "driverRequestDetail",
         "driverSubmitQuote",
         "fetchBookingDetail",
         "fetchDriverDirectory",
         "fetchDriverPortal",
         "fetchDriverRequests",
+        "fetchDriverStatements",
         "fetchOwnerOverview",
         "fetchOwnerStatements",
         "rateDeliveryBooking",
-        "upsertDriverProfileDraft",
-        "upsertDriverVehicleDraft",
         "setAcceptingNew",
         "submitDeliveryRequest",
         "submitDriverApplication",
+        "submitDriverStatement",
         "toggleSavedDriver",
         "uploadDriverEvidence",
-        "uploadVehicleProof"
+        "uploadVehicleProof",
+        "upsertDriverProfileDraft",
+        "upsertDriverVehicleDraft"
       ],
       "type": [
         "BookingDetail",
         "DriverDirectoryEntryDto",
         "DriverPortalState",
         "DriverRequestSummary",
+        "DriverStatementSummary",
         "OwnerRequestSummary"
       ]
     }

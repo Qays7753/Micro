@@ -71,7 +71,7 @@ describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () =
      * 30 ← 29؛ الأسطح أُعيد إرساؤها في نفس الشريحة. */
     const result = checkApplicationDoorSurfaces(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.doors).toBe(29);
+    expect(result.stats.doors).toBe(32);
     expect(result.stats.rootFiles).toBe(1);
     expect(result.violations).toEqual([]);
   });

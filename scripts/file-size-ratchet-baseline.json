@@ -807,7 +807,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx": {
-      "nbLoc": 93,
+      "nbLoc": 148,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx": {
@@ -947,7 +947,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/index.css": {
-      "nbLoc": 6778,
+      "nbLoc": 7365,
       "band": "SPLIT_NOW"
     },
     "apps/prototype-web/client/src/lib/syncSha256.ts": {
@@ -1515,7 +1515,7 @@
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {
-      "nbLoc": 510,
+      "nbLoc": 518,
       "band": "WATCH"
     },
     "scripts/application-house-edges-census.json": {
@@ -1735,7 +1735,7 @@
       "band": "WATCH"
     },
     "scripts/text_density_policy.py": {
-      "nbLoc": 859,
+      "nbLoc": 967,
       "band": "SPLIT_CANDIDATE"
     },
     "scripts/theme-contrast-guard.py": {
@@ -1989,6 +1989,26 @@
     "tools/micromatch-shim/lib/braces-free.js": {
       "nbLoc": 317,
       "band": "NORMAL"
+    },
+    "apps/prototype-web/worker/api/deliveryExecution.ts": {
+      "nbLoc": 487,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/deliveryRequest.ts": {
+      "nbLoc": 424,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/marketListings.ts": {
+      "nbLoc": 490,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DriverPortal.tsx": {
+      "nbLoc": 439,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx": {
+      "nbLoc": 434,
+      "band": "WATCH"
     }
   }
 }

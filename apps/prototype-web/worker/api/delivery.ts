@@ -8,6 +8,7 @@
  */
 
 import { audit, notify } from "../audit.ts";
+import { enforceGuestReadLimit } from "../ratelimit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { getDisclosureSettings, newId, type Db } from "../db/d1.ts";
@@ -35,14 +36,17 @@ export interface DriverDirectoryEntry {
 /** GET /api/delivery/drivers — the approved public driver directory (OD03). */
 export async function driverDirectory(ctx: RouteContext): Promise<Response> {
   const now = nowMs();
+  await enforceGuestReadLimit(ctx.env.DB, ctx.request, now);
   const rows = await db(ctx)
     .prepare(
       "SELECT p.id, p.public_copy_json, p.accepting_new, " +
         "(SELECT COUNT(*) FROM driver_vehicle v WHERE v.driver_profile_id = p.id AND v.status = 'approved') AS vehicles, " +
         "(SELECT COUNT(*) FROM driver_evidence e WHERE e.driver_profile_id = p.id AND e.status = 'approved' " +
         "  AND (e.expires_at IS NULL OR e.expires_at > ?)) AS valid_evidence, " +
-        "(SELECT AVG(r.stars) FROM task_rating r WHERE r.driver_profile_id = p.id AND r.status IN ('published')) AS avg_stars, " +
-        "(SELECT COUNT(*) FROM task_rating r WHERE r.driver_profile_id = p.id AND r.status IN ('published')) AS ratings " +
+        // OD17: stars are visible immediately (pending + published); a REJECTED
+        // rating is removed entirely by moderation — its stars never count.
+        "(SELECT AVG(r.stars) FROM task_rating r WHERE r.driver_profile_id = p.id AND r.status != 'rejected') AS avg_stars, " +
+        "(SELECT COUNT(*) FROM task_rating r WHERE r.driver_profile_id = p.id AND r.status != 'rejected') AS ratings " +
         "FROM driver_profile p WHERE p.status = 'approved'",
     )
     .bind(now)
@@ -94,29 +98,22 @@ async function loadRequest(ctx: RouteContext, requestId: string) {
 /** The disclosure view: what the OTHER party may see (contract 21 §4). */
 function redactPayload(
   payload: Record<string, unknown>,
-  recipient: "driver",
   disclosure: string,
+  requestStatus: string,
 ): Record<string, unknown> {
-  const zones = {
-    pickup: {
-      governorate: (payload.pickup as Record<string, unknown> | undefined)?.governorate,
-      area: (payload.pickup as Record<string, unknown> | undefined)?.area,
-    },
-    dropoff: {
-      governorate: (payload.dropoff as Record<string, unknown> | undefined)?.governorate,
-      area: (payload.dropoff as Record<string, unknown> | undefined)?.area,
-    },
-  };
-  if (disclosure === "allowed_after_acceptance") {
+  if (disclosure === "allowed_after_acceptance" && requestStatus === "confirmed") {
     return payload;
   }
-  // Blocked by default (EX-O14): zones + schedule + load only; no recipient
-  // name/phone/address and no detailed pickup address.
+  // Blocked by default (EX-O14): an ALLOWLIST — only zones, schedule, and
+  // load characteristics reach the driver; any future payload field stays
+  // private unless explicitly added here.
+  const pickup = payload.pickup as Record<string, unknown> | undefined;
+  const dropoff = payload.dropoff as Record<string, unknown> | undefined;
   return {
-    ...payload,
-    pickup: zones.pickup,
-    dropoff: zones.dropoff,
-    notes: undefined,
+    pickup: { governorate: pickup?.governorate, area: pickup?.area },
+    dropoff: { governorate: dropoff?.governorate, area: dropoff?.area },
+    load: payload.load,
+    schedule: payload.schedule,
   };
 }
 
@@ -171,10 +168,24 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
       collectionMinor: row.collection_minor === null ? null : String(row.collection_minor),
       collectionContent: row.collection_content === null ? null : String(row.collection_content),
       responseDeadlineAt: row.response_deadline_at === null ? null : Number(row.response_deadline_at),
-      agreementCopy: row.agreement_copy_json === null ? null : JSON.parse(String(row.agreement_copy_json)),
-      payload: isRequester
-        ? payload
-        : redactPayload(payload, "driver", disclosure.recipient_details_to_driver),
+      agreementCopy:
+        row.agreement_copy_json === null
+          ? null
+          : isRequester ||
+              auth.isAdmin ||
+              (disclosure.recipient_details_to_driver === "allowed_after_acceptance" &&
+                status === "confirmed")
+            ? (JSON.parse(String(row.agreement_copy_json)) as Record<string, unknown>)
+            : {
+                ...(JSON.parse(String(row.agreement_copy_json)) as Record<string, unknown>),
+                payload: redactPayload(
+                  (JSON.parse(String(row.agreement_copy_json)) as { payload: Record<string, unknown> })
+                    .payload,
+                  disclosure.recipient_details_to_driver,
+                  status,
+                ),
+              },
+      payload: isRequester ? payload : redactPayload(payload, disclosure.recipient_details_to_driver, status),
       createdAt: Number(row.created_at),
     },
     quote:
@@ -204,7 +215,10 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
       reason: event.reason === null ? null : String(event.reason),
       at: Number(event.created_at),
     })),
-    requester: { displayName: String(requester?.display_name ?? "") },
+    requester: {
+      id: String(requesterId),
+      displayName: String(requester?.display_name ?? ""),
+    },
     driver: {
       id: String(driverProfileRow.id),
       profile: JSON.parse(String(driverProfileRow.public_copy_json ?? "{}")),

@@ -49,9 +49,14 @@ export async function storeIdempotent(
   now: number,
 ): Promise<void> {
   const body = await response.clone().text();
+  // Upsert (not INSERT OR IGNORE): after the TTL expires the same key must be
+  // able to store a FRESH response, otherwise every later retry re-executes
+  // the command forever (Reviewer 5, 2026-11-12).
   await db
     .prepare(
-      "INSERT OR IGNORE INTO idempotency (key, request_hash, response_status, response_body, created_at) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO idempotency (key, request_hash, response_status, response_body, created_at) VALUES (?, ?, ?, ?, ?) " +
+        "ON CONFLICT(key) DO UPDATE SET request_hash = excluded.request_hash, response_status = excluded.response_status, " +
+        "response_body = excluded.response_body, created_at = excluded.created_at",
     )
     .bind(key.key, requestHash, response.status, body, now)
     .run();

@@ -9,8 +9,11 @@ import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/d1.ts";
+import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import {
   JORDAN_GOVERNORATES,
+  MAX_PRICE_MICRO,
+  parsePositiveIntegerString,
   validatePricing,
   type ListingPricing,
   type ListingQuantity,
@@ -197,11 +200,47 @@ export async function updateListingDraft(ctx: RouteContext, auth: AuthenticatedC
   return jsonResponse({ ok: true });
 }
 
+/** GET /api/market/vendor/listings/:id — the owner's own draft (work copy). */
+export async function getVendorListingDraft(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const media = await db(ctx)
+    .prepare("SELECT media_id FROM listing_media WHERE listing_id = ?")
+    .bind(String(row.id))
+    .all<Record<string, unknown>>();
+  const work = JSON.parse(String(row.work_copy_json ?? "{}")) as Record<string, unknown>;
+  return jsonResponse({
+    listing: {
+      id: String(row.id),
+      status: String(row.status),
+      revisionStatus: String(row.revision_status),
+      title: String(row.title),
+      category: String(row.category),
+      governorate: String(row.governorate),
+      description: String(row.description),
+      contact: JSON.parse(String(row.contact_channel_json ?? "{}")),
+      pricing: (work.pricing ?? null) as Record<string, unknown> | null,
+      quantity: (work.quantity ?? null) as Record<string, unknown> | null,
+      mediaIds: media.results.map(entry => String(entry.media_id)),
+    },
+  });
+}
+
 /** POST /api/market/vendor/listings/:id/submit — submit draft or revision. */
 export async function submitListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const row = await requireOwnListing(ctx, auth, ctx.params.id!);
   const status = String(row.status);
   const now = nowMs();
+  const limits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("listing-submit", auth.identityId, now),
+    limits.submissionsPerDay,
+    24 * 60 * 60 * 1000,
+    now,
+  );
   if (status === "draft" || status === "changes_requested" || status === "rejected") {
     await db(ctx)
       .prepare(
@@ -285,9 +324,13 @@ export async function vendorListingLifecycle(
       .bind(now, String(row.id))
       .run();
   } else if (action === "resume" && status === "paused") {
-    // OD-11: resuming a listing hidden for staleness requires review renewal.
-    const needsReview = String(row.freshness_state) === "hidden_stale";
-    if (needsReview) throw new HttpError(409, "conflict", { reason: "renewal_requires_review" });
+    // OD-11: renewal goes through review. Freshness is COMPUTED from the last
+    // availability confirmation (the stored column lags until a direct
+    // action), so a listing paused past the 60-day hide cannot resume around
+    // the review-based renewal.
+    const confirmedAt = Number(row.availability_confirmed_at);
+    const stale = now - confirmedAt >= LISTING_FRESHNESS_HIDE_MS;
+    if (stale) throw new HttpError(409, "conflict", { reason: "renewal_requires_review" });
     await db(ctx)
       .prepare("UPDATE supplier_listing SET status = 'approved_for_publish', updated_at = ? WHERE id = ?")
       .bind(now, String(row.id))
@@ -334,8 +377,68 @@ export async function attachListingMedia(ctx: RouteContext, auth: AuthenticatedC
   return jsonResponse({ ok: true });
 }
 
+/** POST /api/market/vendor/listings/:id/direct-update — OD-09 numeric/availability
+ * direct updates with verification + a logged moderation event. Only the
+ * approved direct fields are accepted; content changes go through review. */
+export async function directUpdateListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  if (String(row.status) !== "approved_for_publish")
+    throw new HttpError(409, "conflict", { reason: "not_published" });
+  const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
+  const now = nowMs();
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  if (body.priceMicroJod !== undefined) {
+    // OD-09: direct numeric updates apply to the SAME pricing mode — a scalar
+    // price is only meaningful for fixed pricing (tiered/quote go to review).
+    if (String(row.price_mode) !== "fixed") {
+      throw new HttpError(409, "conflict", { reason: "direct_price_requires_fixed_pricing" });
+    }
+    // Validate the numeric value itself (same domain rule as a full pricing
+    // object); the price basis and all content stay under review.
+    parsePositiveIntegerString(body.priceMicroJod, "priceMicroJod", MAX_PRICE_MICRO);
+    sets.push("price_micro_jod = ?");
+    values.push(String(body.priceMicroJod));
+  }
+  if (body.availabilityStatus !== undefined) {
+    if (
+      !["available", "made_to_order", "temporarily_unavailable"].includes(String(body.availabilityStatus))
+    ) {
+      throw new HttpError(400, "bad_request", { field: "availabilityStatus" });
+    }
+    sets.push("availability_status = ?");
+    values.push(body.availabilityStatus);
+  }
+  if (sets.length === 0) throw new HttpError(400, "bad_request", { reason: "no_direct_fields" });
+  // Availability changes re-anchor freshness (OD-11) only for the available state.
+  if (body.availabilityStatus === "available") {
+    sets.push("availability_confirmed_at = ?", "freshness_state = 'fresh'");
+    values.push(now);
+  }
+  sets.push("updated_at = ?");
+  values.push(now, String(row.id));
+  await db(ctx)
+    .prepare(`UPDATE supplier_listing SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+  await db(ctx)
+    .prepare(
+      "INSERT INTO market_moderation_event (object_type, object_id, actor_identity_id, action, reason, created_at) VALUES ('supplier_listing', ?, ?, 'direct_update', ?, ?)",
+    )
+    .bind(String(row.id), auth.identityId, JSON.stringify(Object.keys(body).sort()), now)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
 /** POST /api/market/saved/:listingId — save/unsave (toggle). */
 export async function toggleSavedListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  // Only a currently published listing can be saved (honest data, and no FK
+  // 500 on made-up ids).
+  const listing = await db(ctx)
+    .prepare("SELECT id FROM supplier_listing WHERE id = ? AND status = 'approved_for_publish'")
+    .bind(ctx.params.listingId!)
+    .first();
+  if (!listing) throw new HttpError(404, "not_found");
   const listingId = ctx.params.listingId!;
   const existing = await db(ctx)
     .prepare("SELECT listing_id FROM market_saved_item WHERE identity_id = ? AND listing_id = ?")
@@ -357,6 +460,14 @@ export async function toggleSavedListing(ctx: RouteContext, auth: AuthenticatedC
 
 /** POST /api/market/report — report a listing (never auto-mutates it). */
 export async function reportListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const reportLimits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("market-report", auth.identityId, nowMs()),
+    reportLimits.reportsPerDay,
+    24 * 60 * 60 * 1000,
+    nowMs(),
+  );
   const body = (await readJsonBody(ctx.request)) as { listingId?: string; reason?: string; details?: string };
   const reasons = ["misleading", "out_of_scope", "spam", "contact_issue", "other"];
   if (

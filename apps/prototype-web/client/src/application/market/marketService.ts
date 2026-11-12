@@ -25,6 +25,7 @@ export interface PublicListingDetail extends PublicListingSummary {
   availabilityConfirmedAt: number;
   contactChannel: { type: string; value: string };
   publishedAt: number | null;
+  priceBasis: { units: string; unit: string } | null;
 }
 
 export interface MarketMeta {
@@ -34,6 +35,8 @@ export interface MarketMeta {
 
 export interface VendorOverview {
   vendor: { status: string; supplierProfileId: string } | null;
+  vendorReviewReason: string | null;
+  profileFields: { displayName?: string; contactPhone?: string; governorate?: string } | null;
   listings: {
     id: string;
     title: string;
@@ -118,6 +121,32 @@ export async function submitVendorProfile(): Promise<void> {
 export async function createListingDraft(input: ListingDraftInput): Promise<{ listing: { id: string } }> {
   return apiFetch(
     "/api/market/vendor/listings",
+    { method: "POST", body: JSON.stringify(input) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+export interface VendorListingDraft {
+  id: string;
+  status: string;
+  revisionStatus: string;
+  title: string;
+  category: string;
+  governorate: string;
+  description: string;
+  contact: { type?: string; value?: string };
+  pricing: { mode?: string; priceMicroJod?: string; basis?: { units?: string; unit?: string } } | null;
+  quantity: { unit?: string; minQuantityMilli?: string; stepMilli?: string; unpacked?: boolean } | null;
+  mediaIds: string[];
+}
+
+export async function fetchVendorListingDraft(id: string): Promise<{ listing: VendorListingDraft }> {
+  return apiFetch(`/api/market/vendor/listings/${encodeURIComponent(id)}`);
+}
+
+export async function updateListingDraft(id: string, input: ListingDraftInput): Promise<void> {
+  await apiFetch(
+    `/api/market/vendor/listings/${encodeURIComponent(id)}`,
     { method: "POST", body: JSON.stringify(input) },
     { idempotencyKey: newIdempotencyKey() },
   );

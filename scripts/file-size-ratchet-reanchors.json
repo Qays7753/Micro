@@ -905,10 +905,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 510,
-        "band": "WATCH"
+        "nbLoc": 365,
+        "band": "NORMAL"
       },
-      "reason": "R10-B3 documented door-surface updates (PC-3): preferences door +ThemePreference +CapabilityId +isKnownCapabilityId; finance door +PAYMENT_SOURCE_UNSET +resolveDefaultPaymentSource; inventory door +materialUnitLabel; four dated notes added. Measurement data tracks the documented surface changes of this wave. (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "R10-B3 documented door-surface updates (PC-3): preferences door +ThemePreference +CapabilityId +isKnownCapabilityId; finance door +PAYMENT_SOURCE_UNSET +resolveDefaultPaymentSource; inventory door +materialUnitLabel; four dated notes added. Measurement data tracks the documented surface changes of this wave.",
       "authorization": {
         "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
         "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
@@ -1247,10 +1247,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 100,
+        "nbLoc": 82,
         "band": "NORMAL"
       },
-      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): pathnameOnly exported as the single owner of bare-pathname derivation (the shell now imports it instead of repeating the split idiom inline) — a 2-line dated comment + export keyword; zero behavior change. (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): pathnameOnly exported as the single owner of bare-pathname derivation (the shell now imports it instead of repeating the split idiom inline) — a 2-line dated comment + export keyword; zero behavior change.",
       "authorization": {
         "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): centralized route-transition focus management + per-route document.title as a complementary B4 commit; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
         "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)",
@@ -1646,10 +1646,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 343,
+        "nbLoc": 316,
         "band": "NORMAL"
       },
-      "reason": "R11 Lock Remediation corpus visibility row (per the read-like-corpus-growth rule, D-04/R10A-F-019 OD-GUARD Option A): security/localLockBackoff.ts — the new shared backoff tier/wait-message module (read-only, no writes) — is added to READ_LIKE_CORPUS_BASELINE with its test pin updated 63 -> 64 in the same PR. One-line growth; no rule or classification weakened. (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "R11 Lock Remediation corpus visibility row (per the read-like-corpus-growth rule, D-04/R10A-F-019 OD-GUARD Option A): security/localLockBackoff.ts — the new shared backoff tier/wait-message module (read-only, no writes) — is added to READ_LIKE_CORPUS_BASELINE with its test pin updated 63 -> 64 in the same PR. One-line growth; no rule or classification weakened.",
       "authorization": {
         "ownerReview": "check-application-readwrite documented-corpus protocol (add with documented classification in the same PR) — part of the R11 lock remediation execution PR #368",
         "trigger": "localLockBackoff.ts extraction for the entry gzip ceiling (OD-LOCK contract section 10)",
@@ -5940,10 +5940,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 299,
+        "nbLoc": 265,
         "band": "NORMAL"
       },
-      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أربعة مسارات عميقة جديدة لأدوات T02–T05 بتعليقاتها. (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أربعة مسارات عميقة جديدة لأدوات T02–T05 بتعليقاتها.",
       "authorization": {
         "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
         "trigger": "S10 implementation growth measured on the live tree",
@@ -5959,10 +5959,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 226,
+        "nbLoc": 207,
         "band": "NORMAL"
       },
-      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. البديل الكنوني للرجوع لمسارات T02–T05 الأربعة (مقعد أدوات المشروع). (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. البديل الكنوني للرجوع لمسارات T02–T05 الأربعة (مقعد أدوات المشروع).",
       "authorization": {
         "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
         "trigger": "S10 implementation growth measured on the live tree",
@@ -8657,10 +8657,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 64,
+        "nbLoc": 55,
         "band": "NORMAL"
       },
-      "reason": "S16 (SH-21 — NAV-01 V15 §1): the five-seat bar is المالية، الطلبات، الرئيسية، التوصيل، السوق with the unified home label (HOME-R01) and the /delivery contextual label. (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "S16 (SH-21 — NAV-01 V15 §1): the five-seat bar is المالية، الطلبات، الرئيسية، التوصيل، السوق with the unified home label (HOME-R01) and the /delivery contextual label.",
       "authorization": {
         "ownerReview": "Owner-authorized continuous S16 execution (00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4 — UNIT-003/014/041/043 + SH-21; ratchets re-anchored, never silently released)",
         "trigger": "S16 execution on components/integration-20261027 / PR #383",
@@ -9523,26 +9523,7 @@
       }
     },
     {
-      "id": "reanchor-readwrite-network-market-homes-2026-11-12",
-      "date": "2026-11-12",
-      "path": "scripts/check-application-readwrite.mjs",
-      "from": {
-        "nbLoc": 315,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 341,
-        "band": "NORMAL"
-      },
-      "reason": "تسجيل ملفات بيتي الشبكة والسوق (network/apiClient.ts وnetwork/index.ts وnetwork/sessionService.ts وmarket/marketService.ts وmarket/marketEstimate.ts وmarket/index.ts) في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيوت تطبيق جديدة بلا أفعال كتابة (مع إعادة تسمية upsertVendorProfile لتفادي مفردات الكتابة النصية)؛ لا تغيير منطق.",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786)",
-        "trigger": "إنشاء بيوت application/network وapplication/market بمطالبة WS-249 (DOC-033/DOC-034)",
-        "ocRef": "DOC-034"
-      }
-    },
-    {
-      "id": "reanchor-market-MicroRouter-2026-11-12",
+      "id": "reanchor-network-expansion-1-2026-11-12",
       "date": "2026-11-12",
       "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
       "from": {
@@ -9550,18 +9531,18 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 288,
+        "nbLoc": 299,
         "band": "NORMAL"
       },
-      "reason": "إضافة مسارات السوق الخمسة (مساحة المورد ومحررها وتفاصيل الإعلان وطابور المراجعة) بمكوناتها الكسولة — إضافي صرف بلا تحريك أي مسار قائم (عقد 26 §8).",
+      "reason": "إضافة مسارات السوق الخمسة ثم مسارات التوصيل الخمسة وبوابة السائق المستقلة بمكوناتها الكسولة (عقد 26 §8/OD01) — إضافي صرف فوق القيم السابقة بلا تحريك أي مسطر قائم؛ النمو الكلي للمسار موثق بسجل واحد من قيمة قاعدة الدمج إلى القياس النهائي",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-market-navigation-2026-11-12",
+      "id": "reanchor-network-expansion-2-2026-11-12",
       "date": "2026-11-12",
       "path": "apps/prototype-web/client/src/app/navigation.ts",
       "from": {
@@ -9569,18 +9550,18 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 59,
+        "nbLoc": 64,
         "band": "NORMAL"
       },
-      "reason": "تسميات سياقية لمسارات السوق فوق مقعد الشريط نفسه (عقد 26 §8).",
+      "reason": "تسميات سياقية لمسارات السوق ثم التوصيل وبوابة السائق فوق مقعد الشريط نفسه (عقد 26 §8)",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-market-navigationContract-2026-11-12",
+      "id": "reanchor-network-expansion-3-2026-11-12",
       "date": "2026-11-12",
       "path": "apps/prototype-web/client/src/app/navigationContract.ts",
       "from": {
@@ -9588,18 +9569,18 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 216,
+        "nbLoc": 226,
         "band": "NORMAL"
       },
-      "reason": "بدائل الرجوع القانونية لمسارات السوق (§2.2) وقاعدتها البادئية (عقد 26 §8).",
+      "reason": "بدائل الرجوع القانونية وقاعدة البادئات لمسارات السوق ثم التوصيل وبوابة السائق (عقد 26 §8)",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-market-routeClassifier-2026-11-12",
+      "id": "reanchor-network-expansion-4-2026-11-12",
       "date": "2026-11-12",
       "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
       "from": {
@@ -9607,18 +9588,18 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 95,
+        "nbLoc": 100,
         "band": "NORMAL"
       },
-      "reason": "أنماط عمق محررات السوق (القارئ سطح والمحرر عمق — عقد 26 §8).",
+      "reason": "أنماط عمق محررات السوق ثم محرر الحجز وبوابة السائق المستقلة (عقد 26 §8/OD01)",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-market-Market-2026-11-12",
+      "id": "reanchor-network-expansion-5-2026-11-12",
       "date": "2026-11-12",
       "path": "apps/prototype-web/client/src/pages/Market.tsx",
       "from": {
@@ -9629,15 +9610,15 @@
         "nbLoc": 197,
         "band": "NORMAL"
       },
-      "reason": "استبدال إعلان «قريبًا» بسطح التصفح الحقيقي Listing-first: بحث وفلاتر وقائمة وحدود صادقة ومدخل مساحة المورد (OD-03/OD-04). (مُدد ليشمل أسلاك التوصيل وبوابة السائق في نفس الترخيص.)",
+      "reason": "استبدال إعلان «قريبًا» بسطح التصفح الحقيقي Listing-first: بحث وفلاتر وقائمة وحدود صادقة ومدخل مساحة المورد (OD-03/OD-04) — سوق فقط دون أي نمو لاحق",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-market-application-door-surfaces-baseline-2026-11-12",
+      "id": "reanchor-network-expansion-6-2026-11-12",
       "date": "2026-11-12",
       "path": "scripts/application-door-surfaces-baseline.json",
       "from": {
@@ -9645,128 +9626,185 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 474,
+        "nbLoc": 518,
         "band": "WATCH"
       },
-      "reason": "تسجيل بابي الشبكة والسوق في أساس الأبواب (31 بابًا) — توسيع موثق بنفس الـPR (PC-3).",
+      "reason": "تسجيل أبواب الشبكة والسوق والتوصيل الثلاثة في أساس الأبواب المولد (31 بابًا) — تسجيل أبواب الشبكة والسوق والتوصيل الثلاثة في أساس الأبواب المولد مع توسيع سطحي التوصيل والسوق بوظائف الكشوف والمسودات بعد المراجعة الخماسية (PC-3)",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
-        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
-        "ocRef": "DOC-034"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
       }
     },
     {
-      "id": "reanchor-delivery-MicroRouter-2026-11-12",
-      "date": "2026-11-12",
-      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
-      "from": {
-        "nbLoc": 288,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 299,
-        "band": "NORMAL"
-      },
-      "reason": "إضافة مسارات التوصيل الخمسة وبوابة السائق المستقلة (عقد 26 §8/OD01).",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
-      }
-    },
-    {
-      "id": "reanchor-delivery-navigation-2026-11-12",
-      "date": "2026-11-12",
-      "path": "apps/prototype-web/client/src/app/navigation.ts",
-      "from": {
-        "nbLoc": 59,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 64,
-        "band": "NORMAL"
-      },
-      "reason": "تسميات سياقية للتوصيل وبوابة السائق (عقد 26 §8).",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
-      }
-    },
-    {
-      "id": "reanchor-delivery-navigationContract-2026-11-12",
-      "date": "2026-11-12",
-      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
-      "from": {
-        "nbLoc": 216,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 224,
-        "band": "NORMAL"
-      },
-      "reason": "بدائل رجوع التوصيل وبوابة السائق (عقد 26 §8).",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
-      }
-    },
-    {
-      "id": "reanchor-delivery-routeClassifier-2026-11-12",
-      "date": "2026-11-12",
-      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
-      "from": {
-        "nbLoc": 95,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 100,
-        "band": "NORMAL"
-      },
-      "reason": "أنماط عمق محرر الحجز وبوابة السائق المستقلة (عقد 26 §8/OD01).",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
-      }
-    },
-    {
-      "id": "reanchor-delivery-application-door-surfaces-baseline-2026-11-12",
-      "date": "2026-11-12",
-      "path": "scripts/application-door-surfaces-baseline.json",
-      "from": {
-        "nbLoc": 474,
-        "band": "WATCH"
-      },
-      "to": {
-        "nbLoc": 510,
-        "band": "WATCH"
-      },
-      "reason": "تسجيل باب التوصيل — توسيع موثق بنفس الـPR (PC-3).",
-      "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
-      }
-    },
-    {
-      "id": "reanchor-delivery-check-application-readwrite-2026-11-12",
+      "id": "reanchor-network-expansion-7-2026-11-12",
       "date": "2026-11-12",
       "path": "scripts/check-application-readwrite.mjs",
       "from": {
-        "nbLoc": 341,
+        "nbLoc": 315,
         "band": "NORMAL"
       },
       "to": {
         "nbLoc": 343,
         "band": "NORMAL"
       },
-      "reason": "تسجيل ملفات بيت التوصيل في جسم القراءة (نمو إلزامي من الحارس نفسه).",
+      "reason": "تسجيل بيوت الشبكة والسوق والتوصيل في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيوت تطبيق جديدة بلا أفعال كتابة (بروتوكول الجسم الموثق بنفس الـPR)",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل، التزام ce21b786) — تنفيذ Delivery v1",
-        "trigger": "تنفيذ تجربة صاحب المشروع وبوابة السائق وفق عقد 26 §8 والعقد 21",
-        "ocRef": "DOC-035"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-8-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): تنفيذ محاور التفيذ/التأكيد/التواصل/الأغراض للتوصيل الموجه (OD07/OD14/OD15/OD16) وحدثَي الكشف اليومي الكامل التأكيد (OD13) — أحداث الاستئناف الثمانية (تعذر الاستلام ومسارات المتابعة — عقد 21 §3.2-3) وحرس النافذة للعرض النهائي والتحديث الشرطي وقيد التقدم الأمامي لمحور المال؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-9-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): دورة الطلب الموجه من المسودة إلى التأكيد بنسخة الاتفاق المجمدة (OD02/OD03/OD05/OD11) — تحديثات شرطية لسباق القرار المتزامن (قبول/سحب/إلغاء) وتحقق نتيجة التواصل؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-10-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 490,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): دورة حياة إعلانات السوق من المسودة إلى النشر مع البوابة الذرية والتحديث الرقمي المباشر الموثق (OD-09/OD-11) — بوابة السائق تُقرأ بعملية GET ومسودة المورد مع تحديث مباشر مقيد بنمط التسعير الثابت وحساب الحداثة عند الاستئناف وتحقق المحفوظات؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-11-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "reason": "صفحة بوابة السائق الجديدة (OD01/OD21) بعد إصلاحات المراجعة الخماسية: حالات تحميل/خطأ صادقة بدل وميض نموذج التقديم، اختيار مناطق الخدمة الحقيقي بدل التثبيت الصلب، سجل الكشوف اليومية، وتسميات الحالات الكانونية — دخول WATCH موثق من الصفر؛ لا سقف رُفع لملف قائم",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Delivery v1 بمطالبة WS-249 (DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-12-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 967,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "تسجيل أسطح التوسعة العشرة في سياكة كثافة النص بأول قياس موثق وأسقف معلنة (تعديل بيانات سياسة موثق لا كودًا) — نمو إلزامي فرضه الحارس نفسه عند إضافة أسطح جديدة",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-13-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 434,
+        "band": "WATCH"
+      },
+      "reason": "صفحة تفاصيل الحجز لدى السائق بعد إصلاحات المراجعة الخماسية: سبب إلزامي لتصريح التعذر مع اختيار نتيجة التواصل، أزرار أحداث الاستئناف الثمانية، التصريح بالتحصيل وإرسال بند الكشف اليومي، وحالات الدور الصادقة — دخول WATCH موثق من الصفر؛ لا سقف رُفع لملف قائم",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Delivery v1 بمطالبة WS-249 (DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-14-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 6778,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "كتلة أنماط أسطح التوسعة (السوق/التوصيل/بوابة السائق): بطاقات قائمة بلا نقاط، شبكات المحررات، أهداف لمس بارتفاع التحكم، وصور بحد أقصى للعرض — الرموز القائمة حصرًا بلا أي لون خام (حارس الرموز أخضر)؛ كانت الأسطح الجديدة كلها بلا أنماط (المراجعة ٢ — عيب حرج)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-15-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "reason": "عزل كروم بوابة السائق (عقد ٢٦ §8/OD01): ترويسة المالك (قائمة الشعار → الحساب/البيانات/الإعدادات) لا تظهر فوق /driver إطلاقًا — شريط هوية السائق وحده؛ وتوسيع مجموعة «الترويسة تكرر h1» بالأسطح الجديدة — إصلاح عيب حرج من المراجعة ٢",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) — تنفيذ Delivery v1",
+        "trigger": "عزل بوابة السائق وفق عقد 26 §8 (مطالبة WS-249/DOC-035)",
+        "ocRef": "WS-249"
       }
     }
   ]

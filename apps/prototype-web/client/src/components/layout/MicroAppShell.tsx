@@ -26,6 +26,11 @@ const CONTEXT_REPEATS_H1 = new Set([
   "/inventory",
   "/suppliers",
   "/cash",
+  "/market",
+  "/delivery",
+  "/market/vendor",
+  "/market/review",
+  "/delivery/drivers",
 ]);
 
 export function MicroAppShell({ children }: { children: ReactNode }) {
@@ -109,15 +114,25 @@ function ShellContent({ location, children }: { location: string; children: Reac
   useEffect(() => {
     document.title = getNavigationLabel(pathname);
   }, [pathname]);
+  /* بوابة السائق (عقد ٢٦ §8/OD01): سياق مستقل تمامًا — لا ترويسة المالك
+   * (قائمة الشعار → الحساب/البيانات/الإعدادات) ولا شريط سفلي؛ شريط هوية
+   * السائق وحده أعلى البوابة. */
+  const isDriverPortal = pathname.startsWith("/driver");
   return (
     <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
-      <AppHeader
-        contextLabel={
-          isSetup ? "تأسيس محلي" : CONTEXT_REPEATS_H1.has(pathname) ? null : getNavigationLabel(location)
-        }
-        accountComplete={accountComplete}
-        onNavigate={requestNavigation}
-      />
+      {isDriverPortal ? (
+        <header className="micro-driver-shell-header">
+          <span className="micro-overline">Micro — السائق</span>
+        </header>
+      ) : (
+        <AppHeader
+          contextLabel={
+            isSetup ? "تأسيس محلي" : CONTEXT_REPEATS_H1.has(pathname) ? null : getNavigationLabel(location)
+          }
+          accountComplete={accountComplete}
+          onNavigate={requestNavigation}
+        />
+      )}
       <main
         className="micro-main"
         data-route-kind={routeKind}

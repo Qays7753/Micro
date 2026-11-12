@@ -1871,7 +1871,7 @@ textarea:disabled,
   margin: 0;
   font-size: 0.8125rem;
 }
-/* UX-001 V2 (WS-183): أزيلت .micro-review-result/.micro-review-empty الميتتان
+/* UX-001 V2 (WS-183): أزيلت .micro-review-result/.micro-review-queue-empty الميتتان
    (صفر مستهلكين — الجرد 2026-09-24)؛ نتيجة المراجعة الحية في
    .micro-period-result وعناصرها. */
 .micro-schedule-page {
@@ -6994,4 +6994,491 @@ button.micro-month-cell:active {
   border-inline-start: 3px solid var(--color-border);
   padding-inline-start: var(--space-2);
   margin: 0;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * التوسعة الشبكية (EX-D18 — Market/Delivery، 2026-11-12): أسطح السوق
+ * والتوصيل وبوابة السائق. نفس الرموز والمنظومة القائمة حصرًا (بلا أي لون
+ * خام أو حجم خارج السلم) — بطاقات قائمة بلا نقاط، شبكات محررات عمودية
+ * على ٣٦٠ بكسل وعمودين من ٤٨٠، أهداف لمس بارتفاع التحكم، وصور بحد أقصى
+ * للعرض فلا فائض أفقي أبدًا.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.micro-market-actions,
+.micro-delivery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.micro-market-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 220px;
+  min-height: var(--vf-control-height);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: 0 var(--space-3);
+}
+
+.micro-market-search svg {
+  color: var(--color-text-secondary);
+  flex: none;
+}
+
+.micro-market-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: var(--space-2) 0;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+}
+
+.micro-market-search:focus-within {
+  border-color: var(--color-accent-text);
+}
+
+.micro-market-filters {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-bg-well);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+
+.micro-market-filters label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-market-filters label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.micro-market-filters select {
+  min-height: var(--vf-control-height-compact);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  padding: var(--space-1) var(--space-2);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.micro-market-results,
+.micro-delivery-results,
+.micro-drivers-list,
+.micro-driver-picker,
+.micro-evidence-list,
+.micro-timeline,
+.micro-statement-list,
+.micro-statement-card__items,
+.micro-driver-inbox ul,
+.micro-vendor-listings ul {
+  list-style: none;
+  padding-inline-start: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.micro-market-results li,
+.micro-delivery-results li,
+.micro-drivers-list li,
+.micro-driver-inbox ul li,
+.micro-vendor-listings ul li {
+  margin: 0;
+}
+
+.micro-market-card,
+.micro-delivery-card,
+.micro-driver-card,
+.micro-driver-request-card,
+.micro-statement-card,
+.micro-vendor-listing,
+.micro-review-item {
+  display: grid;
+  gap: var(--space-1);
+  text-align: start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  width: 100%;
+}
+
+button.micro-market-card,
+button.micro-delivery-card,
+button.micro-driver-request-card {
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--motion-out);
+}
+
+button.micro-market-card:hover,
+button.micro-delivery-card:hover,
+button.micro-driver-request-card:hover {
+  border-color: var(--color-accent-text);
+}
+
+button.micro-market-card:focus-visible,
+button.micro-delivery-card:focus-visible,
+button.micro-driver-request-card:focus-visible,
+.micro-market-contact__action:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+
+.micro-market-card strong,
+.micro-delivery-card strong,
+.micro-driver-card strong,
+.micro-driver-request-card strong,
+.micro-vendor-listing strong {
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+}
+
+.micro-market-card__meta,
+.micro-market-card__price,
+.micro-market-card__freshness {
+  font-size: 0.8125rem;
+}
+
+.micro-market-card__price {
+  color: var(--color-text-primary);
+  font-family: var(--font-numeric);
+}
+
+.micro-market-card__freshness {
+  color: var(--color-warning-text);
+}
+
+.micro-market-workspace-entry {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.micro-market-detail,
+.micro-booking-detail,
+.micro-booking-editor,
+.micro-listing-editor,
+.micro-driver-booking,
+.micro-driver-portal,
+.micro-vendor-page,
+.micro-review-page,
+.micro-drivers-page,
+.micro-delivery-page,
+.micro-market-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.micro-market-facts {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-bg-well);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.micro-market-facts > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.micro-market-facts dt {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-market-facts dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.micro-market-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.micro-market-contact {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+
+.micro-market-contact h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.micro-market-contact label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-market-contact input {
+  min-height: var(--vf-control-height);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  padding: var(--space-2);
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+
+.micro-market-estimate {
+  margin: 0;
+  font-family: var(--font-numeric);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.micro-market-contact__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-market-contact__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--vf-control-height);
+  background: var(--color-accent-primary);
+  color: var(--color-surface);
+  border-radius: var(--radius-control);
+  padding: 0 var(--space-4);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.micro-editor-grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media (min-width: 480px) {
+  .micro-editor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.micro-editor-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-vendor-profile,
+.micro-vendor-listings,
+.micro-delivery-statements,
+.micro-driver-status,
+.micro-driver-inbox,
+.micro-driver-statements,
+.micro-quote-box,
+.micro-rating-box {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+
+.micro-vendor-profile h2,
+.micro-vendor-listings h2,
+.micro-delivery-statements h2,
+.micro-driver-status h2,
+.micro-driver-inbox h2,
+.micro-driver-statements h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.micro-vendor-profile__form {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.micro-vendor-profile__status,
+.micro-review-reason,
+.micro-driver-execution,
+.micro-market-status,
+.micro-delivery-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-review-reason {
+  border-inline-start: 3px solid var(--color-warning-text);
+  padding-inline-start: var(--space-2);
+}
+
+.micro-vendor-listing,
+.micro-driver-card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.micro-vendor-listing__actions,
+.micro-driver-card__actions,
+.micro-review-item__actions,
+.micro-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.micro-review-item__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.micro-review-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+}
+
+.micro-review-queue-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-quote-form,
+.micro-failure-declare,
+.micro-collection-declare,
+.micro-statement-item,
+.micro-statement-card__difference {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-2);
+  background: var(--color-bg-well);
+}
+
+.micro-quote-expiry {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-timeline {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.micro-timeline li {
+  border-inline-start: 2px solid var(--color-divider);
+  padding-inline-start: var(--space-2);
+}
+
+.micro-evidence-upload {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+}
+
+.micro-driver-picker label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.micro-driver-picker input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+.micro-driver-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--vf-control-height);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.micro-service-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.micro-service-areas legend {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  padding: 0 var(--space-2);
+}
+
+.micro-service-areas label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.micro-drivers-saved {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-well);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+}
+
+.micro-statement-card__items {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }

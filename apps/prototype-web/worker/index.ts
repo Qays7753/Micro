@@ -25,6 +25,7 @@ function applyStaticHeaders(response: Response, url: URL): Response {
   const headers = new Headers(response.headers);
   if (!headers.has("content-security-policy")) headers.set("content-security-policy", CSP);
   if (!headers.has("x-content-type-options")) headers.set("x-content-type-options", "nosniff");
+  if (!headers.has("service-worker-allowed")) headers.set("service-worker-allowed", "/");
   if (NO_CACHE_PATHS.has(url.pathname)) headers.set("cache-control", "no-cache, no-store, must-revalidate");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

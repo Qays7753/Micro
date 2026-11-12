@@ -15,6 +15,8 @@ export interface RateLimits {
   reportsPerDay: number;
   /** Guest browse requests per minute per identity/IP bucket. */
   guestReadsPerMinute: number;
+  /** Sign-in flow starts per minute per IP (engineering reference). */
+  authStartsPerMinute?: number;
 }
 
 export const DEFAULT_RATE_LIMITS: RateLimits = {
@@ -85,4 +87,15 @@ export function dailyBucket(kind: string, identityId: string, now: number): stri
 
 export function minuteBucket(kind: string, key: string, now: number): string {
   return `${kind}:${key}:${Math.floor(now / MINUTE_MS)}`;
+}
+
+/**
+ * Guest (unauthenticated) read limiter: fixed window per connecting IP.
+ * Cloudflare always sets `CF-Connecting-IP` in production; without it (local
+ * emulation) all callers share one bucket — still bounded, never bypassed.
+ */
+export async function enforceGuestReadLimit(db: Db, request: Request, now: number): Promise<void> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "local";
+  const limits = await rateLimits(db);
+  await enforceRate(db, minuteBucket("guest-read", ip, now), limits.guestReadsPerMinute, MINUTE_MS, now);
 }

@@ -13,16 +13,46 @@ import {
   attachListingMedia,
   createListingDraft,
   fetchMarketMeta,
+  fetchVendorListingDraft,
   submitListing,
+  updateListingDraft,
   uploadListingImage,
   type MarketMeta,
 } from "@/application/market";
 import { Button, Field, Notice } from "@/components/primitives";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
+import { normalizeAsciiDigits } from "@/application/input";
 
 function jodToMicro(jodText: string): string | undefined {
-  if (!/^\d{1,7}(\.\d{1,6})?$/.test(jodText.trim())) return undefined;
-  const [whole, fraction = ""] = jodText.trim().split(".");
+  const text = normalizeAsciiDigits(jodText.trim());
+  if (!/^\d{1,7}(\.\d{1,6})?$/.test(text)) return undefined;
+  const [whole, fraction = ""] = text.split(".");
   return `${whole}${fraction.padEnd(6, "0")}`;
+}
+
+/** Quantity ×1,000 as exact string scaling (contract 25 §3-ب — no floats). */
+function quantityToMilli(quantityText: string): string | undefined {
+  const text = normalizeAsciiDigits(quantityText.trim());
+  if (!/^\d{1,6}(\.\d{1,3})?$/.test(text)) return undefined;
+  const [whole, fraction = ""] = text.split(".");
+  return `${whole}${fraction.padEnd(3, "0")}`;
+}
+
+function microToJodText(micro: string | undefined): string {
+  if (micro === undefined || micro === "") return "";
+  const value = BigInt(micro);
+  const whole = value / 1_000_000n;
+  const fraction = (value % 1_000_000n).toString().padStart(6, "0").replace(/0+$/, "");
+  return fraction === "" ? whole.toString() : `${whole}.${fraction}`;
+}
+
+function milliToQuantityText(milli: string | undefined): string {
+  if (milli === undefined || milli === "") return "";
+  const value = BigInt(milli);
+  const whole = value / 1000n;
+  const fraction = (value % 1000n).toString().padStart(3, "0").replace(/0+$/, "");
+  return fraction === "" ? whole.toString() : `${whole}.${fraction}`;
 }
 
 export default function MarketListingEditor() {
@@ -35,7 +65,9 @@ export default function MarketListingEditor() {
       ? match.replace("/market/vendor/", "")
       : null;
   const [meta, setMeta] = useState<MarketMeta | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -59,9 +91,61 @@ export default function MarketListingEditor() {
       .catch(() => setMeta(null));
   }, []);
 
+  useEffect(() => {
+    // EDIT MODE: load the existing draft's work copy — the form opens
+    // prefilled and saves update the same listing (never a duplicate).
+    if (listingId === null) return;
+    let cancelled = false;
+    void fetchVendorListingDraft(listingId)
+      .then(({ listing }) => {
+        if (cancelled) return;
+        setForm(current => ({
+          ...current,
+          title: listing.title || current.title,
+          category: listing.category || current.category,
+          governorate: listing.governorate || current.governorate,
+          description: listing.description || current.description,
+          contactType: listing.contact?.type === "whatsapp" ? "whatsapp" : "phone",
+          contactValue: listing.contact?.value ?? current.contactValue,
+          priceMode: listing.pricing?.mode === "quote_required" ? "quote_required" : "fixed",
+          priceJod: microToJodText(listing.pricing?.priceMicroJod),
+          basisUnits: listing.pricing?.basis?.units ?? current.basisUnits,
+          quantityUnit: listing.quantity?.unit ?? current.quantityUnit,
+          minQuantity: milliToQuantityText(listing.quantity?.minQuantityMilli),
+          stepQuantity: milliToQuantityText(listing.quantity?.stepMilli),
+        }));
+        setMediaIds(listing.mediaIds);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMessage({ tone: "error", text: "تعذر تحميل الإعلان — أعد المحاولة من مساحة المورد." });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [listingId]);
+
   const update = useCallback((patch: Partial<typeof form>) => {
     setForm(current => ({ ...current, ...patch }));
   }, []);
+
+  const isDirty = useFormDirty([
+    form.title,
+    form.category,
+    form.governorate,
+    form.description,
+    form.contactType,
+    form.contactValue,
+    form.priceMode,
+    form.priceJod,
+    form.basisUnits,
+    form.quantityUnit,
+    form.minQuantity,
+    form.stepQuantity,
+    mediaIds.length,
+  ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => submit() });
 
   if (!session.authenticated) {
     return (
@@ -79,45 +163,67 @@ export default function MarketListingEditor() {
     );
   }
 
-  const submit = async () => {
+  const submit = async (): Promise<boolean> => {
     setBusy(true);
     setMessage(null);
     try {
       const priceMicro = form.priceMode === "fixed" ? jodToMicro(form.priceJod) : undefined;
       if (form.priceMode === "fixed" && priceMicro === undefined) {
-        setMessage("أدخل سعرًا صحيحًا بالدينار (حتى 6 منازل عشرية).");
-        return;
+        setMessage({ tone: "error", text: "أدخل سعرًا صحيحًا بالدينار (حتى 6 منازل عشرية)." });
+        return false;
       }
-      const draft = await createListingDraft({
+      const minMilli = quantityToMilli(form.minQuantity);
+      if (minMilli === undefined) {
+        setMessage({ tone: "error", text: "أدخل حدًا أدنى صحيحًا للكمية (حتى 3 منازل عشرية)." });
+        return false;
+      }
+      const stepMilli = quantityToMilli(form.stepQuantity);
+      if (stepMilli === undefined) {
+        setMessage({ tone: "error", text: "أدخل مضاعفًا صحيحًا للكمية (حتى 3 منازل عشرية)." });
+        return false;
+      }
+      const input = {
         title: form.title,
         category: form.category,
         governorate: form.governorate,
         description: form.description,
         contactType: form.contactType as "phone" | "whatsapp",
-        contactValue: form.contactValue,
+        contactValue: normalizeAsciiDigits(form.contactValue.trim()),
         pricing:
           form.priceMode === "fixed"
             ? {
-                mode: "fixed",
+                mode: "fixed" as const,
                 priceMicroJod: priceMicro,
-                basis: { units: form.basisUnits, unit: form.quantityUnit },
+                basis: { units: normalizeAsciiDigits(form.basisUnits.trim()), unit: form.quantityUnit },
               }
-            : { mode: "quote_required", quoteReason: "يحتاج تحديدًا تقنيًا قبل التسعير" },
+            : ({ mode: "quote_required" as const, quoteReason: "يحتاج تحديدًا تقنيًا قبل التسعير" } as const),
         quantity: {
           unit: form.quantityUnit,
-          minQuantityMilli: `${Number(form.minQuantity) * 1000}`,
-          stepMilli: `${Number(form.stepQuantity) * 1000}`,
+          minQuantityMilli: minMilli,
+          stepMilli,
           unpacked: true,
         },
-      });
-      for (const mediaId of mediaIds) {
-        await attachListingMedia(draft.listing.id, mediaId);
+      };
+      let targetId = listingId;
+      if (targetId === null) {
+        const draft = await createListingDraft(input);
+        targetId = draft.listing.id;
+      } else {
+        await updateListingDraft(targetId, input);
       }
-      await submitListing(draft.listing.id);
-      setMessage("أُرسل الإعلان للمراجعة — إرسالك ليس نشرًا.");
+      for (const mediaId of mediaIds) {
+        await attachListingMedia(targetId, mediaId);
+      }
+      await submitListing(targetId);
+      setMessage({ tone: "success", text: "أُرسل الإعلان للمراجعة — إرسالك ليس نشرًا." });
       navigate("/market/vendor");
+      return true;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر إرسال الإعلان — راجع الحقول وأعد المحاولة.");
+      setMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "تعذر إرسال الإعلان — راجع الحقول وأعد المحاولة.",
+      });
+      return false;
     } finally {
       setBusy(false);
     }
@@ -125,14 +231,14 @@ export default function MarketListingEditor() {
 
   return (
     <section className="micro-page micro-listing-editor" data-testid="market-listing-editor">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> مساحة المورد
       </button>
       <div className="micro-page-heading">
         <h1>{listingId === null ? "إعلان جديد" : "تعديل إعلان"}</h1>
         <p>المسودة تقبل النقص؛ الإرسال للمراجعة يطلب اكتمال الحقول المناسبة.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
       <Field label="عنوان المادة (8 أحرف فأكثر)">
         <input value={form.title} onChange={event => update({ title: event.target.value })} />
@@ -230,6 +336,7 @@ export default function MarketListingEditor() {
       <h2>الصور (خاصة حتى القبول)</h2>
       <input
         type="file"
+        aria-label="صور الإعلان (خاصة حتى القبول)"
         accept="image/jpeg,image/png,image/webp"
         multiple
         onChange={async event => {

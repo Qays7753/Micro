@@ -133,10 +133,13 @@ describe("foundation: private media authorization", () => {
       .run();
     const asGuestWhileDraft = await apiGet(worker, null, `/api/media/${mediaId}`);
     expect(asGuestWhileDraft.status).toBe(404);
-    // Publish the listing → its media becomes public_after_approval.
+    // Publish the listing → its media becomes public_after_approval. The
+    // publication gate guarantees attached media are approved; mirror that
+    // here (the direct-DB shortcut bypasses tryPublish).
     await db
       .prepare("UPDATE supplier_listing SET status = 'approved_for_publish' WHERE id = 'lst_test1'")
       .run();
+    await db.prepare("UPDATE media_object SET status = 'approved' WHERE id = ?").bind(mediaId).run();
     const asGuestPublished = await apiGet(worker, null, `/api/media/${mediaId}`);
     expect(asGuestPublished.status).toBe(200);
     expect(asGuestPublished.headers.get("cache-control")).toContain("public");

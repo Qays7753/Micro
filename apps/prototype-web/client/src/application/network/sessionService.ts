@@ -36,5 +36,5 @@ export function startGoogleSignIn(returnTo: string): void {
 }
 
 export async function signOut(): Promise<void> {
-  await apiFetch<{ ok: boolean }>("/api/auth/signout", { method: "POST" }, { idempotencyKey: "signout" });
+  await apiFetch<{ ok: boolean }>("/api/auth/signout", { method: "POST" });
 }

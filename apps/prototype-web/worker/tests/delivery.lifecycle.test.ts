@@ -129,12 +129,29 @@ describe("delivery: request axis — prepriced directed booking (OD03/OD07)", ()
     const detail = (await (
       await apiGet(worker, driverCookie, `/api/delivery/requests/${refs.requestId}`)
     ).json()) as {
-      request: { payload: { dropoff: Record<string, unknown>; pickup: Record<string, unknown> } };
+      request: {
+        payload: { dropoff: Record<string, unknown>; pickup: Record<string, unknown> };
+        agreementCopy: { payload: { dropoff: Record<string, unknown> } } | null;
+      };
     };
     expect(detail.request.payload.dropoff.governorate).toBe("الزرقاء");
     expect(detail.request.payload.dropoff.phone).toBeUndefined();
     expect(detail.request.payload.dropoff.address).toBeUndefined();
     expect(detail.request.payload.pickup.phone).toBeUndefined();
+    // The redaction is an ALLOWLIST: only zones, load, and schedule reach the
+    // driver — any other payload field (notes, contact names) stays private.
+    expect(Object.keys(detail.request.payload).sort()).toEqual(["dropoff", "load", "pickup", "schedule"]);
+    // The frozen agreement copy is equally gated for the driver even after
+    // confirmation (the OWNER's copy keeps the full details — OD11/EX-O14).
+    expect(detail.request.agreementCopy).not.toBeNull();
+    expect(detail.request.agreementCopy!.payload.dropoff.phone).toBeUndefined();
+    expect(detail.request.agreementCopy!.payload.dropoff.governorate).toBe("الزرقاء");
+    const ownerDetail = (await (
+      await apiGet(worker, ownerCookie, `/api/delivery/requests/${refs.requestId}`)
+    ).json()) as {
+      request: { agreementCopy: { payload: { dropoff: Record<string, unknown> } } };
+    };
+    expect(ownerDetail.request.agreementCopy.payload.dropoff.phone).toBe("+962795555002");
   });
 
   it("withdrawing before acceptance is free; after confirmation it follows saved terms", async () => {

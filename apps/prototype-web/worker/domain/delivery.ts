@@ -64,6 +64,9 @@ const REQUEST_TRANSITIONS: Record<string, Record<string, RequestStatus>> = {
   awaiting_requester_decision: {
     requester_accept_quote: "confirmed",
     requester_reject_quote: "quote_rejected",
+    // The driver may replace the pending quote before the requester decides
+    // (contract 21 §3.2-2: استبدال العرض قبل قبوله يبطل نسخته القديمة).
+    driver_replace_quote: "awaiting_requester_decision",
   },
   confirmed: { requester_cancel: "cancelled" },
 };
@@ -75,7 +78,9 @@ export function transitionRequest(state: RequestState, event: string, now: numbe
     throw new HttpError(409, "conflict", { reason: `request_event_${event}_invalid_for_${state.status}` });
   }
   if (
-    event === "driver_accept_prepriced" &&
+    (event === "driver_accept_prepriced" ||
+      event === "driver_submit_quote" ||
+      event === "driver_replace_quote") &&
     state.responseDeadlineAt !== null &&
     state.responseDeadlineAt <= now
   ) {
@@ -151,7 +156,6 @@ export function assertContactAttemptBeforeFailure(
   state: ExecutionState,
   event: "pickup_failed" | "delivery_failed",
 ): void {
-  if (event !== "delivery_failed") return;
   if (state.contact === "not_attempted") {
     throw new HttpError(409, "conflict", { reason: "contact_attempt_required_before_failure", od: "OD15" });
   }

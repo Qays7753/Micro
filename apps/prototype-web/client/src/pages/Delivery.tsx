@@ -13,7 +13,8 @@ import {
   confirmStatement,
   type OwnerRequestSummary,
 } from "@/application/delivery";
-import { Button, EmptyState, Notice } from "@/components/primitives";
+import { Button, EmptyState, Field, Notice } from "@/components/primitives";
+import { formatLocalDate } from "@/presentation/formatters";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
@@ -40,10 +41,19 @@ export default function Delivery() {
   const { session, signIn, loading: sessionLoading } = useNetworkSession();
   const [requests, setRequests] = useState<OwnerRequestSummary[]>([]);
   const [statements, setStatements] = useState<
-    { id: string; driverName: string; date: string; totalMinor: string; status: string }[]
+    {
+      id: string;
+      driverName: string;
+      date: string;
+      totalMinor: string;
+      status: string;
+      items: { description: string; amountMinor: string }[];
+    }[]
   >([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(null);
+  const [differenceFor, setDifferenceFor] = useState<string | null>(null);
+  const [differenceNote, setDifferenceNote] = useState("");
 
   const load = useCallback(async () => {
     setState("loading");
@@ -74,15 +84,15 @@ export default function Delivery() {
   return (
     <section className="micro-page micro-delivery-page" data-testid="delivery-owner-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">توسعة E-00</span>
+        <span className="micro-overline">تبويب صاحب المشروع</span>
         <h1>التوصيل</h1>
-        <p>حجز موجه لسائق معروف تختاره — بلا بث ولا تعيين عشوائي (OD03).</p>
+        <p>حجز موجه لسائق معروف تختاره — بلا بث ولا تعيين عشوائي.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
       {!session.authenticated ? (
         <Notice tone="neutral">
-          حجز التوصيل يحتاج تسجيل الدخول بهوية Micro — التصفح والعرض للجميع.
+          حجز التوصيل وكشوفه يحتاجان تسجيل الدخول بهوية Micro. دليل السائقين العام متاح من زر «سائقوني».
           <Button action="quiet" onClick={() => signIn("/delivery")}>
             الدخول عبر Google
           </Button>
@@ -104,40 +114,85 @@ export default function Delivery() {
           {awaitingStatements.map(statement => (
             <article key={statement.id} className="micro-statement-card">
               <p>
-                {statement.driverName} — {statement.date} — {minorToJod(statement.totalMinor)} د.أ
+                {statement.driverName} — {formatLocalDate(statement.date)} —{" "}
+                {minorToJod(statement.totalMinor)} د.أ
               </p>
-              <div>
-                <Button
-                  action="save"
-                  onClick={async () => {
-                    try {
-                      await confirmStatement(statement.id, "full");
-                      setMessage("أُكد استلام الكشف كاملًا.");
-                      await load();
-                    } catch (error) {
-                      setMessage(error instanceof Error ? error.message : "تعذر التأكيد.");
-                    }
-                  }}
-                >
-                  استلام كامل
-                </Button>
-                <Button
-                  action="outline"
-                  onClick={async () => {
-                    const note = window.prompt("سجّل الفرق الملاحظ (يظل الكشف غير مؤكد كاملًا):");
-                    if (note === null) return;
-                    try {
-                      await confirmStatement(statement.id, "difference", note);
-                      setMessage("سُجل الفرق — الكشف يظل بانتظار معالجة كاملة.");
-                      await load();
-                    } catch (error) {
-                      setMessage(error instanceof Error ? error.message : "تعذر تسجيل الفرق.");
-                    }
-                  }}
-                >
-                  تسجيل فرق
-                </Button>
-              </div>
+              <ul className="micro-statement-card__items">
+                {(statement.items ?? []).map((item, index) => (
+                  <li key={index}>
+                    {item.description} — {minorToJod(item.amountMinor)} د.أ
+                  </li>
+                ))}
+              </ul>
+              {differenceFor === statement.id ? (
+                <div className="micro-statement-card__difference">
+                  <Field label="الفرق الملاحظ" controlId="difference-note">
+                    <input
+                      id="difference-note"
+                      value={differenceNote}
+                      onChange={event => setDifferenceNote(event.target.value)}
+                      placeholder="ما الذي اختلف عن الكشف؟"
+                    />
+                  </Field>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="save"
+                      disabled={differenceNote.trim().length === 0}
+                      onClick={async () => {
+                        try {
+                          await confirmStatement(statement.id, "difference", differenceNote.trim());
+                          setNotice({
+                            tone: "success",
+                            text: "سُجل الفرق — الكشف يظل بانتظار معالجة كاملة.",
+                          });
+                          setDifferenceFor(null);
+                          setDifferenceNote("");
+                          await load();
+                        } catch (error) {
+                          setNotice({
+                            tone: "error",
+                            text: error instanceof Error ? error.message : "تعذر تسجيل الفرق.",
+                          });
+                        }
+                      }}
+                    >
+                      حفظ الفرق
+                    </Button>
+                    <Button
+                      action="quiet"
+                      onClick={() => {
+                        setDifferenceFor(null);
+                        setDifferenceNote("");
+                      }}
+                    >
+                      رجوع
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="micro-form-actions">
+                  <Button
+                    action="save"
+                    onClick={async () => {
+                      try {
+                        await confirmStatement(statement.id, "full");
+                        setNotice({ tone: "success", text: "أُكد استلام الكشف كاملًا." });
+                        await load();
+                      } catch (error) {
+                        setNotice({
+                          tone: "error",
+                          text: error instanceof Error ? error.message : "تعذر التأكيد.",
+                        });
+                      }
+                    }}
+                  >
+                    استلام كامل
+                  </Button>
+                  <Button action="outline" onClick={() => setDifferenceFor(statement.id)}>
+                    تسجيل فرق
+                  </Button>
+                </div>
+              )}
             </article>
           ))}
         </section>
@@ -155,7 +210,7 @@ export default function Delivery() {
           }
         />
       ) : null}
-      {state === "ready" && sorted.length === 0 ? (
+      {state === "ready" && sorted.length === 0 && session.authenticated ? (
         <EmptyState
           symbol={<Truck aria-hidden="true" />}
           title="لا حجوزات بعد"

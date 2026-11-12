@@ -10,6 +10,33 @@ import { useNetworkSession } from "@/app/useNetworkSession";
 import { ApiError, apiFetch } from "@/application/network";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 
+const LISTING_STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة",
+  submitted: "قيد المراجعة",
+  changes_requested: "يحتاج تعديلًا",
+  rejected: "مرفوض",
+  approved_for_publish: "منشور",
+  paused: "موقوف من المورد",
+  archived: "مؤرشف",
+  admin_suspended: "موقوف من الإدارة",
+};
+
+const REVISION_STATUS_LABELS: Record<string, string> = {
+  none: "",
+  submitted: "نسخة معدلة قيد المراجعة",
+  changes_requested: "التعديل يحتاج استكمالًا",
+  content_approved: "المحتوى مقبول — بانتظار اكتمال الملف",
+  renewal_requested: "طلب تجديد قيد المراجعة",
+};
+
+const REPORT_REASON_LABELS: Record<string, string> = {
+  misleading: "مضلل",
+  out_of_scope: "خارج نطاق السوق",
+  spam: "إزعاج",
+  contact_issue: "مشكلة تواصل",
+  other: "أخرى",
+};
+
 interface ReviewQueue {
   profiles: { id: string; work_copy_json: string; submitted_at: number }[];
   listings: { id: string; title: string; status: string; revision_status: string; work_copy_json: string }[];
@@ -22,7 +49,9 @@ export default function MarketReview() {
   const { session, signIn, loading: sessionLoading } = useNetworkSession();
   const [queue, setQueue] = useState<ReviewQueue | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error" | "forbidden">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
   const [reasons, setReasons] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
@@ -53,10 +82,10 @@ export default function MarketReview() {
         { method: "POST", body: JSON.stringify({ action, reason: reason || undefined }) },
         { idempotencyKey: `review:${kind}:${id}:${action}` },
       );
-      setMessage("سُجل القرار بفاعله وسببه.");
+      setMessage({ tone: "success", text: "سُجل القرار بفاعله وسببه." });
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تسجيل القرار.");
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "تعذر تسجيل القرار." });
     }
   };
 
@@ -88,7 +117,12 @@ export default function MarketReview() {
         <h1>مراجعة السوق</h1>
         <p>قرارات إدارية موثقة — النشر يمر ببوابة اكتمال قبول كل الأجزاء.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      {state === "loading" ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ تحميل طابور المراجعة…
+        </p>
+      ) : null}
       {state === "forbidden" ? (
         <EmptyState
           title="لا تملك صلاحية المراجعة"
@@ -111,46 +145,61 @@ export default function MarketReview() {
         <>
           <section>
             <h2>ملفات الموردين</h2>
-            {queue.profiles.length === 0 ? <p className="micro-review-empty">لا طلبات ملفات معلقة.</p> : null}
-            {queue.profiles.map(profile => (
-              <article key={profile.id} className="micro-review-item">
-                <strong>ملف مورد</strong>
-                <p className="micro-review-item__meta">{profile.work_copy_json}</p>
-                <Field label="سبب القرار (للرفض أو طلب التعديل)">
-                  <input
-                    value={reasons[`profile:${profile.id}`] ?? ""}
-                    onChange={event =>
-                      setReasons(current => ({ ...current, [`profile:${profile.id}`]: event.target.value }))
-                    }
-                  />
-                </Field>
-                <div className="micro-review-item__actions">
-                  <Button action="save" onClick={() => void decide("profile", profile.id, "approve")}>
-                    قبول
-                  </Button>
-                  <Button
-                    action="outline"
-                    onClick={() => void decide("profile", profile.id, "changes_requested")}
-                  >
-                    طلب تعديل
-                  </Button>
-                  <Button action="destructive" onClick={() => void decide("profile", profile.id, "reject")}>
-                    رفض
-                  </Button>
-                </div>
-              </article>
-            ))}
+            {queue.profiles.length === 0 ? (
+              <p className="micro-review-queue-empty">لا طلبات ملفات معلقة.</p>
+            ) : null}
+            {queue.profiles.map(profile => {
+              const work = JSON.parse(profile.work_copy_json) as {
+                displayName?: string;
+                contactPhone?: string;
+                governorate?: string;
+              };
+              return (
+                <article key={profile.id} className="micro-review-item">
+                  <strong>ملف مورد: {work.displayName ?? "بلا اسم"}</strong>
+                  <p className="micro-review-item__meta">
+                    {work.governorate ?? "—"} · هاتف: {work.contactPhone ?? "—"}
+                  </p>
+                  <Field label="سبب القرار (للرفض أو طلب التعديل)">
+                    <input
+                      value={reasons[`profile:${profile.id}`] ?? ""}
+                      onChange={event =>
+                        setReasons(current => ({ ...current, [`profile:${profile.id}`]: event.target.value }))
+                      }
+                    />
+                  </Field>
+                  <div className="micro-review-item__actions">
+                    <Button action="save" onClick={() => void decide("profile", profile.id, "approve")}>
+                      قبول
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() => void decide("profile", profile.id, "changes_requested")}
+                    >
+                      طلب تعديل
+                    </Button>
+                    <Button action="destructive" onClick={() => void decide("profile", profile.id, "reject")}>
+                      رفض
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </section>
 
           <section>
             <h2>الإعلانات</h2>
-            {queue.listings.length === 0 ? <p className="micro-review-empty">لا إعلانات معلقة.</p> : null}
+            {queue.listings.length === 0 ? (
+              <p className="micro-review-queue-empty">لا إعلانات معلقة.</p>
+            ) : null}
             {queue.listings.map(listing => (
               <article key={listing.id} className="micro-review-item">
                 <strong>{listing.title}</strong>
                 <p className="micro-review-item__meta">
-                  {listing.status}
-                  {listing.revision_status !== "none" ? ` · ${listing.revision_status}` : ""}
+                  {LISTING_STATUS_LABELS[listing.status] ?? listing.status}
+                  {listing.revision_status !== "none"
+                    ? ` · ${REVISION_STATUS_LABELS[listing.revision_status] ?? listing.revision_status}`
+                    : ""}
                 </p>
                 <Field label="سبب القرار">
                   <input
@@ -180,7 +229,7 @@ export default function MarketReview() {
 
           <section>
             <h2>الصور</h2>
-            {queue.media.length === 0 ? <p className="micro-review-empty">لا صور معلقة.</p> : null}
+            {queue.media.length === 0 ? <p className="micro-review-queue-empty">لا صور معلقة.</p> : null}
             {queue.media.map(media => (
               <article key={media.id} className="micro-review-item">
                 <div className="micro-review-item__meta">
@@ -200,12 +249,14 @@ export default function MarketReview() {
 
           <section>
             <h2>البلاغات</h2>
-            {queue.reports.length === 0 ? <p className="micro-review-empty">لا بلاغات مفتوحة.</p> : null}
+            {queue.reports.length === 0 ? (
+              <p className="micro-review-queue-empty">لا بلاغات مفتوحة.</p>
+            ) : null}
             {queue.reports.map(report => (
               <article key={report.id} className="micro-review-item">
                 <strong>بلاغ</strong>
                 <p className="micro-review-item__meta">
-                  {report.reason}
+                  {REPORT_REASON_LABELS[report.reason] ?? report.reason}
                   {report.details ? ` — ${report.details}` : ""}
                 </p>
               </article>

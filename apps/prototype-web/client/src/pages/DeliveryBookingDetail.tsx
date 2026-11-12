@@ -17,6 +17,8 @@ import {
   type BookingDetail,
 } from "@/application/delivery";
 import { Button, EmptyState, Notice } from "@/components/primitives";
+import { formatLocalDateTime } from "@/presentation/formatters";
+import { deliveryEventLabel } from "@/presentation/deliveryLabels";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
@@ -55,11 +57,13 @@ export default function DeliveryBookingDetail() {
   const [match] = useLocation();
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { session, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading } = useNetworkSession();
   const bookingId = match.replace("/delivery/booking/", "").split("/")[0] ?? "";
   const [data, setData] = useState<BookingDetail | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
   const [stars, setStars] = useState(5);
 
   const load = useCallback(async () => {
@@ -80,26 +84,73 @@ export default function DeliveryBookingDetail() {
   const act = async (action: () => Promise<void>, success: string) => {
     try {
       await action();
-      setMessage(success);
+      setMessage({ tone: "success", text: success });
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تنفيذ الفعل.");
+      setMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "تعذر تنفيذ الفعل.",
+      });
     }
   };
 
   const request = data?.request;
   const execution = data?.execution;
+  const agreementPayload = (data?.request.agreementCopy?.payload ?? data?.request.payload ?? {}) as {
+    pickup?: { governorate?: string; area?: string };
+    dropoff?: { governorate?: string; area?: string };
+    schedule?: { date?: string; pickupWindow?: string; dropoffWindow?: string };
+    load?: { description?: string; parcels?: number };
+  };
+  const routeSummary =
+    agreementPayload.pickup && agreementPayload.dropoff
+      ? `${agreementPayload.pickup.governorate ?? ""} → ${agreementPayload.dropoff.governorate ?? ""}`
+      : "—";
+  const scheduleSummary = agreementPayload.schedule
+    ? `${agreementPayload.schedule.date ?? ""} (استلام ${agreementPayload.schedule.pickupWindow ?? "—"})`
+    : "—";
+  const loadSummary = agreementPayload.load
+    ? `${agreementPayload.load.description ?? ""}${
+        agreementPayload.load.parcels ? ` — ${agreementPayload.load.parcels} طرود` : ""
+      }`
+    : "—";
 
   return (
     <section className="micro-page micro-booking-detail" data-testid="delivery-booking-detail">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> التوصيل
       </button>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
-      {state === "error" ? (
-        <EmptyState title="الحجز غير متاح" description="تحقق من الرابط أو سجل الدخول بحساب صاحب الحجز." />
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      {state === "loading" ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ تحميل الحجز…
+        </p>
       ) : null}
-      {state === "ready" && request && data ? (
+      {state === "error" ? (
+        <EmptyState
+          title="الحجز غير متاح"
+          description="تحقق من الرابط أو سجل الدخول بحساب صاحب الحجز."
+          action={
+            !session.authenticated ? (
+              <Button action="secondary" onClick={() => signIn(`/delivery/booking/${bookingId}`)}>
+                الدخول عبر Google
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : null}
+      {state === "ready" && data && data.viewerRole === "driver" ? (
+        <EmptyState
+          title="هذا الحجز ليس واجهتك"
+          description="أنت داخل بوابة السائق — تفاصيل هذا الحجز من زر «طلباتي» في البوابة."
+          action={
+            <Button action="secondary" onClick={() => navigate(`/driver/booking/${bookingId}`)}>
+              فتح الحجز في بوابة السائق
+            </Button>
+          }
+        />
+      ) : null}
+      {state === "ready" && request && data && data.viewerRole !== "driver" ? (
         <article>
           <div className="micro-page-heading">
             <span className="micro-overline">حجز {request.id.slice(0, 12)}</span>
@@ -108,12 +159,13 @@ export default function DeliveryBookingDetail() {
 
           {request.status === "awaiting_requester_decision" && data.quote ? (
             <section className="micro-quote-box" data-testid="quote-decision">
-              <h2>عرض نهائي واحد (OD05)</h2>
+              <h2>عرض نهائي واحد</h2>
               <p>
                 الأجرة: {minorToJod(data.quote.fareMinor)} د.أ — يشمل: {data.quote.scope}
               </p>
               <p className="micro-quote-expiry">
-                صالح حتى {new Date(data.quote.validUntil).toLocaleTimeString("ar-JO")} — بعده يلزم اتفاق جديد.
+                صالح حتى {formatLocalDateTime(new Date(data.quote.validUntil).toISOString()) ?? ""} — بعده
+                يلزم اتفاق جديد.
               </p>
               <div className="micro-form-actions">
                 <Button
@@ -165,7 +217,11 @@ export default function DeliveryBookingDetail() {
               execution.execution === "delivered_declared" ? (
                 <div className="micro-rating-box" data-testid="rating-box">
                   <h3>قيّم السائق (نجوم فورية — التعليق ينتظر المراجعة)</h3>
-                  <select value={stars} onChange={event => setStars(Number(event.target.value))}>
+                  <select
+                    aria-label="عدد النجوم"
+                    value={stars}
+                    onChange={event => setStars(Number(event.target.value))}
+                  >
                     {[5, 4, 3, 2, 1].map(value => (
                       <option key={value} value={value}>
                         {value} نجوم
@@ -197,7 +253,7 @@ export default function DeliveryBookingDetail() {
           ) : null}
 
           <section>
-            <h2>اتفاق الحجز (نسخة محفوظة — OD11)</h2>
+            <h2>اتفاق الحجز (نسخة محفوظة)</h2>
             <dl className="micro-market-facts">
               <div>
                 <dt>الأجرة</dt>
@@ -215,6 +271,18 @@ export default function DeliveryBookingDetail() {
                 <dt>السائق</dt>
                 <dd>{String((data.driver.profile as { displayName?: string }).displayName ?? "—")}</dd>
               </div>
+              <div>
+                <dt>المسار</dt>
+                <dd>{routeSummary}</dd>
+              </div>
+              <div>
+                <dt>الموعد</dt>
+                <dd>{scheduleSummary}</dd>
+              </div>
+              <div>
+                <dt>الحمولة</dt>
+                <dd>{loadSummary}</dd>
+              </div>
             </dl>
           </section>
 
@@ -223,7 +291,8 @@ export default function DeliveryBookingDetail() {
             <ul className="micro-timeline" data-testid="booking-timeline">
               {data.events.map((event, index) => (
                 <li key={index}>
-                  {new Date(event.at).toLocaleString("ar-JO")} — {event.axis}: {event.type}
+                  {formatLocalDateTime(new Date(event.at).toISOString()) ?? ""} —{" "}
+                  {deliveryEventLabel(event.axis, event.type)}
                 </li>
               ))}
             </ul>

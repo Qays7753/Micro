@@ -44,40 +44,52 @@ export function defaultOutboundFetch(url: string, init: RequestInit): Promise<Re
   return fetch(url, init);
 }
 
-/** Persist a new flow (state+nonce) and return the state token. */
-export async function createOAuthFlow(
-  db: Db,
-  returnTo: string,
-  now: number,
-): Promise<{ state: string; nonce: string }> {
+export interface OAuthFlowBinding {
+  state: string;
+  nonce: string;
+  /** Value of the short-lived browser-binding cookie to set. */
+  flowCookie: string;
+}
+
+/** Persist a new flow bound to the initiating browser (anti login-CSRF). */
+export async function createOAuthFlow(db: Db, returnTo: string, now: number): Promise<OAuthFlowBinding> {
   const state = randomToken(24);
   const nonce = randomToken(24);
+  const flowCookie = randomToken(24);
+  // Opportunistic purge: unconsumed/expired flows are the one unbounded
+  // anonymous write vector — sweep them on every new flow.
+  await db.prepare("DELETE FROM oauth_flow WHERE expires_at <= ?").bind(now).run();
   await db
     .prepare(
       "INSERT INTO oauth_flow (state_hash, nonce, return_to, created_at, expires_at) VALUES (?, ?, ?, ?, ?)",
     )
-    .bind(await sha256Hex(state), nonce, returnTo, now, now + OAUTH_FLOW_TTL_MS)
+    .bind(await sha256Hex(`${state}:${flowCookie}`), nonce, returnTo, now, now + OAUTH_FLOW_TTL_MS)
     .run();
-  return { state, nonce };
+  return { state, nonce, flowCookie };
 }
 
-/** Consume a flow by state (single-use). */
-export async function consumeOAuthFlow(db: Db, state: string, now: number): Promise<OAuthFlowRecord | null> {
-  const stateHash = await sha256Hex(state);
-  const row = await db
-    .prepare("SELECT state_hash, nonce, return_to, expires_at FROM oauth_flow WHERE state_hash = ?")
-    .bind(stateHash)
+/** Consume a flow by state + browser binding (single-use, atomic delete). */
+export async function consumeOAuthFlow(
+  db: Db,
+  state: string,
+  flowCookie: string | undefined,
+  now: number,
+): Promise<OAuthFlowRecord | null> {
+  if (flowCookie === undefined) return null;
+  const stateHash = await sha256Hex(`${state}:${flowCookie}`);
+  const result = await db
+    .prepare(
+      "DELETE FROM oauth_flow WHERE state_hash = ? AND expires_at > ? RETURNING nonce, return_to, expires_at",
+    )
+    .bind(stateHash, now)
     .first<Record<string, unknown>>();
-  if (!row) return null;
-  await db.prepare("DELETE FROM oauth_flow WHERE state_hash = ?").bind(stateHash).run();
-  const record: OAuthFlowRecord = {
-    state_hash: String(row.state_hash),
-    nonce: String(row.nonce),
-    return_to: String(row.return_to),
-    expires_at: Number(row.expires_at),
+  if (!result) return null;
+  return {
+    state_hash: stateHash,
+    nonce: String(result.nonce),
+    return_to: String(result.return_to),
+    expires_at: Number(result.expires_at),
   };
-  if (record.expires_at <= now) return null;
-  return record;
 }
 
 /** Google authorization redirect URL for the micro callback. */

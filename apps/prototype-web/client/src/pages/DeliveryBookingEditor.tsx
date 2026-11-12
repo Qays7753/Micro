@@ -15,6 +15,9 @@ import {
   type DriverDirectoryEntryDto,
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
+import { normalizeAsciiDigits } from "@/application/input";
 
 const GOVERNORATES = [
   "عمان",
@@ -32,10 +35,14 @@ const GOVERNORATES = [
 ];
 
 export default function DeliveryBookingEditor() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  /* معامل معجمي موثق (عقد ٢٦ §3 + EXE-016): سائق مختار مسبقًا من دليل
+   * السائقين — يُستهلك مرة واحدة عند الفتح ثم يُنسخ من الرابط. */
+  const preselectedDriver = new URLSearchParams(location.split("?")[1] ?? "").get("driver");
   const returnPath = useReturnPath();
   const { session, signIn } = useNetworkSession();
-  const [drivers, setDrivers] = useState<DriverDirectoryEntryDto[]>([]);
+  const [drivers, setDrivers] = useState<DriverDirectoryEntryDto[] | null>(null);
+  const [directoryError, setDirectoryError] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
@@ -59,11 +66,13 @@ export default function DeliveryBookingEditor() {
   });
 
   const load = useCallback(async () => {
+    setDirectoryError(false);
     try {
       const directory = await fetchDriverDirectory();
       setDrivers(directory.drivers);
     } catch {
-      setDrivers([]);
+      setDrivers(null);
+      setDirectoryError(true);
     }
   }, []);
 
@@ -71,7 +80,36 @@ export default function DeliveryBookingEditor() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (preselectedDriver !== null && preselectedDriver !== "") {
+      update({ driverProfileId: preselectedDriver });
+    }
+    // consumed once at open; the param never round-trips into saved state.
+  }, [preselectedDriver]);
+
   const update = (patch: Partial<typeof form>) => setForm(current => ({ ...current, ...patch }));
+
+  /* حارس المدخلات غير المحفوظة — الرجوع يمر بالحوار الثلاثي القائم. */
+  const isDirty = useFormDirty([
+    form.needType,
+    form.driverProfileId,
+    form.pricingMode,
+    form.fareJod,
+    form.collectionJod,
+    form.pickupGovernorate,
+    form.pickupArea,
+    form.dropoffGovernorate,
+    form.dropoffArea,
+    form.recipientName,
+    form.recipientPhone,
+    form.recipientAddress,
+    form.parcels,
+    form.loadDescription,
+    form.pickupWindow,
+    form.dropoffWindow,
+    form.date,
+  ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => submit() });
 
   if (!session.authenticated) {
     return (
@@ -89,24 +127,26 @@ export default function DeliveryBookingEditor() {
     );
   }
 
-  const submit = async () => {
+  const submit = async (): Promise<boolean> => {
     setBusy(true);
     setMessage(null);
     try {
       if (!form.driverProfileId) {
-        setMessage("اختر سائقًا معروفًا — لا بث ولا تعيين عشوائي (OD03).");
-        return;
+        setMessage("اختر سائقًا معروفًا — لا بث ولا تعيين عشوائي.");
+        return false;
       }
+      const fareText = normalizeAsciiDigits(form.fareJod.trim());
       const fareMinor =
-        form.pricingMode === "prepriced" && /^\d+(\.\d{1,2})?$/.test(form.fareJod.trim())
-          ? `${Math.round(Number(form.fareJod) * 100)}`
+        form.pricingMode === "prepriced" && /^\d+(\.\d{1,2})?$/.test(fareText)
+          ? `${Math.round(Number(fareText) * 100)}`
           : undefined;
       if (form.pricingMode === "prepriced" && fareMinor === undefined) {
         setMessage("أدخل أجرة صحيحة بالدينار (خانتان عشريتان).");
-        return;
+        return false;
       }
-      const collectionMinor = /^\d+(\.\d{1,2})?$/.test(form.collectionJod.trim())
-        ? `${Math.round(Number(form.collectionJod) * 100)}`
+      const collectionText = normalizeAsciiDigits(form.collectionJod.trim());
+      const collectionMinor = /^\d+(\.\d{1,2})?$/.test(collectionText)
+        ? `${Math.round(Number(collectionText) * 100)}`
         : undefined;
       const created = await createDeliveryRequest({
         driverProfileId: form.driverProfileId,
@@ -124,15 +164,21 @@ export default function DeliveryBookingEditor() {
             phone: form.recipientPhone,
             address: form.recipientAddress,
           },
-          load: { description: form.loadDescription, parcels: Number(form.parcels) || 1, fragile: false },
+          load: {
+            description: form.loadDescription,
+            parcels: Number(normalizeAsciiDigits(form.parcels)) || 1,
+            fragile: false,
+          },
           schedule: { date: form.date, pickupWindow: form.pickupWindow, dropoffWindow: form.dropoffWindow },
         },
       });
       await submitDeliveryRequest(created.request.id);
       setMessage("أُرسل الطلب الموجه للسائق — مهلة رده 30 دقيقة.");
       navigate(`/delivery/booking/${created.request.id}`);
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر إرسال الحجز — راجع الحقول.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -140,14 +186,14 @@ export default function DeliveryBookingEditor() {
 
   return (
     <section className="micro-page micro-booking-editor" data-testid="delivery-booking-editor">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> التوصيل
       </button>
       <div className="micro-page-heading">
         <h1>حجز توصيل</h1>
         <p>ثلاث مجموعات: المهمة والموعد، اختيار السائق، المراجعة والإرسال.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone="error">{message}</Notice> : null}
 
       <h2>المهمة والموعد</h2>
       <Field label="نوع الحاجة">
@@ -246,13 +292,32 @@ export default function DeliveryBookingEditor() {
       </div>
 
       <h2>اختيار السائق المعروف</h2>
-      {drivers.length === 0 ? (
+      {directoryError ? (
+        <EmptyState
+          title="تعذر تحميل دليل السائقين"
+          description="أعد المحاولة — لا بيانات وهمية."
+          action={
+            <Button action="secondary" onClick={() => void load()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : drivers === null ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ تحميل الدليل…
+        </p>
+      ) : drivers.length === 0 ? (
         <EmptyState
           title="لا سائقين متاحين للعرض"
           description="لا بيانات وهمية — ادخل سائقًا من سائقوني أو شارك دعوة تقديم."
         />
       ) : (
-        <ul className="micro-driver-picker" data-testid="driver-picker">
+        <ul
+          className="micro-driver-picker"
+          data-testid="driver-picker"
+          role="radiogroup"
+          aria-label="اختيار السائق"
+        >
           {drivers.map(driver => (
             <li key={driver.driverProfileId}>
               <label>

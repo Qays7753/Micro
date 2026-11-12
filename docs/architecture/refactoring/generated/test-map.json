@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4360a92ca4cc4b259b3c88f047ebd37a0a897f2e",
+  "head": "e1d116f7b26e52ea6846d8c5981645e69d20baa7",
   "pages": {
-    "total": 62,
+    "total": 71,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -116,7 +116,26 @@
       "pages/Delivery.tsx": {
         "kind": "direct",
         "evidence": [
-          "Home.unit003.s16.dom.test.tsx"
+          "Home.unit003.s16.dom.test.tsx",
+          "pages/Delivery.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryBookingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryBookingEditor.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryDrivers.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DeliveryReview.tsx": {
@@ -142,6 +161,18 @@
           "U004.dom.test.tsx",
           "U06.dom.test.tsx",
           "pages/DraftEditor.s09.dom.test.tsx"
+        ]
+      },
+      "pages/DriverBookingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/DriverPortal.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx"
         ]
       },
       "pages/EstimateDetail.tsx": {
@@ -298,7 +329,32 @@
         "kind": "direct",
         "evidence": [
           "Clean001.surfaceAudit.test.tsx",
-          "Nav001.dom.test.tsx"
+          "Nav001.dom.test.tsx",
+          "pages/Market.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/MarketListingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Market.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/MarketListingEditor.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/MarketReview.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/MarketVendorWorkspace.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Market.journeys.dom.test.tsx"
         ]
       },
       "pages/MaterialEditor.tsx": {

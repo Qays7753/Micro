@@ -22,17 +22,57 @@ service-worker precache manifest never includes the worker).
 
 ## Bindings and secrets (owner/Manus setup — names only)
 
-| Name                    | Kind                        | Purpose                                 |
-| ----------------------- | --------------------------- | --------------------------------------- |
-| `DB`                    | D1 binding                  | Market/Delivery network data            |
-| `MEDIA`                 | R2 bucket binding (private) | Listing images + driver evidence        |
-| `ASSETS`                | Pages-provided              | Static assets (automatic)               |
-| `GOOGLE_CLIENT_ID`      | Var                         | Google OAuth client id                  |
-| `GOOGLE_CLIENT_SECRET`  | Secret                      | Google OAuth client secret              |
-| `BOOTSTRAP_OWNER_EMAIL` | Var/Secret (one-time)       | First admin bootstrap; remove after use |
+| Name                    | Kind                        | Purpose                                                                          |
+| ----------------------- | --------------------------- | -------------------------------------------------------------------------------- |
+| `DB`                    | D1 binding                  | Market/Delivery network data                                                     |
+| `MEDIA`                 | R2 bucket binding (private) | Listing images + driver evidence                                                 |
+| `ASSETS`                | Pages-provided              | Static assets (automatic)                                                        |
+| `GOOGLE_CLIENT_ID`      | Var                         | Google OAuth client id                                                           |
+| `GOOGLE_CLIENT_SECRET`  | Secret                      | Google OAuth client secret                                                       |
+| `BOOTSTRAP_OWNER_EMAIL` | Var/Secret (one-time)       | First admin bootstrap; remove after use                                          |
+| `GOOGLE` (optional)     | Service binding             | Synthetic Google in tests; in production unset — plain `fetch` to Google is used |
 
 No production database/account/zone IDs, domains, or secret values belong in
-this repository. Sessions use the `micro_session` HttpOnly cookie.
+this repository. Sessions use the `micro_session` HttpOnly cookie; the
+short-lived login-flow binding uses `micro_flow`.
+
+## D1 migrations — apply IN ORDER (local and remote)
+
+Apply every file under `worker/db/migrations/` in filename order — the
+numbered prefix is the order. Local example (repeat for each file):
+
+```bash
+for f in apps/prototype-web/worker/db/migrations/*.sql; do
+  npx wrangler d1 execute DB --local --file="$f"
+done
+```
+
+Remote/production: the same loop against the provisioned database with
+`--remote` (or the dashboard's console), **first in a non-production
+environment, then after owner approval in production**. Record the backup
+snapshot before each remote apply (`wrangler d1 export` / Time Travel
+restore point).
+
+| File                         | Contents                                                              |
+| ---------------------------- | --------------------------------------------------------------------- |
+| `0001_init.sql`              | All 28 network tables, constraints, FKs, base indexes                 |
+| `0002_listing_revisions.sql` | Listing revision workflow rebuild (revision status, admin suspension) |
+| `0003_hot_path_indexes.sql`  | Hot-path indexes (listing media, driver ratings, owner statements)    |
+
+## Operational settings (admin actions, allowlisted)
+
+Two network settings are owner/admin-controlled through the API —
+`PUT /api/admin/settings/:key` (admin session required, everything else
+returns 404/403):
+
+- `disclosure.recipient` — `blocked` (default) or `allowed_after_acceptance`:
+  the EX-O14 recipient-details gate for drivers. It stays `blocked` until the
+  owner records the consent/legal decision; even on
+  `allowed_after_acceptance`, details reach the driver only after the booking
+  is confirmed.
+- `rate.limits` — engineering-reference abuse limits (submissionsPerDay,
+  imagesPerDay, reportsPerDay, guestReadsPerMinute, authStartsPerMinute).
+  Final pilot values are an owner action (EX-O16).
 
 ## Local development (no Cloudflare account required)
 
@@ -44,9 +84,7 @@ npx wrangler pages dev apps/prototype-web/dist/public \
   --r2 MEDIA=micro-media-local \
   --binding GOOGLE_CLIENT_ID=test-client \
   --binding GOOGLE_CLIENT_SECRET=test-secret
-# apply migrations to the local D1 (script splits statements correctly):
-npx wrangler d1 execute DB --local \
-  --file=apps/prototype-web/worker/db/migrations/0001_init.sql
+# then apply ALL migrations in order to the local D1 (see the section above)
 ```
 
 The automated tests (`pnpm --filter @micro/prototype-web test`) run the same

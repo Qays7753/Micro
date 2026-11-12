@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "4360a92c",
-        "date": "2026-11-06",
-        "method": "UXR-W05 final re-anchor (2026-11-06, code head 4360a92c, PR #384 — DOC-032/WS-248 final-phase order over the W02 anchor 3ff7bdc3): the accumulated W03+W04+W05 candidate — W03 (parties/purchase/recurring copy + the cash dictionary) + W04 (readings/inventory/assets/tools + PERF-002 import gates + PERF-003 readPage + the settings index + backup/restore sections) + W05 (PERF-005/006/007/013/014 measured with no product-code change, final consumer coverage, deferred-check debt settlement, and the final-phase five-review fixes: Foundation sweep, completion/error role split, honest PWA runtime cards, Kash→Nuqud dictionary completion, overline removals, and 7 documented file-size ratchet reanchors). Net lazy surface IMPROVEMENT locked with same-PR provenance: lazy 1,477,357/443,689 → 1,475,606/443,608; precache 2,912,359 → 2,912,719 local (+360 documented three-wave content growth); initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 599,098/146,145 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed."
+        "head": "e1d116f7",
+        "date": "2026-11-12",
+        "method": "التوسعة الشبكية EX-D18 (2026-11-12، مطالبة WS-249 — المراجعة الخماسية الثانية فوق رأس e1d116f7): أسطح السوق/التوصيل/بوابة السائق تكتمل بإصلاحات المراجعة — كتلة أنماط الأسطح الجديدة كاملة (كانت كلها بلا أنماط)، عزل كروم بوابة السائق، محررات بمعاينة المسودة وحارس المدخلات، تسميات الحالات والأحداث الكانونية المشتركة (presentation/deliveryLabels)، وحالات تحميل/خطأ صادقة. lazy 1,475,606/443,608 → 1,562,020/475,316؛ precache 2,912,719 → 3,011,440 (+15 صفحة/مكون كسول و+CSS الأسطح)؛ initial companions 223,841/70,438 → 224,186/70,556؛ swRuntime 27,754 → 28,616؛ العدادات 129/2/87/184 → 144/2/96/199. السقوف الملكية (650,000/155,300) لم تُمس — budget PASS فوق الشجرة النهائية. بيئتا السحابة تُعيدان التعليق بعد الدفع بفئة هويتهما (سابقة W05)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -30,18 +30,18 @@
         "identityMode": "null-fallback"
       },
       "measurements": {
-        "initialRawTotal": 223841,
-        "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1475606,
-        "lazyGzipNormTotal": 443608,
-        "precacheBytesTotal": 2912719,
-        "swRuntimeRawTotal": 27754
+        "initialRawTotal": 224186,
+        "initialGzipNormTotal": 70556,
+        "lazyRawTotal": 1562020,
+        "lazyGzipNormTotal": 475316,
+        "precacheBytesTotal": 3011440,
+        "swRuntimeRawTotal": 28616
       },
       "counts": {
-        "lazyJsCount": 129,
+        "lazyJsCount": 144,
         "initialJsCount": 2,
-        "dynamicRootsCount": 87,
-        "precacheEntryCount": 184,
+        "dynamicRootsCount": 96,
+        "precacheEntryCount": 199,
         "swRuntimeFileCount": 2
       }
     },

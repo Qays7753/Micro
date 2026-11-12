@@ -8,6 +8,7 @@
 import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import Delivery from "@/pages/Delivery";
 import DeliveryBookingEditor from "@/pages/DeliveryBookingEditor";
 import DriverPortal from "@/pages/DriverPortal";
@@ -67,7 +68,7 @@ describe("delivery owner home (OD01)", () => {
   it("shows the sign-in gate with no fake bookings for guests", async () => {
     mockApi({});
     render(<Delivery />);
-    expect(await screen.findByText(/حجز التوصيل يحتاج تسجيل الدخول/)).toBeTruthy();
+    expect(await screen.findByText(/حجز التوصيل وكشوفه يحتاجان تسجيل الدخول/)).toBeTruthy();
     /* لا حجوزات وهمية: القائمة فارغة تمامًا للزائر. */
     const list = await screen.findByTestId("delivery-requests");
     expect(list.textContent).toBe("");
@@ -119,6 +120,7 @@ describe("delivery owner home (OD01)", () => {
             date: "2026-11-12",
             totalMinor: "7500",
             status: "awaiting_confirmation",
+            items: [{ description: "تحصيل الاثنين", amountMinor: "7500" }],
           },
         ],
       },
@@ -150,7 +152,11 @@ describe("delivery booking editor (OD03/OD05 + disclosure preview)", () => {
         ],
       },
     });
-    render(<DeliveryBookingEditor />);
+    render(
+      <UnsavedChangesProvider navigate={() => {}}>
+        <DeliveryBookingEditor />
+      </UnsavedChangesProvider>,
+    );
     const picker = await screen.findByTestId("driver-picker");
     expect(picker.textContent).toContain("أبو محمد");
     expect(picker.textContent).toContain("4.5★");

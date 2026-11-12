@@ -7,7 +7,7 @@
 
 import { authenticate, googleCallback, googleStart, health, sessionInfo, signOut } from "./api/auth.ts";
 import { readMedia, removeMedia, uploadMedia } from "./api/media.ts";
-import { listMyNotifications, markNotificationsRead } from "./api/system.ts";
+import { listMyNotifications, markNotificationsRead, putAdminSetting } from "./api/system.ts";
 import type { AuthenticatedContext } from "./auth/session.ts";
 import { command } from "./commands.ts";
 import { errorResponse } from "./http.ts";
@@ -38,8 +38,10 @@ export function buildRouter(): ApiRouter {
   const router = new ApiRouter();
   router.get("api/health", ctx => health(ctx.env));
   router.get("api/auth/session", async ctx => sessionInfo(ctx.env.DB, ctx.request));
-  router.get("api/auth/google/start", async ctx => googleStart(ctx.env.DB, ctx.env, ctx.url));
-  router.get("api/auth/google/callback", async ctx => googleCallback(ctx.env.DB, ctx.env, ctx.url));
+  router.get("api/auth/google/start", async ctx => googleStart(ctx.env.DB, ctx.env, ctx.url, ctx.request));
+  router.get("api/auth/google/callback", async ctx =>
+    googleCallback(ctx.env.DB, ctx.env, ctx.url, ctx.request),
+  );
   router.post(
     "api/auth/signout",
     command("signout", async ctx => signOut(ctx.env.DB, ctx)),
@@ -75,6 +77,14 @@ export function buildRouter(): ApiRouter {
       const auth = await authenticate(ctx.env.DB, ctx.request);
       if (!auth) return errorResponse("unauthorized", 401);
       return markNotificationsRead(ctx.env.DB, ctx, auth);
+    }),
+  );
+  router.put(
+    "api/admin/settings/:key",
+    command("admin-setting-update", async ctx => {
+      const auth = await authenticate(ctx.env.DB, ctx.request);
+      if (!auth) return errorResponse("unauthorized", 401);
+      return putAdminSetting(ctx.env.DB, ctx, auth);
     }),
   );
   registerMarketRoutes(router);

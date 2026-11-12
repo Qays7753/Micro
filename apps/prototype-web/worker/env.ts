@@ -15,16 +15,25 @@ export interface D1ResultRow {
   [column: string]: unknown;
 }
 
+/** D1 result metadata (real API): `changes` is the affected-row count. */
+export interface D1Meta {
+  changes: number;
+  duration: number;
+  last_row_id: number;
+  rows_read: number;
+  rows_written: number;
+}
+
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = D1ResultRow>(colName?: string): Promise<T | null>;
   all<T = D1ResultRow>(): Promise<{ results: T[] }>;
-  run(): Promise<{ success: boolean }>;
+  run(): Promise<{ success: boolean; meta: D1Meta }>;
 }
 
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
-  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<Array<{ results: T[] }>>;
+  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<Array<{ results: T[]; meta: D1Meta }>>;
   exec(sql: string): Promise<{ count: number }>;
 }
 

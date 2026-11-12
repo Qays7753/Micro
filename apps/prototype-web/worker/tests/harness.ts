@@ -112,6 +112,23 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
     }
   }
   const origin = "http://mf.local";
+  // Test posture: the limiter MECHANICS are covered by a dedicated focused
+  // test; every other test signs in and browses freely (all requests share
+  // one emulated IP, so production defaults would trip mid-suite).
+  await db
+    .prepare(
+      "INSERT INTO network_settings (key, value_json, updated_at, updated_by) VALUES ('rate.limits', ?, 1, 'harness')",
+    )
+    .bind(
+      JSON.stringify({
+        submissionsPerDay: 1000,
+        imagesPerDay: 1000,
+        reportsPerDay: 1000,
+        guestReadsPerMinute: 100000,
+        authStartsPerMinute: 100000,
+      }),
+    )
+    .run();
   return {
     mf,
     origin,
@@ -142,6 +159,8 @@ export async function signInAs(
   if (startResponse.status !== 302) {
     throw new Error(`google/start failed: ${startResponse.status} ${await startResponse.text()}`);
   }
+  const flowCookie = /micro_flow=([^;]+)/.exec(startResponse.headers.get("set-cookie") ?? "")?.[1];
+  if (!flowCookie) throw new Error("google/start did not set the flow cookie");
   const location = startResponse.headers.get("location") ?? "";
   const params = new URL(location).searchParams;
   const state = params.get("state");
@@ -160,6 +179,7 @@ export async function signInAs(
   };
   const callbackResponse = await worker.fetch(
     `/api/auth/google/callback?code=test-code&state=${encodeURIComponent(state)}`,
+    { headers: { cookie: `micro_flow=${flowCookie}` } },
   );
   if (callbackResponse.status !== 302) {
     throw new Error(`callback failed: ${callbackResponse.status} ${await callbackResponse.text()}`);

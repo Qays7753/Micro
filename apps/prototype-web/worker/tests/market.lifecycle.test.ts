@@ -192,6 +192,59 @@ describe("market: lifecycle and the atomic publication gate (OD-09/OD-16)", () =
       .first<{ n: number }>();
     expect(events!.n).toBe(1);
   });
+
+  it("OD-09 direct numeric updates apply with verification + a logged event; content does not", async () => {
+    // Only numeric price/availability fields go through direct-update.
+    const direct = await apiPost(
+      worker,
+      vendorCookie,
+      `/api/market/vendor/listings/${refs.listingId}/direct-update`,
+      { priceMicroJod: "1800000", availabilityStatus: "available" },
+    );
+    expect(direct.status).toBe(200);
+    const detail = (await (await apiGet(worker, null, `/api/market/listings/${refs.listingId}`)).json()) as {
+      listing: { priceMicroJod: string };
+    };
+    expect(detail.listing.priceMicroJod).toBe("1800000");
+    const db = await rawDb(worker);
+    const row = await db
+      .prepare("SELECT freshness_state FROM supplier_listing WHERE id = ?")
+      .bind(refs.listingId)
+      .first<{ freshness_state: string }>();
+    expect(row!.freshness_state).toBe("fresh"); // availability re-anchors freshness (OD-11)
+    const events = await db
+      .prepare("SELECT reason FROM market_moderation_event WHERE object_id = ? AND action = 'direct_update'")
+      .bind(refs.listingId)
+      .all<{ reason: string }>();
+    expect(events.results).toHaveLength(1);
+    expect(events.results[0]!.reason).toContain("availabilityStatus");
+    expect(events.results[0]!.reason).toContain("priceMicroJod");
+    // Content fields are never direct-updateable — they go through review.
+    const contentAttempt = await apiPost(
+      worker,
+      vendorCookie,
+      `/api/market/vendor/listings/${refs.listingId}/direct-update`,
+      { title: "عنوان مباشر بلا مراجعة" },
+    );
+    expect(contentAttempt.status).toBe(400);
+    // Another vendor's listing is invisible (cross-vendor isolation).
+    const foreign = await apiPost(
+      worker,
+      otherVendorCookie,
+      `/api/market/vendor/listings/${refs.listingId}/direct-update`,
+      { priceMicroJod: "1000000" },
+    );
+    expect(foreign.status).toBe(404);
+    // A non-published listing cannot take direct updates.
+    const draftRefs = await createVendorListing("مسودة لا تقبل التحديث المباشر");
+    const draftAttempt = await apiPost(
+      worker,
+      vendorCookie,
+      `/api/market/vendor/listings/${draftRefs.listingId}/direct-update`,
+      { priceMicroJod: "900000" },
+    );
+    expect(draftAttempt.status).toBe(409);
+  });
 });
 
 describe("market: cross-vendor isolation and admin boundaries", () => {

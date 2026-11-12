@@ -1,6 +1,7 @@
 /**
- * Shared delivery helpers: event recording, driver notification, and the
- * frozen agreement-copy builder (OD11).
+ * Shared delivery helpers: event recording, driver notification, the
+ * frozen agreement-copy builder (OD11), and the statement money-axis
+ * projection (OD13).
  */
 
 import { notify } from "../audit.ts";
@@ -101,4 +102,28 @@ export async function requireDriverProfile(ctx: RouteContext, auth: Authenticate
   const status = await driverStatus(ctx.env.DB, auth.identityId, nowMs());
   if (!status) throw new HttpError(404, "not_found");
   return status.driverProfileId;
+}
+
+/** Money-axis projection for a statement's fixed items (OD13, contract 21
+ * §3.2-6): advances only the confirmed pair bookings listed in the statement,
+ * and never re-opens an already-decided axis (§3.2-7 — re-open needs a
+ * documented decision). */
+export async function advanceMoneyAxisForItems(
+  ctx: RouteContext,
+  driverProfileId: string,
+  requesterIdentityId: string,
+  requestIds: string[],
+  status: "statement_submitted" | "full_receipt_confirmed" | "difference_under_review",
+  now: number,
+): Promise<void> {
+  const ids = requestIds.filter(id => id !== "");
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  await ctx.env.DB.prepare(
+    `UPDATE delivery_execution SET money_status = ?, updated_at = ? WHERE request_id IN (${placeholders}) ` +
+      "AND request_id IN (SELECT id FROM delivery_request WHERE driver_profile_id = ? AND requester_identity_id = ? AND status = 'confirmed') " +
+      "AND money_status NOT IN ('full_receipt_confirmed', 'difference_under_review')",
+  )
+    .bind(status, now, ...ids, driverProfileId, requesterIdentityId)
+    .run();
 }

@@ -102,6 +102,13 @@ async function tryPublish(db: Db, listingId: string, now: number): Promise<boole
       "UPDATE supplier_listing SET status = 'approved_for_publish', " +
         "title = COALESCE(json_extract(work_copy_json, '$.title'), title), " +
         "description = COALESCE(json_extract(work_copy_json, '$.description'), description), " +
+        // Denormalized price/quantity columns are refreshed from the approved
+        // work copy exactly like the revision-approve path — the public price
+        // must never diverge from the reviewed copy (Reviewer 1, 2026-11-12).
+        "price_mode = COALESCE(json_extract(work_copy_json, '$.pricing.mode'), price_mode), " +
+        "price_micro_jod = COALESCE(json_extract(work_copy_json, '$.pricing.priceMicroJod'), price_micro_jod), " +
+        "min_quantity_milli = COALESCE(json_extract(work_copy_json, '$.quantity.minQuantityMilli'), min_quantity_milli), " +
+        "quantity_step_milli = COALESCE(json_extract(work_copy_json, '$.quantity.stepMilli'), quantity_step_milli), " +
         "public_copy_json = work_copy_json, published_at = COALESCE(published_at, ?), freshness_state = 'fresh', " +
         "revision_status = 'none', reviewed_at = ?, updated_at = ? WHERE id = ?",
     )
@@ -233,6 +240,9 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
           )
           .bind(auth.identityId, now, now, listingId)
           .run();
+        // Content approval may itself be the last gate piece — attempt the
+        // atomic publish (a no-op when file/media are still pending).
+        await tryPublish(db(ctx), listingId, now);
       }
     } else if (
       status === "approved_for_publish" &&
@@ -246,6 +256,10 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
           "UPDATE supplier_listing SET public_copy_json = work_copy_json, revision_status = 'none', " +
             "title = COALESCE(json_extract(work_copy_json, '$.title'), title), " +
             "description = COALESCE(json_extract(work_copy_json, '$.description'), description), " +
+            "price_mode = COALESCE(json_extract(work_copy_json, '$.pricing.mode'), price_mode), " +
+            "price_micro_jod = COALESCE(json_extract(work_copy_json, '$.pricing.priceMicroJod'), price_micro_jod), " +
+            "min_quantity_milli = COALESCE(json_extract(work_copy_json, '$.quantity.minQuantityMilli'), min_quantity_milli), " +
+            "quantity_step_milli = COALESCE(json_extract(work_copy_json, '$.quantity.stepMilli'), quantity_step_milli), " +
             "availability_confirmed_at = CASE WHEN availability_confirmed_at < ? THEN ? ELSE availability_confirmed_at END, " +
             "freshness_state = 'fresh', reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
         )

@@ -136,7 +136,7 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 });
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
-  it("the live repository passes at the baseline: 66 corpus files, zero violations", () => {
+  it("the live repository passes at the baseline: 74 corpus files, zero violations", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
@@ -158,10 +158,10 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * تقاعد عائلة المشاركة (share/index.ts وshare/shareMessageService.ts
      * حذفا من الشجرة الحية بقرار إلغاء 040 بلا بديل)؛ 68 ← 66 تضييقًا
      * موثقًا لا توسيعًا (راجع تقرير S15). */
-    expect(result.stats.readLikeCorpus).toBe(66);
-    expect(result.stats.readLikeBaseline).toBe(66);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(66);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(66);
+    expect(result.stats.readLikeCorpus).toBe(74);
+    expect(result.stats.readLikeBaseline).toBe(74);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(74);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(74);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

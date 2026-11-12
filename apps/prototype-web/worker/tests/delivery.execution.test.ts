@@ -92,12 +92,14 @@ describe("delivery: execution and confirmation axes (OD14/OD16)", () => {
     expect(blocked.status).toBe(409);
     const body = (await blocked.json()) as { error: { details: { reason: string } } };
     expect(body.error.details.reason).toBe("contact_attempt_required_before_failure");
-    // Record the attempt with its outcome, then the failure is declarable.
+    // Record the attempt with its outcome, then the failure is declarable
+    // (a recorded reason is required — contract 21 §3.2-3).
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
       kind: "contact_attempt_no_answer",
     });
     const allowed = await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
       kind: "delivery_failed",
+      reason: "لا أحد في العنوان بعد محاولة الاتصال",
     });
     expect(allowed.status).toBe(200);
   });
@@ -166,7 +168,10 @@ describe("delivery: execution and confirmation axes (OD14/OD16)", () => {
       drivers: { driverProfileId: string; averageStars: number | null; ratingsCount: number }[];
     };
     const entry = directory.drivers.find(driver => driver.driverProfileId === driverProfileId);
-    expect(entry?.ratingsCount).toBe(0); // comment pending — stars publish with the comment per OD17 v1 aggregation
+    // OD17: stars are visible immediately — a pending (unmoderated) rating
+    // counts; only a REJECTED rating is removed from the public aggregate.
+    expect(entry?.ratingsCount).toBe(1);
+    expect(entry?.averageStars).toBe(5);
   });
 });
 
@@ -189,6 +194,12 @@ describe("delivery: statements confirm in full or record a difference (OD13)", (
       items: [{ requestId, description: "تحصيل يوم الاثنين", amountMinor: "7500" }],
     });
     expect(submit.status).toBe(201);
+    // Submission advances the money axis of exactly the statement's items
+    // (OD13 §3.2-6).
+    const moneyAfterSubmit = (await (
+      await apiGet(worker, ownerCookie, `/api/delivery/requests/${requestId}`)
+    ).json()) as { execution: { money: string } };
+    expect(moneyAfterSubmit.execution.money).toBe("statement_submitted");
     const duplicate = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: ownerIdentity!.id,
       items: [{ requestId, description: "محاولة ثانية", amountMinor: "100" }],
@@ -203,6 +214,34 @@ describe("delivery: statements confirm in full or record a difference (OD13)", (
     await apiPost(worker, ownerCookie, `/api/delivery/statements/${awaiting!.id}/confirm`, {
       decision: "full",
     });
+    // Full confirmation advances the money axis to its recorded outcome.
+    const moneyAfterConfirm = (await (
+      await apiGet(worker, ownerCookie, `/api/delivery/requests/${requestId}`)
+    ).json()) as { execution: { money: string } };
+    expect(moneyAfterConfirm.execution.money).toBe("full_receipt_confirmed");
+    // A supplement whose parent is not a confirmed statement of the same
+    // pair/day is rejected (§3.2-6 — supplements follow a confirmed parent).
+    const badParent = await apiPost(worker, driverCookie, "/api/driver/statements", {
+      requesterIdentityId: ownerIdentity!.id,
+      supplementOf: "stmt-does-not-exist",
+      items: [{ requestId, description: "بند بمرجع أصل غير موجود", amountMinor: "100" }],
+    });
+    expect(badParent.status).toBe(409);
+    const badParentBody = (await badParent.json()) as { error: { details: { reason: string } } };
+    expect(badParentBody.error.details.reason).toBe("invalid_supplement_parent");
+    // A statement to a requester with no booking relationship with this
+    // driver is rejected (no cross-inbox statement spam).
+    const plainIdentity = await db
+      .prepare("SELECT id FROM network_identity WHERE email = ?")
+      .bind("ex-user@example.test")
+      .first<{ id: string }>();
+    const noRelationship = await apiPost(worker, driverCookie, "/api/driver/statements", {
+      requesterIdentityId: plainIdentity!.id,
+      items: [{ requestId, description: "كشف بلا علاقة حجز", amountMinor: "100" }],
+    });
+    expect(noRelationship.status).toBe(409);
+    const noRelationshipBody = (await noRelationship.json()) as { error: { details: { reason: string } } };
+    expect(noRelationshipBody.error.details.reason).toBe("no_booking_relationship");
     // A supplement after confirmation carries only the new items.
     const supplementResponse = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: ownerIdentity!.id,

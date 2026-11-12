@@ -37,6 +37,7 @@ export interface BookingDetail {
     collectionContent: string | null;
     responseDeadlineAt: number | null;
     payload: Record<string, unknown>;
+    agreementCopy: Record<string, unknown> | null;
     createdAt: number;
   };
   quote: { id: string; fareMinor: string; scope: string; validUntil: number } | null;
@@ -48,7 +49,7 @@ export interface BookingDetail {
     money: string;
   } | null;
   events: { axis: string; type: string; from: string | null; to: string | null; at: number }[];
-  requester: { displayName: string };
+  requester: { id: string; displayName: string };
   driver: { id: string; profile: Record<string, unknown> };
   viewerRole: "requester" | "driver" | "admin";
 }
@@ -56,6 +57,8 @@ export interface BookingDetail {
 export interface DriverPortalState {
   driver: {
     status: string;
+    reviewReason: string | null;
+    profileFields: { displayName?: string; phone?: string; serviceAreas?: string[] } | null;
     eligibleForNewWork: boolean;
     acceptingNew: boolean;
     evidenceValid: boolean;
@@ -183,6 +186,43 @@ export async function confirmStatement(
 }
 
 /** ---- Driver portal ---- */
+
+export interface DriverStatementSummary {
+  id: string;
+  date: string;
+  items: { requestId: string; description: string; amountMinor: string }[];
+  totalMinor: string;
+  status: string;
+  createdAt: number;
+}
+
+export async function fetchDriverStatements(): Promise<{ statements: DriverStatementSummary[] }> {
+  return apiFetch("/api/driver/statements");
+}
+
+export async function submitDriverStatement(input: {
+  requesterIdentityId: string;
+  items: { requestId: string; description: string; amountMinor: string }[];
+  supplementOf?: string;
+}): Promise<void> {
+  await apiFetch(
+    "/api/driver/statements",
+    { method: "POST", body: JSON.stringify(input) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+export async function declareCollection(requestId: string, amountMinor: string): Promise<void> {
+  await apiFetch(
+    `/api/driver/requests/${encodeURIComponent(requestId)}/declare`,
+    { method: "POST", body: JSON.stringify({ kind: "collection_declared", amountMinor }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+export async function driverRequestDetail(id: string): Promise<BookingDetail> {
+  return apiFetch(`/api/driver/requests/${encodeURIComponent(id)}`);
+}
 
 export async function fetchDriverPortal(): Promise<DriverPortalState> {
   return apiFetch("/api/driver/portal");

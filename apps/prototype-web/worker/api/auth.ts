@@ -25,6 +25,7 @@ import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken, sha256Hex } from "../crypto.ts";
 import { newId, type Db } from "../db/d1.ts";
+import { enforceRate, minuteBucket, rateLimits } from "../ratelimit.ts";
 import { apiBindingsConfigured, type Env } from "../env.ts";
 import { clearedSessionCookie, errorResponse, jsonResponse, parseCookies, sessionCookie } from "../http.ts";
 import type { RouteContext } from "../router.ts";
@@ -71,17 +72,32 @@ export async function sessionInfo(db: Db, request: Request): Promise<Response> {
 }
 
 /** GET /api/auth/google/start?returnTo=... — begin the OIDC flow. */
-export async function googleStart(db: Db, env: Env, url: URL): Promise<Response> {
+export async function googleStart(db: Db, env: Env, url: URL, request: Request): Promise<Response> {
   if (!env.GOOGLE_CLIENT_ID)
     return errorResponse("network_not_configured", 503, { binding: "GOOGLE_CLIENT_ID" });
+  // Anonymous abuse control: one row is written per start, so throttle per
+  // connecting IP (engineering reference — configurable, not policy).
+  const startNow = nowMs();
+  const ip = request.headers.get("cf-connecting-ip") ?? "local";
+  const limits = await rateLimits(db);
+  await enforceRate(
+    db,
+    minuteBucket("auth-start", ip, startNow),
+    limits.authStartsPerMinute ?? 10,
+    60 * 1000,
+    startNow,
+  );
   const requested = url.searchParams.get("returnTo") ?? "/";
   const returnTo = isSafeInternalPath(requested) ? requested : "/";
   const now = nowMs();
-  const { state, nonce } = await createOAuthFlow(db, returnTo, now);
+  const { state, nonce, flowCookie } = await createOAuthFlow(db, returnTo, now);
   const redirectUri = `${url.protocol}//${url.host}/api/auth/google/callback`;
   return new Response(null, {
     status: 302,
-    headers: { location: googleAuthorizeUrl(env.GOOGLE_CLIENT_ID, redirectUri, state, nonce) },
+    headers: {
+      location: googleAuthorizeUrl(env.GOOGLE_CLIENT_ID, redirectUri, state, nonce),
+      "set-cookie": `micro_flow=${encodeURIComponent(flowCookie)}; Path=/; HttpOnly; SameSite=Lax;${url.protocol === "https:" ? " Secure;" : ""} Max-Age=600`,
+    },
   });
 }
 
@@ -90,6 +106,7 @@ export async function googleCallback(
   db: Db,
   env: Env,
   url: URL,
+  ctxRequest: Request,
   outbound?: OutboundFetch,
 ): Promise<Response> {
   const toHome = new Response(null, { status: 302, headers: { location: "/" } });
@@ -100,7 +117,8 @@ export async function googleCallback(
   const state = url.searchParams.get("state");
   if (!code || !state) return toHome;
   const now = nowMs();
-  const flow = await consumeOAuthFlow(db, state, now);
+  const flowCookie = parseCookies(ctxRequest.headers.get("cookie")).get("micro_flow");
+  const flow = await consumeOAuthFlow(db, state, flowCookie, now);
   if (!flow) return toHome;
   const redirectUri = `${url.protocol}//${url.host}/api/auth/google/callback`;
   const outboundFetch: OutboundFetch =
@@ -140,14 +158,19 @@ export async function googleCallback(
   const maxAge = Math.max(1, Math.floor((expiresAt - now) / 1000));
   return new Response(null, {
     status: 302,
-    headers: { location: flow.return_to, "set-cookie": sessionCookie(token, maxAge) },
+    headers: {
+      location: flow.return_to,
+      "set-cookie": sessionCookie(token, maxAge, url.protocol === "https:"),
+    },
   });
 }
 
 /** POST /api/auth/signout — revoke the session and clear the cookie. */
 export async function signOut(db: Db, ctx: RouteContext): Promise<Response> {
-  await revokeSession(db, cookieToken(ctx.request), nowMs());
+  // Resolve FIRST (capture the identity) — after revocation the session row
+  // is filtered out and the signout audit would never fire.
   const auth = await resolveSession(db, cookieToken(ctx.request), nowMs());
+  await revokeSession(db, cookieToken(ctx.request), nowMs());
   if (auth) {
     await audit(
       db,

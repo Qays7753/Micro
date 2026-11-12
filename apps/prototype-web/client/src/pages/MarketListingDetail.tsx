@@ -9,6 +9,13 @@ import { ArrowRight, Phone } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { estimateMaterialValue, fetchListingDetail, type PublicListingDetail } from "@/application/market";
 import { Button, EmptyState, Notice } from "@/components/primitives";
+import { normalizeAsciiDigits } from "@/application/input";
+
+/** Quantity ×1,000 as exact string scaling (contract 25 §3-ب — no floats). */
+function quantityToMilliExact(text: string): string {
+  const [whole, fraction = ""] = text.split(".");
+  return `${whole}${fraction.padEnd(3, "0")}`;
+}
 
 interface DetailPayload {
   listing: PublicListingDetail;
@@ -40,14 +47,19 @@ export default function MarketListingDetail() {
   }, [load]);
 
   const listing = data?.listing;
-  const quantityMilli = /^\d+$/.test(quantityText.trim()) ? `${Number(quantityText.trim()) * 1000}` : "";
+  const quantityDigits = normalizeAsciiDigits(quantityText.trim());
+  const quantityMilli = /^\d{1,6}(\.\d{1,3})?$/.test(quantityDigits)
+    ? quantityToMilliExact(quantityDigits)
+    : "";
   const estimate =
-    listing && quantityMilli !== ""
+    listing && quantityMilli !== "" && listing.priceMode === "fixed"
       ? estimateMaterialValue({
           mode: listing.priceMode,
           requestedMilli: quantityMilli,
           priceMicroJod: listing.priceMicroJod ?? undefined,
-          basisUnits: "1",
+          // The approved basis from the listing itself (not a hardcoded 1) —
+          // «السعر يشمل كم وحدة» is part of the reviewed pricing.
+          basisUnits: listing.priceBasis?.units ?? "1",
         })
       : null;
 
@@ -95,7 +107,9 @@ export default function MarketListingDetail() {
               <dd>
                 {listing.priceMode === "quote_required"
                   ? "يحتاج تسعيرًا — اسأل المورد"
-                  : `${(BigInt(listing.priceMicroJod ?? "0") / 1_000_000n).toString()}.${(BigInt(listing.priceMicroJod ?? "0") % 1_000_000n).toString().padStart(6, "0").slice(0, 3)} د.أ`}
+                  : listing.priceMode === "tiered"
+                    ? "السعر حسب الكمية — اسأل المورد عن الشرائح"
+                    : `${(BigInt(listing.priceMicroJod ?? "0") / 1_000_000n).toString()}.${(BigInt(listing.priceMicroJod ?? "0") % 1_000_000n).toString().padStart(6, "0").slice(0, 3)} د.أ`}
               </dd>
             </div>
             <div>

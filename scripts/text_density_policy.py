@@ -402,7 +402,23 @@ CAPS: dict[str, int] = {
     # description; no suppliers, no purchase action, no records or effects.
     "Market": 13,
     # UNIT-043 (S16 — أول قياس): صفحة التوصيل إعلان قريبًا بنمط السوق نفسه.
-    "Delivery": 13,
+    # Delivery 13 -> 22 (التوسعة الشبكية EX-D18، 2026-11-12): الصفحة صارت بيت
+    # صاحب المشروع الفعلي — قائمة الحجوزات الحقيقية بالتسميات الكانونية +
+    # قسم كشوف تنتظر التأكيد ببنوده الصادقة ونموذج «تسجيل فرق» السطري بديل
+    # window.prompt (مراجعة RTL الخامسة 2026-11-12).
+    "Delivery": 22,
+    # ── التوسعة الشبكية (EX-D18 — 2026-11-12): أول قياس لأسطح السوق والتوصيل
+    # وبوابة السائق (قيمة القياس + هامش تشغيلي موثق) — كل النصوص ملك محتوى
+    # حقيقي معتمد (لا حشو ولا عناوين معمارية)؛ التفصيل في تقرير التنفيذ. ──
+    "DeliveryBookingDetail": 80,
+    "DeliveryBookingEditor": 60,
+    "DeliveryDrivers": 20,
+    "DriverBookingDetail": 90,
+    "DriverPortal": 100,
+    "MarketListingDetail": 20,
+    "MarketListingEditor": 45,
+    "MarketReview": 40,
+    "MarketVendorWorkspace": 58,
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
@@ -853,6 +869,17 @@ CAPS: dict[str, int] = {
 }
 
 PAGES = [
+    # التوسعة الشبكية (EX-D18 — 2026-11-12): أسطح السوق والتوصيل وبوابة السائق
+    # تدخل القياس بأسقف موثقة أعلاه (أول قياس فوق الشجرة النهائية).
+    "DeliveryBookingDetail",
+    "DeliveryBookingEditor",
+    "DeliveryDrivers",
+    "DriverBookingDetail",
+    "DriverPortal",
+    "MarketListingDetail",
+    "MarketListingEditor",
+    "MarketReview",
+    "MarketVendorWorkspace",
     "Home",
     "Finance",
     "OrderDetail",

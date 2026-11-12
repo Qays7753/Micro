@@ -10,6 +10,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import {
   fetchDriverDirectory,
+  fetchOwnerOverview,
   toggleSavedDriver,
   type DriverDirectoryEntryDto,
 } from "@/application/delivery";
@@ -20,19 +21,26 @@ export default function DeliveryDrivers() {
   const returnPath = useReturnPath();
   const { session, signIn } = useNetworkSession();
   const [drivers, setDrivers] = useState<DriverDirectoryEntryDto[]>([]);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     setState("loading");
     try {
       const directory = await fetchDriverDirectory();
       setDrivers(directory.drivers);
+      if (session.authenticated) {
+        const overview = await fetchOwnerOverview().catch(() => null);
+        setSavedIds(new Set((overview?.savedDrivers ?? []).map(entry => entry.driverProfileId)));
+      }
       setState("ready");
     } catch {
       setState("error");
     }
-  }, []);
+  }, [session.authenticated]);
 
   useEffect(() => {
     void load();
@@ -47,7 +55,7 @@ export default function DeliveryDrivers() {
         <h1>سائقوني والبحث عن سائق</h1>
         <p>اختر سائقًا معروف الهوية والمركبة — الترشيح حسب المسار والأهلية، بلا ترتيب مدفوع.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       {!session.authenticated ? (
         <Notice tone="neutral">
           حفظ السائقين والحجز يحتاجان تسجيل الدخول.
@@ -57,7 +65,11 @@ export default function DeliveryDrivers() {
         </Notice>
       ) : null}
 
-      {state === "loading" ? <p>جارٍ التحميل…</p> : null}
+      {state === "loading" ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ التحميل…
+        </p>
+      ) : null}
       {state === "error" ? (
         <EmptyState
           title="تعذر تحميل دليل السائقين"
@@ -74,6 +86,16 @@ export default function DeliveryDrivers() {
           title="لا سائقين معتمدين بعد"
           description="الدليل يعرض السائقين المعتمدين فقط — لا بيانات وهمية. شارك رابط بوابة السائق مع من تعرفه."
         />
+      ) : null}
+
+      {savedIds.size > 0 ? (
+        <p className="micro-drivers-saved" role="status">
+          محفوظون في سائقوني:{" "}
+          {drivers
+            .filter(driver => savedIds.has(driver.driverProfileId))
+            .map(driver => driver.displayName)
+            .join(" · ") || `${savedIds.size} سائقًا`}
+        </p>
       ) : null}
 
       <ul className="micro-drivers-list" data-testid="drivers-directory">
@@ -103,13 +125,25 @@ export default function DeliveryDrivers() {
                   onClick={async () => {
                     try {
                       const result = await toggleSavedDriver(driver.driverProfileId);
-                      setMessage(result.saved ? "حُفظ السائق في سائقوني." : "أُلغي حفظ السائق.");
+                      setSavedIds(current => {
+                        const next = new Set(current);
+                        if (result.saved) next.add(driver.driverProfileId);
+                        else next.delete(driver.driverProfileId);
+                        return next;
+                      });
+                      setMessage({
+                        tone: "success",
+                        text: result.saved ? "حُفظ السائق في سائقوني." : "أُلغي حفظ السائق.",
+                      });
                     } catch (error) {
-                      setMessage(error instanceof Error ? error.message : "تعذر الحفظ.");
+                      setMessage({
+                        tone: "error",
+                        text: error instanceof Error ? error.message : "تعذر الحفظ.",
+                      });
                     }
                   }}
                 >
-                  حفظ / إلغاء الحفظ
+                  {savedIds.has(driver.driverProfileId) ? "إلغاء الحفظ" : "حفظ في سائقوني"}
                 </Button>
               ) : null}
             </div>

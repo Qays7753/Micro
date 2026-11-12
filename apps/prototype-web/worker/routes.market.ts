@@ -14,6 +14,8 @@ import {
   attachListingMedia,
   confirmAvailability,
   createListingDraft,
+  directUpdateListing,
+  getVendorListingDraft,
   reportListing,
   submitListing,
   toggleSavedListing,
@@ -58,6 +60,10 @@ export function registerMarketRoutes(router: ApiRouter): void {
       authedRoute((ctx, auth) => createListingDraft(ctx, auth)),
     ),
   );
+  router.get(
+    "api/market/vendor/listings/:id",
+    authedRoute((ctx, auth) => getVendorListingDraft(ctx, auth)),
+  );
   router.post(
     "api/market/vendor/listings/:id",
     command(
@@ -77,6 +83,13 @@ export function registerMarketRoutes(router: ApiRouter): void {
     command(
       "listing-confirm-availability",
       authedRoute((ctx, auth) => confirmAvailability(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/market/vendor/listings/:id/direct-update",
+    command(
+      "listing-direct-update",
+      authedRoute((ctx, auth) => directUpdateListing(ctx, auth)),
     ),
   );
   router.post(

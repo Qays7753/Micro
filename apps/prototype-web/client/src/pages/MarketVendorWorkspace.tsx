@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import {
   confirmListingAvailability,
   fetchVendorOverview,
@@ -40,10 +41,13 @@ const REVISION_LABELS: Record<string, string> = {
 
 export default function MarketVendorWorkspace() {
   const [, navigate] = useLocation();
+  const returnPath = useReturnPath();
   const { session, signIn, loading: sessionLoading } = useNetworkSession();
   const [overview, setOverview] = useState<VendorOverview | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
   const [profileOpen, setProfileOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
@@ -63,6 +67,16 @@ export default function MarketVendorWorkspace() {
     if (session.authenticated) void load();
     else if (!sessionLoading) setState("ready");
   }, [session.authenticated, sessionLoading, load]);
+
+  useEffect(() => {
+    // Prefill the edit form from the vendor's own work copy (not a blank form).
+    const fields = overview?.profileFields;
+    if (fields) {
+      setDisplayName(current => (current === "" ? (fields.displayName ?? current) : current));
+      setPhone(current => (current === "" ? (fields.contactPhone ?? current) : current));
+      setGovernorate(current => (current === "" ? (fields.governorate ?? current) : current));
+    }
+  }, [overview?.profileFields]);
 
   if (!sessionLoading && !session.authenticated) {
     return (
@@ -88,29 +102,37 @@ export default function MarketVendorWorkspace() {
   const run = async (action: () => Promise<void>, successMessage: string) => {
     try {
       await action();
-      setMessage(successMessage);
+      setMessage({ tone: "success", text: successMessage });
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تنفيذ الفعل — أعد المحاولة.");
+      setMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "تعذر تنفيذ الفعل — أعد المحاولة.",
+      });
     }
   };
 
   return (
     <section className="micro-page micro-vendor-page" data-testid="market-vendor-workspace">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/market")}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> السوق
       </button>
       <div className="micro-page-heading">
         <h1>مساحة المورد</h1>
         <p>ملفك وإعلاناتك خاصة حتى اكتمال القبول — لا يظهر شيء للعامة تلقائيًا.</p>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
       <section className="micro-vendor-profile">
         <h2>ملف المورد</h2>
         <p className="micro-vendor-profile__status">
           الحالة: {vendorStatus === null ? "لم يُنشأ بعد" : (STATUS_LABELS[vendorStatus] ?? vendorStatus)}
         </p>
+        {overview?.vendorReviewReason ? (
+          <p className="micro-review-reason" role="status">
+            ملاحظة المراجع: {overview.vendorReviewReason}
+          </p>
+        ) : null}
         {vendorStatus === null || vendorStatus === "draft" || vendorStatus === "changes_requested" ? (
           <>
             <Button action="outline" onClick={() => setProfileOpen(open => !open)}>
@@ -174,7 +196,11 @@ export default function MarketVendorWorkspace() {
         <Button action="create" onClick={() => navigate("/market/vendor/new")}>
           أضف إعلانًا
         </Button>
-        {state === "loading" ? <p>جارٍ التحميل…</p> : null}
+        {state === "loading" ? (
+          <p className="micro-route-loading" role="status">
+            جارٍ التحميل…
+          </p>
+        ) : null}
         {state === "error" ? (
           <EmptyState
             title="تعذر تحميل إعلاناتك"

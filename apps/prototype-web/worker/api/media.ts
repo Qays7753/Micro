@@ -7,6 +7,7 @@
 import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
+import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import {
   deleteMedia,
@@ -28,6 +29,15 @@ export async function uploadMedia(ctx: RouteContext, auth: AuthenticatedContext)
     throw new HttpError(400, "bad_request", { field: "purpose" });
   }
   const purpose = purposeParam as MediaPurpose;
+  const now = nowMs();
+  const limits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("media-upload", auth.identityId, now),
+    limits.imagesPerDay,
+    24 * 60 * 60 * 1000,
+    now,
+  );
   const contentType = ctx.request.headers.get("content-type") ?? "";
   const bytes = await ctx.request.arrayBuffer();
   const media = await storeMedia(
@@ -35,7 +45,7 @@ export async function uploadMedia(ctx: RouteContext, auth: AuthenticatedContext)
     db(ctx),
     { identityId: auth.identityId, purpose },
     { bytes, contentType },
-    nowMs(),
+    now,
     randomToken,
   );
   await audit(
@@ -48,7 +58,7 @@ export async function uploadMedia(ctx: RouteContext, auth: AuthenticatedContext)
       result: "success",
       meta: { purpose, sizeBytes: media.size_bytes },
     },
-    nowMs(),
+    now,
   );
   return jsonResponse(
     { media: { id: media.id, purpose: media.purpose, contentType: media.content_type } },
@@ -98,14 +108,35 @@ export async function readMedia(ctx: RouteContext, auth: AuthenticatedContext | 
   });
 }
 
-/** DELETE /api/media/:id — owner cleanup while pending (draft state). */
+/** DELETE /api/media/:id — owner cleanup of pending/rejected drafts (or an
+ * audited admin moderation removal). Media still attached to a listing or an
+ * evidence/vehicle record is never deleted — that would corrupt the record
+ * and strip a published listing's imagery without review. */
 export async function removeMedia(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const media = await findMedia(db(ctx), ctx.params.id!);
   if (!media) throw new HttpError(404, "not_found");
   const isOwner = media.owner_identity_id === auth.identityId;
   if (!isOwner && !auth.isAdmin) throw new HttpError(404, "not_found");
-  if (!isOwner && auth.isAdmin && media.status === "approved") {
-    // Admin removal of approved media is an audited moderation action.
+  // Referenced media is in use (FK would also reject the raw delete — answer
+  // honestly with a 409 instead of a 500).
+  const referenced = await db(ctx)
+    .prepare(
+      "SELECT (SELECT COUNT(*) FROM listing_media WHERE media_id = ?) + " +
+        "(SELECT COUNT(*) FROM driver_evidence WHERE media_id = ?) + " +
+        "(SELECT COUNT(*) FROM driver_vehicle WHERE ownership_proof_media_id = ?) AS n",
+    )
+    .bind(media.id, media.id, media.id)
+    .first<Record<string, unknown>>();
+  if (Number(referenced?.n ?? 0) > 0) {
+    throw new HttpError(409, "conflict", { reason: "media_in_use" });
+  }
+  if (isOwner && !auth.isAdmin && media.status === "approved") {
+    // Approved media can only be removed through moderation, never by the
+    // owner directly (the publication gate owns approved components).
+    throw new HttpError(409, "conflict", { reason: "approved_media_requires_moderation" });
+  }
+  if (!isOwner && auth.isAdmin) {
+    // Admin removal is an audited moderation action.
     await audit(
       db(ctx),
       {

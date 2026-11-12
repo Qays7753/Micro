@@ -12,6 +12,7 @@ import {
   attachDriverEvidence,
   fetchDriverPortal,
   fetchDriverRequests,
+  fetchDriverStatements,
   upsertDriverProfileDraft,
   upsertDriverVehicleDraft,
   setAcceptingNew,
@@ -20,8 +21,12 @@ import {
   uploadVehicleProof,
   type DriverPortalState,
   type DriverRequestSummary,
+  type DriverStatementSummary,
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
+import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
+import { STATEMENT_STATUS_LABELS } from "@/presentation/deliveryLabels";
+import { normalizeAsciiDigits } from "@/application/input";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة — أكمل البيانات وأرسل للمراجعة",
@@ -39,26 +44,90 @@ const EVIDENCE_LABELS: Record<string, string> = {
   vehicle_ownership: "إثبات المركبة/الإذن",
 };
 
+const EVIDENCE_STATUS_LABELS: Record<string, string> = {
+  pending: "بانتظار المراجعة",
+  approved: "معتمد",
+  rejected: "مرفوض — أعد الرفع",
+};
+
+const VEHICLE_STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة",
+  submitted: "مقدمة للمراجعة",
+  approved: "معتمدة",
+  rejected: "مرفوضة",
+};
+
+const GOVERNORATES = [
+  "عمان",
+  "إربد",
+  "الزرقاء",
+  "البلقاء",
+  "المفرق",
+  "العقبة",
+  "جرش",
+  "عجلون",
+  "مادبا",
+  "الكرك",
+  "الطفيلة",
+  "معان",
+];
+
+function minorToJod(minor: string | null): string {
+  if (minor === null) return "—";
+  const value = BigInt(minor);
+  return `${(value / 100n).toString()}.${(value % 100n).toString().padStart(2, "0")}`;
+}
+
 export default function DriverPortal() {
   const [, navigate] = useLocation();
   const { session, signIn, loading: sessionLoading } = useNetworkSession();
   const [portal, setPortal] = useState<DriverPortalState | null>(null);
   const [requests, setRequests] = useState<DriverRequestSummary[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
-  const [form, setForm] = useState({ displayName: "", phone: "", plate: "", vehicleType: "" });
+  const [statements, setStatements] = useState<DriverStatementSummary[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
+  const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
+    null,
+  );
+  const [form, setForm] = useState({
+    displayName: "",
+    phone: "",
+    plate: "",
+    vehicleType: "",
+    serviceAreas: [] as string[],
+  });
+  const [prefilled, setPrefilled] = useState(false);
 
   const load = useCallback(async () => {
+    setLoadState("loading");
     try {
       const state = await fetchDriverPortal();
       setPortal(state);
+      setForm(current => {
+        // Prefill from the driver's own work copy (edit mode, not a blank form).
+        const fields = state.driver?.profileFields;
+        if (prefilled || fields === null || fields === undefined) return current;
+        setPrefilled(true);
+        return {
+          ...current,
+          displayName: fields.displayName ?? current.displayName,
+          phone: fields.phone ?? current.phone,
+          serviceAreas: fields.serviceAreas ?? current.serviceAreas,
+        };
+      });
       if (state.driver) {
-        const list = await fetchDriverRequests();
+        const [list, statementList] = await Promise.all([
+          fetchDriverRequests(),
+          fetchDriverStatements().catch(() => ({ statements: [] as DriverStatementSummary[] })),
+        ]);
         setRequests(list.requests);
+        setStatements(statementList.statements);
       }
+      setLoadState("ready");
     } catch {
-      setPortal(null);
+      // A network failure is NOT "no application" — surface it honestly.
+      setLoadState("error");
     }
-  }, []);
+  }, [prefilled]);
 
   useEffect(() => {
     if (session.authenticated) void load();
@@ -87,14 +156,23 @@ export default function DriverPortal() {
 
   const driver = portal?.driver ?? null;
 
+  const toggleArea = (governorate: string) => {
+    setForm(current => ({
+      ...current,
+      serviceAreas: current.serviceAreas.includes(governorate)
+        ? current.serviceAreas.filter(area => area !== governorate)
+        : [...current.serviceAreas, governorate],
+    }));
+  };
+
   const uploadEvidence = async (category: "identity" | "license", file: File) => {
     try {
       const uploaded = await uploadDriverEvidence(file);
       await attachDriverEvidence({ category, mediaId: uploaded.media.id });
-      setMessage(`رُفعت ${EVIDENCE_LABELS[category]} — بانتظار المراجعة.`);
+      setMessage({ tone: "success", text: `رُفعت ${EVIDENCE_LABELS[category]} — بانتظار المراجعة.` });
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر رفع المستند.");
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "تعذر رفع المستند." });
     }
   };
 
@@ -104,9 +182,25 @@ export default function DriverPortal() {
         <span className="micro-overline">Micro — السائق</span>
         <h1>{driver ? (driver.status === "approved" ? "لوحة السائق" : "حالة تقديمك") : "تقديم سائق"}</h1>
       </div>
-      {message ? <Notice tone="neutral">{message}</Notice> : null}
+      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
-      {driver === null ? (
+      {loadState === "loading" && session.authenticated ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ تحميل بوابة السائق…
+        </p>
+      ) : null}
+      {loadState === "error" ? (
+        <EmptyState
+          title="تعذر تحميل بوابة السائق"
+          description="أعد المحاولة — لا نبني حالتك من غياب البيانات."
+          action={
+            <Button action="secondary" onClick={() => void load()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : null}
+      {loadState === "ready" && driver === null ? (
         <section className="micro-driver-apply">
           <h2>بيانات التشغيل الأساسية</h2>
           <Field label="الاسم المعروض">
@@ -122,7 +216,7 @@ export default function DriverPortal() {
               inputMode="tel"
             />
           </Field>
-          <Field label="نوع المركبة (أي سيارة مقبولة — OD27)">
+          <Field label="نوع المركبة (أي سيارة مقبولة)">
             <input
               value={form.vehicleType}
               onChange={event => setForm({ ...form, vehicleType: event.target.value })}
@@ -131,6 +225,19 @@ export default function DriverPortal() {
           <Field label="رقم اللوحة">
             <input value={form.plate} onChange={event => setForm({ ...form, plate: event.target.value })} />
           </Field>
+          <fieldset className="micro-service-areas">
+            <legend>مناطق خدمتك (تظهر لأصحاب المشاريع عند الترشيح)</legend>
+            {GOVERNORATES.map(governorate => (
+              <label key={governorate}>
+                <input
+                  type="checkbox"
+                  checked={form.serviceAreas.includes(governorate)}
+                  onChange={() => toggleArea(governorate)}
+                />
+                {governorate}
+              </label>
+            ))}
+          </fieldset>
           <h2>المستندات الخاصة (السائق والمراجعون المخولون فقط يرونها)</h2>
           <label className="micro-evidence-upload">
             صورة الهوية
@@ -169,10 +276,13 @@ export default function DriverPortal() {
                     vehicleType: form.vehicleType,
                     ownershipProofMediaId: proof.media.id,
                   });
-                  setMessage("سُجلت المركبة مع إثباتها — بانتظار المراجعة.");
+                  setMessage({ tone: "success", text: "سُجلت المركبة مع إثباتها — بانتظار المراجعة." });
                   await load();
                 } catch (error) {
-                  setMessage(error instanceof Error ? error.message : "تعذر رفع إثبات المركبة.");
+                  setMessage({
+                    tone: "error",
+                    text: error instanceof Error ? error.message : "تعذر رفع إثبات المركبة.",
+                  });
                 }
               }}
             />
@@ -184,13 +294,16 @@ export default function DriverPortal() {
                 try {
                   await upsertDriverProfileDraft({
                     displayName: form.displayName,
-                    phone: form.phone,
-                    serviceAreas: ["عمان"],
+                    phone: normalizeAsciiDigits(form.phone.trim()),
+                    serviceAreas: form.serviceAreas,
                   });
-                  setMessage("حُفظ ملف السائق كمسودة.");
+                  setMessage({ tone: "success", text: "حُفظ ملف السائق كمسودة." });
                   await load();
                 } catch (error) {
-                  setMessage(error instanceof Error ? error.message : "تعذر حفظ الملف.");
+                  setMessage({
+                    tone: "error",
+                    text: error instanceof Error ? error.message : "تعذر حفظ الملف.",
+                  });
                 }
               }}
             >
@@ -202,16 +315,18 @@ export default function DriverPortal() {
                 try {
                   await upsertDriverProfileDraft({
                     displayName: form.displayName,
-                    phone: form.phone,
-                    serviceAreas: ["عمان"],
+                    phone: normalizeAsciiDigits(form.phone.trim()),
+                    serviceAreas: form.serviceAreas,
                   });
                   await submitDriverApplication();
-                  setMessage("أُرسل التقديم للمراجعة اليدوية — لا تفعيل ذاتيًا (OD22).");
+                  setMessage({ tone: "success", text: "أُرسل التقديم للمراجعة اليدوية — لا تفعيل ذاتيًا." });
                   await load();
                 } catch (error) {
-                  setMessage(
-                    error instanceof Error ? error.message : "تعذر الإرسال — أكمل الهوية والرخصة أولًا.",
-                  );
+                  setMessage({
+                    tone: "error",
+                    text:
+                      error instanceof Error ? error.message : "تعذر الإرسال — أكمل الهوية والرخصة أولًا.",
+                  });
                 }
               }}
             >
@@ -219,21 +334,30 @@ export default function DriverPortal() {
             </Button>
           </div>
         </section>
-      ) : (
+      ) : null}
+      {loadState === "ready" && driver !== null ? (
         <>
           <section className="micro-driver-status">
             <h2>حالتك</h2>
             <p>{STATUS_LABELS[driver.status] ?? driver.status}</p>
+            {driver.reviewReason !== null ? (
+              <p className="micro-review-reason" role="status">
+                ملاحظة المراجع: {driver.reviewReason}
+              </p>
+            ) : null}
             <ul className="micro-evidence-list" data-testid="driver-evidence">
               {(portal?.evidence ?? []).map(evidence => (
                 <li key={evidence.id}>
-                  {EVIDENCE_LABELS[evidence.category] ?? evidence.category}: {evidence.status}
+                  {EVIDENCE_LABELS[evidence.category] ?? evidence.category}:{" "}
+                  {EVIDENCE_STATUS_LABELS[evidence.status] ?? evidence.status}
                   {evidence.expiresAt !== null
-                    ? ` — ينتهي ${new Date(evidence.expiresAt).toLocaleDateString("ar-JO")}`
+                    ? ` — ينتهي ${formatLocalDate(businessDateFromTimestamp(new Date(evidence.expiresAt).toISOString()))}`
                     : ""}
                 </li>
               ))}
-              {portal?.vehicle ? <li>المركبة: {portal.vehicle.status}</li> : null}
+              {portal?.vehicle ? (
+                <li>المركبة: {VEHICLE_STATUS_LABELS[portal.vehicle.status] ?? portal.vehicle.status}</li>
+              ) : null}
             </ul>
             {driver.status === "approved" ? (
               <Button
@@ -241,14 +365,18 @@ export default function DriverPortal() {
                 onClick={async () => {
                   try {
                     await setAcceptingNew(!driver.acceptingNew);
-                    setMessage(
-                      driver.acceptingNew
+                    setMessage({
+                      tone: "success",
+                      text: driver.acceptingNew
                         ? "أوقفت استقبال الحجوزات الجديدة — القائم محفوظ."
                         : "فُتح استقبال الحجوزات الجديدة.",
-                    );
+                    });
                     await load();
                   } catch (error) {
-                    setMessage(error instanceof Error ? error.message : "تعذر تغيير الحالة.");
+                    setMessage({
+                      tone: "error",
+                      text: error instanceof Error ? error.message : "تعذر تغيير الحالة.",
+                    });
                   }
                 }}
               >
@@ -283,7 +411,9 @@ export default function DriverPortal() {
                         </strong>
                         <span>
                           {request.needType === "deliver_to_customer" ? "توصيل للزبون" : "إحضار أغراض جاهزة"}
-                          {request.collectionMinor !== null ? ` · تحصيل ${request.collectionMinor}` : ""}
+                          {request.collectionMinor !== null
+                            ? ` · تحصيل ${minorToJod(request.collectionMinor)} د.أ`
+                            : ""}
                         </span>
                       </button>
                     </li>
@@ -292,8 +422,31 @@ export default function DriverPortal() {
               )}
             </section>
           ) : null}
+
+          {driver.status === "approved" && statements.length > 0 ? (
+            <section className="micro-driver-statements" data-testid="driver-statements">
+              <h2>كشوفك اليومية</h2>
+              <ul className="micro-statement-list">
+                {statements.map(statement => (
+                  <li key={statement.id} className="micro-statement-card">
+                    <p>
+                      {formatLocalDate(statement.date)} — {minorToJod(statement.totalMinor)} د.أ —{" "}
+                      {STATEMENT_STATUS_LABELS[statement.status] ?? statement.status}
+                    </p>
+                    <ul className="micro-statement-card__items">
+                      {statement.items.map((item, index) => (
+                        <li key={index}>
+                          {item.description} — {minorToJod(item.amountMinor)} د.أ
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </>
-      )}
+      ) : null}
     </section>
   );
 }
