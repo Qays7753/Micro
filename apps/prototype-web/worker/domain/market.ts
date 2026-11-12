@@ -179,8 +179,18 @@ export function freshnessFrom(
   return "fresh";
 }
 
-/** Vendor-editable vs reviewer-only fields (OD-09 content/numeric split). */
-export const DIRECT_UPDATE_FIELDS = ["priceMicroJod", "availabilityStatus"] as const;
+/** Vendor-editable vs reviewer-only fields (OD-09 content/numeric split,
+ * contract 20 §3.3): the numeric price within the SAME pricing mode (fixed
+ * scalar / tiered list), the declared quantity figures, availability, and
+ * pause are direct; unit, category, media, contact channel, and the pricing
+ * mode itself stay in review. */
+export const DIRECT_UPDATE_FIELDS = [
+  "priceMicroJod",
+  "tiers",
+  "minQuantityMilli",
+  "stepMilli",
+  "availabilityStatus",
+] as const;
 
 export function isDirectUpdateField(field: string): boolean {
   return (DIRECT_UPDATE_FIELDS as readonly string[]).includes(field);

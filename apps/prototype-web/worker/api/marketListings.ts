@@ -377,9 +377,14 @@ export async function attachListingMedia(ctx: RouteContext, auth: AuthenticatedC
   return jsonResponse({ ok: true });
 }
 
-/** POST /api/market/vendor/listings/:id/direct-update — OD-09 numeric/availability
- * direct updates with verification + a logged moderation event. Only the
- * approved direct fields are accepted; content changes go through review. */
+/** POST /api/market/vendor/listings/:id/direct-update — OD-09 approved direct
+ * fields (contract 20 §3.3): the numeric price WITHIN the same pricing mode
+ * (fixed scalar OR the full tiered price list), the declared quantity figures
+ * (minimum + step), and availability — every change verified and logged as a
+ * moderation event. Content, category, media, the pricing MODE, the unit, and
+ * the contact channel are NOT direct: they stay in review. The work copy and
+ * public copy JSONs are kept coherent with the columns so a later content
+ * revision can never resurrect a stale direct value. */
 export async function directUpdateListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const row = await requireOwnListing(ctx, auth, ctx.params.id!);
   if (String(row.status) !== "approved_for_publish")
@@ -388,17 +393,103 @@ export async function directUpdateListing(ctx: RouteContext, auth: Authenticated
   const now = nowMs();
   const sets: string[] = [];
   const values: unknown[] = [];
+  const work = JSON.parse(String(row.work_copy_json ?? "{}")) as {
+    pricing?: ListingPricing;
+    quantity?: ListingQuantity;
+  };
+  const publicCopy =
+    row.public_copy_json === null
+      ? null
+      : (JSON.parse(String(row.public_copy_json)) as {
+          pricing?: ListingPricing;
+          quantity?: ListingQuantity;
+        });
+  const nextWork = {
+    ...work,
+    pricing: { ...(work.pricing ?? {}) },
+    quantity: { ...(work.quantity ?? ({} as ListingQuantity)) },
+  } as {
+    pricing: ListingPricing;
+    quantity: ListingQuantity;
+  };
+  const nextPublic =
+    publicCopy === null
+      ? null
+      : ({
+          ...publicCopy,
+          pricing: { ...(publicCopy.pricing ?? {}) },
+          quantity: { ...(publicCopy.quantity ?? ({} as ListingQuantity)) },
+        } as { pricing: ListingPricing; quantity: ListingQuantity });
+
   if (body.priceMicroJod !== undefined) {
-    // OD-09: direct numeric updates apply to the SAME pricing mode — a scalar
-    // price is only meaningful for fixed pricing (tiered/quote go to review).
+    // A scalar price is only meaningful for FIXED pricing (same-mode rule).
     if (String(row.price_mode) !== "fixed") {
       throw new HttpError(409, "conflict", { reason: "direct_price_requires_fixed_pricing" });
     }
-    // Validate the numeric value itself (same domain rule as a full pricing
-    // object); the price basis and all content stay under review.
     parsePositiveIntegerString(body.priceMicroJod, "priceMicroJod", MAX_PRICE_MICRO);
     sets.push("price_micro_jod = ?");
     values.push(String(body.priceMicroJod));
+    nextWork.pricing = { ...nextWork.pricing, mode: "fixed", priceMicroJod: String(body.priceMicroJod) };
+    if (nextPublic !== null) {
+      nextPublic.pricing = {
+        ...nextPublic.pricing,
+        mode: "fixed",
+        priceMicroJod: String(body.priceMicroJod),
+      };
+    }
+  }
+  if (body.tiers !== undefined) {
+    // The tiered price list IS the numeric price in tiered mode (same-mode
+    // rule): the full validated list replaces the old one; unit and content
+    // stay untouched.
+    if (String(row.price_mode) !== "tiered") {
+      throw new HttpError(409, "conflict", { reason: "direct_tiers_require_tiered_pricing" });
+    }
+    const tiers = body.tiers as ListingPricing["tiers"];
+    if (!Array.isArray(tiers)) throw new HttpError(400, "bad_request", { field: "tiers" });
+    validatePricing({ mode: "tiered", tiers });
+    sets.push("price_basis_json = ?");
+    values.push(JSON.stringify(tiers));
+    nextWork.pricing = { ...nextWork.pricing, mode: "tiered", tiers };
+    if (nextPublic !== null) {
+      nextPublic.pricing = { ...nextPublic.pricing, mode: "tiered", tiers };
+    }
+  }
+  if (body.minQuantityMilli !== undefined || body.stepMilli !== undefined) {
+    // Declared quantity figures — same validation as a full listing, plus the
+    // package-fit rule when packages are not split (spec §5.2: the minimum
+    // itself must be an acceptable quantity).
+    const min = body.minQuantityMilli !== undefined ? body.minQuantityMilli : String(row.min_quantity_milli);
+    const step = body.stepMilli !== undefined ? body.stepMilli : String(row.quantity_step_milli);
+    const packageSize = work.quantity?.packageSizeMilli ?? undefined;
+    const unpacked = work.quantity?.unpacked ?? true;
+    const minMilli = parsePositiveIntegerString(min, "minQuantityMilli", 1_000_000_000n * 1000n);
+    parsePositiveIntegerString(step, "stepMilli", 1_000_000_000n * 1000n);
+    if (!unpacked && packageSize !== undefined) {
+      const packageMilli = BigInt(packageSize);
+      if (packageMilli > 0n && minMilli % packageMilli !== 0n) {
+        throw new HttpError(400, "bad_request", {
+          field: "minQuantityMilli",
+          reason: "minimum_must_fit_package",
+        });
+      }
+    }
+    if (body.minQuantityMilli !== undefined) {
+      sets.push("min_quantity_milli = ?");
+      values.push(String(body.minQuantityMilli));
+      nextWork.quantity = { ...nextWork.quantity, minQuantityMilli: String(body.minQuantityMilli) };
+      if (nextPublic !== null) {
+        nextPublic.quantity = { ...nextPublic.quantity, minQuantityMilli: String(body.minQuantityMilli) };
+      }
+    }
+    if (body.stepMilli !== undefined) {
+      sets.push("quantity_step_milli = ?");
+      values.push(String(body.stepMilli));
+      nextWork.quantity = { ...nextWork.quantity, stepMilli: String(body.stepMilli) };
+      if (nextPublic !== null) {
+        nextPublic.quantity = { ...nextPublic.quantity, stepMilli: String(body.stepMilli) };
+      }
+    }
   }
   if (body.availabilityStatus !== undefined) {
     if (
@@ -415,8 +506,13 @@ export async function directUpdateListing(ctx: RouteContext, auth: Authenticated
     sets.push("availability_confirmed_at = ?", "freshness_state = 'fresh'");
     values.push(now);
   }
-  sets.push("updated_at = ?");
-  values.push(now, String(row.id));
+  sets.push("work_copy_json = ?", "updated_at = ?");
+  values.push(JSON.stringify(nextWork), now);
+  if (nextPublic !== null) {
+    sets.push("public_copy_json = ?");
+    values.push(JSON.stringify(nextPublic));
+  }
+  values.push(String(row.id));
   await db(ctx)
     .prepare(`UPDATE supplier_listing SET ${sets.join(", ")} WHERE id = ?`)
     .bind(...values)

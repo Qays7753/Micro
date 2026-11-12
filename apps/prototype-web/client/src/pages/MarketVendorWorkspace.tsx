@@ -12,11 +12,13 @@ import { normalizeAsciiDigits } from "@/application/input";
 import {
   confirmListingAvailability,
   directUpdateListing,
+  fetchVendorListingDraft,
   fetchVendorOverview,
   listingLifecycleAction,
   submitListing,
   submitVendorProfile,
   upsertVendorProfile,
+  type VendorListingDraft,
   type VendorOverview,
 } from "@/application/market";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
@@ -57,6 +59,22 @@ function jodToPriceMicro(jodText: string): string | null {
   return `${whole}${fraction.padEnd(6, "0")}`;
 }
 
+/** OD-09: قيم الكمية بالميلي ↔ نص بوحدات أساسية (حتى ٣ منازل) بلا float. */
+function milliToText(milli: string | null | undefined): string {
+  if (milli === null || milli === undefined || milli === "") return "";
+  const value = BigInt(milli);
+  const whole = value / 1000n;
+  const fraction = (value % 1000n).toString().padStart(3, "0").replace(/0+$/, "");
+  return fraction === "" ? whole.toString() : `${whole}.${fraction}`;
+}
+
+function textToQuantityMilli(text: string): string | null {
+  const normalized = normalizeAsciiDigits(text.trim());
+  if (!/^\d{1,9}(\.\d{1,3})?$/.test(normalized)) return null;
+  const [whole, fraction = ""] = normalized.split(".");
+  return `${whole}${fraction.padEnd(3, "0")}`;
+}
+
 export default function MarketVendorWorkspace() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -70,9 +88,19 @@ export default function MarketVendorWorkspace() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [governorate, setGovernorate] = useState("");
-  /* OD-09: التحديث الرقمي المباشر للسعر على المنشور ذي التسعير الثابت. */
-  const [priceEditFor, setPriceEditFor] = useState<string | null>(null);
+  /* OD-09 (contract 20 §3.3): direct updates on published listings — numeric
+   * price within the SAME pricing mode (fixed scalar / tiered list), the
+   * declared quantity figures, and availability. Prefilled from the vendor's
+   * own work copy; verified and logged server-side. */
+  const [directEditFor, setDirectEditFor] = useState<string | null>(null);
+  const [directDraft, setDirectDraft] = useState<VendorListingDraft | null>(null);
   const [priceValue, setPriceValue] = useState("");
+  const [tierRows, setTierRows] = useState<{ min: string; price: string }[]>([]);
+  const [minValue, setMinValue] = useState("");
+  const [stepValue, setStepValue] = useState("");
+  const [availabilityValue, setAvailabilityValue] = useState<
+    "available" | "made_to_order" | "temporarily_unavailable" | ""
+  >("");
 
   const load = useCallback(async () => {
     setState("loading");
@@ -98,6 +126,75 @@ export default function MarketVendorWorkspace() {
       setGovernorate(current => (current === "" ? (fields.governorate ?? current) : current));
     }
   }, [overview?.profileFields]);
+
+  const openDirectEdit = useCallback(
+    async (listingId: string, priceMode: string, priceMicroJod: string | null) => {
+      setDirectEditFor(listingId);
+      setDirectDraft(null);
+      setPriceValue("");
+      setTierRows([]);
+      setMinValue("");
+      setStepValue("");
+      setAvailabilityValue("");
+      if (priceMode === "fixed") setPriceValue(microToJodText(priceMicroJod));
+      try {
+        const result = await fetchVendorListingDraft(listingId);
+        const draft = result.listing;
+        setDirectDraft(draft);
+        if (priceMode === "tiered" && draft.pricing?.tiers) {
+          setTierRows(
+            draft.pricing.tiers.map(tier => ({
+              min: milliToText(tier.minQuantityMilli),
+              price: microToJodText(tier.priceMicroJod),
+            })),
+          );
+        }
+        if (draft.quantity) {
+          setMinValue(milliToText(draft.quantity.minQuantityMilli));
+          setStepValue(milliToText(draft.quantity.stepMilli));
+        }
+      } catch {
+        // The panel still opens for the fixed price; the work-copy prefill is
+        // best-effort and the server re-validates everything anyway.
+      }
+    },
+    [],
+  );
+
+  const saveDirectUpdate = useCallback(
+    async (listingId: string, priceMode: string) => {
+      const input: Parameters<typeof directUpdateListing>[1] = {};
+      if (priceMode === "fixed") {
+        const micro = jodToPriceMicro(priceValue);
+        if (micro === null) throw new Error("أدخل سعرًا صحيحًا — أرقام إنجليزية بلا نص.");
+        input.priceMicroJod = micro;
+      }
+      if (priceMode === "tiered") {
+        const rows: { minQuantityMilli: string; priceMicroJod: string }[] = [];
+        for (const row of tierRows) {
+          const minMilli = textToQuantityMilli(row.min);
+          const micro = jodToPriceMicro(row.price);
+          if (minMilli === null || micro === null) {
+            throw new Error("كل شريحة تحتاج حدًا صحيحًا (حتى ٣ منازل) وسعرًا صحيحًا.");
+          }
+          rows.push({ minQuantityMilli: minMilli, priceMicroJod: micro });
+        }
+        if (rows.length === 0) throw new Error("أضف شريحة واحدة على الأقل.");
+        input.tiers = rows;
+      }
+      const minMilli = textToQuantityMilli(minValue);
+      const stepMilli = textToQuantityMilli(stepValue);
+      if (minMilli === null) throw new Error("أدخل حدًا أدنى صحيحًا (حتى ٣ منازل).");
+      if (stepMilli === null) throw new Error("أدخل مضاعفًا صحيحًا (حتى ٣ منازل).");
+      input.minQuantityMilli = minMilli;
+      input.stepMilli = stepMilli;
+      if (availabilityValue !== "") input.availabilityStatus = availabilityValue;
+      await directUpdateListing(listingId, input);
+      setDirectEditFor(null);
+      await load();
+    },
+    [priceValue, tierRows, minValue, stepValue, availabilityValue, load],
+  );
 
   if (!sessionLoading && !session.authenticated) {
     return (
@@ -273,17 +370,14 @@ export default function MarketVendorWorkspace() {
                     >
                       تأكيد التوفر
                     </Button>
-                    {listing.priceMode === "fixed" ? (
-                      <Button
-                        action="quiet"
-                        onClick={() => {
-                          setPriceEditFor(priceEditFor === listing.id ? null : listing.id);
-                          setPriceValue(microToJodText(listing.priceMicroJod));
-                        }}
-                      >
-                        تحديث السعر
-                      </Button>
-                    ) : null}
+                    <Button
+                      action="quiet"
+                      onClick={() =>
+                        void openDirectEdit(listing.id, listing.priceMode, listing.priceMicroJod)
+                      }
+                    >
+                      تحديث مباشر
+                    </Button>
                     <Button
                       action="quiet"
                       onClick={() =>
@@ -297,43 +391,129 @@ export default function MarketVendorWorkspace() {
                     </Button>
                   </>
                 ) : null}
-                {priceEditFor === listing.id && listing.status === "approved_for_publish" ? (
+                {directEditFor === listing.id && listing.status === "approved_for_publish" ? (
                   <div className="micro-vendor-price-edit" data-testid="price-direct-update">
-                    <Field label="السعر الجديد (دينار — أرقام إنجليزية)">
-                      <input
-                        value={priceValue}
-                        onChange={event => setPriceValue(event.target.value)}
-                        inputMode="decimal"
-                      />
+                    {listing.priceMode === "fixed" ? (
+                      <Field label="السعر (دينار — أرقام إنجليزية)">
+                        <input
+                          value={priceValue}
+                          onChange={event => setPriceValue(event.target.value)}
+                          inputMode="decimal"
+                        />
+                      </Field>
+                    ) : null}
+                    {listing.priceMode === "tiered" ? (
+                      <div className="micro-vendor-tiers" data-testid="tier-direct-update">
+                        <p>الشرائح (الحد الأدنى بالوحدة الأساسية — السعر بالدينار لكل وحدة أساسية)</p>
+                        {tierRows.map((row, index) => (
+                          <div className="micro-vendor-tier-row" key={index}>
+                            <Field label={`الحد الأدنى للشريحة ${index + 1}`}>
+                              <input
+                                value={row.min}
+                                onChange={event =>
+                                  setTierRows(rows =>
+                                    rows.map((current, at) =>
+                                      at === index ? { ...current, min: event.target.value } : current,
+                                    ),
+                                  )
+                                }
+                                inputMode="decimal"
+                              />
+                            </Field>
+                            <Field label={`سعر الشريحة ${index + 1} (د.أ)`}>
+                              <input
+                                value={row.price}
+                                onChange={event =>
+                                  setTierRows(rows =>
+                                    rows.map((current, at) =>
+                                      at === index ? { ...current, price: event.target.value } : current,
+                                    ),
+                                  )
+                                }
+                                inputMode="decimal"
+                              />
+                            </Field>
+                            {tierRows.length > 1 ? (
+                              <Button
+                                action="quiet"
+                                onClick={() => setTierRows(rows => rows.filter((_, at) => at !== index))}
+                              >
+                                حذف الشريحة
+                              </Button>
+                            ) : null}
+                          </div>
+                        ))}
+                        {tierRows.length < 6 ? (
+                          <Button
+                            action="quiet"
+                            onClick={() => setTierRows(rows => [...rows, { min: "", price: "" }])}
+                          >
+                            إضافة شريحة
+                          </Button>
+                        ) : null}
+                        <p className="micro-review-item__meta">
+                          حدود الشرائح تتزايد بلا تداخل، وسعر الوحدة في الشريحة الأكبر لا يزيد — يُتحقق
+                          خادميًا.
+                        </p>
+                      </div>
+                    ) : null}
+                    <div className="micro-vendor-quantity-edit" data-testid="quantity-direct-update">
+                      <Field label="الحد الأدنى للكمية (بالوحدة الأساسية — حتى ٣ منازل)">
+                        <input
+                          value={minValue}
+                          onChange={event => setMinValue(event.target.value)}
+                          inputMode="decimal"
+                        />
+                      </Field>
+                      <Field label="مضاعف الكمية (بالوحدة الأساسية — حتى ٣ منازل)">
+                        <input
+                          value={stepValue}
+                          onChange={event => setStepValue(event.target.value)}
+                          inputMode="decimal"
+                        />
+                      </Field>
+                    </div>
+                    <Field label="حالة التوفر">
+                      <select
+                        value={availabilityValue}
+                        onChange={event =>
+                          setAvailabilityValue(
+                            event.target.value as
+                              "available" | "made_to_order" | "temporarily_unavailable" | "",
+                          )
+                        }
+                      >
+                        <option value="">بلا تغيير</option>
+                        <option value="available">متوفر</option>
+                        <option value="made_to_order">بموجب الطلب</option>
+                        <option value="temporarily_unavailable">غير متوفر مؤقتًا</option>
+                      </select>
                     </Field>
                     <p className="micro-review-item__meta">
-                      تحديث مباشر للسعر على المنشور فقط — يُوثق بحدث إشرافي ولا يمس بقية المحتوى.
+                      تحديث مباشر معتمد (OD-09): السعر العددي داخل نمط التسعير نفسه، وكمية الحد الأدنى
+                      والمضاعف، والتوفر — يُوثق بحدث إشرافي ولا يمس المحتوى أو الصور أو الفئة أو الوحدة أو
+                      قناة الاتصال (هذه تمر بالمراجعة).
                     </p>
+                    {directDraft === null ? (
+                      <p className="micro-review-item__meta">جارٍ تعبئة القيم الحالية…</p>
+                    ) : null}
                     <div className="micro-form-actions">
                       <Button
                         action="save"
-                        onClick={() => {
-                          const micro = jodToPriceMicro(priceValue);
-                          if (micro === null) {
-                            setMessage({
-                              tone: "error",
-                              text: "أدخل سعرًا صحيحًا — أرقام إنجليزية بلا نص.",
-                            });
-                            return;
-                          }
-                          void run(async () => {
-                            await directUpdateListing(listing.id, { priceMicroJod: micro });
-                            setPriceEditFor(null);
-                          }, "حُدّث السعر المباشر ووُثق بحدث إشرافي.");
-                        }}
+                        onClick={() =>
+                          void run(
+                            () => saveDirectUpdate(listing.id, listing.priceMode),
+                            "حُدّثت القيم مباشرة ووُثقت بحدث إشرافي.",
+                          )
+                        }
                       >
-                        حفظ السعر
+                        حفظ التحديث
                       </Button>
                       <Button
                         action="quiet"
                         onClick={() => {
-                          setPriceEditFor(null);
-                          setPriceValue("");
+                          setDirectEditFor(null);
+                          setDirectDraft(null);
                         }}
                       >
                         رجوع

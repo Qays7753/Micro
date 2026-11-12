@@ -14,6 +14,7 @@ import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import DeliveryBookingDetail from "@/pages/DeliveryBookingDetail";
 import DeliveryDrivers from "@/pages/DeliveryDrivers";
 import DeliveryReviewQueue from "@/pages/DeliveryReviewQueue";
+import DriverBookingDetail from "@/pages/DriverBookingDetail";
 import MarketListingEditor from "@/pages/MarketListingEditor";
 import MarketReview from "@/pages/MarketReview";
 import MarketVendorWorkspace from "@/pages/MarketVendorWorkspace";
@@ -295,8 +296,8 @@ describe("owner contact-attempt answer (direct — OD15 §17-3 closure)", () => 
   });
 });
 
-describe("vendor direct price update (direct — OD-09 §17-2 closure)", () => {
-  it("prefills the current fixed price and posts the exact micro value on save", async () => {
+describe("vendor direct updates (direct — OD-09 §17-2 closure, contract 20 §3.3)", () => {
+  it("prefills the fixed price AND the quantity figures, then posts exact micro/milli values", async () => {
     wouterMocks.location = "/market/vendor";
     const posted: { url: string; body: string }[] = [];
     fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -304,6 +305,23 @@ describe("vendor direct price update (direct — OD-09 §17-2 closure)", () => {
       if (init?.method === "POST" && path.includes("/direct-update")) {
         posted.push({ url: path, body: String(init.body) });
         return jsonResponse({ ok: true });
+      }
+      if (path.startsWith("/api/market/vendor/listings/lst_pub") && !path.includes("/direct-update")) {
+        return jsonResponse({
+          listing: {
+            id: "lst_pub",
+            status: "approved_for_publish",
+            revisionStatus: "none",
+            title: "أكواب منشورة",
+            category: "packaging",
+            governorate: "عمان",
+            description: "أكواب",
+            contact: { type: "phone", value: "+962790000000" },
+            pricing: { mode: "fixed", priceMicroJod: "1500000", basis: { units: "1", unit: "كأس" } },
+            quantity: { unit: "كأس", minQuantityMilli: "2000", stepMilli: "500", unpacked: true },
+            mediaIds: [],
+          },
+        });
       }
       if (path.startsWith("/api/market/vendor/overview")) {
         return jsonResponse({
@@ -333,17 +351,289 @@ describe("vendor direct price update (direct — OD-09 §17-2 closure)", () => {
         <MarketVendorWorkspace />
       </UnsavedChangesProvider>,
     );
-    fireEvent.click(await screen.findByText("تحديث السعر"));
-    // prefill = the current reviewed price (1.5 JOD), never a blank guess
+    fireEvent.click(await screen.findByText("تحديث مباشر"));
+    // prefill = the current reviewed price (1.5 JOD) and quantity (min 2 / step 0.5)
     expect(await screen.findByDisplayValue("1.5")).toBeTruthy();
+    expect(await screen.findByDisplayValue("2")).toBeTruthy();
+    expect(await screen.findByDisplayValue("0.5")).toBeTruthy();
     fireEvent.change(screen.getByDisplayValue("1.5"), { target: { value: "2.25" } });
-    fireEvent.click(await screen.findByText("حفظ السعر"));
+    fireEvent.change(screen.getByDisplayValue("2"), { target: { value: "3" } });
+    fireEvent.click(await screen.findByText("حفظ التحديث"));
     await waitFor(() => {
       expect(posted).toHaveLength(1);
       expect(posted[0]?.url).toContain("/api/market/vendor/listings/lst_pub/direct-update");
       expect(posted[0]?.body).toContain("2250000");
+      expect(posted[0]?.body).toContain("3000");
+      expect(posted[0]?.body).toContain("500");
     });
     // the moderation-event honesty note is visible
     expect(await screen.findByText(/حدث إشرافي/)).toBeTruthy();
+  });
+
+  it("edits the tiered price list directly (same pricing mode — no mode change)", async () => {
+    wouterMocks.location = "/market/vendor";
+    const posted: { body: string }[] = [];
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), "http://local").pathname;
+      if (init?.method === "POST" && path.includes("/direct-update")) {
+        posted.push({ body: String(init.body) });
+        return jsonResponse({ ok: true });
+      }
+      if (path.startsWith("/api/market/vendor/listings/lst_tier") && !path.includes("/direct-update")) {
+        return jsonResponse({
+          listing: {
+            id: "lst_tier",
+            status: "approved_for_publish",
+            revisionStatus: "none",
+            title: "ألواح متدرجة",
+            category: "panels",
+            governorate: "إربد",
+            description: "ألواح",
+            contact: { type: "phone", value: "+962790000000" },
+            pricing: {
+              mode: "tiered",
+              tiers: [
+                { minQuantityMilli: "1000", priceMicroJod: "900000" },
+                { minQuantityMilli: "5000", priceMicroJod: "800000" },
+              ],
+            },
+            quantity: { unit: "لوح", minQuantityMilli: "1000", stepMilli: "500", unpacked: true },
+            mediaIds: [],
+          },
+        });
+      }
+      if (path.startsWith("/api/market/vendor/overview")) {
+        return jsonResponse({
+          vendor: { status: "approved", supplierProfileId: "sp_1" },
+          vendorReviewReason: null,
+          profileFields: { displayName: "مورد", contactPhone: "+962790000000", governorate: "إربد" },
+          listings: [
+            {
+              id: "lst_tier",
+              title: "ألواح متدرجة",
+              status: "approved_for_publish",
+              revisionStatus: "none",
+              freshness: "fresh",
+              availabilityStatus: "available",
+              priceMode: "tiered",
+              priceMicroJod: null,
+              updatedAt: 1,
+            },
+          ],
+        });
+      }
+      if (path.startsWith("/api/auth/session")) return jsonResponse({ authenticated: true });
+      return jsonResponse({}, 404);
+    });
+    render(
+      <UnsavedChangesProvider navigate={() => {}}>
+        <MarketVendorWorkspace />
+      </UnsavedChangesProvider>,
+    );
+    fireEvent.click(await screen.findByText("تحديث مباشر"));
+    // Both tier rows prefilled from the work copy (1 → 0.9 د.أ، 5 → 0.8 د.أ).
+    // The value "1" appears twice by design: the first tier bound AND the
+    // declared quantity minimum (1 متر) — assert both, not an ambiguous one.
+    expect((await screen.findAllByDisplayValue("1")).length).toBeGreaterThanOrEqual(2);
+    expect(await screen.findByDisplayValue("0.9")).toBeTruthy();
+    expect(await screen.findByDisplayValue("5")).toBeTruthy();
+    expect(await screen.findByDisplayValue("0.8")).toBeTruthy();
+    fireEvent.change(screen.getByDisplayValue("0.8"), { target: { value: "0.75" } });
+    fireEvent.click(await screen.findByText("حفظ التحديث"));
+    await waitFor(() => {
+      expect(posted).toHaveLength(1);
+      expect(posted[0]?.body).toContain("750000");
+      expect(posted[0]?.body).toContain("5000");
+    });
+  });
+});
+
+describe("mutual consent + instructions + material change (OD10/OD11 — §17-4/§17-8 closure)", () => {
+  it("owner sees the pending consent proposal with explicit accept/reject (no auto action)", async () => {
+    wouterMocks.location = "/delivery/booking/req_c1";
+    mockApi({
+      "/api/delivery/requests/req_c1": {
+        request: {
+          id: "req_c1",
+          status: "confirmed",
+          pricingMode: "prepriced",
+          offeredFareMinor: "30000",
+          collectionMinor: null,
+          collectionContent: null,
+          responseDeadlineAt: null,
+          payload: {},
+          agreementCopy: null,
+          createdAt: 1,
+        },
+        quote: null,
+        execution: {
+          execution: "undeliverable_declared",
+          confirmation: "awaiting_requester_confirmation",
+          contact: "not_attempted",
+          goods: "with_driver",
+          money: "none",
+        },
+        agreementVersion: 1,
+        consentProposals: [
+          {
+            id: "cns_1",
+            kind: "retry",
+            terms: { attempts: 2, priceMinor: "150" },
+            status: "pending",
+            proposedBy: "idn_driver",
+            decidedAt: null,
+            decisionNote: null,
+            appliedExecution: null,
+            createdAt: 1,
+          },
+        ],
+        changeProposals: [],
+        events: [],
+        requester: { id: "idn_owner", displayName: "Owner" },
+        driver: { id: "drv_1", profile: { displayName: "سائق" } },
+        viewerRole: "requester",
+      },
+    });
+    render(<DeliveryBookingDetail />);
+    expect(await screen.findByTestId("consent-decision")).toBeTruthy();
+    expect(await screen.findByText("أقبل الاقتراح")).toBeTruthy();
+    expect(await screen.findByText("ارفض الاقتراح")).toBeTruthy();
+    // honest silence note
+    expect(await screen.findByText(/لا ينفذان شيئًا تلقائيًا/)).toBeTruthy();
+  });
+
+  it("owner records instructions out of awaiting_instructions", async () => {
+    wouterMocks.location = "/delivery/booking/req_i1";
+    mockApi({
+      "/api/delivery/requests/req_i1": {
+        request: {
+          id: "req_i1",
+          status: "confirmed",
+          pricingMode: "prepriced",
+          offeredFareMinor: "30000",
+          collectionMinor: null,
+          collectionContent: null,
+          responseDeadlineAt: null,
+          payload: {},
+          agreementCopy: null,
+          createdAt: 1,
+        },
+        quote: null,
+        execution: {
+          execution: "awaiting_instructions",
+          confirmation: "none",
+          contact: "not_attempted",
+          goods: "with_driver",
+          money: "none",
+        },
+        agreementVersion: 1,
+        consentProposals: [],
+        changeProposals: [],
+        events: [],
+        requester: { id: "idn_owner", displayName: "Owner" },
+        driver: { id: "drv_1", profile: { displayName: "سائق" } },
+        viewerRole: "requester",
+      },
+    });
+    render(<DeliveryBookingDetail />);
+    expect(await screen.findByTestId("instructions-decision")).toBeTruthy();
+    expect(await screen.findByText("تعليمات: تابع التوصيل")).toBeTruthy();
+    expect(await screen.findByText("تعليمات: ابدأ الإرجاع")).toBeTruthy();
+    expect(await screen.findByText("تعليمات: احتفظ بالأغراض")).toBeTruthy();
+  });
+
+  it("driver proposes consent from his surface (no single-party declaration)", async () => {
+    wouterMocks.location = "/driver/booking/req_p1";
+    mockApi({
+      "/api/delivery/requests/req_p1": {
+        request: {
+          id: "req_p1",
+          status: "confirmed",
+          pricingMode: "prepriced",
+          offeredFareMinor: "30000",
+          collectionMinor: null,
+          collectionContent: null,
+          responseDeadlineAt: null,
+          payload: {},
+          agreementCopy: null,
+          createdAt: 1,
+        },
+        quote: null,
+        execution: {
+          execution: "undeliverable_declared",
+          confirmation: "awaiting_requester_confirmation",
+          contact: "not_attempted",
+          goods: "with_driver",
+          money: "none",
+        },
+        agreementVersion: 1,
+        consentProposals: [],
+        changeProposals: [],
+        events: [],
+        requester: { id: "idn_owner", displayName: "Owner" },
+        driver: { id: "drv_1", profile: { displayName: "سائق" } },
+        viewerRole: "driver",
+      },
+    });
+    render(<DriverBookingDetail />);
+    expect(await screen.findByTestId("driver-consent-propose")).toBeTruthy();
+    expect(await screen.findByText(/لا يعلنها طرف واحد/)).toBeTruthy();
+    expect(await screen.findByText("أرسل الاقتراح")).toBeTruthy();
+    // The old single-party declaration buttons are gone for this state
+    expect(screen.queryByText("اتفقنا على محاولة جديدة")).toBeNull();
+    expect(screen.queryByText("اتفقنا على احتفاظ")).toBeNull();
+    expect(screen.queryByText("اتفقنا على إرجاع")).toBeNull();
+  });
+
+  it("owner decides a driver-proposed material change; the old agreement stays until acceptance", async () => {
+    wouterMocks.location = "/delivery/booking/req_m1";
+    mockApi({
+      "/api/delivery/requests/req_m1": {
+        request: {
+          id: "req_m1",
+          status: "confirmed",
+          pricingMode: "prepriced",
+          offeredFareMinor: "30000",
+          collectionMinor: null,
+          collectionContent: null,
+          responseDeadlineAt: null,
+          payload: {},
+          agreementCopy: null,
+          createdAt: 1,
+        },
+        quote: null,
+        execution: {
+          execution: "not_started",
+          confirmation: "none",
+          contact: "not_attempted",
+          goods: "at_source",
+          money: "none",
+        },
+        agreementVersion: 2,
+        consentProposals: [],
+        changeProposals: [
+          {
+            id: "chg_1",
+            changes: { changes: { fareMinor: "35000", schedule: { date: "2026-11-25" } } },
+            status: "pending",
+            proposedBy: "idn_driver",
+            decidedAt: null,
+            decisionNote: null,
+            resultingVersion: null,
+            createdAt: 1,
+          },
+        ],
+        events: [],
+        requester: { id: "idn_owner", displayName: "Owner" },
+        driver: { id: "drv_1", profile: { displayName: "سائق" } },
+        viewerRole: "requester",
+      },
+    });
+    render(<DeliveryBookingDetail />);
+    expect(await screen.findByTestId("change-decision")).toBeTruthy();
+    expect(await screen.findByText("أقبل التعديل")).toBeTruthy();
+    expect(await screen.findByText("ارفض التعديل")).toBeTruthy();
+    // The explicit other-party-decision framing (OD11).
+    expect(await screen.findByText(/ينتظر قرارك الصريح/)).toBeTruthy();
   });
 });
