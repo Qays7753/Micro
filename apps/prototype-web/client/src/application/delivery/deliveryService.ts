@@ -47,7 +47,33 @@ export interface BookingDetail {
     contact: string;
     goods: string;
     money: string;
+    confirmationRequestedAt: number | null;
   } | null;
+  agreementVersion: number;
+  consentProposals: {
+    id: string;
+    kind: "retry" | "holding" | "return";
+    terms: Record<string, unknown>;
+    status: "pending" | "accepted" | "rejected" | "withdrawn";
+    proposedBy: string;
+    decidedAt: number | null;
+    decisionNote: string | null;
+    appliedExecution: string | null;
+    createdAt: number;
+  }[];
+  changeProposals: {
+    id: string;
+    changes: {
+      changes?: Record<string, unknown>;
+      note?: string | null;
+    } & Record<string, unknown>;
+    status: "pending" | "accepted" | "rejected" | "withdrawn";
+    proposedBy: string;
+    decidedAt: number | null;
+    decisionNote: string | null;
+    resultingVersion: number | null;
+    createdAt: number;
+  }[];
   events: { axis: string; type: string; from: string | null; to: string | null; at: number }[];
   requester: { id: string; displayName: string };
   driver: { id: string; profile: Record<string, unknown> };
@@ -225,6 +251,89 @@ export async function declareCollection(requestId: string, amountMinor: string):
   await apiFetch(
     `/api/driver/requests/${encodeURIComponent(requestId)}/declare`,
     { method: "POST", body: JSON.stringify({ kind: "collection_declared", amountMinor }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** OD10 (contract 21 §3.2-3): the driver PROPOSES retry/holding/return — the
+ * transition only becomes effective when the requester explicitly accepts. */
+export async function proposeDeliveryConsent(
+  requestId: string,
+  kind: "retry" | "holding" | "return",
+  terms: Record<string, unknown>,
+): Promise<{ proposal: { id: string; kind: string; status: string } }> {
+  return apiFetch(`/api/driver/requests/${encodeURIComponent(requestId)}/propose-consent`, {
+    method: "POST",
+    body: JSON.stringify({ kind, terms }),
+  });
+}
+
+export async function withdrawDeliveryConsent(requestId: string, proposalId: string): Promise<void> {
+  await apiFetch(
+    `/api/driver/requests/${encodeURIComponent(requestId)}/propose-consent/withdraw`,
+    { method: "POST", body: JSON.stringify({ proposalId }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** The requester's explicit acceptance/rejection of a consent proposal. */
+export async function decideDeliveryConsent(
+  requestId: string,
+  proposalId: string,
+  decision: "accept" | "reject",
+  note?: string,
+): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(requestId)}/consent/decide`,
+    { method: "POST", body: JSON.stringify({ proposalId, decision, note }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** Requester instructions out of `awaiting_instructions` (contract 21 §3.2-3
+ * actor: the project owner). */
+export async function recordDeliveryInstructions(
+  requestId: string,
+  instruction: "transit" | "return" | "holding",
+  note?: string,
+): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(requestId)}/instructions`,
+    { method: "POST", body: JSON.stringify({ instruction, note }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** OD11 (contract 21 §3.2-2): a versioned material-change proposal; the agreed
+ * terms stay effective until the other party explicitly accepts. */
+export async function proposeDeliveryChange(
+  requestId: string,
+  changes: Record<string, unknown>,
+  note?: string,
+): Promise<{ proposal: { id: string; status: string } }> {
+  return apiFetch(`/api/delivery/requests/${encodeURIComponent(requestId)}/change`, {
+    method: "POST",
+    body: JSON.stringify({ changes, note }),
+  });
+}
+
+export async function decideDeliveryChange(
+  requestId: string,
+  proposalId: string,
+  decision: "accept" | "reject",
+  note?: string,
+): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(requestId)}/change/decide`,
+    { method: "POST", body: JSON.stringify({ proposalId, decision, note }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+export async function withdrawDeliveryChange(requestId: string, proposalId: string): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(requestId)}/change/withdraw`,
+    { method: "POST", body: JSON.stringify({ proposalId }) },
     { idempotencyKey: newIdempotencyKey() },
   );
 }

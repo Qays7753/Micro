@@ -21,6 +21,8 @@ import {
   driverSubmitQuote,
   submitDailyStatement,
 } from "./api/deliveryExecution.ts";
+import { decideConsent, proposeConsent, withdrawConsent, recordInstructions } from "./api/deliveryConsent.ts";
+import { decideChange, proposeChange, withdrawChange } from "./api/deliveryChange.ts";
 import {
   driverPortal,
   saveDriverEvidence,
@@ -216,6 +218,63 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     command(
       "driver-declare",
       authedRoute((ctx, auth) => driverDeclare(ctx, auth)),
+    ),
+  );
+  // Mutual consent for retry/holding/return (OD10, contract 21 §3.2-3):
+  // the driver proposes; the requester explicitly accepts/rejects. Never
+  // effective on a single party's declaration; silence changes nothing.
+  router.post(
+    "api/driver/requests/:id/propose-consent",
+    command(
+      "driver-propose-consent",
+      authedRoute((ctx, auth) => proposeConsent(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/driver/requests/:id/propose-consent/withdraw",
+    command(
+      "driver-withdraw-consent",
+      authedRoute((ctx, auth) => withdrawConsent(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/delivery/requests/:id/consent/decide",
+    command(
+      "requester-decide-consent",
+      authedRoute((ctx, auth) => decideConsent(ctx, auth)),
+    ),
+  );
+  // Requester instructions out of `awaiting_instructions` (contract 21
+  // §3.2-3 actor: the project owner — previously driver-declared).
+  router.post(
+    "api/delivery/requests/:id/instructions",
+    command(
+      "requester-instructions",
+      authedRoute((ctx, auth) => recordInstructions(ctx, auth)),
+    ),
+  );
+  // Material change to a confirmed booking (OD11, contract 21 §3.2-2):
+  // versioned proposal/acceptance — the agreed terms stay effective until
+  // the other party explicitly accepts.
+  router.post(
+    "api/delivery/requests/:id/change",
+    command(
+      "party-propose-change",
+      authedRoute((ctx, auth) => proposeChange(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/delivery/requests/:id/change/decide",
+    command(
+      "party-decide-change",
+      authedRoute((ctx, auth) => decideChange(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/delivery/requests/:id/change/withdraw",
+    command(
+      "party-withdraw-change",
+      authedRoute((ctx, auth) => withdrawChange(ctx, auth)),
     ),
   );
   router.post(

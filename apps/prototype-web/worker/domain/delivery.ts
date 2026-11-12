@@ -215,3 +215,77 @@ export interface StatementItem {
 export function statementTotal(items: StatementItem[]): string {
   return items.reduce((total, item) => total + BigInt(item.amountMinor), 0n).toString();
 }
+
+/**
+ * Mutual consent for retry/holding/return (contract 21 §3.2-3, OD10): the
+ * three transitions out of `undeliverable_declared` are TWO-PARTY decisions —
+ * a single party's declaration never makes them effective. The proposal is
+ * recorded pending; only the OTHER party's explicit acceptance applies the
+ * transition. Silence or rejection leaves a clear pending state and never
+ * triggers an automatic action.
+ */
+export const CONSENT_KINDS = ["retry", "holding", "return"] as const;
+export type ConsentKind = (typeof CONSENT_KINDS)[number];
+
+/** The execution event each accepted consent kind applies (existing legal
+ * transitions — unchanged; only the PATH to them is now mutual). */
+export const CONSENT_KIND_EVENT: Record<ConsentKind, string> = {
+  retry: "retry_agreed",
+  holding: "holding_agreed",
+  return: "return_agreed",
+};
+
+export interface ConsentTerms {
+  attempts?: number;
+  priceMinor?: string;
+  durationText?: string;
+  place?: string;
+  costMinor?: string;
+  destination?: "requester" | "original_supplier";
+  note?: string;
+}
+
+/** Validate proposal terms per kind (contract 21 §3.2-3 rows). Values are the
+ * parties' own agreement terms — never system policy. */
+export function validateConsentTerms(kind: ConsentKind, terms: ConsentTerms): void {
+  if (kind === "retry") {
+    if (
+      typeof terms.attempts !== "number" ||
+      !Number.isInteger(terms.attempts) ||
+      terms.attempts < 1 ||
+      terms.attempts > 5
+    ) {
+      throw new HttpError(400, "bad_request", { field: "terms.attempts", reason: "retry_attempts_1_to_5" });
+    }
+    if (terms.priceMinor !== undefined) parseMinorAmount(terms.priceMinor, "terms.priceMinor");
+  } else if (kind === "holding") {
+    if (typeof terms.durationText !== "string" || terms.durationText.trim().length < 2) {
+      throw new HttpError(400, "bad_request", { field: "terms.durationText" });
+    }
+    if (terms.costMinor !== undefined) parseMinorAmount(terms.costMinor, "terms.costMinor");
+  } else {
+    if (terms.destination !== "requester" && terms.destination !== "original_supplier") {
+      throw new HttpError(400, "bad_request", { field: "terms.destination" });
+    }
+    if (terms.costMinor !== undefined) parseMinorAmount(terms.costMinor, "terms.costMinor");
+  }
+  if (terms.note !== undefined && terms.note.length > 500) {
+    throw new HttpError(400, "bad_request", { field: "terms.note", reason: "too_long" });
+  }
+}
+
+/** Requester instructions after `awaiting_instructions` (contract 21 §3.2-3:
+ * actor is the project owner — recorded instructions, no endless waiting). */
+export const INSTRUCTION_EVENTS = [
+  "instructions_transit",
+  "instructions_return",
+  "instructions_holding",
+] as const;
+export type InstructionEvent = (typeof INSTRUCTION_EVENTS)[number];
+
+export function instructionEventFromInput(value: unknown): InstructionEvent {
+  if (value === "transit") return "instructions_transit";
+  if (value === "return") return "instructions_return";
+  if (value === "holding") return "instructions_holding";
+  throw new HttpError(400, "bad_request", { field: "instruction" });
+}

@@ -86,7 +86,7 @@ async function loadRequest(ctx: RouteContext, requestId: string) {
   const row = await db(ctx)
     .prepare(
       "SELECT id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, collection_content, " +
-        "pricing_mode, offered_fare_minor, status, agreement_copy_json, response_deadline_at, quote_id, created_at " +
+        "pricing_mode, offered_fare_minor, status, agreement_copy_json, agreement_version, response_deadline_at, quote_id, created_at " +
         "FROM delivery_request WHERE id = ?",
     )
     .bind(requestId)
@@ -145,10 +145,22 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
     : null;
   const execution = await db(ctx)
     .prepare(
-      "SELECT execution_status, confirmation_status, contact_status, goods_location, money_status FROM delivery_execution WHERE request_id = ?",
+      "SELECT execution_status, confirmation_status, contact_status, goods_location, money_status, confirmation_requested_at FROM delivery_execution WHERE request_id = ?",
     )
     .bind(String(row.id))
     .first<Record<string, unknown>>();
+  const consentProposals = await db(ctx)
+    .prepare(
+      "SELECT id, kind, terms_json, status, proposed_by_identity_id, decided_at, decision_note, applied_execution, created_at FROM delivery_consent_proposal WHERE request_id = ? ORDER BY created_at DESC, id DESC LIMIT 10",
+    )
+    .bind(String(row.id))
+    .all<Record<string, unknown>>();
+  const changeProposals = await db(ctx)
+    .prepare(
+      "SELECT id, changes_json, status, proposed_by_identity_id, decided_at, decision_note, resulting_agreement_version, created_at FROM delivery_change_proposal WHERE request_id = ? ORDER BY created_at DESC, id DESC LIMIT 10",
+    )
+    .bind(String(row.id))
+    .all<Record<string, unknown>>();
   const events = await db(ctx)
     .prepare(
       "SELECT axis, event_type, from_value, to_value, reason, created_at FROM delivery_event WHERE request_id = ? ORDER BY created_at, id",
@@ -206,7 +218,35 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
             contact: String(execution.contact_status),
             goods: String(execution.goods_location),
             money: String(execution.money_status),
+            confirmationRequestedAt:
+              execution.confirmation_requested_at === null ||
+              execution.confirmation_requested_at === undefined
+                ? null
+                : Number(execution.confirmation_requested_at),
           },
+    agreementVersion: Number(row.agreement_version ?? 1),
+    consentProposals: consentProposals.results.map(proposal => ({
+      id: String(proposal.id),
+      kind: String(proposal.kind),
+      terms: JSON.parse(String(proposal.terms_json ?? "{}")),
+      status: String(proposal.status),
+      proposedBy: String(proposal.proposed_by_identity_id),
+      decidedAt: proposal.decided_at === null ? null : Number(proposal.decided_at),
+      decisionNote: proposal.decision_note === null ? null : String(proposal.decision_note),
+      appliedExecution: proposal.applied_execution === null ? null : String(proposal.applied_execution),
+      createdAt: Number(proposal.created_at),
+    })),
+    changeProposals: changeProposals.results.map(proposal => ({
+      id: String(proposal.id),
+      changes: JSON.parse(String(proposal.changes_json ?? "{}")),
+      status: String(proposal.status),
+      proposedBy: String(proposal.proposed_by_identity_id),
+      decidedAt: proposal.decided_at === null ? null : Number(proposal.decided_at),
+      decisionNote: proposal.decision_note === null ? null : String(proposal.decision_note),
+      resultingVersion:
+        proposal.resulting_agreement_version === null ? null : Number(proposal.resulting_agreement_version),
+      createdAt: Number(proposal.created_at),
+    })),
     events: events.results.map(event => ({
       axis: String(event.axis),
       type: String(event.event_type),

@@ -11,12 +11,17 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import {
   declareCollection,
+  decideDeliveryChange,
   driverAcceptRequest,
   driverDeclare,
   driverDeclineRequest,
   driverSubmitQuote,
   fetchBookingDetail,
+  proposeDeliveryChange,
+  proposeDeliveryConsent,
   submitDriverStatement,
+  withdrawDeliveryChange,
+  withdrawDeliveryConsent,
   type BookingDetail,
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
@@ -39,11 +44,9 @@ const EXECUTION_ACTIONS: Record<string, { label: string; kind: string; needsReas
     { label: "تواصلت مع صاحب المشروع وتم الاتصال", kind: "contact_reported" },
     { label: "تعذر التسليم", kind: "delivery_failed", needsReason: true },
   ],
-  undeliverable_declared: [
-    { label: "اتفقنا على محاولة جديدة", kind: "retry_agreed" },
-    { label: "اتفقنا على احتفاظ", kind: "holding_agreed" },
-    { label: "اتفقنا على إرجاع", kind: "return_agreed" },
-  ],
+  // undeliverable_declared: NO driver declarations here anymore (OD10) — the
+  // driver PROPOSES retry/holding/return and the requester explicitly
+  // accepts; see the consent proposal panel below.
   retry_scheduled: [
     { label: "بدأت محاولة الاستلام من جديد", kind: "retry_started_pickup" },
     { label: "بدأت الطريق مباشرة (الأغراض معي)", kind: "retry_started_transit" },
@@ -52,11 +55,8 @@ const EXECUTION_ACTIONS: Record<string, { label: string; kind: string; needsReas
     { label: "بدأت الإرجاع", kind: "return_started" },
     { label: "استأنفت الطريق للتسليم", kind: "transit_resumed" },
   ],
-  awaiting_instructions: [
-    { label: "تعليمات: تابع التوصيل", kind: "instructions_transit" },
-    { label: "تعليمات: ابدأ الإرجاع", kind: "instructions_return" },
-    { label: "تعليمات: احتفظ بالأغراض", kind: "instructions_holding" },
-  ],
+  // awaiting_instructions: the REQUESTER records instructions from his
+  // surface (contract 21 §3.2-3 actor) — the driver only waits here.
   returning: [{ label: "أبلغت الإرجاع", kind: "return_declared" }],
 };
 
@@ -82,6 +82,25 @@ export default function DriverBookingDetail() {
   const [failureReason, setFailureReason] = useState("");
   const [collectionJod, setCollectionJod] = useState("");
   const [statementDescription, setStatementDescription] = useState("");
+  /* OD10: نموذج اقتراح الموافقة (retry/holding/return) — لا يعلنها السائق
+   * وحده أبدًا؛ تقترح وتقبل صراحة من الطرف الآخر. */
+  const [consentKind, setConsentKind] = useState<"retry" | "holding" | "return">("retry");
+  const [consentAttempts, setConsentAttempts] = useState("1");
+  const [consentPrice, setConsentPrice] = useState("");
+  const [consentDuration, setConsentDuration] = useState("");
+  const [consentPlace, setConsentPlace] = useState("");
+  const [consentCost, setConsentCost] = useState("");
+  const [consentDestination, setConsentDestination] = useState<"requester" | "original_supplier">(
+    "requester",
+  );
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [changeFare, setChangeFare] = useState("");
+  const [changeDate, setChangeDate] = useState("");
+  const [changePickupArea, setChangePickupArea] = useState("");
+  const [changeDropoffArea, setChangeDropoffArea] = useState("");
+  const [changeLoad, setChangeLoad] = useState("");
+  const [changeParcels, setChangeParcels] = useState("");
+  const [changeCollection, setChangeCollection] = useState("");
 
   const load = useCallback(async () => {
     setState("loading");
@@ -114,6 +133,17 @@ export default function DriverBookingDetail() {
   const request = data?.request;
   const execution = data?.execution;
   const actions = execution ? (EXECUTION_ACTIONS[execution.execution] ?? []) : [];
+  const pendingConsent =
+    (data?.consentProposals ?? []).find(proposal => proposal.status === "pending") ?? null;
+  const pendingChange = (data?.changeProposals ?? []).find(proposal => proposal.status === "pending") ?? null;
+  const requesterPendingChange =
+    pendingChange !== null && pendingChange.proposedBy === String(data?.requester.id ?? "")
+      ? pendingChange
+      : null;
+  const myPendingChange =
+    pendingChange !== null && pendingChange.proposedBy !== String(data?.requester.id ?? "")
+      ? pendingChange
+      : null;
   /* The daily statement needs the requester's network id; the driver view of
    * the detail carries it on the requester object. */
   const requesterIdentityId = String((data?.requester as unknown as { id?: string } | undefined)?.id ?? "");
@@ -296,6 +326,319 @@ export default function DriverBookingDetail() {
                   ),
                 )}
               </div>
+              {execution.execution === "undeliverable_declared" ? (
+                pendingConsent ? (
+                  <div className="micro-consent-pending" data-testid="driver-consent-pending">
+                    <p role="status">
+                      اقتراحك (
+                      {pendingConsent.kind === "retry"
+                        ? "محاولة جديدة"
+                        : pendingConsent.kind === "holding"
+                          ? "احتفاظ"
+                          : "إرجاع أغراض — لا استرداد مال"}
+                      ) ينتظر قبول صاحب المشروع صراحة — لا شيء ينفذ قبل قبوله ولا تلقائيًا أبدًا.
+                    </p>
+                    <Button
+                      action="quiet"
+                      onClick={() =>
+                        void act(
+                          () => withdrawDeliveryConsent(request.id, pendingConsent.id),
+                          "سُحب الاقتراح — لا شيء تغير.",
+                        )
+                      }
+                    >
+                      اسحب الاقتراح
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="micro-consent-propose" data-testid="driver-consent-propose">
+                    <h3>اقترح على صاحب المشروع (لا يعلنها طرف واحد — OD10)</h3>
+                    <Field label="نوع الاقتراح">
+                      <select
+                        value={consentKind}
+                        onChange={event =>
+                          setConsentKind(event.target.value as "retry" | "holding" | "return")
+                        }
+                      >
+                        <option value="retry">محاولة جديدة</option>
+                        <option value="holding">احتفاظ بالأغراض</option>
+                        <option value="return">إرجاع الأغراض (لا استرداد مال)</option>
+                      </select>
+                    </Field>
+                    {consentKind === "retry" ? (
+                      <>
+                        <Field label="عدد المحاولات (1-5)">
+                          <input
+                            value={consentAttempts}
+                            onChange={event => setConsentAttempts(event.target.value)}
+                            inputMode="numeric"
+                          />
+                        </Field>
+                        <Field label="أجرة المحاولة (د.أ — اختياري، من شروطك المعلنة)">
+                          <input
+                            value={consentPrice}
+                            onChange={event => setConsentPrice(event.target.value)}
+                            inputMode="decimal"
+                          />
+                        </Field>
+                      </>
+                    ) : null}
+                    {consentKind === "holding" ? (
+                      <>
+                        <Field label="مدة الاحتفاظ (نصًا — مطلوب)">
+                          <input
+                            value={consentDuration}
+                            onChange={event => setConsentDuration(event.target.value)}
+                          />
+                        </Field>
+                        <Field label="المكان (اختياري)">
+                          <input
+                            value={consentPlace}
+                            onChange={event => setConsentPlace(event.target.value)}
+                          />
+                        </Field>
+                        <Field label="تكلفة الاحتفاظ (د.أ — اختيارية)">
+                          <input
+                            value={consentCost}
+                            onChange={event => setConsentCost(event.target.value)}
+                            inputMode="decimal"
+                          />
+                        </Field>
+                      </>
+                    ) : null}
+                    {consentKind === "return" ? (
+                      <>
+                        <Field label="جهة الإرجاع">
+                          <select
+                            value={consentDestination}
+                            onChange={event =>
+                              setConsentDestination(event.target.value as "requester" | "original_supplier")
+                            }
+                          >
+                            <option value="requester">صاحب المشروع</option>
+                            <option value="original_supplier">المورد الأصلي</option>
+                          </select>
+                        </Field>
+                        <Field label="تكلفة الإرجاع (د.أ — الإرجاع المجاني اختيارك لا إلزامك)">
+                          <input
+                            value={consentCost}
+                            onChange={event => setConsentCost(event.target.value)}
+                            inputMode="decimal"
+                          />
+                        </Field>
+                      </>
+                    ) : null}
+                    <Button
+                      action="save"
+                      onClick={() => {
+                        const terms: Record<string, unknown> = {};
+                        if (consentKind === "retry") {
+                          const attempts = Number(normalizeAsciiDigits(consentAttempts.trim()));
+                          if (!Number.isInteger(attempts) || attempts < 1 || attempts > 5) {
+                            setMessage({ tone: "error", text: "عدد المحاولات رقم صحيح بين 1 و5." });
+                            return;
+                          }
+                          terms.attempts = attempts;
+                          const priceText = consentPrice.trim();
+                          if (priceText !== "") {
+                            if (!/^\d{1,9}(\.\d{1,2})?$/.test(priceText)) {
+                              setMessage({ tone: "error", text: "أدخل أجرة صحيحة بخانتين عشريتين." });
+                              return;
+                            }
+                            terms.priceMinor = `${Math.round(Number(priceText) * 100)}`;
+                          }
+                        } else if (consentKind === "holding") {
+                          if (consentDuration.trim().length < 2) {
+                            setMessage({ tone: "error", text: "اكتب مدة الاحتفاظ." });
+                            return;
+                          }
+                          terms.durationText = consentDuration.trim();
+                          if (consentPlace.trim() !== "") terms.place = consentPlace.trim();
+                          const costText = consentCost.trim();
+                          if (costText !== "") {
+                            if (!/^\d{1,9}(\.\d{1,2})?$/.test(costText)) {
+                              setMessage({ tone: "error", text: "أدخل تكلفة صحيحة بخانتين عشريتين." });
+                              return;
+                            }
+                            terms.costMinor = `${Math.round(Number(costText) * 100)}`;
+                          }
+                        } else {
+                          terms.destination = consentDestination;
+                          const costText = consentCost.trim();
+                          if (costText !== "") {
+                            if (!/^\d{1,9}(\.\d{1,2})?$/.test(costText)) {
+                              setMessage({ tone: "error", text: "أدخل تكلفة صحيحة بخانتين عشريتين." });
+                              return;
+                            }
+                            terms.costMinor = `${Math.round(Number(costText) * 100)}`;
+                          }
+                        }
+                        void act(async () => {
+                          await proposeDeliveryConsent(request.id, consentKind, terms);
+                        }, "أُرسل الاقتراح — ينتظر قبول صاحب المشروع صراحة.");
+                      }}
+                    >
+                      أرسل الاقتراح
+                    </Button>
+                  </div>
+                )
+              ) : null}
+              {execution.execution === "awaiting_instructions" ? (
+                <Notice tone="info">
+                  بانتظار تعليمات صاحب المشروع — يسجلها من واجهته (تابع التوصيل/الإرجاع/الاحتفاظ)؛ لا ينتظر
+                  النظام بلا نهاية والحالة المعروضة صادقة.
+                </Notice>
+              ) : null}
+
+              <Button action="quiet" onClick={() => setChangeOpen(open => !open)}>
+                {changeOpen ? "إغلاق اقتراح التعديل المؤثر" : "اقتراح تعديل مؤثر (يحتاج قبول المشروع)"}
+              </Button>
+              {changeOpen ? (
+                <div className="micro-change-form" data-testid="driver-change-form">
+                  <p className="micro-review-item__meta">
+                    الاتفاق السابق يبقى ساريًا حتى يقبل صاحب المشروع صراحة؛ عند قبوله تُنشأ نسخة اتفاق جديدة
+                    وتبقى السابقة في التاريخ (OD11).
+                  </p>
+                  <Field label="الأجرة الجديدة (د.أ — فارغة لبلا تغيير)">
+                    <input
+                      value={changeFare}
+                      onChange={event => setChangeFare(event.target.value)}
+                      inputMode="decimal"
+                    />
+                  </Field>
+                  <Field label="موعد جديد (نصًا)">
+                    <input value={changeDate} onChange={event => setChangeDate(event.target.value)} />
+                  </Field>
+                  <Field label="منطقة الاستلام (نصًا)">
+                    <input
+                      value={changePickupArea}
+                      onChange={event => setChangePickupArea(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="منطقة التسليم (نصًا)">
+                    <input
+                      value={changeDropoffArea}
+                      onChange={event => setChangeDropoffArea(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="وصف الحمولة (نصًا)">
+                    <input value={changeLoad} onChange={event => setChangeLoad(event.target.value)} />
+                  </Field>
+                  <Field label="عدد الطرود">
+                    <input
+                      value={changeParcels}
+                      onChange={event => setChangeParcels(event.target.value)}
+                      inputMode="numeric"
+                    />
+                  </Field>
+                  <Field label="مبلغ التحصيل الجديد (د.أ — فارغ لبلا تغيير)">
+                    <input
+                      value={changeCollection}
+                      onChange={event => setChangeCollection(event.target.value)}
+                      inputMode="decimal"
+                    />
+                  </Field>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="save"
+                      onClick={() => {
+                        const changes: Record<string, unknown> = {};
+                        const fareText = changeFare.trim();
+                        if (fareText !== "") {
+                          if (!/^\d{1,9}(\.\d{1,2})?$/.test(fareText)) {
+                            setMessage({ tone: "error", text: "أدخل أجرة صحيحة بخانتين عشريتين." });
+                            return;
+                          }
+                          changes.fareMinor = `${Math.round(Number(fareText) * 100)}`;
+                        }
+                        if (changeDate.trim() !== "") changes.schedule = { date: changeDate.trim() };
+                        if (changePickupArea.trim() !== "")
+                          changes.pickup = { area: changePickupArea.trim() };
+                        if (changeDropoffArea.trim() !== "")
+                          changes.dropoff = { area: changeDropoffArea.trim() };
+                        if (changeLoad.trim() !== "" || changeParcels.trim() !== "") {
+                          const load: Record<string, unknown> = {};
+                          if (changeLoad.trim() !== "") load.description = changeLoad.trim();
+                          if (changeParcels.trim() !== "") load.parcels = Number(changeParcels.trim());
+                          changes.load = load;
+                        }
+                        const collectionText = changeCollection.trim();
+                        if (collectionText !== "") {
+                          if (!/^\d{1,9}(\.\d{1,2})?$/.test(collectionText)) {
+                            setMessage({ tone: "error", text: "أدخل مبلغ تحصيل صحيحًا بخانتين عشريتين." });
+                            return;
+                          }
+                          changes.collectionMinor = `${Math.round(Number(collectionText) * 100)}`;
+                        }
+                        if (Object.keys(changes).length === 0) {
+                          setMessage({ tone: "error", text: "أدخل قيمة واحدة على الأقل." });
+                          return;
+                        }
+                        void act(async () => {
+                          await proposeDeliveryChange(request.id, changes);
+                          setChangeOpen(false);
+                        }, "أُرسل اقتراح التعديل — ينتظر قبول المشروع صراحة.");
+                      }}
+                    >
+                      أرسل الاقتراح
+                    </Button>
+                    <Button action="quiet" onClick={() => setChangeOpen(false)}>
+                      رجوع
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {myPendingChange ? (
+                <div className="micro-change-pending" data-testid="driver-own-change-pending">
+                  <p role="status">اقتراح تعديلك ينتظر قبول المشروع صراحة — الاتفاق السابق سارٍ.</p>
+                  <Button
+                    action="quiet"
+                    onClick={() =>
+                      void act(
+                        () => withdrawDeliveryChange(request.id, myPendingChange.id),
+                        "سُحب اقتراح التعديل — لا شيء تغير.",
+                      )
+                    }
+                  >
+                    اسحب الاقتراح
+                  </Button>
+                </div>
+              ) : null}
+              {requesterPendingChange ? (
+                <div className="micro-change-decision" data-testid="driver-change-decision">
+                  <h3>اقتراح تعديل من صاحب المشروع — ينتظر قرارك الصريح</h3>
+                  <p className="micro-review-item__meta">
+                    التغييرات المقترحة:{" "}
+                    {JSON.stringify(
+                      (requesterPendingChange.changes ?? {}).changes ?? requesterPendingChange.changes,
+                    )}
+                  </p>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="commit"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryChange(request.id, requesterPendingChange.id, "accept"),
+                          "قُبل التعديل — نسخة اتفاق جديدة.",
+                        )
+                      }
+                    >
+                      أقبل التعديل
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryChange(request.id, requesterPendingChange.id, "reject"),
+                          "رُفض التعديل — الاتفاق السابق سارٍ.",
+                        )
+                      }
+                    >
+                      ارفض التعديل
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
               {request.collectionMinor !== null && execution.money === "agreed" ? (
                 <div className="micro-collection-declare">
                   <h3>صرّح بما قبضته فعلًا (تسجيل فقط — لا محفظة ولا تحويل)</h3>

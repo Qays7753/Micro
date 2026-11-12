@@ -12,12 +12,17 @@ import {
   answerContactAttempt,
   cancelDeliveryRequest,
   confirmDeliveryOutcome,
+  decideDeliveryChange,
+  decideDeliveryConsent,
   decideDeliveryQuote,
   fetchBookingDetail,
+  proposeDeliveryChange,
   rateDeliveryBooking,
+  recordDeliveryInstructions,
+  withdrawDeliveryChange,
   type BookingDetail,
 } from "@/application/delivery";
-import { Button, EmptyState, Notice } from "@/components/primitives";
+import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 import { formatLocalDateTime } from "@/presentation/formatters";
 import { CONTACT_STATUS_LABELS, deliveryEventLabel } from "@/presentation/deliveryLabels";
 
@@ -40,12 +45,19 @@ const EXECUTION_LABELS: Record<string, string> = {
   picked_up: "استلم الأغراض",
   in_transit: "قيد التوصيل",
   delivered_declared: "السائق أبلغ التسليم — بانتظار تأكيدك",
-  undeliverable_declared: "أُبلغ تعذر",
+  undeliverable_declared: "أُبلغ تعذر — لا شيء ينفذ تلقائيًا",
   awaiting_instructions: "بانتظار تعليماتك",
   holding_agreed: "احتفاظ متفق عليه",
   retry_scheduled: "محاولة جديدة مجدولة",
   returning: "قيد الإرجاع",
   return_declared: "أبلغ الإرجاع — أكد وصول الأغراض لجهتها",
+};
+
+/** OD10: تسميات أنواع الموافقة — الإرجاع إرجاع أغراض لا استرداد مال. */
+const CONSENT_KIND_LABELS: Record<string, string> = {
+  retry: "محاولة جديدة",
+  holding: "احتفاظ بالأغراض",
+  return: "إرجاع الأغراض (لا استرداد مال)",
 };
 
 function minorToJod(minor: string | null): string {
@@ -66,6 +78,15 @@ export default function DeliveryBookingDetail() {
     null,
   );
   const [stars, setStars] = useState(5);
+  const [instructionNote, setInstructionNote] = useState("");
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [changeFare, setChangeFare] = useState("");
+  const [changeDate, setChangeDate] = useState("");
+  const [changePickupArea, setChangePickupArea] = useState("");
+  const [changeDropoffArea, setChangeDropoffArea] = useState("");
+  const [changeLoad, setChangeLoad] = useState("");
+  const [changeParcels, setChangeParcels] = useState("");
+  const [changeCollection, setChangeCollection] = useState("");
 
   const load = useCallback(async () => {
     setState("loading");
@@ -97,6 +118,17 @@ export default function DeliveryBookingDetail() {
 
   const request = data?.request;
   const execution = data?.execution;
+  const pendingConsent =
+    (data?.consentProposals ?? []).find(proposal => proposal.status === "pending") ?? null;
+  const pendingChange = (data?.changeProposals ?? []).find(proposal => proposal.status === "pending") ?? null;
+  const driverPendingChange =
+    pendingChange !== null && pendingChange.proposedBy !== String(data?.requester.id ?? "")
+      ? pendingChange
+      : null;
+  const myPendingChange =
+    pendingChange !== null && pendingChange.proposedBy === String(data?.requester.id ?? "")
+      ? pendingChange
+      : null;
   const agreementPayload = (data?.request.agreementCopy?.payload ?? data?.request.payload ?? {}) as {
     pickup?: { governorate?: string; area?: string };
     dropoff?: { governorate?: string; area?: string };
@@ -273,6 +305,252 @@ export default function DeliveryBookingDetail() {
                   </Button>
                 </div>
               ) : null}
+
+              {execution.execution === "undeliverable_declared" && pendingConsent ? (
+                <div className="micro-consent-decision" data-testid="consent-decision">
+                  <h3>
+                    اقتراح السائق ينتظر قرارك الصريح —{" "}
+                    {CONSENT_KIND_LABELS[pendingConsent.kind] ?? pendingConsent.kind}
+                  </h3>
+                  <p className="micro-review-item__meta">
+                    الشروط المقترحة: {JSON.stringify(pendingConsent.terms)} — الإرجاع إرجاع أغراض لا استرداد
+                    مال.
+                  </p>
+                  <p role="status">سكوتك أو رفضك لا ينفذان شيئًا تلقائيًا أبدًا؛ الحالة تبقى بانتظار واضح.</p>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="commit"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryConsent(request.id, pendingConsent.id, "accept"),
+                          "قُبل الاقتراح صراحة — سُجل بفاعل ووقت.",
+                        )
+                      }
+                    >
+                      أقبل الاقتراح
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryConsent(request.id, pendingConsent.id, "reject"),
+                          "رُفض الاقتراح — لا تنفيذ تلقائي.",
+                        )
+                      }
+                    >
+                      ارفض الاقتراح
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {execution.execution === "undeliverable_declared" && !pendingConsent ? (
+                <Notice tone="info">
+                  بعد التعذر: محاولة جديدة أو احتفاظ أو إرجاع تحتاج اقتراحًا من السائق يقبله صاحب المشروع
+                  صراحة داخل التطبيق — لا يعلنها طرف واحد ولا تنفذ آليًا (OD10).
+                </Notice>
+              ) : null}
+
+              {execution.execution === "awaiting_instructions" ? (
+                <div className="micro-instructions-box" data-testid="instructions-decision">
+                  <h3>تعليماتك للسائق (مسجلة — لا ينتظر النظام بلا نهاية)</h3>
+                  <Field label="ملاحظة (اختياري)" controlId="instruction-note">
+                    <input
+                      id="instruction-note"
+                      value={instructionNote}
+                      onChange={event => setInstructionNote(event.target.value)}
+                    />
+                  </Field>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="commit"
+                      onClick={() =>
+                        void act(
+                          () =>
+                            recordDeliveryInstructions(request.id, "transit", instructionNote || undefined),
+                          "سُجلت تعليماتك: تابع التوصيل.",
+                        )
+                      }
+                    >
+                      تعليمات: تابع التوصيل
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () =>
+                            recordDeliveryInstructions(request.id, "return", instructionNote || undefined),
+                          "سُجلت تعليماتك: ابدأ الإرجاع.",
+                        )
+                      }
+                    >
+                      تعليمات: ابدأ الإرجاع
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () =>
+                            recordDeliveryInstructions(request.id, "holding", instructionNote || undefined),
+                          "سُجلت تعليماتك: احتفظ بالأغراض.",
+                        )
+                      }
+                    >
+                      تعليمات: احتفظ بالأغراض
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              <Button action="quiet" onClick={() => setChangeOpen(open => !open)}>
+                {changeOpen ? "إغلاق التعديل المؤثر" : "اقتراح تعديل مؤثر (يحتاج قبول السائق)"}
+              </Button>
+              {changeOpen ? (
+                <div className="micro-change-form" data-testid="change-proposal-form">
+                  <p className="micro-review-item__meta">
+                    الاتفاق السابق يبقى ساريًا وغير قابل للكتابة فوقه حتى يقبل السائق صراحة؛ يُنشأ عند القبول
+                    نسخة اتفاق جديدة وتبقى السابقة في التاريخ (OD11).
+                  </p>
+                  <Field label="الأجرة الجديدة (د.أ — اتركها فارغة لبلا تغيير)">
+                    <input
+                      value={changeFare}
+                      onChange={event => setChangeFare(event.target.value)}
+                      inputMode="decimal"
+                    />
+                  </Field>
+                  <Field label="تاريخ/موعد جديد (نصًا)">
+                    <input value={changeDate} onChange={event => setChangeDate(event.target.value)} />
+                  </Field>
+                  <Field label="منطقة الاستلام (نصًا)">
+                    <input
+                      value={changePickupArea}
+                      onChange={event => setChangePickupArea(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="منطقة التسليم (نصًا)">
+                    <input
+                      value={changeDropoffArea}
+                      onChange={event => setChangeDropoffArea(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="وصف الحمولة الجديد (نصًا)">
+                    <input value={changeLoad} onChange={event => setChangeLoad(event.target.value)} />
+                  </Field>
+                  <Field label="عدد الطرود">
+                    <input
+                      value={changeParcels}
+                      onChange={event => setChangeParcels(event.target.value)}
+                      inputMode="numeric"
+                    />
+                  </Field>
+                  <Field label="مبلغ التحصيل الجديد (د.أ — فارغ لبلا تغيير)">
+                    <input
+                      value={changeCollection}
+                      onChange={event => setChangeCollection(event.target.value)}
+                      inputMode="decimal"
+                    />
+                  </Field>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="save"
+                      onClick={() => {
+                        const changes: Record<string, unknown> = {};
+                        const fareText = changeFare.trim();
+                        if (fareText !== "") {
+                          if (!/^\d{1,9}(\.\d{1,2})?$/.test(fareText)) {
+                            setMessage({ tone: "error", text: "أدخل أجرة صحيحة بخانتين عشريتين." });
+                            return;
+                          }
+                          changes.fareMinor = `${Math.round(Number(fareText) * 100)}`;
+                        }
+                        if (changeDate.trim() !== "") changes.schedule = { date: changeDate.trim() };
+                        if (changePickupArea.trim() !== "")
+                          changes.pickup = { area: changePickupArea.trim() };
+                        if (changeDropoffArea.trim() !== "")
+                          changes.dropoff = { area: changeDropoffArea.trim() };
+                        if (changeLoad.trim() !== "" || changeParcels.trim() !== "") {
+                          const load: Record<string, unknown> = {};
+                          if (changeLoad.trim() !== "") load.description = changeLoad.trim();
+                          if (changeParcels.trim() !== "") load.parcels = Number(changeParcels.trim());
+                          changes.load = load;
+                        }
+                        const collectionText = changeCollection.trim();
+                        if (collectionText !== "") {
+                          if (!/^\d{1,9}(\.\d{1,2})?$/.test(collectionText)) {
+                            setMessage({ tone: "error", text: "أدخل مبلغ تحصيل صحيحًا بخانتين عشريتين." });
+                            return;
+                          }
+                          changes.collectionMinor = `${Math.round(Number(collectionText) * 100)}`;
+                        }
+                        if (Object.keys(changes).length === 0) {
+                          setMessage({ tone: "error", text: "أدخل قيمة واحدة على الأقل لتعديلها." });
+                          return;
+                        }
+                        void act(async () => {
+                          await proposeDeliveryChange(request.id, changes);
+                          setChangeOpen(false);
+                        }, "أُرسل اقتراح التعديل — ينتظر قبول السائق صراحة.");
+                      }}
+                    >
+                      أرسل الاقتراح
+                    </Button>
+                    <Button action="quiet" onClick={() => setChangeOpen(false)}>
+                      رجوع
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {myPendingChange ? (
+                <div className="micro-change-pending" data-testid="own-change-pending">
+                  <p role="status">اقتراح تعديلك ينتظر قبول السائق صراحة — الاتفاق السابق سارٍ حتى قبوله.</p>
+                  <Button
+                    action="quiet"
+                    onClick={() =>
+                      void act(
+                        () => withdrawDeliveryChange(request.id, myPendingChange.id),
+                        "سُحب اقتراح التعديل — لا شيء تغير.",
+                      )
+                    }
+                  >
+                    اسحب الاقتراح
+                  </Button>
+                </div>
+              ) : null}
+              {driverPendingChange ? (
+                <div className="micro-change-decision" data-testid="change-decision">
+                  <h3>اقتراح تعديل من السائق — ينتظر قرارك الصريح</h3>
+                  <p className="micro-review-item__meta">
+                    التغييرات المقترحة:{" "}
+                    {JSON.stringify(
+                      (driverPendingChange.changes ?? {}).changes ?? driverPendingChange.changes,
+                    )}
+                  </p>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="commit"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryChange(request.id, driverPendingChange.id, "accept"),
+                          "قُبل التعديل — نسخة اتفاق جديدة.",
+                        )
+                      }
+                    >
+                      أقبل التعديل
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () => decideDeliveryChange(request.id, driverPendingChange.id, "reject"),
+                          "رُفض التعديل — الاتفاق السابق سارٍ.",
+                        )
+                      }
+                    >
+                      ارفض التعديل
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
               <Button
                 action="quiet"
                 onClick={() =>
@@ -285,7 +563,7 @@ export default function DeliveryBookingDetail() {
           ) : null}
 
           <section>
-            <h2>اتفاق الحجز (نسخة محفوظة)</h2>
+            <h2>اتفاق الحجز (نسخة محفوظة — الإصدار v{data.agreementVersion ?? 1})</h2>
             <dl className="micro-market-facts">
               <div>
                 <dt>الأجرة</dt>

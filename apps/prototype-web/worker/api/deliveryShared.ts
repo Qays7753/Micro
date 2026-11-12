@@ -89,7 +89,7 @@ export async function buildAgreementCopy(
 export async function loadRequest(ctx: RouteContext, requestId: string): Promise<Record<string, unknown>> {
   const row = await ctx.env.DB.prepare(
     "SELECT id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, collection_content, " +
-      "pricing_mode, offered_fare_minor, status, agreement_copy_json, response_deadline_at, quote_id, created_at " +
+      "pricing_mode, offered_fare_minor, status, agreement_copy_json, agreement_version, response_deadline_at, quote_id, created_at " +
       "FROM delivery_request WHERE id = ?",
   )
     .bind(requestId)

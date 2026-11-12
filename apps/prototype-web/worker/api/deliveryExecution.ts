@@ -280,19 +280,16 @@ export async function driverDeclare(ctx: RouteContext, auth: AuthenticatedContex
     delivery_declared: "delivery_declared",
     delivery_failed: "delivery_failed",
     awaiting_instructions: "awaiting_instructions",
-    retry_agreed: "retry_agreed",
-    holding_agreed: "holding_agreed",
-    return_agreed: "return_agreed",
+    // Resume events after an agreed outcome (contract 21 §3.2-3). The three
+    // consent transitions out of undeliverable_declared (retry/holding/return)
+    // and the requester instructions are NO LONGER driver declarations —
+    // they go through the mutual-consent/instructions paths (OD10, actor
+    // assignments per §3.2-3; see api/deliveryConsent.ts).
     return_declared: "return_declared",
-    // Resume events after a declared outcome (contract 21 §3.2-3): without
-    // these the execution axis is stuck after undeliverable/instructions.
     retry_started_pickup: "retry_started_pickup",
     retry_started_transit: "retry_started_transit",
     return_started: "return_started",
     transit_resumed: "transit_resumed",
-    instructions_transit: "instructions_transit",
-    instructions_return: "instructions_return",
-    instructions_holding: "instructions_holding",
   };
   const contactMap: Record<string, string> = {
     contact_attempt_no_answer: "attempt_no_answer",
@@ -310,11 +307,16 @@ export async function driverDeclare(ctx: RouteContext, auth: AuthenticatedContex
     const nextExecution = transitionExecution(state, eventMap[kind]!);
     const goods = goodsAfterExecution(nextExecution, state.goods);
     const confirmation = confirmationAfterDeclaration(nextExecution, state.confirmation);
+    // Anchor for the single engineering 24h reminder (contract 21 §3.2-5 /
+    // contract 19 §9): stamped when the wait opens, never on re-declarations.
+    const confirmationOpened =
+      confirmation === "awaiting_requester_confirmation" &&
+      state.confirmation !== "awaiting_requester_confirmation";
     await db(ctx)
       .prepare(
-        "UPDATE delivery_execution SET execution_status = ?, goods_location = ?, confirmation_status = ?, updated_at = ? WHERE request_id = ?",
+        "UPDATE delivery_execution SET execution_status = ?, goods_location = ?, confirmation_status = ?, confirmation_requested_at = COALESCE(confirmation_requested_at, ?), updated_at = ? WHERE request_id = ?",
       )
-      .bind(nextExecution, goods, confirmation, now, String(row.id))
+      .bind(nextExecution, goods, confirmation, confirmationOpened ? now : null, now, String(row.id))
       .run();
     await recordEvent(
       ctx,

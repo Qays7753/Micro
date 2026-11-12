@@ -36,6 +36,7 @@ export const DELIVERY_NOTIFICATION_TYPES = [
   "quote_expired",
   "booking_outcome",
   "booking_modified",
+  "consent_proposed",
   "declaration_recorded",
   "confirmation_requested",
   "daily_statement_submitted",
