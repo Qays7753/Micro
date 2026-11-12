@@ -53,7 +53,7 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (80 = 79 نمطًا + المسار الافتراضي)؛ المسارات ذات
+/* كل مسارات الموجّه المسجّلة (81 = 80 نمطًا + المسار الافتراضي)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
  * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
  * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
@@ -116,6 +116,9 @@ const ROUTES: readonly string[] = [
   "/delivery/booking/new",
   "/delivery/booking/dlv_smoke_sample",
   "/delivery/drivers",
+  /* إغلاق فجوات §17 (2026-11-12، مطالبة WS-249): طابور مراجعة التوصيل
+   * للمراجع المخول — سطح قارئ كطابور مراجعة السوق (OD17/OD22/OD28–OD31). */
+  "/delivery/review",
   "/driver",
   "/driver/booking/dlv_smoke_sample",
   /* R10-B4/F-015: الأنماط العشرة الغائبة — بترتيب الموجّه نفسه. */

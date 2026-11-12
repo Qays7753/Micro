@@ -9,6 +9,7 @@ export {
   browseMarketListings,
   confirmListingAvailability,
   createListingDraft,
+  directUpdateListing,
   fetchListingDetail,
   fetchMarketMeta,
   fetchVendorListingDraft,

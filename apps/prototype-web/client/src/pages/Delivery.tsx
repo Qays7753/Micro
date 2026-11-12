@@ -105,6 +105,11 @@ export default function Delivery() {
           <Button action="outline" onClick={() => navigate("/delivery/drivers")}>
             سائقوني والبحث عن سائق
           </Button>
+          {session.isAdmin ? (
+            <Button action="quiet" onClick={() => navigate("/delivery/review")}>
+              طابور مراجعة التوصيل
+            </Button>
+          ) : null}
         </div>
       )}
 

@@ -1,18 +1,22 @@
 /** @vitest-environment jsdom */
 /*
- * EX-D18 (2026-11-12) — فحوص مباشرة للأسطح الأربع التي كشفتها راتشة خريطة
- * الاختبارات (RV3-NF-7/D-15) بلا اختبار يستوردها مباشرة: تفاصيل الحجز
- * (المالك)، دليل السائقين، محرر إعلان السوق، وطابور مراجعة السوق. الـAPI
- * محاكى عند حد النقل؛ السلوك الخادمي محروس بفحوص العامل.
+ * EX-D18 (2026-11-12) — فحوص مباشرة للأسطح التي كشفتها راتشة خريطة
+ * الاختبارات (RV3-NF-7/D-15): تفاصيل الحجز (المالك)، دليل السائقين، محرر
+ * إعلان السوق، طابور مراجعة السوق — ثم إغلاق فجوات §17 (جلسة 2026-11-12
+ * الثالثة): طابور مراجعة التوصيل، إجابة محاولة الاتصال (OD15)، والتحديث
+ * الرقمي المباشر للسعر (OD-09). الـAPI محاكى عند حد النقل؛ السلوك الخادمي
+ * محروس بفحوص العامل.
  */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import DeliveryBookingDetail from "@/pages/DeliveryBookingDetail";
 import DeliveryDrivers from "@/pages/DeliveryDrivers";
+import DeliveryReviewQueue from "@/pages/DeliveryReviewQueue";
 import MarketListingEditor from "@/pages/MarketListingEditor";
 import MarketReview from "@/pages/MarketReview";
+import MarketVendorWorkspace from "@/pages/MarketVendorWorkspace";
 
 const wouterMocks = vi.hoisted(() => ({ location: "/delivery", search: "" }));
 vi.mock("wouter", () => ({
@@ -196,5 +200,150 @@ describe("market review queue (direct)", () => {
     // the raw JSON blob must never reach the reviewer
     expect(screen.queryByText(/work_copy_json/)).toBeNull();
     expect(screen.queryByText(/\{/)).toBeNull();
+  });
+});
+
+describe("delivery review queue (direct — §17-1 closure)", () => {
+  it("renders labeled drivers, evidence, vehicles, and rating comments — never raw JSON", async () => {
+    wouterMocks.location = "/delivery/review";
+    mockApi({
+      "/api/delivery/review/queue": {
+        drivers: [
+          {
+            id: "drv_pending_1",
+            work_copy_json: JSON.stringify({
+              displayName: "سائق التجربة",
+              phone: "+962790000012",
+              serviceAreas: ["عمان", "الزرقاء"],
+            }),
+            submitted_at: 1,
+          },
+        ],
+        evidence: [
+          {
+            id: "ev_1",
+            driver_profile_id: "drv_pending_1",
+            category: "license",
+            status: "pending",
+            expires_at: null,
+            media_id: "med_1",
+          },
+        ],
+        vehicles: [
+          {
+            id: "veh_1",
+            driver_profile_id: "drv_pending_1",
+            info_json: JSON.stringify({ plate: "23-4567", vehicleType: "شاحنة صغيرة" }),
+            status: "pending",
+          },
+        ],
+        ratingComments: [
+          { id: "rt_1", request_id: "req_1", stars: 5, comment: "سريع وأمين", status: "pending_review" },
+        ],
+      },
+    });
+    render(<DeliveryReviewQueue />);
+    expect(await screen.findByText(/سائق التجربة/)).toBeTruthy();
+    expect(await screen.findByText(/رخصة قيادة/)).toBeTruthy();
+    expect(await screen.findByText(/23-4567/)).toBeTruthy();
+    expect(await screen.findByText(/سريع وأمين/)).toBeTruthy();
+    // the honest dependency note for driver approval (OD22)
+    expect(await screen.findByText(/مركبة معتمدة وإثباتَي الهوية والرخصة/)).toBeTruthy();
+    // raw JSON never reaches the reviewer
+    expect(screen.queryByText(/work_copy_json/)).toBeNull();
+    expect(screen.queryByText(/info_json/)).toBeNull();
+  });
+});
+
+describe("owner contact-attempt answer (direct — OD15 §17-3 closure)", () => {
+  it("shows the two explicit answer buttons when the driver recorded a contact attempt", async () => {
+    wouterMocks.location = "/delivery/booking/req_2";
+    mockApi({
+      "/api/delivery/requests/req_2": {
+        request: {
+          id: "req_2",
+          status: "confirmed",
+          pricingMode: "prepriced",
+          offeredFareMinor: "30000",
+          collectionMinor: null,
+          collectionContent: null,
+          responseDeadlineAt: null,
+          payload: {},
+          agreementCopy: null,
+          createdAt: 1,
+        },
+        quote: null,
+        execution: {
+          execution: "undeliverable_declared",
+          confirmation: "none",
+          contact: "attempt_no_answer",
+          goods: "with_driver",
+          money: "none",
+        },
+        events: [],
+        requester: { id: "idn_1", displayName: "Owner" },
+        driver: { id: "drv_1", profile: { displayName: "سائق" } },
+        viewerRole: "requester",
+      },
+    });
+    render(<DeliveryBookingDetail />);
+    expect(await screen.findByTestId("contact-answer")).toBeTruthy();
+    expect(await screen.findByText("تم التواصل فعلًا")).toBeTruthy();
+    expect(await screen.findByText("لم يتم التواصل")).toBeTruthy();
+    // the honest status line from the canonical labels
+    expect(await screen.findByText(/حاول الاتصال بك دون رد/)).toBeTruthy();
+  });
+});
+
+describe("vendor direct price update (direct — OD-09 §17-2 closure)", () => {
+  it("prefills the current fixed price and posts the exact micro value on save", async () => {
+    wouterMocks.location = "/market/vendor";
+    const posted: { url: string; body: string }[] = [];
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = new URL(String(input), "http://local").pathname;
+      if (init?.method === "POST" && path.includes("/direct-update")) {
+        posted.push({ url: path, body: String(init.body) });
+        return jsonResponse({ ok: true });
+      }
+      if (path.startsWith("/api/market/vendor/overview")) {
+        return jsonResponse({
+          vendor: { status: "approved", supplierProfileId: "sp_1" },
+          vendorReviewReason: null,
+          profileFields: { displayName: "مورد", contactPhone: "+962790000000", governorate: "عمان" },
+          listings: [
+            {
+              id: "lst_pub",
+              title: "أكواب منشورة",
+              status: "approved_for_publish",
+              revisionStatus: "none",
+              freshness: "fresh",
+              availabilityStatus: "available",
+              priceMode: "fixed",
+              priceMicroJod: "1500000",
+              updatedAt: 1,
+            },
+          ],
+        });
+      }
+      if (path.startsWith("/api/auth/session")) return jsonResponse({ authenticated: true });
+      return jsonResponse({}, 404);
+    });
+    render(
+      <UnsavedChangesProvider navigate={() => {}}>
+        <MarketVendorWorkspace />
+      </UnsavedChangesProvider>,
+    );
+    fireEvent.click(await screen.findByText("تحديث السعر"));
+    // prefill = the current reviewed price (1.5 JOD), never a blank guess
+    expect(await screen.findByDisplayValue("1.5")).toBeTruthy();
+    fireEvent.change(screen.getByDisplayValue("1.5"), { target: { value: "2.25" } });
+    fireEvent.click(await screen.findByText("حفظ السعر"));
+    await waitFor(() => {
+      expect(posted).toHaveLength(1);
+      expect(posted[0]?.url).toContain("/api/market/vendor/listings/lst_pub/direct-update");
+      expect(posted[0]?.body).toContain("2250000");
+    });
+    // the moderation-event honesty note is visible
+    expect(await screen.findByText(/حدث إشرافي/)).toBeTruthy();
   });
 });

@@ -57,6 +57,7 @@ export function getNavigationLabel(pathname: string) {
   /* EX-D18 (عقد 26 §8): تسميات التوصيل وبوابة السائق المستقلة (OD01). */
   if (pathname.startsWith("/delivery/booking/")) return "تفاصيل الحجز";
   if (pathname.startsWith("/delivery/drivers")) return "سائقوني";
+  if (pathname.startsWith("/delivery/review")) return "مراجعة التوصيل";
   if (pathname.startsWith("/delivery")) return "التوصيل";
   if (pathname.startsWith("/driver")) return "Micro — السائق";
   return (

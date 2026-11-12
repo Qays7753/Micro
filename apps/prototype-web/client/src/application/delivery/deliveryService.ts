@@ -152,6 +152,15 @@ export async function rateDeliveryBooking(id: string, stars: number, comment?: s
   );
 }
 
+/** OD15: the owner's explicit answer to the driver's recorded contact attempt. */
+export async function answerContactAttempt(id: string, outcome: "confirmed" | "denied"): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(id)}/contact`,
+    { method: "POST", body: JSON.stringify({ outcome }) },
+    { idempotencyKey: `contact-answer:${id}:${outcome}` },
+  );
+}
+
 export async function toggleSavedDriver(driverProfileId: string): Promise<{ saved: boolean }> {
   return apiFetch(
     `/api/delivery/drivers/${encodeURIComponent(driverProfileId)}/save`,

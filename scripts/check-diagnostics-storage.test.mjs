@@ -125,7 +125,10 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     /* S16 (UNIT-043): صفحة التوصيل + وحدة حالة الخدمات — 393 -> 395. */
     /* S17 (DOC-026): وحدة حدود موارد الاستيراد + قسم فحص البيانات داخل
      * الإعدادات مقابل تقاعد صفحة ToolsIntegrity — 395 -> 396 (صافي +1). */
-    expect(stdout).toMatch(/415 ملف إنتاج/);
+    /* إغلاق فجوات §17 (WS-249، 2026-11-12): صفحة طابور مراجعة التوصيل
+     * (DeliveryReviewQueue.tsx — OD17/OD22/OD28–OD31) — 415 -> 416؛
+     * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء. */
+    expect(stdout).toMatch(/416 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

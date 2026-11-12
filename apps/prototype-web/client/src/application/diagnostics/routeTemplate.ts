@@ -13,6 +13,8 @@
  * W4-E (F-047): اكتمل الجدول بكل مسارات MicroRouter الحية — كانت المسارات
  * العشرة التالية تؤول صامتة إلى /unknown (finance/more وupcoming وrecurring
  * وموجاتها، وnew/owner_withdrawal_cash، وloans/received وموجتيها، وmarket).
+ * إغلاق فجوات §17 (2026-11-12، مطالبة WS-249): أُضيف delivery:review —
+ * طابور مراجعة التوصيل للمراجع المخول (سطح قارئ كطابور مراجعة السوق).
  * ولأن ميزانية حزمة الدخول (D-034) لا تحتمل تمثيلًا حرفيًا متكررًا، يُخزَّن
  * الجدول مجموعاتٍ «قسم:مسار,مسار,…» يفكها المحرك عند الإقلاع: اسم القسم
  * المشترك (مثل finance) يُكتب مرة واحدة، والجذر «/» ثابت أول. اختبار
@@ -22,7 +24,7 @@
  * قبل :type، وrecurring/new قبل recurring/:id) كي لا يبتلعه.
  */
 const ROUTE_GROUPS =
-  "assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market:listing/:id,review,vendor,vendor/new,vendor/:id delivery:booking/new,booking/:id,drivers driver:booking/:id orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,hour-value,idea-review,integrity,invoice-share,sales-quantity";
+  "assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market:listing/:id,review,vendor,vendor/new,vendor/:id delivery:booking/new,booking/:id,drivers,review driver:booking/:id orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,hour-value,idea-review,integrity,invoice-share,sales-quantity";
 
 const ROUTE_TEMPLATES: string[] = ["/"];
 for (const group of ROUTE_GROUPS.split(" ")) {

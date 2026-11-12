@@ -8,8 +8,10 @@ import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { normalizeAsciiDigits } from "@/application/input";
 import {
   confirmListingAvailability,
+  directUpdateListing,
   fetchVendorOverview,
   listingLifecycleAction,
   submitListing,
@@ -39,6 +41,22 @@ const REVISION_LABELS: Record<string, string> = {
   renewal_requested: "طلب تجديد قيد المراجعة",
 };
 
+/** OD-09: تحويلات سعر مطابقة للمحرر — نص عشري إلى micro-Jod نصيًا بلا float. */
+function microToJodText(micro: string | null): string {
+  if (micro === null || micro === "") return "";
+  const value = BigInt(micro);
+  const whole = value / 1_000_000n;
+  const fraction = (value % 1_000_000n).toString().padStart(6, "0").replace(/0+$/, "");
+  return fraction === "" ? whole.toString() : `${whole}.${fraction}`;
+}
+
+function jodToPriceMicro(jodText: string): string | null {
+  const text = normalizeAsciiDigits(jodText.trim());
+  if (!/^\d{1,6}(\.\d{1,6})?$/.test(text)) return null;
+  const [whole, fraction = ""] = text.split(".");
+  return `${whole}${fraction.padEnd(6, "0")}`;
+}
+
 export default function MarketVendorWorkspace() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -52,6 +70,9 @@ export default function MarketVendorWorkspace() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [governorate, setGovernorate] = useState("");
+  /* OD-09: التحديث الرقمي المباشر للسعر على المنشور ذي التسعير الثابت. */
+  const [priceEditFor, setPriceEditFor] = useState<string | null>(null);
+  const [priceValue, setPriceValue] = useState("");
 
   const load = useCallback(async () => {
     setState("loading");
@@ -252,6 +273,17 @@ export default function MarketVendorWorkspace() {
                     >
                       تأكيد التوفر
                     </Button>
+                    {listing.priceMode === "fixed" ? (
+                      <Button
+                        action="quiet"
+                        onClick={() => {
+                          setPriceEditFor(priceEditFor === listing.id ? null : listing.id);
+                          setPriceValue(microToJodText(listing.priceMicroJod));
+                        }}
+                      >
+                        تحديث السعر
+                      </Button>
+                    ) : null}
                     <Button
                       action="quiet"
                       onClick={() =>
@@ -264,6 +296,50 @@ export default function MarketVendorWorkspace() {
                       إيقاف
                     </Button>
                   </>
+                ) : null}
+                {priceEditFor === listing.id && listing.status === "approved_for_publish" ? (
+                  <div className="micro-vendor-price-edit" data-testid="price-direct-update">
+                    <Field label="السعر الجديد (دينار — أرقام إنجليزية)">
+                      <input
+                        value={priceValue}
+                        onChange={event => setPriceValue(event.target.value)}
+                        inputMode="decimal"
+                      />
+                    </Field>
+                    <p className="micro-review-item__meta">
+                      تحديث مباشر للسعر على المنشور فقط — يُوثق بحدث إشرافي ولا يمس بقية المحتوى.
+                    </p>
+                    <div className="micro-form-actions">
+                      <Button
+                        action="save"
+                        onClick={() => {
+                          const micro = jodToPriceMicro(priceValue);
+                          if (micro === null) {
+                            setMessage({
+                              tone: "error",
+                              text: "أدخل سعرًا صحيحًا — أرقام إنجليزية بلا نص.",
+                            });
+                            return;
+                          }
+                          void run(async () => {
+                            await directUpdateListing(listing.id, { priceMicroJod: micro });
+                            setPriceEditFor(null);
+                          }, "حُدّث السعر المباشر ووُثق بحدث إشرافي.");
+                        }}
+                      >
+                        حفظ السعر
+                      </Button>
+                      <Button
+                        action="quiet"
+                        onClick={() => {
+                          setPriceEditFor(null);
+                          setPriceValue("");
+                        }}
+                      >
+                        رجوع
+                      </Button>
+                    </div>
+                  </div>
                 ) : null}
                 {listing.status === "paused" ? (
                   <Button

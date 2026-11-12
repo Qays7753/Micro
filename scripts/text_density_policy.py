@@ -410,15 +410,27 @@ CAPS: dict[str, int] = {
     # ── التوسعة الشبكية (EX-D18 — 2026-11-12): أول قياس لأسطح السوق والتوصيل
     # وبوابة السائق (قيمة القياس + هامش تشغيلي موثق) — كل النصوص ملك محتوى
     # حقيقي معتمد (لا حشو ولا عناوين معمارية)؛ التفصيل في تقرير التنفيذ. ──
-    "DeliveryBookingDetail": 80,
+    # DeliveryBookingDetail 80 -> 84 (إغلاق فجوات §17، 2026-11-12، مطالبة
+    # WS-249): إجابة صاحب المشروع على محاولة الاتصال (OD15) — سطر حالة
+    # كنوني من خريطة CONTACT_STATUS_LABELS الكاملة + زرا الإجابة الصريحة
+    # بتأكيد/نفي التواصل (أمر المالك: أكمل الفجوات داخل النطاق).
+    "DeliveryBookingDetail": 84,
     "DeliveryBookingEditor": 60,
     "DeliveryDrivers": 20,
-    "DriverBookingDetail": 90,
-    "DriverPortal": 100,
+    # DriverBookingDetail 90 -> 92 و DriverPortal 100 -> 103 (إغلاق فجوات
+    # §17، 2026-11-12، مطالبة WS-249): استكمال خريطة تسميات محور الاتصال
+    # في presentation/deliveryLabels.ts (أحداث تأكيد/نفي التواصل الكنونية
+    # + خريطة حالات الاتصال) — تسميات كاملة بلا أكواد خام للطرفين.
+    "DriverBookingDetail": 92,
+    "DriverPortal": 103,
     "MarketListingDetail": 20,
     "MarketListingEditor": 45,
     "MarketReview": 40,
     "MarketVendorWorkspace": 58,
+    # ── طابور مراجعة التوصيل (إغلاق فجوات §17 — 2026-11-12، مطالبة WS-249):
+    # أول قياس — طابور إداري للمراجع المخول: طلبات السائقين وإثباتاتهم
+    # ومركباتهم وتعليقات النجوم بتسميات كاملة وأسباب موثقة (OD17/OD22/OD28–OD31). ──
+    "DeliveryReviewQueue": 21,
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
@@ -874,6 +886,7 @@ PAGES = [
     "DeliveryBookingDetail",
     "DeliveryBookingEditor",
     "DeliveryDrivers",
+    "DeliveryReviewQueue",
     "DriverBookingDetail",
     "DriverPortal",
     "MarketListingDetail",

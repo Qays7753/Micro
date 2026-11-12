@@ -45,6 +45,7 @@ export interface VendorOverview {
     freshness: string;
     availabilityStatus: string;
     priceMode: string;
+    priceMicroJod: string | null;
     updatedAt: number;
   }[];
 }
@@ -165,6 +166,22 @@ export async function confirmListingAvailability(id: string): Promise<void> {
     `/api/market/vendor/listings/${encodeURIComponent(id)}/confirm-availability`,
     { method: "POST", body: "{}" },
     { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** OD-09: direct numeric price update on a published FIXED-price listing —
+ * verified server-side, re-anchors nothing else, and logs a moderation event. */
+export async function directUpdateListing(
+  id: string,
+  input: {
+    priceMicroJod?: string;
+    availabilityStatus?: "available" | "made_to_order" | "temporarily_unavailable";
+  },
+): Promise<void> {
+  await apiFetch(
+    `/api/market/vendor/listings/${encodeURIComponent(id)}/direct-update`,
+    { method: "POST", body: JSON.stringify(input) },
+    { idempotencyKey: `direct-update:${id}:${input.priceMicroJod ?? input.availabilityStatus ?? ""}` },
   );
 }
 

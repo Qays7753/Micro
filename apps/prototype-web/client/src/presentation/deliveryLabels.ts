@@ -32,6 +32,8 @@ export const DELIVERY_EVENT_LABELS: Record<string, string> = {
   "execution:return_declared": "أبلغ الإرجاع",
   "contact:attempt_no_answer": "محاولة اتصال دون رد",
   "contact:contact_reported": "تم التواصل",
+  "contact:contact_confirmed": "أكد المشروع التواصل",
+  "contact:contact_denied": "نفى المشروع التواصل",
   "money:collection_declared": "صرّح بالتحصيل",
   "money:statement_submitted": "أرسل كشفًا",
   "money:full_receipt_confirmed": "أكد المشروع الاستلام كاملًا",
@@ -60,6 +62,15 @@ export const STATEMENT_STATUS_LABELS: Record<string, string> = {
   awaiting_confirmation: "تنتظر تأكيد المشروع",
   full_receipt_confirmed: "مؤكد كامل الاستلام",
   difference_recorded: "فيه فرق مسجل",
+};
+
+/** محور محاولة الاتصال كما يراه صاحب المشروع (OD15) — خريطة كاملة؛ لا كود خام. */
+export const CONTACT_STATUS_LABELS: Record<string, string> = {
+  not_attempted: "لا محاولة اتصال بعد",
+  attempt_no_answer: "السائق حاول الاتصال بك دون رد — أجب بصفتك صاحب المشروع",
+  contact_reported: "السائق أفاد بالتواصل معك — أكّد أو نفِ",
+  contact_confirmed: "التواصل مؤكد منك",
+  contact_denied: "التواصل منفي منك",
 };
 
 /** يترجم حدث خط الزمن أو يعيد التركيب الخام المصون عند غياب التسمية. */

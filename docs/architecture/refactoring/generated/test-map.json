@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "e1d116f7b26e52ea6846d8c5981645e69d20baa7",
+  "head": "197bfc226a1ed9454a09e7074fd2ae8e767e44c7",
   "pages": {
-    "total": 71,
+    "total": 72,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -143,6 +143,12 @@
         "evidence": [
           "G3Delivery.dom.test.tsx",
           "OrdJourneys.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryReviewQueue.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DirectSaleEditor.tsx": {
@@ -354,7 +360,8 @@
       "pages/MarketVendorWorkspace.tsx": {
         "kind": "direct",
         "evidence": [
-          "pages/Market.journeys.dom.test.tsx"
+          "pages/Market.journeys.dom.test.tsx",
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/MaterialEditor.tsx": {

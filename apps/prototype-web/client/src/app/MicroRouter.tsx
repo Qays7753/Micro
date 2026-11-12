@@ -66,6 +66,7 @@ const Delivery = lazy(() => import("@/pages/Delivery"));
 const DeliveryBookingEditor = lazy(() => import("@/pages/DeliveryBookingEditor"));
 const DeliveryBookingDetail = lazy(() => import("@/pages/DeliveryBookingDetail"));
 const DeliveryDrivers = lazy(() => import("@/pages/DeliveryDrivers"));
+const DeliveryReviewQueue = lazy(() => import("@/pages/DeliveryReviewQueue"));
 const DriverPortal = lazy(() => import("@/pages/DriverPortal"));
 const DriverBookingDetail = lazy(() => import("@/pages/DriverBookingDetail"));
 const MarketListingDetail = lazy(() => import("@/pages/MarketListingDetail"));
@@ -227,6 +228,9 @@ export function MicroRouter() {
             <Route path="/delivery/booking/new" component={DeliveryBookingEditor} />
             <Route path="/delivery/booking/:id" component={DeliveryBookingDetail} />
             <Route path="/delivery/drivers" component={DeliveryDrivers} />
+            {/* طابور مراجعة التوصيل للمراجع المخول (OD17/OD22/OD28–OD31) —
+                سطح قارئ كطابور مراجعة السوق (عقد 26 §8). */}
+            <Route path="/delivery/review" component={DeliveryReviewQueue} />
             <Route path="/driver" component={DriverPortal} />
             <Route path="/driver/booking/:id" component={DriverBookingDetail} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛

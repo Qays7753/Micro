@@ -7303,7 +7303,9 @@ button.micro-driver-request-card:focus-visible,
 .micro-driver-inbox,
 .micro-driver-statements,
 .micro-quote-box,
-.micro-rating-box {
+.micro-rating-box,
+.micro-contact-answer,
+.micro-vendor-price-edit {
   display: grid;
   gap: var(--space-2);
   background: var(--color-surface);

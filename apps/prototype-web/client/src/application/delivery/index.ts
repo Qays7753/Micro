@@ -5,6 +5,7 @@
  */
 
 export {
+  answerContactAttempt,
   attachDriverEvidence,
   cancelDeliveryRequest,
   confirmDeliveryOutcome,

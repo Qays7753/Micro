@@ -207,6 +207,8 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/delivery/booking/new": "/delivery",
   "/delivery/booking/:id": "/delivery",
   "/delivery/drivers": "/delivery",
+  /* طابور مراجعة التوصيل (OD17/OD22/OD28–OD31) يعود إلى بيت التوصيل. */
+  "/delivery/review": "/delivery",
   /* جذر بوابة السائق وجهتها نفسها؛ البديل هنا للبدء البارد بلا سياق فقط
    * (رابط خارجي) — داخل البوابة كل رجوع يعود لأصلها /driver. */
   "/driver": "/",

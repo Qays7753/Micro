@@ -444,6 +444,7 @@
         "browseMarketListings",
         "confirmListingAvailability",
         "createListingDraft",
+        "directUpdateListing",
         "estimateMaterialValue",
         "fetchListingDetail",
         "fetchMarketMeta",
@@ -472,6 +473,7 @@
     },
     "delivery": {
       "value": [
+        "answerContactAttempt",
         "attachDriverEvidence",
         "cancelDeliveryRequest",
         "confirmDeliveryOutcome",

@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "e1d116f7",
+        "head": "197bfc22",
         "date": "2026-11-12",
-        "method": "التوسعة الشبكية EX-D18 (2026-11-12، مطالبة WS-249 — المراجعة الخماسية الثانية فوق رأس e1d116f7): أسطح السوق/التوصيل/بوابة السائق تكتمل بإصلاحات المراجعة — كتلة أنماط الأسطح الجديدة كاملة (كانت كلها بلا أنماط)، عزل كروم بوابة السائق، محررات بمعاينة المسودة وحارس المدخلات، تسميات الحالات والأحداث الكانونية المشتركة (presentation/deliveryLabels)، وحالات تحميل/خطأ صادقة. lazy 1,475,606/443,608 → 1,562,020/475,316؛ precache 2,912,719 → 3,011,440 (+15 صفحة/مكون كسول و+CSS الأسطح)؛ initial companions 223,841/70,438 → 224,186/70,556؛ swRuntime 27,754 → 28,616؛ العدادات 129/2/87/184 → 144/2/96/199. السقوف الملكية (650,000/155,300) لم تُمس — budget PASS فوق الشجرة النهائية. بيئتا السحابة تُعيدان التعليق بعد الدفع بفئة هويتهما (سابقة W05)."
+        "method": "إغلاق فجوات §17 (2026-11-12، مطالبة WS-249 الحية، فوق رأس الكود 197bfc22): طابور مراجعة التوصيل للمراجع المخول (صفحة lazy جديدة + زر دخول إداري في بيت التوصيل — OD17/OD22/OD28–OD31)، إجابة صاحب المشروع على محاولة الاتصال داخل تفاصيل الحجز (OD15) مع خريطة تسميات اتصال كاملة في presentation/deliveryLabels، والتحديث الرقمي المباشر للسعر في مساحة المورد (OD-09) بتعبئة السعر الحالي المراجَع. القياس فوق الشجرة النهائية للإغلاق: lazy 1,562,020/475,316 → 1,573,076/478,891؛ precache 3,011,440 → 3,022,843؛ initial companions 224,186/70,556 بلا تغيير؛ swRuntime 28,616 → 28,677؛ العدادات 144/2/96/199 → 145/2/97/200. السقوف الملكية (650,000/155,300) لم تُمس — budget PASS. بيئتا السحابة تُعيدان التعليق في هذا الالتزام نفسه بقياس محاكاة مطابق (أسفل)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -32,24 +32,24 @@
       "measurements": {
         "initialRawTotal": 224186,
         "initialGzipNormTotal": 70556,
-        "lazyRawTotal": 1562020,
-        "lazyGzipNormTotal": 475316,
-        "precacheBytesTotal": 3011440,
-        "swRuntimeRawTotal": 28616
+        "lazyRawTotal": 1573076,
+        "lazyGzipNormTotal": 478891,
+        "precacheBytesTotal": 3022843,
+        "swRuntimeRawTotal": 28677
       },
       "counts": {
-        "lazyJsCount": 144,
+        "lazyJsCount": 145,
         "initialJsCount": 2,
-        "dynamicRootsCount": 96,
-        "precacheEntryCount": 199,
+        "dynamicRootsCount": 97,
+        "precacheEntryCount": 200,
         "swRuntimeFileCount": 2
       }
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "4360a92c",
-        "date": "2026-11-06",
-        "method": "UXR-W05 final re-anchor (2026-11-06, code head 4360a92c, PR #384 — DOC-032/WS-248 final-phase order over the W02 anchor 3ff7bdc3): the accumulated W03+W04+W05 candidate — W03 (parties/purchase/recurring copy + the cash dictionary) + W04 (readings/inventory/assets/tools + PERF-002 import gates + PERF-003 readPage + the settings index + backup/restore sections) + W05 (PERF-005/006/007/013/014 measured with no product-code change, final consumer coverage, deferred-check debt settlement, and the final-phase five-review fixes: Foundation sweep, completion/error role split, honest PWA runtime cards, Kash→Nuqud dictionary completion, overline removals, and 7 documented file-size ratchet reanchors). Net lazy surface IMPROVEMENT locked with same-PR provenance: lazy 1,477,357/443,689 → 1,475,606/443,608; precache 2,912,359 → 2,912,719 local (+360 documented three-wave content growth); initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 599,098/146,145 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed. This environment is pre-anchored by the proven environment-class derivation (precache = local + 90 identity footprint: 2,912,719 + 90 = 2,912,809; lazy/initial/swRuntime identical after identity normalization) pending the post-push exact-head re-verification per the documented protocol."
+        "head": "197bfc22",
+        "date": "2026-11-12",
+        "method": "إعادة تعليق بيئة cloudflare-pages بعد فشل بناء معاينة الصفحات على الفرع (تشخيص 2026-11-12): أسطح التوسعة الشبكية (Market/Delivery/Driver) نمت فوق مرساة W05 المؤرخة 2026-11-06 (4360a92c) فحجب حارس أسطح الحزمة بناء Cloudflare Pages بSURFACE_GROWTH (فشل مُعاد إنتاجه محليًا بمحاكاة CF_PAGES الكاملة: خرج 1). المعاد تعليقه بقياس فعلي فوق شجرة إغلاق فجوات §17 فوق رأس الكود 197bfc22 بمحاكاة بيئة مطابقة (CF_PAGES=1 + CF_PAGES_COMMIT_SHA بطول 40): lazy 1,475,606/443,608 → 1,573,076/478,891؛ precache 2,912,809 → 3,022,933 (مساوي للمحلي + 90 بصمة الهوية — الاشتقاق الموثق نفسه كسابقة W05)؛ initial companions 223,841/70,438 → 224,186/70,556؛ swRuntime 27,754 → 28,677؛ العدادات 129/2/87/184 → 145/2/97/200. القياس مستقل عن قيمة SHA (الهوية تُطبع بطول ثابت 40 وتُطبَّع قبل gzip)؛ إعادة التحقق على الرأس المدفوع الفعلي واجبة وفق البروتوكول بعد الدفع."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -61,26 +61,26 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 223841,
-        "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1475606,
-        "lazyGzipNormTotal": 443608,
-        "precacheBytesTotal": 2912809,
-        "swRuntimeRawTotal": 27754
+        "initialRawTotal": 224186,
+        "initialGzipNormTotal": 70556,
+        "lazyRawTotal": 1573076,
+        "lazyGzipNormTotal": 478891,
+        "precacheBytesTotal": 3022933,
+        "swRuntimeRawTotal": 28677
       },
       "counts": {
-        "lazyJsCount": 129,
+        "lazyJsCount": 145,
         "initialJsCount": 2,
-        "dynamicRootsCount": 87,
-        "precacheEntryCount": 184,
+        "dynamicRootsCount": 97,
+        "precacheEntryCount": 200,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "4360a92c",
-        "date": "2026-11-06",
-        "method": "UXR-W05 final re-anchor (2026-11-06, code head 4360a92c, PR #384 — DOC-032/WS-248 final-phase order over the W02 anchor 3ff7bdc3): the accumulated W03+W04+W05 candidate — W03 (parties/purchase/recurring copy + the cash dictionary) + W04 (readings/inventory/assets/tools + PERF-002 import gates + PERF-003 readPage + the settings index + backup/restore sections) + W05 (PERF-005/006/007/013/014 measured with no product-code change, final consumer coverage, deferred-check debt settlement, and the final-phase five-review fixes: Foundation sweep, completion/error role split, honest PWA runtime cards, Kash→Nuqud dictionary completion, overline removals, and 7 documented file-size ratchet reanchors). Net lazy surface IMPROVEMENT locked with same-PR provenance: lazy 1,477,357/443,689 → 1,475,606/443,608; precache 2,912,359 → 2,912,719 local (+360 documented three-wave content growth); initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 599,098/146,145 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed. This environment is pre-anchored by the proven environment-class derivation (precache = local + 90 identity footprint: 2,912,719 + 90 = 2,912,809; lazy/initial/swRuntime identical after identity normalization) pending the post-push exact-head re-verification per the documented protocol."
+        "head": "197bfc22",
+        "date": "2026-11-12",
+        "method": "إعادة تعليق بيئة github-actions بعد حجب تدقيق التبعيات خطوة التحقق قبل الوصول إلى pnpm check (تشخيص 2026-11-12 — تشغيل CI 43174862720 توقف عند خطوة التدقيق وحدها فما قِيست أسطح هذه البيئة أبدًا فوق فرع التوسعة): قياس فعلي بمحاكاة بيئة مطابقة (GITHUB_ACTIONS=true + GITHUB_SHA بطول 40) فوق شجرة إغلاق فجوات §17 فوق رأس الكود 197bfc22: القيم مطابقة لبيئة cloudflare-pages حرفيًا (فئة الهوية نفسها — lazy 1,573,076/478,891؛ precache 3,022,933؛ initial 224,186/70,556؛ swRuntime 28,677؛ العدادات 145/2/97/200) — الاشتقاق الموثق نفسه. إعادة التحقق على رأس الدفع الفعلي واجبة وفق البروتوكول بعد الدفع (تشغيل workflow_dispatch الموثق)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -92,18 +92,18 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 223841,
-        "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1475606,
-        "lazyGzipNormTotal": 443608,
-        "precacheBytesTotal": 2912809,
-        "swRuntimeRawTotal": 27754
+        "initialRawTotal": 224186,
+        "initialGzipNormTotal": 70556,
+        "lazyRawTotal": 1573076,
+        "lazyGzipNormTotal": 478891,
+        "precacheBytesTotal": 3022933,
+        "swRuntimeRawTotal": 28677
       },
       "counts": {
-        "lazyJsCount": 129,
+        "lazyJsCount": 145,
         "initialJsCount": 2,
-        "dynamicRootsCount": 87,
-        "precacheEntryCount": 184,
+        "dynamicRootsCount": 97,
+        "precacheEntryCount": 200,
         "swRuntimeFileCount": 2
       }
     }

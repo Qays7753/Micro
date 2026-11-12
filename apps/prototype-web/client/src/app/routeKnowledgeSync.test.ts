@@ -155,6 +155,9 @@ const SURFACE_ROUTES: readonly string[] = [
   "/market/review",
   "/delivery",
   "/delivery/drivers",
+  /* إغلاق فجوات §17 (2026-11-12، مطالبة WS-249): طابور مراجعة التوصيل
+   * سطح قارئ كطابور مراجعة السوق — يبقي الشريط السفلي (عقد 26 §8). */
+  "/delivery/review",
   "/assets",
   "/loans",
   "/parties",

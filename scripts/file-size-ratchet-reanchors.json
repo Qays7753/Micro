@@ -9806,6 +9806,139 @@
         "trigger": "عزل بوابة السائق وفق عقد 26 §8 (مطالبة WS-249/DOC-035)",
         "ocRef": "WS-249"
       }
+    },
+    {
+      "id": "reanchor-gap-closure-MicroRouter.tsx-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 303,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل مسار /delivery/review (طابور مراجعة التوصيل للمراجع المخول — OD17/OD22/OD28–OD31): استيراد lazy واحد + مسار سطح قارئ واحد كطابور مراجعة السوق (عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-navigation.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 65,
+        "band": "NORMAL"
+      },
+      "reason": "تسمية «مراجعة التوصيل» للمسار الجديد /delivery/review فوق مقعد الشريط نفسه — سطر تصنيف سياقي واحد.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-navigationContract.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 228,
+        "band": "NORMAL"
+      },
+      "reason": "بديل رجوع /delivery/review إلى بيت التوصيل (عقد 26 §2.2/§8) — سطر عقد واحد بتعليق سطره.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-index.css-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7367,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "صندوق إجابة محاولة الاتصال (OD15) وصندوق تحديث السعر المباشر (OD-09) ينضمان لمجموعة الصناديق المصممة القائمة (micro-contact-answer وmicro-vendor-price-edit) — اسمان في قائمة محدد قائمة واحدة.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-application-door-surfaces-baseline.json-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 520,
+        "band": "WATCH"
+      },
+      "reason": "توسيعان مقصودان موثقان ببابي التطبيق (PC-3): answerContactAttempt في باب التوصيل (OD15) وdirectUpdateListing في باب السوق (OD-09) — سطر تسجيل لكل رمز جديد.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-text_density_policy.py-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 967,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 980,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "إغلاق فجوات §17: أول قياس لسطح طابور مراجعة التوصيل (21) + رفع موثق بثلاثة أسطح وارثة لخريطة تسميات الاتصال الكاملة (DeliveryBookingDetail 80→84 وDriverBookingDetail 90→92 وDriverPortal 100→103) — أسطر سجل الأسقف بأسلافها المؤرخة.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-routeTemplate.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 60,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل قالب المسار الآمن /delivery/review (طابور مراجعة التوصيل للمراجع المخول — OD17/OD22/OD28–OD31) في جدول ROUTE_GROUPS المضغوط (سطر تعليق موثق + الذيل ,review داخل مجموعة delivery) — مسار حي بلا قالب كان يؤول إلى /unknown في أي سجل تشخيصي.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
     }
   ]
 }

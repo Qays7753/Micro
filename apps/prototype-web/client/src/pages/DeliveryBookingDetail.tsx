@@ -9,6 +9,7 @@ import { ArrowRight } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import {
+  answerContactAttempt,
   cancelDeliveryRequest,
   confirmDeliveryOutcome,
   decideDeliveryQuote,
@@ -18,7 +19,7 @@ import {
 } from "@/application/delivery";
 import { Button, EmptyState, Notice } from "@/components/primitives";
 import { formatLocalDateTime } from "@/presentation/formatters";
-import { deliveryEventLabel } from "@/presentation/deliveryLabels";
+import { CONTACT_STATUS_LABELS, deliveryEventLabel } from "@/presentation/deliveryLabels";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
@@ -192,6 +193,37 @@ export default function DeliveryBookingDetail() {
             <section>
               <h2>التنفيذ</h2>
               <p>{EXECUTION_LABELS[execution.execution] ?? execution.execution}</p>
+              {execution.contact === "attempt_no_answer" || execution.contact === "contact_reported" ? (
+                <div className="micro-contact-answer" data-testid="contact-answer">
+                  <p role="status">{CONTACT_STATUS_LABELS[execution.contact] ?? execution.contact}</p>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="commit"
+                      onClick={() =>
+                        void act(
+                          () => answerContactAttempt(request.id, "confirmed"),
+                          "سُجل تأكيدك التواصل مع السائق.",
+                        )
+                      }
+                    >
+                      تم التواصل فعلًا
+                    </Button>
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        void act(
+                          () => answerContactAttempt(request.id, "denied"),
+                          "سُجل نفيك التواصل — مسجل بوضوح ولا يلغي شيئًا تلقائيًا.",
+                        )
+                      }
+                    >
+                      لم يتم التواصل
+                    </Button>
+                  </div>
+                </div>
+              ) : execution.contact !== "not_attempted" ? (
+                <p role="status">{CONTACT_STATUS_LABELS[execution.contact] ?? execution.contact}</p>
+              ) : null}
               {execution.confirmation === "awaiting_requester_confirmation" ? (
                 <div className="micro-form-actions" data-testid="outcome-decision">
                   <Button
