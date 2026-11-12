@@ -72,7 +72,9 @@
     "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
     "apps/prototype-web/worker/tests/delivery.lifecycle.test.ts",
     "apps/prototype-web/worker/tests/delivery.execution.test.ts",
-    "apps/prototype-web/client/src/pages/Delivery.journeys.dom.test.tsx"
+    "apps/prototype-web/client/src/pages/Delivery.journeys.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/MarketDeliverySurfaces.dom.test.tsx",
+    "apps/prototype-web/client/src/presentation/deliveryLabels.ts"
   ],
   "dependencies": [
     "DOC-033"

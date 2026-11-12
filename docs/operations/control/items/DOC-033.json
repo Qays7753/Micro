@@ -73,7 +73,9 @@
     "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md",
     "apps/prototype-web/worker/tests/auth.session.test.ts",
     "apps/prototype-web/worker/tests/media.privacy.test.ts",
-    "apps/prototype-web/worker/tests/foundation.isolation.test.ts"
+    "apps/prototype-web/worker/tests/foundation.isolation.test.ts",
+    "apps/prototype-web/client/src/pages/MarketDeliverySurfaces.dom.test.tsx",
+    "apps/prototype-web/client/src/presentation/deliveryLabels.ts"
   ],
   "dependencies": [
     "DOC-032"
