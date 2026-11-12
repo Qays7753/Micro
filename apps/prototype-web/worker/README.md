@@ -53,13 +53,13 @@ environment, then after owner approval in production**. Record the backup
 snapshot before each remote apply (`wrangler d1 export` / Time Travel
 restore point).
 
-| File                         | Contents                                                              |
-| ---------------------------- | --------------------------------------------------------------------- |
-| `0001_init.sql`              | All 28 network tables, constraints, FKs, base indexes                 |
-| `0002_listing_revisions.sql` | Listing revision workflow rebuild (revision status, admin suspension) |
-| `0003_hot_path_indexes.sql`  | Hot-path indexes (listing media, driver ratings, owner statements)    |
+| File                                    | Contents                                                              |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| `0001_init.sql`                         | All 28 network tables, constraints, FKs, base indexes                 |
+| `0002_listing_revisions.sql`            | Listing revision workflow rebuild (revision status, admin suspension) |
+| `0003_hot_path_indexes.sql`             | Hot-path indexes (listing media, driver ratings, owner statements)    |
 | `0004_consent_and_reminder_anchors.sql` | Mutual-consent proposals (OD10) + the 24h confirmation stamp (§3.2-5) |
-| `0005_change_proposals.sql`  | Material-change proposals (OD11) + the agreement version column       |
+| `0005_change_proposals.sql`             | Material-change proposals (OD11) + the agreement version column       |
 
 ## Operational settings (admin actions, allowlisted)
 
