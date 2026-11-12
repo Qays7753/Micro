@@ -174,6 +174,10 @@
       "nbLoc": 12,
       "band": "NORMAL"
     },
+    "apps/prototype-web/client/src/application/delivery/deliveryService.ts": {
+      "nbLoc": 400,
+      "band": "WATCH"
+    },
     "apps/prototype-web/client/src/application/diagnostics/index.ts": {
       "nbLoc": 13,
       "band": "NORMAL"
@@ -1030,6 +1034,10 @@
       "nbLoc": 637,
       "band": "WATCH"
     },
+    "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx": {
+      "nbLoc": 596,
+      "band": "WATCH"
+    },
     "apps/prototype-web/client/src/pages/DeliveryReview.tsx": {
       "nbLoc": 558,
       "band": "WATCH"
@@ -1040,6 +1048,14 @@
     },
     "apps/prototype-web/client/src/pages/DraftEditor.tsx": {
       "nbLoc": 525,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx": {
+      "nbLoc": 731,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DriverPortal.tsx": {
+      "nbLoc": 439,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/EstimateDetail.tsx": {
@@ -1107,8 +1123,12 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/Market.tsx": {
-      "nbLoc": 197,
+      "nbLoc": 230,
       "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx": {
+      "nbLoc": 523,
+      "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/MaterialEditor.tsx": {
       "nbLoc": 491,
@@ -1514,6 +1534,18 @@
       "nbLoc": 487,
       "band": "WATCH"
     },
+    "apps/prototype-web/worker/api/deliveryExecution.ts": {
+      "nbLoc": 489,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/deliveryRequest.ts": {
+      "nbLoc": 424,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/marketListings.ts": {
+      "nbLoc": 585,
+      "band": "WATCH"
+    },
     "scripts/application-door-surfaces-baseline.json": {
       "nbLoc": 518,
       "band": "WATCH"
@@ -1735,7 +1767,7 @@
       "band": "WATCH"
     },
     "scripts/text_density_policy.py": {
-      "nbLoc": 967,
+      "nbLoc": 989,
       "band": "SPLIT_CANDIDATE"
     },
     "scripts/theme-contrast-guard.py": {
@@ -1989,26 +2021,6 @@
     "tools/micromatch-shim/lib/braces-free.js": {
       "nbLoc": 317,
       "band": "NORMAL"
-    },
-    "apps/prototype-web/worker/api/deliveryExecution.ts": {
-      "nbLoc": 487,
-      "band": "WATCH"
-    },
-    "apps/prototype-web/worker/api/deliveryRequest.ts": {
-      "nbLoc": 424,
-      "band": "WATCH"
-    },
-    "apps/prototype-web/worker/api/marketListings.ts": {
-      "nbLoc": 490,
-      "band": "WATCH"
-    },
-    "apps/prototype-web/client/src/pages/DriverPortal.tsx": {
-      "nbLoc": 439,
-      "band": "WATCH"
-    },
-    "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx": {
-      "nbLoc": 434,
-      "band": "WATCH"
     }
   }
 }

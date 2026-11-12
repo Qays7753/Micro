@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "197bfc226a1ed9454a09e7074fd2ae8e767e44c7",
+  "head": "54443f4edc3da94b377b5bf61eaa95794c462e0e",
   "pages": {
     "total": 72,
     "map": {
@@ -172,7 +172,8 @@
       "pages/DriverBookingDetail.tsx": {
         "kind": "direct",
         "evidence": [
-          "pages/Delivery.journeys.dom.test.tsx"
+          "pages/Delivery.journeys.dom.test.tsx",
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DriverPortal.tsx": {
