@@ -5,7 +5,8 @@
   "items": [
     "DOC-033",
     "DOC-034",
-    "DOC-035"
+    "DOC-035",
+    "DOC-036"
   ],
   "branch": "zai/micro-market-delivery-handoff-20261111",
   "base_sha": "1bf077d7eab8924a7a888c90d63396b9ccf51913",
@@ -96,8 +97,8 @@
   "agent": "ZAI — sole implementation writer per owner master prompt ce21b786; exactly five read-only reviewers in the Phase-6 integrated review, then focused tests and one full repository check on the final tree",
   "pr": null,
   "started_at": "2026-11-12",
-  "updated_at": "2026-11-12",
-  "next_action": "تنفيذ المراحل بالترتيب دون توقف بين الموجات العادية: (ب) المعمارية/العقود، (ج) الأساس المشترك، (د) Market، (هـ) Delivery، (و) المراجعة الخماسية والفحوص والتقرير النهائي — كل إنجاز بملتزم منفصل ودفع واحد نهائي للفرع؛ بلا مزود أو نشر أو PR أو دمج أو مساس main.",
+  "updated_at": "2026-11-13",
+  "next_action": "تنفيذ استكمال المالك المؤرخ 2026-11-12 (DOC-036): موافقة retry/hold/return والتعديل المؤثر والترقيم والتحديث المباشر والتذكيرات ومراجعة UX المرسومة، ثم الفحوص النهائية على SHA الدفع النهائي؛ لا PR ولا دمج ولا نشر.",
   "notes": [
     "Hard boundaries from the owner master prompt (ce21b786): additive changes only — no refactoring, file moves, new root package, or features/ layer (post-Group-6 structural gate); synthetic data only; no provider-account access, secrets, deployment, paid upgrade, PR, merge, or main changes.",
     "Preserve sentinels: localSchemaVersion=41, localExportVersion=34, 29 accepted import pairs, lint ceiling 37 (baseline 35), bundle budgets 650,000/155,300, current-state <=20,480 bytes. Measurement baselines may only be re-anchored deliberately with documented reason, never to hide a violation.",
@@ -122,6 +123,12 @@
       "changed_at": "2026-11-12",
       "actor": "zai-implementation-writer",
       "reason": "بدأ التنفيذ فورًا بالمرحلة التوثيقية المصرح بها (القرار المعماري EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد تنقل العقد 26 §8) ثم يتبعها الكود الإضافي للأساس المشترك ثم Market ثم Delivery والتزامات منفصلة لكل إنجاز."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-13",
+      "actor": "zai-continuation-2026-11-13",
+      "reason": "أُضيف بند الاستكمال DOC-036 بترخيص المالك المؤرخ 2026-11-12 (405d56e3/6488282f) تحت المطالبة النشطة نفسها؛ الفرع 6488282f نظيف ومطابق للأصل."
     }
   ],
   "migration_baseline": false
