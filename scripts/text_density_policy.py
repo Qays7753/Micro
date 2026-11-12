@@ -414,15 +414,24 @@ CAPS: dict[str, int] = {
     # WS-249): إجابة صاحب المشروع على محاولة الاتصال (OD15) — سطر حالة
     # كنوني من خريطة CONTACT_STATUS_LABELS الكاملة + زرا الإجابة الصريحة
     # بتأكيد/نفي التواصل (أمر المالك: أكمل الفجوات داخل النطاق).
-    "DeliveryBookingDetail": 84,
+    # -> 117 (استكمال المالك 2026-11-13، DOC-036/WS-249): أسطح موافقة
+    # retry/hold/return الصريحة (OD10) + تعليمات المشروع + اقتراح/قرار
+    # التعديل المؤثر بنسخة اتفاق مرقمة (OD11) — نص حالة صادق لكل انتظار؛
+    # لا حذف لأي نص قائم.
+    "DeliveryBookingDetail": 117,
     "DeliveryBookingEditor": 60,
     "DeliveryDrivers": 20,
     # DriverBookingDetail 90 -> 92 و DriverPortal 100 -> 103 (إغلاق فجوات
     # §17، 2026-11-12، مطالبة WS-249): استكمال خريطة تسميات محور الاتصال
     # في presentation/deliveryLabels.ts (أحداث تأكيد/نفي التواصل الكنونية
     # + خريطة حالات الاتصال) — تسميات كاملة بلا أكواد خام للطرفين.
-    "DriverBookingDetail": 92,
-    "DriverPortal": 103,
+    # -> 123 و -> 114 (استكمال المالك 2026-11-13، DOC-036/WS-249):
+    # DriverBookingDetail: نموذج اقتراح الموافقة بشروطه لكل نوع + سحب
+    # الاقتراح + اقتراح التعديل المؤثر وقراره من جهة السائق + إشعار انتظار
+    # تعليمات المشروع؛ DriverPortal: امتداد خريطة التسميات المشتركة بمحور
+    # الاتفاق (consent/change) — لا نص محذوف.
+    "DriverBookingDetail": 123,
+    "DriverPortal": 114,
     "MarketListingDetail": 20,
     "MarketListingEditor": 45,
     "MarketReview": 40,
