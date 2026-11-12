@@ -125,6 +125,12 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
    * يحرسان المدخلات ويعودان لمساحة المورد؛ القارئات أسطح. */
   "/market/vendor/new": "محرر إعلان السوق — عمق",
   "/market/vendor/:id": "تعديل إعلان السوق — عمق",
+  /* EX-D18 (عقد 26 §8): محرر الحجز عمق؛ بوابة السائق سياق مستقل عمق
+   * بالكامل (لا شريط سفلي ولا كروم مالك — OD01). */
+  "/delivery/booking/new": "محرر حجز التوصيل — عمق",
+  "/delivery/booking/:id": "تفاصيل الحجز — عمق السياق المالك",
+  "/driver": "بوابة السائق المستقلة — عمق (OD01)",
+  "/driver/booking/:id": "تفاصيل حجز السائق — عمق",
 };
 
 /** أسطح القراءة/التنقل — تبقي الشريط السفلي (قاعدة U-005: القارئ سطح). */
@@ -148,6 +154,7 @@ const SURFACE_ROUTES: readonly string[] = [
   "/market/listing/:id",
   "/market/review",
   "/delivery",
+  "/delivery/drivers",
   "/assets",
   "/loans",
   "/parties",

@@ -116,6 +116,8 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "market/marketService.ts",
   "market/marketEstimate.ts",
   "market/index.ts",
+  "delivery/deliveryService.ts",
+  "delivery/index.ts",
   "cash/index.ts",
   "cash/walletLedgerService.ts",
   "catalog/index.ts",

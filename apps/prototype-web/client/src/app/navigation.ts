@@ -54,6 +54,11 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/market/listing/")) return "تفاصيل المادة";
   if (pathname.startsWith("/market/review")) return "مراجعة السوق";
   if (pathname === "/market" || pathname.startsWith("/market")) return "السوق";
+  /* EX-D18 (عقد 26 §8): تسميات التوصيل وبوابة السائق المستقلة (OD01). */
+  if (pathname.startsWith("/delivery/booking/")) return "تفاصيل الحجز";
+  if (pathname.startsWith("/delivery/drivers")) return "سائقوني";
+  if (pathname.startsWith("/delivery")) return "التوصيل";
+  if (pathname.startsWith("/driver")) return "Micro — السائق";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

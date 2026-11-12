@@ -297,15 +297,23 @@ describe("UNIT-003/S16 — الرئيسية (HOME-A2) والشريط الخما�
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 
-  it("UNIT-043/SDF-060: التوصيل مقعد صادق — لا حجز ولا تسعير ولا تتبع ولا أثر مالي", async () => {
+  it("UNIT-043/SDF-060 + EX-D18: التوصيل مقعد صاحب المشروع الحقيقي — بلا أثر مالي", async () => {
     await seedProfile();
     render(<Harness page={<Delivery />} />);
-    expect(await screen.findByTestId("delivery-soon-page")).toBeTruthy();
-    const card = screen.getByTestId("delivery-soon-card");
-    expect(card.textContent).toContain("لا حجز نقل ولا تسعير ولا تتبع");
-    /* لا أفعال خدمة وهمية. */
-    expect(screen.queryByRole("button", { name: /احجز|اطلب سيارة|تتبع/ })).toBeNull();
-    expect(screen.getByRole("button", { name: "رجوع للرئيسية" })).toBeTruthy();
+    const page = await screen.findByTestId("delivery-owner-page");
+    /* EX-D18 (بوابة الكود 2026-11-12): تجربة صاحب المشروع الحقيقية — عرض
+     * لحجوزات الخادم فقط، ولا زر حجز وهمي ولا تسعير ولا تتبع ولا أي أثر
+     * مالي من التبويب نفسه (OD01/OD12). */
+    expect(page.textContent).toContain("التوصيل");
+    await waitFor(() => {
+      expect(screen.getAllByText(/تسجيل الدخول|جارٍ التحميل|لا حجوزات|تعذر/).length).toBeGreaterThan(0);
+    });
+    expect(screen.queryByTestId("delivery-soon-card")).toBeNull();
+    expect(screen.queryByRole("button", { name: /اطلب توصيلة الآن|تتبع/ })).toBeNull();
+    const orders = await store.listOrders();
+    const events = await store.listFinancialEvents();
+    expect(orders.ok && orders.value).toHaveLength(0);
+    expect(events.ok && events.value).toHaveLength(0);
   });
 
   it("NAV-01 §1: الشريط الخماسي الجديد بلا مقعد سادس — المالية، الطلبات، الرئيسية، التوصيل، السوق", () => {

@@ -53,7 +53,7 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (75 = 74 نمطًا + المسار الافتراضي)؛ المسارات ذات
+/* كل مسارات الموجّه المسجّلة (80 = 79 نمطًا + المسار الافتراضي)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
  * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
  * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
@@ -113,6 +113,11 @@ const ROUTES: readonly string[] = [
   "/market/listing/lst_smoke_sample",
   "/market/review",
   "/delivery",
+  "/delivery/booking/new",
+  "/delivery/booking/dlv_smoke_sample",
+  "/delivery/drivers",
+  "/driver",
+  "/driver/booking/dlv_smoke_sample",
   /* R10-B4/F-015: الأنماط العشرة الغائبة — بترتيب الموجّه نفسه. */
   /* الإحالة الموثقة EXE-009: المسار الموازي القديم لسحب المالك يعبر إلى المدخل الموحد. */
   "/finance/new/owner_withdrawal_cash",

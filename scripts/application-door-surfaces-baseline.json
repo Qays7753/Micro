@@ -466,6 +466,42 @@
         "PublicListingSummary",
         "VendorOverview"
       ]
+    },
+    "delivery": {
+      "value": [
+        "attachDriverEvidence",
+        "cancelDeliveryRequest",
+        "confirmDeliveryOutcome",
+        "confirmStatement",
+        "createDeliveryRequest",
+        "decideDeliveryQuote",
+        "driverAcceptRequest",
+        "driverDeclare",
+        "driverDeclineRequest",
+        "driverSubmitQuote",
+        "fetchBookingDetail",
+        "fetchDriverDirectory",
+        "fetchDriverPortal",
+        "fetchDriverRequests",
+        "fetchOwnerOverview",
+        "fetchOwnerStatements",
+        "rateDeliveryBooking",
+        "upsertDriverProfileDraft",
+        "upsertDriverVehicleDraft",
+        "setAcceptingNew",
+        "submitDeliveryRequest",
+        "submitDriverApplication",
+        "toggleSavedDriver",
+        "uploadDriverEvidence",
+        "uploadVehicleProof"
+      ],
+      "type": [
+        "BookingDetail",
+        "DriverDirectoryEntryDto",
+        "DriverPortalState",
+        "DriverRequestSummary",
+        "OwnerRequestSummary"
+      ]
     }
   },
   "rootFiles": [

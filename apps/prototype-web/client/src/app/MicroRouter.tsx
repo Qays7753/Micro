@@ -62,12 +62,16 @@ const Catalog = lazy(() => import("@/pages/Catalog"));
 const Tools = lazy(() => import("@/pages/Tools"));
 /* NAV-001: السوق — المقعد الخامس، إعلان «قريبًا» صادق بلا أي أثر مالي. */
 const Market = lazy(() => import("@/pages/Market"));
+const Delivery = lazy(() => import("@/pages/Delivery"));
+const DeliveryBookingEditor = lazy(() => import("@/pages/DeliveryBookingEditor"));
+const DeliveryBookingDetail = lazy(() => import("@/pages/DeliveryBookingDetail"));
+const DeliveryDrivers = lazy(() => import("@/pages/DeliveryDrivers"));
+const DriverPortal = lazy(() => import("@/pages/DriverPortal"));
+const DriverBookingDetail = lazy(() => import("@/pages/DriverBookingDetail"));
 const MarketListingDetail = lazy(() => import("@/pages/MarketListingDetail"));
 const MarketVendorWorkspace = lazy(() => import("@/pages/MarketVendorWorkspace"));
 const MarketListingEditor = lazy(() => import("@/pages/MarketListingEditor"));
 const MarketReview = lazy(() => import("@/pages/MarketReview"));
-/* UNIT-043 (S16): التوصيل — المقعد الرابع؛ إعلان صادق لا حجز ولا تسعير ولا تتبع. */
-const Delivery = lazy(() => import("@/pages/Delivery"));
 /* S10 (UNIT-031/032): حاسبة التخطيط T01 — أداة تفكير بلا أثر مالي ومحفوظاتها داخلها. */
 const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
 /* S10 (UNIT-032): الرابط القديم للتفصيل صار إحالة إلى الحاسبة — لا صفحة مستقلة. */
@@ -217,7 +221,14 @@ export function MicroRouter() {
             <Route path="/market/vendor/:id" component={MarketListingEditor} />
             <Route path="/market/listing/:id" component={MarketListingDetail} />
             <Route path="/market/review" component={MarketReview} />
+            {/* EX-D18 (عقد 26 §8): تجربة صاحب المشروع للتوصيل أسطح قارئة
+                ومحررها عمق؛ بوابة السائق /driver سياق مستقل تمامًا (OD01). */}
             <Route path="/delivery" component={Delivery} />
+            <Route path="/delivery/booking/new" component={DeliveryBookingEditor} />
+            <Route path="/delivery/booking/:id" component={DeliveryBookingDetail} />
+            <Route path="/delivery/drivers" component={DeliveryDrivers} />
+            <Route path="/driver" component={DriverPortal} />
+            <Route path="/driver/booking/:id" component={DriverBookingDetail} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
                 والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}
             <Route path="/tools/calculator" component={CostCalculator} />
