@@ -113,7 +113,14 @@ describe("Profile — owner identity and project profile", () => {
     expect(screen.getByText("ملف المشروع")).toBeTruthy();
     expect(screen.getByText("ليان")).toBeTruthy();
     expect(screen.getByText("محلي على هذا الجهاز")).toBeTruthy();
-    expect(screen.getByText(/تسجيل الدخول والمزامنة ستتوفر لاحقًا/)).toBeTruthy();
+    /* EX-D22 (Phase B): جسر الحساب المشترك حلّ محل الملاحظة المستقبلية —
+     * القسم الجديد صادق: مال المشروع محلي وغير مرتبط، والدخول من الأسطح
+     * المتصلة نفسها (لا زر دخول وهمي هنا). الجلسة غير موصولة في بيئة
+     * الاختبار فيظهر النص غير المسجل الصادق. */
+    /* بيئة الاختبار بلا شبكة: القسم يعرض حالة «تعذر التحقق» الصادقة مع
+     * طمأنة بيانات المشروع المحلية — نفس عقد الصدق في الحالتين. */
+    expect(screen.getByText(/تعذر التحقق من حسابك الآن/)).toBeTruthy();
+    expect(screen.getByText(/حساب Micro/)).toBeTruthy();
     expect(screen.getByText("مشغل ليان")).toBeTruthy();
     expect(screen.getByText("الدرج")).toBeTruthy();
     /* لا زر دخول وهمي ولا Google في أي مكان. */

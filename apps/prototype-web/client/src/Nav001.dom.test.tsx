@@ -204,10 +204,13 @@ describe("NAV-001 — approved five-seat navigation", () => {
    * على الأسطح العميقة (محرر السوق يعود لمساحة المورد عبر canonicalReturnFor
    * في navigationContract.test.ts) ولا تحتاج حالة سوق مستقلة بعد الآن. */
 
-  it("the top bar carries transport and assistant قريبًا entries with honest copy", () => {
-    /* Wave 4.3 — P-4.3-1: الترويسة تعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)
+  it("the top bar carries the transport seat and the real Ask Micro menu entry (EX-D21)", () => {
+    /* Wave 4.3 — P-4.3-1: الترويسة أعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)
      * — الإعدادات والوضع الليلي لم يعودا أزرارًا مباشرة هنا (D4/D5)؛
-     * تحديث الاختبار موثق مع تغير القرار المرئي المعتمد. */
+     * تحديث الاختبار موثق مع تغير القرار المرئي المعتمد.
+     * EX-D21 (Phase B — 2026-11-14): «اسأل Micro» صارت مدخلًا حقيقيًا إلى
+     * سطح /ask (لا لوحة إعلان «قريبًا» بعد الآن) — وبند واحد عند الطلب
+     * داخل قائمة «مايكرو» يحفظ مصدر رجوعه (DEC-SHELL-01 يبقى في موضعه). */
     render(
       <Harness
         page={
@@ -218,15 +221,13 @@ describe("NAV-001 — approved five-seat navigation", () => {
       />,
     );
     /* SH-21/S16 (NAV-001 V15 §1): مدخل النقل والتوصيل انتقل إلى مقعده في
-     * الشريط (/delivery) والبديل جاهز قبل الإزالة — وDEC-SHELL-01 (UXR-03 —
-     * أمر W02): «اسأل Micro — قريبًا» بند واحد عند الطلب داخل قائمة
-     * «مايكرو»، لا زرًا دائمًا في الترويسة. */
+     * الشريط (/delivery) ولا زر نقل في الترويسة. */
     expect(screen.queryByRole("button", { name: "النقل والتوصيل — قريبًا" })).toBeNull();
     fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
-    const assistant = screen.getByTestId("soon-panel");
-    expect(assistant.textContent).toContain("قارئًا فقط");
-    expect(assistant.textContent).toContain("لا تُرسل بيانات مشروعك إلى أي خدمة خارجية");
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro" }));
+    /* المدخل الحقيقي: تنقل إلى /ask مع رجوع محفوظ — لا حوار إعلان. */
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/^\/ask\?returnTo=/));
+    expect(screen.queryByTestId("soon-panel")).toBeNull();
     /* D4: لا زر وضع ليلي ولا زر إعدادات مباشر في المنطقة العلوية —
      * مدخل الوضع الليلي الوحيد «الإعدادات ← المظهر». */
     expect(screen.queryByRole("button", { name: /المظهر/ })).toBeNull();

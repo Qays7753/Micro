@@ -8,10 +8,19 @@
 
 import { apiFetch } from "./apiClient";
 
+/** عضوية Workspace كما يحسبها الخادم (EX-D19) — عرض فقط، لا فرض صلاحيات من العميل. */
+export interface NetworkWorkspace {
+  id: string;
+  displayName: string;
+  role: string;
+  capabilities: { market: boolean; delivery: boolean };
+}
+
 export interface NetworkSession {
   authenticated: boolean;
   identity?: { email: string; displayName: string };
   isAdmin?: boolean;
+  workspaces?: NetworkWorkspace[];
   vendor?: { status: string; supplierProfileId: string } | null;
   driver?: {
     status: string;

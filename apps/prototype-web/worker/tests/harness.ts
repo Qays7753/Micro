@@ -1,21 +1,27 @@
 /**
- * Worker test harness — real local Cloudflare emulation (workerd + D1 + R2)
- * via Miniflare. The worker bundle is built once per test run with esbuild;
- * migrations from worker/db/migrations are applied to the emulated D1 before
- * any test runs. Sign-in is exercised through the REAL OIDC redirect flow
- * with a synthetic Google service binding (no real IdP, no real credentials).
+ * Worker test harness — real workerd emulation (Miniflare) over the ONE
+ * PostgreSQL target (EX-D20). The `DB` binding carries the same
+ * Hyperdrive-style shape production uses (a connectionString); inside
+ * workerd the postgres.js `workerd` build connects over cloudflare:sockets —
+ * the exact production Hyperdrive code path.
+ *
+ * Each test FILE gets its own isolated database (created once per file,
+ * migrations applied in order); every startWorker() truncates it so each test
+ * starts from a clean schema, matching the previous per-instance D1 reset.
+ * The PostgreSQL server itself is provided by scripts/pg-test-server.mjs
+ * (vitest globalSetup — embedded PostgreSQL, or MICRO_TEST_PG_CONNECTION).
  */
+
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
-import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { readdirSync, readFileSync } from "node:fs";
+import postgres from "postgres";
+import { PgDb, sqlClient } from "../db/pg.ts";
+import type { Db } from "../db/db.ts";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-
-/** The worker source root (worker/). */
-export const workerRoot = path.resolve(here, "..");
-const migrationsDir = path.join(workerRoot, "db", "migrations");
+export const workerRoot = path.join(import.meta.dirname, "..");
+const migrationsDir = path.join(workerRoot, "db", "migrations-pg");
 
 let cachedScript: string | null = null;
 
@@ -27,6 +33,11 @@ async function workerScript(): Promise<string> {
     format: "esm",
     target: "es2022",
     platform: "neutral",
+    // postgres.js ships a dedicated workerd build (cloudflare:sockets) —
+    // select it, and keep node:/cloudflare: imports external for workerd
+    // (resolved natively under the nodejs_compat compatibility flag).
+    conditions: ["workerd"],
+    external: ["cloudflare:sockets", "node:*"],
     minify: false,
     write: false,
   });
@@ -51,15 +62,101 @@ export interface HarnessOptions {
   bindings?: Record<string, unknown>;
 }
 
-/** Start the emulated worker with D1/R2 and mocked ASSETS + GOOGLE bindings. */
+/* ── Per-file isolated database ─────────────────────────────────────────── */
+
+const fileTag = Math.random().toString(36).slice(2, 10);
+let fileDatabaseName: string | null = null;
+let fileDb: Db | null = null;
+let truncateStatement: string | null = null;
+
+function adminConnectionString(): string {
+  const value = process.env.MICRO_TEST_PG_CONNECTION;
+  if (!value) {
+    throw new Error(
+      "MICRO_TEST_PG_CONNECTION is not set — run tests through vitest (the pg-test-server.mjs globalSetup boots an embedded PostgreSQL) or point the variable at an existing server.",
+    );
+  }
+  return value;
+}
+
+function databaseUrl(name: string): string {
+  const admin = adminConnectionString();
+  const withoutDb = admin.replace(/\/[^/]*$/, "");
+  return `${withoutDb}/${name}`;
+}
+
+async function applyMigrations(db: Db): Promise<void> {
+  const files = readdirSync(migrationsDir)
+    .filter(name => name.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const sql = readFileSync(path.join(migrationsDir, file), "utf8");
+    const statements = sql
+      .split("\n")
+      .filter(line => !line.trimStart().startsWith("--"))
+      .join("\n")
+      .split(";")
+      .map(statement => statement.trim())
+      .filter(statement => statement.length > 0);
+    for (const statement of statements) {
+      await db.prepare(statement).run();
+    }
+  }
+}
+
+async function ensureFileDatabase(): Promise<Db> {
+  if (fileDb !== null && fileDatabaseName !== null) return fileDb;
+  const name = `micro_tf_${fileTag}`;
+  const admin = postgres(adminConnectionString(), { max: 1 });
+  const existing = await admin`select 1 as ok from pg_database where datname = ${name}`;
+  if (existing.length === 0) {
+    await admin`create database ${admin(name)}`;
+  }
+  await admin.end();
+  fileDatabaseName = name;
+  fileDb = new PgDb(sqlClient(databaseUrl(name)));
+  await applyMigrations(fileDb);
+  // One truncate statement for every public table (identity counters reset).
+  const tables = await fileDb
+    .prepare("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+    .all<{ tablename: string }>();
+  truncateStatement = `TRUNCATE TABLE ${tables.results.map(t => `"${t.tablename}"`).join(", ")} RESTART IDENTITY CASCADE`;
+  return fileDb;
+}
+
+async function resetFileDatabase(): Promise<void> {
+  const db = await ensureFileDatabase();
+  if (truncateStatement === null) throw new Error("truncate statement missing");
+  await db.prepare(truncateStatement).run();
+  // Test posture: the limiter MECHANICS are covered by a dedicated focused
+  // test; every other test signs in and browses freely (all requests share
+  // one emulated IP, so production defaults would trip mid-suite).
+  await db
+    .prepare(
+      "INSERT INTO network_settings (key, value_json, updated_at, updated_by) VALUES ('rate.limits', ?, 1, 'harness')",
+    )
+    .bind(
+      JSON.stringify({
+        submissionsPerDay: 1000,
+        imagesPerDay: 1000,
+        reportsPerDay: 1000,
+        guestReadsPerMinute: 100000,
+        authStartsPerMinute: 100000,
+      }),
+    )
+    .run();
+}
+
+/** Start the emulated worker with R2 and mocked ASSETS + GOOGLE bindings. */
 export async function startWorker(options: HarnessOptions = {}): Promise<WorkerInstance> {
+  await resetFileDatabase();
   const script = await workerScript();
   const googleMock: GoogleMock = { nextPayload: null };
   const mf = new Miniflare({
     modules: true,
     script,
     compatibilityDate: "2024-12-01",
-    d1Databases: ["DB"],
+    compatibilityFlags: ["nodejs_compat"],
     r2Buckets: ["MEDIA"],
     // Enables directly triggering the worker's `scheduled` export through
     // dispatchFetch("/cdn-cgi/handler/scheduled") — used by reminders tests.
@@ -67,6 +164,7 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
     bindings: {
       GOOGLE_CLIENT_ID: "test-client-id",
       GOOGLE_CLIENT_SECRET: "test-client-secret-value",
+      DB: { connectionString: databaseUrl(fileDatabaseName ?? "micro_base") },
       ...options.bindings,
     },
     serviceBindings: {
@@ -95,43 +193,7 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
       },
     },
   });
-  const db = await mf.getD1Database("DB");
-  const files = readdirSync(migrationsDir)
-    .filter(name => name.endsWith(".sql"))
-    .sort();
-  for (const file of files) {
-    // Split on statement-final semicolons and run via prepared statements
-    // (D1 `exec` is line-oriented; wrangler's file runner splits statements).
-    const sql = readFileSync(path.join(migrationsDir, file), "utf8");
-    const statements = sql
-      .split("\n")
-      .filter(line => !line.trimStart().startsWith("--"))
-      .join("\n")
-      .split(";")
-      .map(statement => statement.trim())
-      .filter(statement => statement.length > 0);
-    for (const statement of statements) {
-      await db.prepare(statement).run();
-    }
-  }
   const origin = "http://mf.local";
-  // Test posture: the limiter MECHANICS are covered by a dedicated focused
-  // test; every other test signs in and browses freely (all requests share
-  // one emulated IP, so production defaults would trip mid-suite).
-  await db
-    .prepare(
-      "INSERT INTO network_settings (key, value_json, updated_at, updated_by) VALUES ('rate.limits', ?, 1, 'harness')",
-    )
-    .bind(
-      JSON.stringify({
-        submissionsPerDay: 1000,
-        imagesPerDay: 1000,
-        reportsPerDay: 1000,
-        guestReadsPerMinute: 100000,
-        authStartsPerMinute: 100000,
-      }),
-    )
-    .run();
   return {
     mf,
     origin,
@@ -223,7 +285,9 @@ export async function apiGet(
   return worker.fetch(pathAndQuery, { headers: cookie ? { cookie } : {} });
 }
 
-/** Direct D1 access for seeding/inspecting state (bypasses the API). */
-export async function rawDb(worker: WorkerInstance) {
-  return worker.mf.getD1Database("DB");
+/** Direct database access for seeding/inspecting state (bypasses the API). */
+export async function rawDb(worker: WorkerInstance): Promise<Db> {
+  void worker;
+  const db = await ensureFileDatabase();
+  return db;
 }

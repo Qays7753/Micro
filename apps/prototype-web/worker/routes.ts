@@ -13,6 +13,7 @@ import { command } from "./commands.ts";
 import { errorResponse } from "./http.ts";
 import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
+import { askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 
 /** Resolve the session then run the handler with it (uniform auth guard). */
@@ -87,6 +88,11 @@ export function buildRouter(): ApiRouter {
       return putAdminSetting(ctx.env.DB, ctx, auth);
     }),
   );
+  // Ask Micro — universal permission-scoped boundary (EX-D21). The GET is a
+  // context/status read; the POST is a pure question (no state change — no
+  // idempotency command wrapper needed).
+  router.get("api/ask/status", async ctx => askStatus(ctx.env.DB, ctx));
+  router.post("api/ask", async ctx => askQuestion(ctx.env.DB, ctx));
   registerMarketRoutes(router);
   registerDeliveryRoutes(router);
   return router;

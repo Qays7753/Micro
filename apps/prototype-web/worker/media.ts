@@ -9,7 +9,7 @@
 import { randomObjectKeySegment } from "./crypto.ts";
 import { ALLOWED_MEDIA_TYPES, MAX_MEDIA_BYTES, type Env, type R2Bucket } from "./env.ts";
 import { HttpError } from "./http.ts";
-import { newId, type Db } from "./db/d1.ts";
+import { newId, type Db, type RuntimeEnv } from "./db/db.ts";
 
 export type MediaPurpose = "market_listing_media" | "driver_evidence" | "driver_vehicle_proof";
 
@@ -24,7 +24,7 @@ export interface MediaObjectRow {
   created_at: number;
 }
 
-function bucket(env: Env): R2Bucket {
+function bucket(env: RuntimeEnv<Env>): R2Bucket {
   if (!env.MEDIA) throw new HttpError(503, "network_not_configured", { binding: "MEDIA" });
   return env.MEDIA;
 }
@@ -37,7 +37,7 @@ function bucket(env: Env): R2Bucket {
  * harmless: keys are random and unreferenced objects are unreadable).
  */
 export async function storeMedia(
-  env: Env,
+  env: RuntimeEnv<Env>,
   db: Db,
   owner: { identityId: string; purpose: MediaPurpose },
   file: { bytes: ArrayBuffer; contentType: string },
@@ -104,7 +104,7 @@ export async function findMedia(db: Db, mediaId: string): Promise<MediaObjectRow
 
 /** Authorized read: returns the object body (caller enforces authorization). */
 export async function readMediaBody(
-  env: Env,
+  env: RuntimeEnv<Env>,
   media: MediaObjectRow,
 ): Promise<{ body: ReadableStream; contentType: string } | null> {
   const object = await bucket(env).get(media.r2_key);
@@ -116,7 +116,7 @@ export async function readMediaBody(
  * The D1 row goes FIRST: if a referencing row still blocks the delete, the
  * bytes stay intact (recoverable) instead of an orphaned metadata row whose
  * bytes are gone. */
-export async function deleteMedia(env: Env, db: Db, media: MediaObjectRow): Promise<void> {
+export async function deleteMedia(env: RuntimeEnv<Env>, db: Db, media: MediaObjectRow): Promise<void> {
   await db.prepare("DELETE FROM media_object WHERE id = ?").bind(media.id).run();
   await bucket(env).delete(media.r2_key);
 }

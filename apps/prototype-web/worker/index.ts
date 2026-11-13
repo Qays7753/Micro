@@ -14,6 +14,7 @@ import { errorResponse, jsonResponse } from "./http.ts";
 import { processDueReminders } from "./api/reminders.ts";
 import type { RouteContext } from "./router.ts";
 import { buildRouter } from "./routes.ts";
+import { endDb, withDbEnv } from "./db/db.ts";
 
 /** Mirror of `client/public/_headers` (advanced mode bypasses the file). */
 const CSP =
@@ -61,13 +62,20 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
       if (!env.DB || !env.MEDIA) return errorResponse("network_not_configured", 503);
-      const ctx: RouteContext = { request, url, params: {}, env };
+      const ctx: RouteContext = { request, url, params: {}, env: withDbEnv(env) };
       try {
         assertSameOrigin(request, url);
       } catch (error) {
+        await endDb(ctx.env.DB);
         return errorResponse("forbidden", 403, (error as { details?: unknown }).details);
       }
-      return router.dispatch(ctx);
+      try {
+        return await router.dispatch(ctx);
+      } finally {
+        // Request-scoped PostgreSQL client: close its socket before the
+        // request context ends (workerd forbids cross-request I/O reuse).
+        await endDb(ctx.env.DB);
+      }
     }
     if (url.pathname === "/api") return jsonResponse({ api: "micro-network/1" });
     return serveStatic(request, url, env);
@@ -80,7 +88,12 @@ export default {
    * transitions product state (no auto-close ever). */
   async scheduled(_controller: unknown, env: Env, _ctx: unknown): Promise<void> {
     if (!env.DB) return;
-    await processDueReminders(env.DB, Date.now());
+    const db = withDbEnv(env).DB;
+    try {
+      await processDueReminders(db, Date.now());
+    } finally {
+      await endDb(db);
+    }
   },
 } satisfies {
   fetch(request: Request, env: Env): Promise<Response>;

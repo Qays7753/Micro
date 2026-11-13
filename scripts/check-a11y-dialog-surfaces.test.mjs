@@ -56,10 +56,13 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
      * في Finance.tsx (dialog غير مودال بنمط لوحات الرئيسية: focus-in +
      * Escape/إلغاء/خلفية + استعادة التركيز لمشغّله) — السجل صار 8 أسطح
      * (7 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
-    expect(stdout).toMatch(/8 سطحًا حواريًا مصنفًا/);
+    /* EX-D21 (Phase B 2026-11-14): لوحة «قريبًا» في AppHeader أُزيلت مع تحول
+     * «اسأل Micro» إلى مدخل حقيقي إلى /ask — السجل صار 7 أسطح (6 ملفات
+     * بتصريح حي)؛ إزالة موثقة نفس-الـPR. */
+    expect(stdout).toMatch(/7 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(8);
+    expect(stats.classified).toBe(7);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {
@@ -94,7 +97,11 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
 
   it("rejects role drift against the registry (intended change updates the registry in-PR)", () => {
     const dir = tempRepo();
-    const target = CLASSIFIED_DIALOG_SURFACES.find(s => s.role === "dialog" && s.file.includes("AppHeader"));
+    /* EX-D21 (Phase B): بند AppHeader غادر السجل مع إزالة لوحة «قريبًا» —
+     * هدف اختبار انجراف الدور ينتقل لسطح حوار حي قائم (لوحة وظائف المالية). */
+    const target = CLASSIFIED_DIALOG_SURFACES.find(
+      s => s.role === "dialog" && s.file.includes("FinanceFunctionsBoard"),
+    );
     writeClientFile(
       dir,
       target.file,

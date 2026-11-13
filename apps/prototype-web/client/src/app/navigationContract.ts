@@ -213,6 +213,9 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
    * (رابط خارجي) — داخل البوابة كل رجوع يعود لأصلها /driver. */
   "/driver": "/",
   "/driver/booking/:id": "/driver",
+  /* EX-D21 (Phase B): Ask Micro تعود لأصل سياقها عبر ?returnTo القياسي؛
+   * بديل البدء البارد بلا سياق هو الرئيسية. */
+  "/ask": "/",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */
@@ -236,6 +239,7 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/market/listing/")) return "/market";
   if (pathname.startsWith("/delivery/")) return "/delivery";
   if (pathname.startsWith("/driver")) return "/driver";
+  if (pathname.startsWith("/ask")) return "/";
   if (pathname.startsWith("/tools")) return "/tools";
   if (pathname === "/profile") return "/";
   return "/";

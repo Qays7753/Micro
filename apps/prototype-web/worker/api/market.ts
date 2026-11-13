@@ -8,7 +8,7 @@
 import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import { enforceGuestReadLimit } from "../ratelimit.ts";
 import {
   conformsToQuantityRules,
@@ -20,7 +20,7 @@ import {
 import { LISTING_FRESHNESS_HIDE_MS, LISTING_FRESHNESS_REMINDER_MS } from "../env.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
-import { vendorStatus } from "../authorization.ts";
+import { ensurePersonalWorkspace, vendorStatus } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 function db(ctx: RouteContext): Db {
@@ -137,8 +137,8 @@ export async function browseListings(ctx: RouteContext): Promise<Response> {
         "WHERE l.status = 'approved_for_publish' AND p.status = 'approved' " +
         "AND l.published_at IS NOT NULL " +
         "AND l.availability_confirmed_at > ? " +
-        "AND (? IS NULL OR l.category = ?) AND (? IS NULL OR l.governorate = ?) " +
-        "AND (? = '' OR l.title LIKE ? OR l.description LIKE ? OR l.category LIKE ?) " +
+        "AND (?::text IS NULL OR l.category = ?) AND (?::text IS NULL OR l.governorate = ?) " +
+        "AND (?::text = '' OR l.title ILIKE ? OR l.description ILIKE ? OR l.category ILIKE ?) " +
         (availableOnly ? "AND l.availability_status = 'available' " : "") +
         (cursor === null ? "" : "AND (l.published_at < ? OR (l.published_at = ? AND l.id < ?)) ") +
         "ORDER BY l.published_at DESC, l.id DESC LIMIT ?",
@@ -302,6 +302,10 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
+  const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, nowMs(), randomToken);
+  if (!workspace.marketEnabled) {
+    throw new HttpError(403, "workspace_capability_disabled", { reason: "module_market_disabled" });
+  }
   if (existing) {
     await db(ctx)
       .prepare("UPDATE supplier_profile SET work_copy_json = ?, updated_at = ? WHERE id = ?")
@@ -312,9 +316,9 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
   const id = newId("sp", randomToken);
   await db(ctx)
     .prepare(
-      "INSERT INTO supplier_profile (id, identity_id, work_copy_json, status, created_at, updated_at) VALUES (?, ?, ?, 'draft', ?, ?)",
+      "INSERT INTO supplier_profile (id, identity_id, workspace_id, work_copy_json, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'draft', ?, ?)",
     )
-    .bind(id, auth.identityId, workCopy, now, now)
+    .bind(id, auth.identityId, workspace.workspaceId, workCopy, now, now)
     .run();
   await audit(
     db(ctx),

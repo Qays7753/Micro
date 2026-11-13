@@ -1,12 +1,16 @@
 /**
  * ملف المالك والمشروع (المجموعة ١ — Scope G): هوية مالك محلية + معلومات المشروع.
  * سطح قراءة بسيط يُفتح من الترويسة/الإعدادات بلا مقعد سادس، والرجوع يحفظ المصدر.
- * لا OAuth ولا مزامنة ولا زر «تسجيل دخول» وهمي — ملاحظة مستقبلية هادئة فقط.
+ * EX-D22 (Phase B — 2026-11-14): جسر الحساب المشترك — يعرض حالة حساب Micro
+ * المتصل (قراءة فقط) مع الصدق الكامل: مال Manage محلي على هذا الجهاز وغير
+ * مرتبط بالحساب بعد؛ الربط الفعلي بروتوكول مستقبلي مستقل (بوابة Migration)،
+ * ولا مزامنة ولا زر دخول وهمي هنا — الدخول من الأسطح المتصلة نفسها.
  */
 import { ArrowRight, CircleUserRound, Landmark, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useNetworkSession } from "@/app/useNetworkSession";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { resolveReturnPath, withReturnTo } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -36,6 +40,8 @@ export default function Profile() {
   const returnPath = useReturnPath();
   const { ownerProfile, profiles, cashContinuity, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
+  /* EX-D22: قراءة حالة الحساب المشترك (لا كتابة ولا ربط بيانات محلية). */
+  const { session, loading: sessionLoading, failed: sessionFailed } = useNetworkSession();
   const [state, setState] = useState<ProfileState>({ phase: "loading" });
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -226,9 +232,51 @@ export default function Profile() {
             </div>
           </dl>
         )}
-        <p className="micro-profile-future-note">
-          تسجيل الدخول والمزامنة ستتوفر لاحقًا — ليست مفعّلة في هذا الإصدار.
-        </p>
+        {/* EX-D22 — جسر الحساب المشترك (قراءة فقط): حالة حساب Micro المتصل
+            وحدوده الصادقة؛ لا ربط بيانات ولا مزامنة ولا وعد مبكر. */}
+        <section className="micro-profile-account" aria-label="حساب Micro" data-testid="micro-account-bridge">
+          <h2>حساب Micro</h2>
+          {sessionLoading ? (
+            <p role="status">جارٍ التحقق من حسابك…</p>
+          ) : sessionFailed ? (
+            <p role="status">تعذر التحقق من حسابك الآن — بيانات مشروعك المحلية سليمة.</p>
+          ) : session.authenticated && session.identity ? (
+            <>
+              <dl>
+                <div>
+                  <dt>الحساب المتصل</dt>
+                  <dd>
+                    <bdi dir="ltr">{session.identity.email}</bdi>
+                  </dd>
+                </div>
+                <div>
+                  <dt>حدود الربط</dt>
+                  <dd>مال مشروعك محلي على هذا الجهاز — غير مرتبط بهذا الحساب بعد</dd>
+                </div>
+              </dl>
+              {session.workspaces && session.workspaces.length > 0 ? (
+                <p className="micro-profile-workspaces">
+                  مساحات عملك المتصلة: {session.workspaces.map(w => w.displayName).join("، ")}
+                </p>
+              ) : null}
+              <p className="micro-profile-future-note">
+                ربط مال المشروع بهذا الحساب يحتاج ترحيلًا مستقليًا موثقًا في مرحلة لاحقة — لن يحدث تلقائيًا
+                أبدًا.
+              </p>
+            </>
+          ) : (
+            <>
+              <p>
+                لديك حساب Micro واحد لكل المنتجات (السوق، التوصيل، بوابة السائق، اسأل Micro) — والدخول من تلك
+                الأسطح نفسها.
+              </p>
+              <p className="micro-profile-future-note">
+                مشروعك المالي هنا يعمل كاملًا بلا حساب — وسيظل محليًا على هذا الجهاز حتى ترحيل مستقل موثق
+                لاحقًا.
+              </p>
+            </>
+          )}
+        </section>
         {/* S03: التعديل هنا لهوية المالك وحدها — الاسم اختياري بلا غرض مصادقة. */}
         {message ? (
           <p

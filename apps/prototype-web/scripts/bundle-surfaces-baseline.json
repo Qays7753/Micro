@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "197bfc22",
-        "date": "2026-11-12",
-        "method": "إغلاق فجوات §17 (2026-11-12، مطالبة WS-249 الحية، فوق رأس الكود 197bfc22): طابور مراجعة التوصيل للمراجع المخول (صفحة lazy جديدة + زر دخول إداري في بيت التوصيل — OD17/OD22/OD28–OD31)، إجابة صاحب المشروع على محاولة الاتصال داخل تفاصيل الحجز (OD15) مع خريطة تسميات اتصال كاملة في presentation/deliveryLabels، والتحديث الرقمي المباشر للسعر في مساحة المورد (OD-09) بتعبئة السعر الحالي المراجَع. القياس فوق الشجرة النهائية للإغلاق: lazy 1,562,020/475,316 → 1,573,076/478,891؛ precache 3,011,440 → 3,022,843؛ initial companions 224,186/70,556 بلا تغيير؛ swRuntime 28,616 → 28,677؛ العدادات 144/2/96/199 → 145/2/97/200. السقوف الملكية (650,000/155,300) لم تُمس — budget PASS. بيئتا السحابة تُعيدان التعليق في هذا الالتزام نفسه بقياس محاكاة مطابق (أسفل)."
+        "head": "98d1ad23",
+        "date": "2026-11-14",
+        "method": "Phase B (DOC-037، أمر المالك المنقح 0d4ae258): أساس PostgreSQL/القشرة المشتركة — صفحة /ask لمدخل Ask Micro الشامل (EX-D21) ومزوّد الجلسة القشرية NetworkSessionProvider (EX-D19) وقسم جسر الحساب في الملف الشخصي (EX-D22) ومدخل بوابة السائق في القائمة. القياس فوق شجرة العمل المرشحة للالتزام التالي فوق 98d1ad23: lazy 1,595,664/484,195 → 1,599,510/485,583؛ precache 3,045,442 → 3,050,485؛ swRuntime 28,677 → 28,664 (تحسّن يُقفل)؛ dynamicRoots 97 → 99 (+/ask و+شريحة سياق)؛ العدادات الأخرى كما هي. السقوف الملكية (650,000/155,300) لم تُمس — entry 603,704/147,306 وbudget PASS. بيئتا السحابة تُعيدان التسوية بعد الدفع من تشغيل CI الفعلي وفق البروتوكول الموثق (identity-hash)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -32,15 +32,15 @@
       "measurements": {
         "initialRawTotal": 224186,
         "initialGzipNormTotal": 70556,
-        "lazyRawTotal": 1595664,
-        "lazyGzipNormTotal": 484195,
-        "precacheBytesTotal": 3045442,
-        "swRuntimeRawTotal": 28677
+        "lazyRawTotal": 1599510,
+        "lazyGzipNormTotal": 485583,
+        "precacheBytesTotal": 3050485,
+        "swRuntimeRawTotal": 28664
       },
       "counts": {
         "lazyJsCount": 145,
         "initialJsCount": 2,
-        "dynamicRootsCount": 97,
+        "dynamicRootsCount": 99,
         "precacheEntryCount": 200,
         "swRuntimeFileCount": 2
       }

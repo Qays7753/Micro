@@ -3,9 +3,15 @@
  * Micro. هذا الباب هو الواجهة القانونية لكل استهلاك الشبكة من الواجهة
  * (صفحات السوق/التوصيل/بوابة السائق)؛ توسيع سطحه تعديل مقصود بنفس الـPR
  * (PC-3). لا يكتب هذا البيت في أي تخزين محلي — Manage محلي أولًا محفوظ.
+ *
+ * توسيع مقصود مؤرخ (EX-D21 — Phase B 2026-11-14): خدمة Ask Micro
+ * (قراءة حد الحالة/السياق وإرسال سؤال) — نفس باب API نفس الأصل، بلا
+ * أي كتابة محلية، وبالحدود الخادمية نفسها لكل الأدوار بما فيه السائق.
  */
 
 export { ApiError, apiFetch, apiUpload, apiDownload, newIdempotencyKey } from "./apiClient";
 export type { ApiCallOptions, ApiErrorShape } from "./apiClient";
 export { fetchSession, signOut, startGoogleSignIn } from "./sessionService";
-export type { NetworkSession } from "./sessionService";
+export type { NetworkSession, NetworkWorkspace } from "./sessionService";
+export { fetchAskStatus, askQuestion } from "./askMicroService";
+export type { AskStatus, AskStatusContext, AskAnswer } from "./askMicroService";

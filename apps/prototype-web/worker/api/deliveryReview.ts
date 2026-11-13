@@ -7,7 +7,7 @@
 
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 import { advanceMoneyAxisForItems } from "./deliveryShared.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";

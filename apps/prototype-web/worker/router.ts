@@ -6,11 +6,12 @@
 
 import { HttpError, errorResponse, type ApiResult } from "./http.ts";
 
+/** Route context: the `DB` binding already resolved into a `Db` (EX-D20). */
 export interface RouteContext {
   request: Request;
   url: URL;
   params: Record<string, string>;
-  env: import("./env.ts").Env;
+  env: import("./db/db.ts").RuntimeEnv<import("./env.ts").Env>;
 }
 
 export type RouteHandler = (ctx: RouteContext) => Response | Promise<Response>;

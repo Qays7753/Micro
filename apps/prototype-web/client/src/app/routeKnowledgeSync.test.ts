@@ -70,6 +70,9 @@ function routeExists(path: string, patterns: readonly string[]): boolean {
  * عمق واعٍ يجب أن يرافقه تعديل المصنّف في الالتزام نفسه.
  */
 const EDITOR_ROUTES: Readonly<Record<string, string>> = {
+  /* EX-D21 (Phase B): Ask Micro عمق موحد في السياقين — مساحة مساعدة مركزة
+   * بلا شريط سفلي، تُفتح بعنصر عند الطلب وتعود لأصلها (عقد 26 §9). */
+  "/ask": "اسأل Micro — عمق موحد للسياقين (EX-D21)",
   "/direct-sales/new": "بيع مباشر جديد — محرر فعل واحد",
   "/direct-sales/:id": "تعديل/تصحيح بيع مباشر — محرر",
   "/orders/new": "طلب جديد — محرر مسودة كامل",

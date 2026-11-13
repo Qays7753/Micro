@@ -6,7 +6,7 @@
 
 import { notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 import type { RouteContext } from "../router.ts";
 import { HttpError } from "../http.ts";
 import { driverStatus } from "../authorization.ts";

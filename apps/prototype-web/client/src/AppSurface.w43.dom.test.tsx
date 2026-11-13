@@ -136,7 +136,7 @@ describe("Wave 4.3 — P-4.3-1: open top area and logo menu", () => {
      * الطلب داخل القائمة (يُثبته فحص القائمة في حالة أخرى). */
     expect(labels).toEqual(["قائمة Micro"]);
     fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
-    const menuItem = await screen.findByRole("menuitem", { name: "اسأل Micro — قريبًا" });
+    const menuItem = await screen.findByRole("menuitem", { name: "اسأل Micro" });
     expect(menuItem).toBeTruthy();
   });
 });

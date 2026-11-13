@@ -116,7 +116,19 @@ describe("foundation: private media authorization", () => {
     const now = Date.now();
     await db
       .prepare(
-        "INSERT INTO supplier_profile (id, identity_id, work_copy_json, status, created_at, updated_at) VALUES ('sp_test1', ?, '{}', 'approved', ?, ?)",
+        "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES ('ws_test1', 'test', ?, 1, 1, ?, ?)",
+      )
+      .bind(identityRow!.id, now, now)
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_at) VALUES ('ws_test1', ?, 'owner', 'active', ?)",
+      )
+      .bind(identityRow!.id, now)
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO supplier_profile (id, identity_id, workspace_id, work_copy_json, status, created_at, updated_at) VALUES ('sp_test1', ?, 'ws_test1', '{}', 'approved', ?, ?)",
       )
       .bind(identityRow!.id, now, now)
       .run();

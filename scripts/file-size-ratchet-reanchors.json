@@ -10110,6 +10110,253 @@
         "trigger": "استكمال DOC-036: توسيع باب التوصيل الموثق",
         "ocRef": "DOC-036"
       }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-01",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/App.tsx",
+      "from": {
+        "nbLoc": 23,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 28,
+        "band": "NORMAL"
+      },
+      "reason": "تركيب مزوّد الجلسة القشرية NetworkSessionProvider (جلب واحد مشترك للحساب) حول الموجّه",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-02",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل مسار /ask لمدخل Ask Micro الشامل مع تحميله الكسول",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-03",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/StartupGate.tsx",
+      "from": {
+        "nbLoc": 96,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 109,
+        "band": "NORMAL"
+      },
+      "reason": "إعفاء مسارات الطبقة المتصلة (السوق/التوصيل/بوابة السائق/Ask Micro) من فرض إعداد Manage المحلي — الضيف والسائق أولاً",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-04",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "reason": "تسمية كنونية لمسار /ask (اسأل Micro)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-05",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 232,
+        "band": "NORMAL"
+      },
+      "reason": "بديل رجوع قانوني لمسار /ask مع قاعدة البادئة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-06",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 100,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 103,
+        "band": "NORMAL"
+      },
+      "reason": "تصنيف /ask عمقًا موحدًا للسياقين (مالك/سائق) بلا شريط سفلي",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-07",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "reason": "مدخل Ask Micro داخل ترويسة بوابة السائق المستقلة + تمرير حالة دور السائق للترويسة (بند بوابة صريح لحاملي الدور)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-08",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "reason": "قسم جسر الحساب المشترك (EX-D22): حالة حساب Micro المتصل بقراءة صادقة مع حدود الربط — بلا أي كتابة أو ربط بيانات محلية",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-09",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 430,
+        "band": "WATCH"
+      },
+      "reason": "حلّ سؤال Workspace عند إنشاء الحجز (ضمان مساحة العمل + فحص قدرة التوصيل فاشلًا مغلقًا)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-10",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 535,
+        "band": "WATCH"
+      },
+      "reason": "إعادة إرساء سطح باب الشبكة بخدمة Ask Micro ونوع Workspace (DOC-037) مع ملاحظة مؤرخة — بيانات حرس مقصودة داخل الراتشة لأن ملف هذا الحارس ليس من ملفات الإعفاء",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): توسيع باب الشبكة الموثق لخدمة Ask Micro وWorkspaces",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-11",
+      "date": "2026-11-14",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل network/askMicroService.ts في سجل الفحوص القرائية (DOC-037) — بيانات حرس مقصودة داخل الراتشة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): تسجيل خدمة Ask Micro في حارس القراءة/الكتابة",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-12",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 388,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 394,
+        "band": "NORMAL"
+      },
+      "reason": "إعادة إرساء أسطح الحزم المحلية لأساس Phase B (صفحة /ask + مزوّد الجلسة القشرية + جسر الحساب — DOC-037) بقياس موثق؛ بيئتا السحابة تُسوّيان بعد الدفع من تشغيل CI وفق البروتوكول",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «نفّذ الحساب المشترك… واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق»",
+        "trigger": "Phase B (DOC-037): أسطح حزم أساس القشرة المشتركة/Ask Micro",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-13",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "تسجيل صفحة AskMicro الجديدة في PAGES/CAPS (DOC-037) بقياس موثق 13 وسقف 16 — بيانات حرس مقصودة داخل الراتشة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): تسجيل كثافة نص صفحة Ask Micro",
+        "ocRef": "DOC-037"
+      }
     }
   ]
 }

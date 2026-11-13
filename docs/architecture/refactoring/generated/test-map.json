@@ -1,13 +1,19 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "54443f4edc3da94b377b5bf61eaa95794c462e0e",
+  "head": "98d1ad23eec42deba95822f594561062e89f5957",
   "pages": {
-    "total": 72,
+    "total": 73,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
         "evidence": [
           "AgreementEditor.dom.test.tsx"
+        ]
+      },
+      "pages/AskMicro.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/AskMicro.dom.test.tsx"
         ]
       },
       "pages/AssetDetail.tsx": {

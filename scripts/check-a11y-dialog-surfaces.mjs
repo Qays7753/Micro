@@ -34,7 +34,10 @@ const TEST_PAT =
 const SOURCE_EXT = new Set([".ts", ".tsx"]);
 
 /** السجل المصنف — كل سطح حواري معلن في كود الإنتاج يجب أن يكون هنا. */
-export const CLASSIFIED_DIALOG_SURFACES = [
+export /* EX-D21 (Phase B — 2026-11-14): أُزيل بند AppHeader.tsx من السجل — لوحة
+ * «قريبًا» أُزيلت مع تحول «اسأل Micro» إلى مدخل حقيقي إلى /ask؛ لا حوار
+ * في AppHeader بعد الآن (السجل للأسطح المعلنة فقط — قاعدة الحارس نفسها). */
+const CLASSIFIED_DIALOG_SURFACES = [
   /* S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
    * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
    * مع مكوّناتها — لا غطاء قفل ولا بوابة رمز بعد اليوم؛ إزالتها من السجل
@@ -59,13 +62,6 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     model: "TRUE_MODAL",
     focusContract:
       "conformant UNIT-001 — veil + focus-in + Tab-cycle trap + Escape + back-sentinel + restore to trigger",
-  },
-  {
-    file: "components/layout/AppHeader.tsx",
-    role: "dialog",
-    ariaModal: false,
-    model: "NON_MODAL",
-    focusContract: "none by design — لا فخ تركيز للألواح غير المودالة (OD-A11Y)",
   },
   {
     /* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): لوحة «وظائف المالية» —

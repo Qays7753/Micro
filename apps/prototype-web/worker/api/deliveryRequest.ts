@@ -6,7 +6,7 @@
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import {
   parseMinorAmount,
   transitionContact,
@@ -18,6 +18,7 @@ import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { buildAgreementCopy, loadRequest, notifyDriver, recordEvent } from "./deliveryShared.ts";
+import { ensurePersonalWorkspace } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 function db(ctx: RouteContext): Db {
@@ -72,14 +73,19 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
         : "product";
   const id = newId("dlv", randomToken);
   const now = nowMs();
+  const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, now, randomToken);
+  if (!workspace.deliveryEnabled) {
+    throw new HttpError(403, "workspace_capability_disabled", { reason: "module_delivery_disabled" });
+  }
   await db(ctx)
     .prepare(
-      "INSERT INTO delivery_request (id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, " +
-        "collection_content, pricing_mode, offered_fare_minor, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)",
+      "INSERT INTO delivery_request (id, requester_identity_id, workspace_id, driver_profile_id, need_type, payload_json, collection_minor, " +
+        "collection_content, pricing_mode, offered_fare_minor, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)",
     )
     .bind(
       id,
       auth.identityId,
+      workspace.workspaceId,
       driverProfileId,
       needType,
       JSON.stringify(payload),
@@ -251,8 +257,8 @@ async function confirmBooking(ctx: RouteContext, row: Record<string, unknown>, n
     .run();
   await db(ctx)
     .prepare(
-      "INSERT OR IGNORE INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
-        "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ? IS NULL THEN 'none' ELSE 'agreed' END, ?)",
+      "INSERT INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
+        "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ?::text IS NULL THEN 'none' ELSE 'agreed' END, ?) ON CONFLICT DO NOTHING",
     )
     .bind(String(row.id), row.collection_minor, now)
     .run();

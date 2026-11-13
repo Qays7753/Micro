@@ -4,7 +4,8 @@
   "notes": [
     "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
     "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
-    "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم."
+    "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم.",
+    "EX-D21/EX-D19 (DOC-037، Phase B — 2026-11-14): توسيع مقصود لباب الشبكة — خدمة Ask Micro (fetchAskStatus/askQuestion وأنواعها) + نوع NetworkWorkspace لعضويات مساحات العمل؛ نفس باب API نفس الأصل بلا أي كتابة محلية؛ موثق في رأس index.ts نفسه (PC-3)."
   ],
   "doors": {
     "activity": {
@@ -431,12 +432,18 @@
         "newIdempotencyKey",
         "fetchSession",
         "signOut",
-        "startGoogleSignIn"
+        "startGoogleSignIn",
+        "fetchAskStatus",
+        "askQuestion"
       ],
       "type": [
         "ApiCallOptions",
         "ApiErrorShape",
-        "NetworkSession"
+        "NetworkSession",
+        "NetworkWorkspace",
+        "AskStatus",
+        "AskStatusContext",
+        "AskAnswer"
       ]
     },
     "market": {

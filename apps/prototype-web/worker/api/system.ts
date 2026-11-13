@@ -5,7 +5,7 @@
 
 import { audit, listNotifications, notify, isNotificationType } from "../audit.ts";
 import { nowMs } from "../clock.ts";
-import { putSetting, type Db } from "../db/d1.ts";
+import { putSetting, type Db } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";

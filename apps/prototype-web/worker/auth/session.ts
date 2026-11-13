@@ -7,7 +7,7 @@
 
 import { randomToken, sha256Hex } from "../crypto.ts";
 import { SESSION_TTL_MS } from "../env.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 
 export interface SessionIdentityRow {
   session_id: string;

@@ -12,7 +12,7 @@
 import { decodeBase64Url, randomToken, sha256Hex } from "../crypto.ts";
 import { GOOGLE_AUTH_ENDPOINT, GOOGLE_ISSUERS, GOOGLE_TOKEN_ENDPOINT, OAUTH_FLOW_TTL_MS } from "../env.ts";
 import { HttpError } from "../http.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 
 export interface OAuthFlowRecord {
   state_hash: string;

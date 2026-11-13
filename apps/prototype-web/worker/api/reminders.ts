@@ -22,7 +22,7 @@ import {
   LISTING_FRESHNESS_HIDE_MS,
   LISTING_FRESHNESS_REMINDER_MS,
 } from "../env.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import type { RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";

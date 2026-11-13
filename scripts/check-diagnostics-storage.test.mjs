@@ -127,8 +127,9 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * الإعدادات مقابل تقاعد صفحة ToolsIntegrity — 395 -> 396 (صافي +1). */
     /* إغلاق فجوات §17 (WS-249، 2026-11-12): صفحة طابور مراجعة التوصيل
      * (DeliveryReviewQueue.tsx — OD17/OD22/OD28–OD31) — 415 -> 416؛
+     * (EX-D21/EX-D19 Phase B 2026-11-14: NetworkSessionContext + AskMicro + askMicroService) — 416 -> 419؛
      * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء. */
-    expect(stdout).toMatch(/416 ملف إنتاج/);
+    expect(stdout).toMatch(/419 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

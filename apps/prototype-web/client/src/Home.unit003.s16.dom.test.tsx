@@ -291,9 +291,10 @@ describe("UNIT-003/S16 — الرئيسية (HOME-A2) والشريط الخما�
     await screen.findByRole("heading", { level: 1, name: "مشروع-الرئيسية" });
     /* UXR-03 (أمر W02): الشريط الثانوي والبطاقة داخل الرئيسية أُزيلوا معًا —
      * لا مدخل دائمًا في الرئيسية؛ الإعلان القائم بموضعه الوحيد عند الطلب
-     * داخل قائمة «مايكرو» في الترويسة (AppSurface يثبت بند القائمة نفسه)،
+     * داخل قائمة «مايكرو» في الترويسة (AppSurface يثبت بند القائمة نفسه)؛
+     * EX-D21 (Phase B): المدخل صار حقيقيًا إلى /ask — بلا «قريبًا».
      * ولا محادثة ولا إرسال بيانات كما كان. */
-    expect(screen.queryByRole("button", { name: "اسأل Micro — قريبًا" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "اسأل Micro" })).toBeNull();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 

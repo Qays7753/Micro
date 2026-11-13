@@ -10,7 +10,7 @@
 import { notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import { parseMinorAmount } from "../domain/delivery.ts";
 import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";

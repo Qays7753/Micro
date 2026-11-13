@@ -537,6 +537,10 @@ CAPS: dict[str, int] = {
     # mandated screen — two identity sections, states, edit mode, and local-truth line;
     # locked at 27 with headroom of 3 for future mandated labels only.
     "Profile": 30,
+    # AskMicro (EX-D21/DOC-037، Phase B — 2026-11-14): مدخل Ask Micro الشامل —
+    # الحالة الصادقة غير المهيأة + سياق الأدوار/المساحات + نموذج السؤال؛
+    # القياس الأول 13 ويُقفل عند 16 برأس هامش 3 للتسميات المفروضة لاحقًا (سابقة Profile).
+    "AskMicro": 16,
     # Settings (2026-09-02, Group 5 S1-13): first explicit cap for the surface at its
     # current honest count — the contract-26 return label ("رجوع") honoring the
     # Foundation guided-import ?from; notices now render inline per section (S3-11)
@@ -933,6 +937,9 @@ PAGES = [
     "G5DeclarationEditor",
     # المجموعة ١ (Scope G): ملف المالك والمشروع — شاشة جديدة مقيسة من يومها الأول.
     "Profile",
+    # EX-D21 (DOC-037، Phase B — 2026-11-14): مدخل Ask Micro الشامل — شاشة جديدة
+    # مقيسة من يومها الأول (سابقة Profile/CostCalculator).
+    "AskMicro",
     # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
     "CostCalculator",
     # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): أدوات التخطيط T02–T05

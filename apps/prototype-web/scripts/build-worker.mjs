@@ -21,6 +21,12 @@ const result = await build({
   format: "esm",
   target: "es2022",
   platform: "neutral",
+  /* EX-D20 (Phase B): postgres.js ships a dedicated workerd build
+   * (cloudflare:sockets) — select it and keep node:/cloudflare: imports
+   * external for the Workers runtime (resolved natively under the
+   * nodejs_compat compatibility flag — see worker/README.md setup). */
+  conditions: ["workerd"],
+  external: ["cloudflare:sockets", "node:*"],
   minify: true,
   legalComments: "none",
   sourcemap: false,

@@ -9,7 +9,7 @@
 
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
-import type { Db } from "../db/d1.ts";
+import type { Db } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { LISTING_FRESHNESS_HIDE_MS } from "../env.ts";
@@ -100,15 +100,15 @@ async function tryPublish(db: Db, listingId: string, now: number): Promise<boole
   await db
     .prepare(
       "UPDATE supplier_listing SET status = 'approved_for_publish', " +
-        "title = COALESCE(json_extract(work_copy_json, '$.title'), title), " +
-        "description = COALESCE(json_extract(work_copy_json, '$.description'), description), " +
+        "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
+        "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
         // Denormalized price/quantity columns are refreshed from the approved
         // work copy exactly like the revision-approve path — the public price
         // must never diverge from the reviewed copy (Reviewer 1, 2026-11-12).
-        "price_mode = COALESCE(json_extract(work_copy_json, '$.pricing.mode'), price_mode), " +
-        "price_micro_jod = COALESCE(json_extract(work_copy_json, '$.pricing.priceMicroJod'), price_micro_jod), " +
-        "min_quantity_milli = COALESCE(json_extract(work_copy_json, '$.quantity.minQuantityMilli'), min_quantity_milli), " +
-        "quantity_step_milli = COALESCE(json_extract(work_copy_json, '$.quantity.stepMilli'), quantity_step_milli), " +
+        "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
+        "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
+        "min_quantity_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,minQuantityMilli}', min_quantity_milli), " +
+        "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
         "public_copy_json = work_copy_json, published_at = COALESCE(published_at, ?), freshness_state = 'fresh', " +
         "revision_status = 'none', reviewed_at = ?, updated_at = ? WHERE id = ?",
     )
@@ -254,12 +254,12 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
       await db(ctx)
         .prepare(
           "UPDATE supplier_listing SET public_copy_json = work_copy_json, revision_status = 'none', " +
-            "title = COALESCE(json_extract(work_copy_json, '$.title'), title), " +
-            "description = COALESCE(json_extract(work_copy_json, '$.description'), description), " +
-            "price_mode = COALESCE(json_extract(work_copy_json, '$.pricing.mode'), price_mode), " +
-            "price_micro_jod = COALESCE(json_extract(work_copy_json, '$.pricing.priceMicroJod'), price_micro_jod), " +
-            "min_quantity_milli = COALESCE(json_extract(work_copy_json, '$.quantity.minQuantityMilli'), min_quantity_milli), " +
-            "quantity_step_milli = COALESCE(json_extract(work_copy_json, '$.quantity.stepMilli'), quantity_step_milli), " +
+            "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
+            "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
+            "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
+            "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
+            "min_quantity_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,minQuantityMilli}', min_quantity_milli), " +
+            "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
             "availability_confirmed_at = CASE WHEN availability_confirmed_at < ? THEN ? ELSE availability_confirmed_at END, " +
             "freshness_state = 'fresh', reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
         )

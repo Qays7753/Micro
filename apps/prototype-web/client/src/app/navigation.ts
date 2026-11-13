@@ -49,6 +49,9 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/catalog")) return "منتجاتي وخدماتي";
   if (pathname.startsWith("/share")) return "معاينة المشاركة";
   if (pathname.startsWith("/foundation")) return "صفحة الأساس";
+  /* EX-D21 (Phase B): مدخل Ask Micro الشامل — سطح عمق واحد بلا شريط سفلي،
+   * يُدخل من القائمة (سياق المالك) أو من ترويسة بوابة السائق (سياق السائق). */
+  if (pathname === "/ask" || pathname.startsWith("/ask/")) return "اسأل Micro";
   /* EX-D18 (عقد 26 §8): تسميات سياقية لمسارات السوق فوق مقعد الشريط نفسه. */
   if (pathname === "/market/vendor" || pathname.startsWith("/market/vendor/")) return "مساحة المورد";
   if (pathname.startsWith("/market/listing/")) return "تفاصيل الإعلان";

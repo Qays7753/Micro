@@ -4,6 +4,12 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+  test: {
+    // EX-D20 Phase B: repository-supported local PostgreSQL test path.
+    // Boots an embedded PostgreSQL once per run (or uses
+    // MICRO_TEST_PG_CONNECTION when provided) for the worker tests.
+    globalSetup: [path.resolve(import.meta.dirname, "scripts", "pg-test-server.mjs")],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

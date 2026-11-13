@@ -4,7 +4,7 @@
  * PII and tokens are never placed in meta payloads.
  */
 
-import type { Db } from "./db/d1.ts";
+import type { Db } from "./db/db.ts";
 
 export async function audit(
   db: Db,
@@ -80,8 +80,8 @@ export async function notify(
   const payload = entry.payload === undefined ? null : JSON.stringify(entry.payload);
   await db
     .prepare(
-      "INSERT OR IGNORE INTO network_notification (identity_id, type, target_path, payload_json, created_at, idempotency_key) " +
-        "VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO network_notification (identity_id, type, target_path, payload_json, created_at, idempotency_key) " +
+        "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING",
     )
     .bind(entry.identityId, entry.type, entry.targetPath, payload, now, entry.idempotencyKey)
     .run();

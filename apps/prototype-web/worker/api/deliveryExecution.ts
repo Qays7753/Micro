@@ -9,7 +9,7 @@ import { notify } from "../audit.ts";
 import { ammanDateString, nowMs } from "../clock.ts";
 import { driverStatus } from "../authorization.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import {
   assertContactAttemptBeforeFailure,
   confirmationAfterDeclaration,
@@ -112,8 +112,8 @@ export async function driverAcceptRequest(ctx: RouteContext, auth: Authenticated
       .bind(agreement, now, String(row.id)),
     db(ctx)
       .prepare(
-        "INSERT OR IGNORE INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
-          "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ? IS NULL THEN 'none' ELSE 'agreed' END, ?)",
+        "INSERT INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
+          "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ?::text IS NULL THEN 'none' ELSE 'agreed' END, ?) ON CONFLICT DO NOTHING",
       )
       .bind(String(row.id), row.collection_minor, now),
   ]);

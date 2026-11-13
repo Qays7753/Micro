@@ -11,7 +11,7 @@ import { audit, notify } from "../audit.ts";
 import { enforceGuestReadLimit } from "../ratelimit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { getDisclosureSettings, newId, type Db } from "../db/d1.ts";
+import { getDisclosureSettings, newId, type Db } from "../db/db.ts";
 import { effectiveRequestStatus, type RequestStatus } from "../domain/delivery.ts";
 import { DRIVER_RESPONSE_WINDOW_MS } from "../env.ts";
 import { HttpError, jsonResponse } from "../http.ts";

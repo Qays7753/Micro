@@ -1,7 +1,8 @@
 /**
  * Server-side authorization (contract 18 §4 / ROLE-ACCESS-MATRIX).
  * One identity may hold multiple capabilities; every check resolves state
- * from D1 at request time — never from client-supplied roles.
+ * from the database (one PostgreSQL target, EX-D20) at request time — never
+ * from client-supplied roles.
  *
  * Capability model for v1:
  *  - guest: browse approved public listings, listing contact channel.
@@ -17,7 +18,7 @@
  */
 
 import { HttpError } from "./http.ts";
-import type { Db } from "./db/d1.ts";
+import type { Db } from "./db/db.ts";
 
 export interface AuthContext {
   identityId: string | null;
@@ -115,4 +116,117 @@ export async function driverStatus(db: Db, identityId: string, now: number): Pro
 /** Requester (project owner) capability: any authenticated identity (OD18). */
 export async function canCreateRequests(auth: AuthContext): Promise<string> {
   return requireIdentity(auth);
+}
+
+/* ───────────── Workspace layer (EX-D19, contract 18 §2/§9) ───────────── */
+
+export interface WorkspaceContext {
+  workspaceId: string;
+  displayName: string;
+  role: string;
+  marketEnabled: boolean;
+  deliveryEnabled: boolean;
+}
+
+function toWorkspaceContext(row: Record<string, unknown>): WorkspaceContext {
+  return {
+    workspaceId: String(row.workspace_id),
+    displayName: String(row.display_name),
+    role: String(row.role),
+    marketEnabled: Number(row.market_enabled) === 1,
+    deliveryEnabled: Number(row.delivery_enabled) === 1,
+  };
+}
+
+/**
+ * All active workspace memberships of an identity (a person may belong to
+ * several workspaces with different roles — contract 18 §2). Server-derived
+ * only; the client may render them but never asserts them.
+ */
+export async function listWorkspaceMemberships(db: Db, identityId: string): Promise<WorkspaceContext[]> {
+  const rows = await db
+    .prepare(
+      "SELECT m.workspace_id, m.role, w.display_name, w.market_enabled, w.delivery_enabled " +
+        "FROM workspace_member m JOIN workspace w ON w.id = m.workspace_id " +
+        "WHERE m.identity_id = ? AND m.status = 'active' ORDER BY w.created_at",
+    )
+    .bind(identityId)
+    .all<Record<string, unknown>>();
+  return rows.results.map(toWorkspaceContext);
+}
+
+/**
+ * Ensure the identity has a personal business workspace (auto-created on
+ * first business action — EX-D19: no module choice at registration; default
+ * capabilities both enabled). Returns the active membership context.
+ * Idempotent and safe under races: the membership upsert conflicts-nothing.
+ */
+export async function ensurePersonalWorkspace(
+  db: Db,
+  identityId: string,
+  now: number,
+  randomToken: (byteLength?: number) => string,
+): Promise<WorkspaceContext> {
+  const existing = await db
+    .prepare(
+      "SELECT m.workspace_id, m.role, w.display_name, w.market_enabled, w.delivery_enabled " +
+        "FROM workspace_member m JOIN workspace w ON w.id = m.workspace_id " +
+        "WHERE m.identity_id = ? AND m.status = 'active' ORDER BY w.created_at LIMIT 1",
+    )
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  if (existing) return toWorkspaceContext(existing);
+  const identityRow = await db
+    .prepare("SELECT display_name, email FROM network_identity WHERE id = ?")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  const displayName =
+    identityRow === null
+      ? "مساحة عمل شخصية"
+      : String(identityRow.display_name || identityRow.email || "مساحة عمل شخصية");
+  const workspaceId = `ws_${randomToken(16)}`;
+  await db
+    .prepare(
+      "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES (?, ?, ?, 1, 1, ?, ?)",
+    )
+    .bind(workspaceId, displayName, identityId, now, now)
+    .run();
+  await db
+    .prepare(
+      "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_by_identity_id, granted_at) " +
+        "VALUES (?, ?, 'owner', 'active', ?, ?) ON CONFLICT DO NOTHING",
+    )
+    .bind(workspaceId, identityId, identityId, now)
+    .run();
+  return {
+    workspaceId,
+    displayName,
+    role: "owner",
+    marketEnabled: true,
+    deliveryEnabled: true,
+  };
+}
+
+/**
+ * Resolve the identity's active business workspace for a module. Fails
+ * closed with an honest error when there is no active membership or the
+ * workspace capability is disabled (EX-D19: capability limits business
+ * actions/data — it never hides the shared product entry points, so the
+ * client shows an honest setup/permission state instead of this throwing
+ * for UI purposes; the API itself must refuse the action).
+ */
+export async function requireModuleWorkspace(
+  db: Db,
+  identityId: string,
+  module: "market" | "delivery",
+): Promise<WorkspaceContext> {
+  const memberships = await listWorkspaceMemberships(db, identityId);
+  const enabled = memberships.filter(m => (module === "market" ? m.marketEnabled : m.deliveryEnabled));
+  if (enabled.length === 0) {
+    if (memberships.length === 0) {
+      throw new HttpError(403, "workspace_missing", { reason: "no_active_workspace" });
+    }
+    throw new HttpError(403, "workspace_capability_disabled", { reason: `module_${module}_disabled` });
+  }
+  return enabled[0];
 }

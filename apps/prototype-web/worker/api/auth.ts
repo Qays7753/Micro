@@ -20,13 +20,14 @@ import {
   revokeSession,
   upsertIdentity,
 } from "../auth/session.ts";
-import { driverStatus, vendorStatus } from "../authorization.ts";
+import { driverStatus, listWorkspaceMemberships, vendorStatus } from "../authorization.ts";
 import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken, sha256Hex } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import { enforceRate, minuteBucket, rateLimits } from "../ratelimit.ts";
 import { apiBindingsConfigured, type Env } from "../env.ts";
+import type { RuntimeEnv } from "../db/db.ts";
 import { clearedSessionCookie, errorResponse, jsonResponse, parseCookies, sessionCookie } from "../http.ts";
 import type { RouteContext } from "../router.ts";
 
@@ -37,7 +38,7 @@ function cookieToken(request: Request): string | undefined {
 }
 
 /** GET /api/health — honest configuration state (no resource claims). */
-export function health(env: Env): Response {
+export function health(env: RuntimeEnv<Env>): Response {
   const googleConfigured = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
   return jsonResponse({
     status: "ok",
@@ -54,10 +55,17 @@ export async function sessionInfo(db: Db, request: Request): Promise<Response> {
   if (!auth) return jsonResponse({ authenticated: false });
   const vendor = await vendorStatus(db, auth.identityId);
   const driver = await driverStatus(db, auth.identityId, nowMs());
+  const workspaces = await listWorkspaceMemberships(db, auth.identityId);
   return jsonResponse({
     authenticated: true,
     identity: { email: auth.email, displayName: auth.displayName },
     isAdmin: auth.isAdmin,
+    workspaces: workspaces.map(w => ({
+      id: w.workspaceId,
+      displayName: w.displayName,
+      role: w.role,
+      capabilities: { market: w.marketEnabled, delivery: w.deliveryEnabled },
+    })),
     vendor: vendor ? { status: vendor.status, supplierProfileId: vendor.supplierProfileId } : null,
     driver: driver
       ? {
@@ -72,7 +80,12 @@ export async function sessionInfo(db: Db, request: Request): Promise<Response> {
 }
 
 /** GET /api/auth/google/start?returnTo=... — begin the OIDC flow. */
-export async function googleStart(db: Db, env: Env, url: URL, request: Request): Promise<Response> {
+export async function googleStart(
+  db: Db,
+  env: RuntimeEnv<Env>,
+  url: URL,
+  request: Request,
+): Promise<Response> {
   if (!env.GOOGLE_CLIENT_ID)
     return errorResponse("network_not_configured", 503, { binding: "GOOGLE_CLIENT_ID" });
   // Anonymous abuse control: one row is written per start, so throttle per
@@ -104,7 +117,7 @@ export async function googleStart(db: Db, env: Env, url: URL, request: Request):
 /** GET /api/auth/google/callback — exchange code, validate, open session. */
 export async function googleCallback(
   db: Db,
-  env: Env,
+  env: RuntimeEnv<Env>,
   url: URL,
   ctxRequest: Request,
   outbound?: OutboundFetch,

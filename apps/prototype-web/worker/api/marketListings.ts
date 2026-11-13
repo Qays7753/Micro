@@ -8,7 +8,7 @@
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/d1.ts";
+import { newId, type Db } from "../db/db.ts";
 import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import {
   JORDAN_GOVERNORATES,
@@ -371,7 +371,7 @@ export async function attachListingMedia(ctx: RouteContext, auth: AuthenticatedC
   if (Number(count?.n ?? 0) >= MAX_LISTING_MEDIA)
     throw new HttpError(409, "conflict", { reason: "media_limit" });
   await db(ctx)
-    .prepare("INSERT OR IGNORE INTO listing_media (listing_id, media_id, kind) VALUES (?, ?, ?)")
+    .prepare("INSERT INTO listing_media (listing_id, media_id, kind) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
     .bind(String(row.id), body.mediaId, kind)
     .run();
   return jsonResponse({ ok: true });

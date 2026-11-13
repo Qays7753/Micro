@@ -68,6 +68,8 @@ const DeliveryBookingDetail = lazy(() => import("@/pages/DeliveryBookingDetail")
 const DeliveryDrivers = lazy(() => import("@/pages/DeliveryDrivers"));
 const DeliveryReviewQueue = lazy(() => import("@/pages/DeliveryReviewQueue"));
 const DriverPortal = lazy(() => import("@/pages/DriverPortal"));
+/* EX-D21 (Phase B): مدخل Ask Micro الشامل — عمق موحد للسياقين. */
+const AskMicro = lazy(() => import("@/pages/AskMicro"));
 const DriverBookingDetail = lazy(() => import("@/pages/DriverBookingDetail"));
 const MarketListingDetail = lazy(() => import("@/pages/MarketListingDetail"));
 const MarketVendorWorkspace = lazy(() => import("@/pages/MarketVendorWorkspace"));
@@ -233,6 +235,7 @@ export function MicroRouter() {
             <Route path="/delivery/review" component={DeliveryReviewQueue} />
             <Route path="/driver" component={DriverPortal} />
             <Route path="/driver/booking/:id" component={DriverBookingDetail} />
+            <Route path="/ask" component={AskMicro} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
                 والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}
             <Route path="/tools/calculator" component={CostCalculator} />

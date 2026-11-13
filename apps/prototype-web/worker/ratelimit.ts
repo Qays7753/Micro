@@ -7,7 +7,7 @@
  */
 
 import { HttpError } from "./http.ts";
-import { getSetting, type Db } from "./db/d1.ts";
+import { getSetting, type Db } from "./db/db.ts";
 
 export interface RateLimits {
   submissionsPerDay: number;
@@ -58,7 +58,7 @@ export async function consumeRate(
     .prepare(
       "INSERT INTO rate_counter (bucket, window_start, count) VALUES (?, ?, 1) " +
         "ON CONFLICT(bucket) DO UPDATE SET " +
-        "count = CASE WHEN window_start = excluded.window_start THEN count + 1 ELSE 1 END, " +
+        "count = CASE WHEN rate_counter.window_start = excluded.window_start THEN rate_counter.count + 1 ELSE 1 END, " +
         "window_start = excluded.window_start RETURNING count",
     )
     .bind(bucket, start)

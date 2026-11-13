@@ -10,6 +10,8 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useNetworkSession } from "@/app/useNetworkSession";
+import { withReturnTo } from "@/app/navigationContract";
 import { getMicroRouteKind, pathnameOnly, showsGlobalChrome } from "@/app/routeClassifier";
 import { UnsavedChangesProvider, useUnsavedChangesNavigation } from "@/components/forms/UnsavedChangesGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -58,6 +60,10 @@ function receiveRouteFocus(element: HTMLElement | null): void {
 function ShellContent({ location, children }: { location: string; children: ReactNode }) {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const requestNavigation = useUnsavedChangesNavigation();
+  /* EX-D19/EX-D21 (Phase B): جلسة قشرية واحدة تخدم القشرة — بند بوابة
+   * السائق لحاملي الدور، ومدخل Ask Micro داخل ترويسة السائق المستقلة. */
+  const { session } = useNetworkSession();
+  const hasDriverRole = Boolean(session.driver);
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
@@ -121,8 +127,17 @@ function ShellContent({ location, children }: { location: string; children: Reac
   return (
     <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
       {isDriverPortal ? (
+        /* عقد 26 §8/OD01: ترويسة السائق وحدها — لا كروم مالك؛ ومدخل Ask
+         * Micro الشامل داخلها (EX-D21) يبقى في سياق السائق ويعود إليه. */
         <header className="micro-driver-shell-header">
           <span className="micro-overline">Micro — السائق</span>
+          <button
+            type="button"
+            className="micro-driver-ask-entry"
+            onClick={() => requestNavigation(withReturnTo("/ask", "/driver"))}
+          >
+            اسأل Micro
+          </button>
         </header>
       ) : (
         <AppHeader
@@ -130,6 +145,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
             isSetup ? "تأسيس محلي" : CONTEXT_REPEATS_H1.has(pathname) ? null : getNavigationLabel(location)
           }
           accountComplete={accountComplete}
+          hasDriverRole={hasDriverRole}
           onNavigate={requestNavigation}
         />
       )}

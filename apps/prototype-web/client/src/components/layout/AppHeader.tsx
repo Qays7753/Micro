@@ -1,58 +1,52 @@
 /** Anti-vibe chrome: visible brand and contextual route label without a repeated decorative local badge. */
 /* Wave 4.3 — P-4.3-1 (D1..D5): منطقة علوية خفيفة ومفتوحة — لا شريط علوي
  * تقليديًا ولا صندوقًا منفصلًا. الشعار زر حقيقي (≥44×44) يفتح قائمة الحساب
- * العمودية؛ «اسأل Micro» بند واحد عند الطلب داخل القائمة (DEC-SHELL-01/
- * UXR-03) بلا أثر دائم في الترويسة. زر الوضع الليلي أُزيل من هنا نهائيًا —
- * مدخله الوحيد: الإعدادات ← المظهر (D4). */
+ * العمودية. زر الوضع الليلي أُزيل من هنا نهائيًا — مدخله الوحيد:
+ * الإعدادات ← المظهر (D4).
+ *
+ * EX-D21 (Phase B — 2026-11-14): «اسأل Micro» صارت مدخلًا حقيقيًا إلى
+ * سطح /ask (بعد أن كانت إعلان «قريبًا» على الطلب) — تبقى بندًا عند الطلب
+ * داخل القائمة لا زرًا دائمًا (DEC-SHELL-01 يبقى نافذًا في موضعه).
+ * EX-D19: حاملو دور السائق يرون بند «بوابة السائق» الصريح داخل القائمة —
+ * تبديل السياق صريح ومصرح به (لا يمنح صلاحيات إضافية). */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, CircleUserRound, Landmark, MessageCircleQuestion, Settings, X } from "lucide-react";
+import { ChevronDown, CircleUserRound, Landmark, MessageCircleQuestion, Settings, Truck } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { withReturnTo } from "@/app/navigationContract";
-import { futureServiceAnnouncements } from "@/app/futureServices";
 
 type AppHeaderProps = {
   /* §4 بند ٥: التسمية السياقية تُحذف حين تكرر عنوان الصفحة h1 — الاسم وحده */
   contextLabel: string | null;
   /* D5: حالة الحساب تحدد تسمية المدخل — null (غير معروفة بعد) تعرض «الحساب» المحايد. */
   accountComplete: boolean | null;
+  /* EX-D19: إظهار بند «بوابة السائق» لحاملي دور السائق (تبديل سياق صريح). */
+  hasDriverRole?: boolean;
   /* تنقل قائمة الشعار عبر حارس التغييرات غير المحفوظة في القشرة، لا مباشرة. */
   onNavigate: (href: string) => void;
 };
 
-/* UNIT-043 (S16 — SH-21): إعلان «قريبًا» الصادق لاسأل Micro فقط هنا؛
- * مدخل النقل والتوصيل انتقل إلى مقعده في الشريط السفلي (/delivery) والبديل
- * جاهز قبل الإزالة؛ لا حجز ولا تتبع ولا تسعير ولا ربط نموذج ذكاء، ولا
- * يُرسل أي بيان محلي إلى خارج الجهاز. */
-type SoonPanel = "assistant" | null;
-
-const soonPanelCopy: Record<"assistant", { title: string; body: string; footer: string }> = {
-  assistant: futureServiceAnnouncements.assistant,
-};
-
 /* D3: مجموعات قائمة الشعار — قصيرة ومرتبة: الحساب والمشروع ثم النظام.
- * كل بند يفتح السطح الرسمي القائم نفسه ويحفظ مصدر رجوعه (EXE-016)؛ وبند
- * «اسأل Micro — قريبًا» يفتح لوحة الإعلان القائمة نفسها (DEC-SHELL-01/
- * DEC-HOM-01 — UXR-03: موضع واحد عند الطلب داخل القائمة، بلا أثر دائم في
- * أي ترويسة ولا بطاقة دائمة في الرئيسية). */
+ * كل بند يفتح السطح الرسمي القائم نفسه ويحفظ مصدر رجوعه (EXE-016). */
 type LogoMenuItem = {
   id: string;
   label: string;
   icon: typeof Settings;
   href: string;
-  /** فعل محلي داخل القائمة (لوحة إعلان) — يغلق القائمة ويفتح لوحته. */
-  onOpen?: () => void;
 };
 type LogoMenuGroup = { id: string; label: string; items: readonly LogoMenuItem[] };
 
-export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHeaderProps) {
+export function AppHeader({
+  contextLabel,
+  accountComplete,
+  hasDriverRole = false,
+  onNavigate,
+}: AppHeaderProps) {
   /* §4 بند ١٦: حد الترويسة يقوى بلون الفاصل عند التمرير فقط — المنطقة المفتوحة
    * تبقى بلا صندوق في وضع الراحة (D1). */
   const [isScrolled, setIsScrolled] = useState(false);
-  const [soonPanel, setSoonPanel] = useState<SoonPanel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const soonPanelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 4);
     update();
@@ -64,57 +58,6 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
     setMenuOpen(false);
     if (restoreFocus) logoButtonRef.current?.focus();
   }, []);
-
-  const closeSoonPanel = useCallback((_restoreFocus: boolean) => {
-    setSoonPanel(null);
-    /* DEC-SHELL-01 (UXR-03): المشغّل صار بند القائمة — إعادة التركيز لزر
-     * الشعار (مالك القائمة) بعد الإغلاق كسلوك القائمة نفسه. */
-    logoButtonRef.current?.focus();
-  }, []);
-
-  /* Wave 4.4 — P-4.4-1: توحيد سلوك لوحتي «قريبًا» مع قائمة الشعار — Escape
-   * يغلق ويعيد التركيز للمشغّل، والنقر خارجيًا يغلق، وTab يبقى داخل اللوحة
-   * (حبس تركيز مناسب لـDialog) حتى إغلاقها. */
-  useEffect(() => {
-    if (!soonPanel) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        closeSoonPanel(true);
-        return;
-      }
-      if (event.key === "Tab") {
-        const focusables = Array.from(
-          soonPanelRef.current?.querySelectorAll<HTMLElement>(
-            "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
-          ) ?? [],
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0]!;
-        const last = focusables[focusables.length - 1]!;
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [soonPanel, closeSoonPanel]);
-
-  /* P-4.4-1: عند فتح اللوحة يدخل التركيز إليها — الزر الأول داخلها. */
-  useEffect(() => {
-    if (!soonPanel) return;
-    const timer = window.setTimeout(() => {
-      soonPanelRef.current
-        ?.querySelectorAll<HTMLElement>("button, [href], [tabindex]:not([tabindex='-1'])")[0]
-        ?.focus();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [soonPanel]);
 
   /* D3: الإغلاق بالنقر خارج القائمة وبزر Escape — والتركيز يعود للشعار. */
   useEffect(() => {
@@ -170,13 +113,15 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
       label: "النظام",
       items: [
         { id: "settings", label: "الإعدادات", icon: Settings, href: "/settings" },
-        {
-          id: "assistant",
-          label: "اسأل Micro — قريبًا",
-          icon: MessageCircleQuestion,
-          href: "",
-          onOpen: () => setSoonPanel("assistant"),
-        },
+        /* EX-D21: المدخل الشامل — سطح حقيقي يعود لأصله؛ وليس مقعدًا سادسًا
+         * في الشريط ولا زرًا دائمًا (عقد 26 §7/§9). */
+        { id: "assistant", label: "اسأل Micro", icon: MessageCircleQuestion, href: "/ask" },
+        ...(hasDriverRole
+          ? [
+              /* EX-D19: مدخل صريح لبوابة السائق (سياق مستقل — عقد 26 §8). */
+              { id: "driver-portal", label: "بوابة السائق", icon: Truck, href: "/driver" },
+            ]
+          : []),
       ],
     },
   ];
@@ -187,7 +132,6 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
     onNavigate(withReturnTo(href, currentPathname));
   };
 
-  const panel = soonPanel ? soonPanelCopy[soonPanel] : null;
   return (
     <header className="micro-app-header" data-scrolled={isScrolled} data-menu-open={menuOpen}>
       <div className="micro-header-inner">
@@ -222,8 +166,8 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
           {contextLabel ? <span className="micro-header-context">{contextLabel}</span> : null}
         </div>
         {/* DEC-SHELL-01 (UXR-03 — أمر W02): زر «اسأل Micro» الدائم في
-         * الترويسة أُزيل — مدخله الوحيد عند الطلب داخل قائمة «مايكرو»
-         * (مجموعة النظام)؛ لا مساحة دائمة في ~70 قالبًا لإعلان مستقبلي. */}
+         * الترويسة أُزيل — مدخله عند الطلب داخل قائمة «مايكرو» (مجموعة
+         * النظام)؛ لا مساحة دائمة لإعلان مستقبلي. */}
       </div>
       {menuOpen ? (
         <div
@@ -246,15 +190,7 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
                     type="button"
                     role="menuitem"
                     data-account-state={item.id === "account" ? accountComplete : undefined}
-                    aria-haspopup={item.onOpen ? "dialog" : undefined}
-                    onClick={() => {
-                      if (item.onOpen) {
-                        closeMenu(false);
-                        item.onOpen();
-                        return;
-                      }
-                      menuNavigate(item.href);
-                    }}
+                    onClick={() => menuNavigate(item.href)}
                   >
                     <ItemIcon aria-hidden="true" />
                     <span>{item.label}</span>
@@ -264,33 +200,6 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
             </div>
           ))}
           <p className="micro-logo-menu-note">بياناتك محفوظة على هذا الجهاز</p>
-        </div>
-      ) : null}
-      {panel ? (
-        <div className="micro-soon-backdrop" role="presentation" onClick={() => closeSoonPanel(false)}>
-          <section
-            ref={soonPanelRef}
-            className="micro-soon-panel"
-            role="dialog"
-            aria-modal="false"
-            aria-label={panel.title}
-            data-testid="soon-panel"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="micro-soon-panel-head">
-              <strong>{panel.title}</strong>
-              <button
-                className="micro-icon-button"
-                type="button"
-                aria-label="إغلاق"
-                onClick={() => closeSoonPanel(true)}
-              >
-                <X aria-hidden="true" />
-              </button>
-            </div>
-            <p>{panel.body}</p>
-            <p className="micro-soon-panel-footer">{panel.footer}</p>
-          </section>
         </div>
       ) : null}
     </header>

@@ -6,7 +6,7 @@
 
 import { sha256Hex } from "./crypto.ts";
 import { HttpError, type ApiResult } from "./http.ts";
-import type { Db } from "./db/d1.ts";
+import type { Db } from "./db/db.ts";
 
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 

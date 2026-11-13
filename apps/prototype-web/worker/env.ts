@@ -2,39 +2,31 @@
  * Worker environment bindings (Cloudflare Pages advanced-mode `_worker.js`).
  *
  * EX-D18 (2026-11-12): Cloudflare Pages + Pages Functions/Workers-compatible
- * BFF within the same deployment; D1 for Market/Delivery network data; R2 for
- * private images/driver evidence; Google sign-in through Micro identity.
+ * BFF within the same deployment; R2 for private images/driver evidence;
+ * Google sign-in through Micro identity.
+ *
+ * EX-D20 (2026-11-13): Market/Delivery network data moved to ONE PostgreSQL
+ * target (Neon Free) reached through Cloudflare Hyperdrive — the `DB` binding
+ * is a Hyperdrive binding carrying a `connectionString`. The D1 engine is no
+ * longer an active runtime path (its migrations remain as labelled history
+ * under db/migrations/).
+ *
+ * Deployment note: the Pages/Workers project must enable the `nodejs_compat`
+ * compatibility flag (the postgres.js `workerd` build imports node:buffer /
+ * node:events / node:stream) — see worker/README.md setup steps.
  *
  * Binding/secret NAMES are part of the owner/Manus setup contract — no values
  * live in this repository. Structural types are declared here (no
  * @cloudflare/workers-types dependency) covering exactly the surface used.
  */
 
-/** Minimal D1 structural types (subset used by the worker). */
-export interface D1ResultRow {
-  [column: string]: unknown;
-}
-
-/** D1 result metadata (real API): `changes` is the affected-row count. */
-export interface D1Meta {
-  changes: number;
-  duration: number;
-  last_row_id: number;
-  rows_read: number;
-  rows_written: number;
-}
-
-export interface D1PreparedStatement {
-  bind(...values: unknown[]): D1PreparedStatement;
-  first<T = D1ResultRow>(colName?: string): Promise<T | null>;
-  all<T = D1ResultRow>(): Promise<{ results: T[] }>;
-  run(): Promise<{ success: boolean; meta: D1Meta }>;
-}
-
-export interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<Array<{ results: T[]; meta: D1Meta }>>;
-  exec(sql: string): Promise<{ count: number }>;
+/**
+ * Hyperdrive-style database binding: production is a Cloudflare Hyperdrive
+ * binding over the single PostgreSQL target; local tests pass the same shape
+ * pointing at an embedded PostgreSQL instance.
+ */
+export interface PgDatabaseBinding {
+  connectionString: string;
 }
 
 /** Minimal R2 structural types (subset used by the worker). */
@@ -64,8 +56,8 @@ export interface AssetFetcher {
 export type OutboundFetcher = AssetFetcher;
 
 export interface Env {
-  /** D1 database binding — Market/Delivery network data ONLY (EX-D18). */
-  DB: D1Database;
+  /** Hyperdrive/PostgreSQL binding — Market/Delivery network data ONLY (EX-D20). */
+  DB: PgDatabaseBinding;
   /** Private R2 bucket binding — images + driver evidence. Never public. */
   MEDIA: R2Bucket;
   /** Cloudflare Pages static assets (provided by the platform). */
@@ -83,8 +75,11 @@ export interface Env {
 export const DB_BINDING_NAME = "DB";
 export const MEDIA_BINDING_NAME = "MEDIA";
 
-/** Required bindings for the API to operate (health reporting). */
-export function apiBindingsConfigured(env: Env): boolean {
+/** Required bindings for the API to operate (health reporting). Accepts the
+ * raw binding env or the wrapped RuntimeEnv (DB resolved into a Db). */
+export function apiBindingsConfigured(
+  env: Pick<Env, "DB" | "MEDIA"> | { DB: unknown; MEDIA: unknown },
+): boolean {
   return Boolean(env.DB && env.MEDIA);
 }
 
