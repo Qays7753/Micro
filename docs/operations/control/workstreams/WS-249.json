@@ -97,7 +97,7 @@
   "agent": "ZAI — sole implementation writer per owner master prompt ce21b786; exactly five read-only reviewers in the Phase-6 integrated review, then focused tests and one full repository check on the final tree",
   "pr": null,
   "started_at": "2026-11-12",
-  "updated_at": "2026-11-13",
+  "updated_at": "2026-11-14",
   "next_action": "مراجعة المالك/Manus لتسليم DOC-036 على SHA الدفع النهائي؛ ثم §31 إعداد المزود وUAT المتصل؛ قرار §20.3 (منبع miniflare) بلا استثناء مقبول.",
   "notes": [
     "Hard boundaries from the owner master prompt (ce21b786): additive changes only — no refactoring, file moves, new root package, or features/ layer (post-Group-6 structural gate); synthetic data only; no provider-account access, secrets, deployment, paid upgrade, PR, merge, or main changes.",
@@ -105,7 +105,8 @@
     "D1/R2 hold Market/Delivery network data only — never Manage financial data; no network event may create or modify a Manage financial/inventory/order record.",
     "Driver evidence files stay private (driver + authorized reviewers only) via R2 with random keys and authorized API reads; customer phone/address disclosure stays blocked pending the owner/legal consent decision (EX-O14).",
     "Focused tests once per wave; one full pnpm check on the final integrated tree; never hide or relabel a failing check; NOT_RUN is not PASS.",
-    "Final status must distinguish code-ready from live/production-ready; expected best case: CODE_READY_FOR_CLOUDFLARE_SETUP — LIVE_CONNECTED_ACCEPTANCE_PENDING."
+    "Final status must distinguish code-ready from live/production-ready; expected best case: CODE_READY_FOR_CLOUDFLARE_SETUP — LIVE_CONNECTED_ACCEPTANCE_PENDING.",
+    "S12-W1 (2026-11-14): المالك نقّح أمر التنفيذ في MASTER-PROMPT-EN.md عند 0d4ae258 (تفويض متواصل 2026-11-13: حساب Micro واحد/قشرة مشتركة بمداخل أربعة، Ask Micro شاملة بكل سياق مصرح بما فيه السائق، إكمال Market/Delivery على PostgreSQL واحد عبر Hyperdrive بلا D1 نشط بعده، جسر Manage الأدنى بلا أي تغيير لماله وبياناته المحلية)؛ نُفّذ المسح الهيكلي الإلزامي للفرع الحالي قراءة-فقط عند الرأس نفسه وأُلزم تقريره: docs/architecture/refactoring/s12-structure-scan-20261114/S12-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md (سجل مكتشفات مصنف + جرد صياغات D1→PostgreSQL محصور + خريطة هدف + موجات S12-W1..W7). merge-base الموثق مع origin/main هو 16c90e48؛ لا يتقاطع هذا الالتزام مع DOC-033..036 قيد المراجعة — بند Control جديد للموجات التالية يُنشأ في Phase A بأداة التوليد القانونية."
   ],
   "evidence": [
     "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
