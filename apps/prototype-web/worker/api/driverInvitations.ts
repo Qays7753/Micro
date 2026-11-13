@@ -87,12 +87,16 @@ export async function consumeDriverInvitation(
     throw new HttpError(410, "invitation_expired");
   }
   // Optimistic single-use claim: the conditional UPDATE loses the race when
-  // a concurrent request consumed the same code first.
+  // a concurrent request consumed the same code first. Phase F (reviewer 3/4):
+  // the claim also re-checks expiry inside the UPDATE, so a cancellation
+  // (or natural expiry) landing between the pre-read and the claim can never
+  // be raced past.
   const claimed = await db(ctx)
     .prepare(
-      "UPDATE driver_invitation SET used_at = ?, used_by_identity_id = ? WHERE code = ? AND used_at IS NULL",
+      "UPDATE driver_invitation SET used_at = ?, used_by_identity_id = ? " +
+        "WHERE code = ? AND used_at IS NULL AND (expires_at IS NULL OR expires_at > ?)",
     )
-    .bind(now, auth.identityId, code)
+    .bind(now, auth.identityId, code, now)
     .run();
   if (Number(claimed.meta?.changes ?? 0) !== 1) {
     throw new HttpError(409, "invitation_already_used");
@@ -133,10 +137,16 @@ export async function cancelDriverInvitation(
   if (row.used_at !== null && row.used_at !== undefined) {
     throw new HttpError(409, "invitation_already_used");
   }
-  await db(ctx)
+  // Phase F (reviewer 3): verify the conditional UPDATE actually cancelled a
+  // live row — a consume racing between the read and the write returns an
+  // honest 409 instead of a silent ok.
+  const cancelled = await db(ctx)
     .prepare("UPDATE driver_invitation SET expires_at = ? WHERE code = ? AND used_at IS NULL")
     .bind(now, code)
     .run();
+  if (Number(cancelled.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "invitation_already_used");
+  }
   await audit(
     db(ctx),
     {

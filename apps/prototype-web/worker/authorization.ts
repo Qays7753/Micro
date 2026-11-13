@@ -214,6 +214,15 @@ export async function ensurePersonalWorkspace(
  * actions/data — it never hides the shared product entry points, so the
  * client shows an honest setup/permission state instead of this throwing
  * for UI purposes; the API itself must refuse the action).
+ *
+ * NOTE (Phase F, final review 1): this helper is the DESIGNATED future
+ * enforcement point for per-workspace capability gating across ALL business
+ * writes once multi-workspace grant flows exist — its "any enabled
+ * membership" semantics are the contract-18 §2 target. The CURRENT recorded
+ * enforcement scope (Phase B §37-2) is the two entry actions that ensure a
+ * personal workspace first (vendor profile save / booking creation), where
+ * this helper cannot be used because it would refuse the auto-creation of
+ * the first workspace. Do not delete it; wire it when grants arrive.
  */
 export async function requireModuleWorkspace(
   db: Db,

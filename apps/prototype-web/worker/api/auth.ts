@@ -158,7 +158,7 @@ export async function googleCallback(
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     return signInErrorPage(
       503,
-      "طبقة الدخول غير مهيأة بعد (بيانات Google OAuth غير مربوطة) — هذه خطوة تهيئة للمالك/Manus.",
+      "طبقة الدخول غير مهيأة بعد — هذه خطوة تهيئة يقوم بها المالك وليست مشكلة من جهتك. أعد المحاولة لاحقًا.",
     );
   }
   const code = url.searchParams.get("code");

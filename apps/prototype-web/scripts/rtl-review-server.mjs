@@ -102,6 +102,18 @@ async function main() {
   await new Promise(resolve => server.listen(PORT, "127.0.0.1", resolve));
   console.log(`[rtl-review] serving http://127.0.0.1:${PORT} (real worker + real PG)`);
   console.log("[rtl-review] press Ctrl+C to stop");
+  // Phase F (review 5): stop PostgreSQL on Ctrl+C/TERM — otherwise the next
+  // run's rmSync(DATA_DIR) races a live server on the same port.
+  const shutdown = () => {
+    try {
+      server.close();
+      run(resolveBin("pg_ctl"), ["-D", path.join(DATA_DIR, "data"), "stop"]);
+    } finally {
+      process.exit(0);
+    }
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 main().catch(error => {

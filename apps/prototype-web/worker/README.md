@@ -99,10 +99,15 @@ returns 404/403):
   imagesPerDay, reportsPerDay, guestReadsPerMinute, authStartsPerMinute).
   Final pilot values are an owner action (EX-O16).
 - `market.enabled` / `delivery.enabled` — the global module kill-switches
-  (F-25): setting `disabled` fails the module's business WRITE actions closed
-  server-side (503 `module_globally_disabled`) while the shared shell entry
-  points and public reads stay available (EX-D19). Absence = enabled; the
-  switch exists for operational recovery during an incident.
+  (F-25): setting `disabled` fails the module's PARTY-FACING business write
+  actions closed server-side (503 `module_globally_disabled`) — vendor
+  profile/listing writes and direct updates for market; booking lifecycle,
+  execution, consent/change, statements, and the driver application path for
+  delivery — while the shared shell entry points, public reads, personal
+  bookmarks (saved listings/drivers), abuse reports, and all admin
+  review/settings/invitation actions stay available (an incident stop never
+  removes the way to report abuse or for admins to act — EX-D19). Absence =
+  enabled; the switch exists for operational recovery during an incident.
 
 ## Driver application invitations (OD22 — context only)
 

@@ -152,6 +152,119 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     // The driver directory (public read) is unaffected.
     expect((await apiGet(worker, null, "/api/delivery/drivers")).status).toBe(200);
   });
+
+  it("Phase F (reviews 3+5): the kill-switch covers NON-ENTRY business writes too — listing submission and booking submission — while bookmarks, reports, and admin review stay available", async () => {
+    const vendor = await signInAs(worker, { sub: "pe-v9", email: "pe-v9@example.test" });
+    // Publish ONE listing through the honest gate while market is enabled —
+    // bookmarks may only ever touch PUBLISHED data (OD-04/OD-09), so the
+    // keep-available assertions need a genuinely published listing.
+    const profileSaved = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
+      displayName: "مورد التغطية",
+      contactPhone: "+962790000130",
+      governorate: "عمان",
+    });
+    expect(profileSaved.status).toBe(201);
+    const { profile } = (await profileSaved.json()) as { profile: { id: string } };
+    expect((await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile/submit", {})).status).toBe(
+      200,
+    );
+    expect(
+      (await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.id}`, { action: "approve" }))
+        .status,
+    ).toBe(200);
+    const publishablePayload = {
+      title: "كرتون تغليف متين للاختبار",
+      category: "packaging",
+      governorate: "عمان",
+      description: "كرتونات تغليف متينة للشحن مع تفاصيل كافية للنشر.",
+      contactType: "phone",
+      contactValue: "+962790000131",
+      pricing: { mode: "fixed", priceMicroJod: "2500000", basis: { units: "12", unit: "كرتون" } },
+      quantity: { unit: "كرتون", minQuantityMilli: "1000", stepMilli: "500", unpacked: true },
+    };
+    const published = await apiPost(
+      worker,
+      vendor.cookieHeader,
+      "/api/market/vendor/listings",
+      publishablePayload,
+    );
+    expect(published.status).toBe(201);
+    const listingA = ((await published.json()) as { listing: { id: string } }).listing;
+    expect(
+      (await apiPost(worker, vendor.cookieHeader, `/api/market/vendor/listings/${listingA.id}/submit`, {}))
+        .status,
+    ).toBe(200);
+    // First approve = content; with the profile already approved and NO
+    // pending media attached, the same call passes the publication gate and
+    // publishes atomically (spec §7.4 — with pending media it would stop at
+    // content_approved instead).
+    expect(
+      (await apiPost(worker, adminCookie, `/api/market/review/listing/${listingA.id}`, { action: "approve" }))
+        .status,
+    ).toBe(200);
+    expect((await apiGet(worker, null, `/api/market/listings/${listingA.id}`)).status).toBe(200);
+    // A SECOND listing stays a draft — the non-entry write to block below.
+    const draftListing = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/listings", {
+      ...publishablePayload,
+      title: "كرتون مسودة غير منشور",
+    });
+    expect(draftListing.status).toBe(201);
+    const listingB = ((await draftListing.json()) as { listing: { id: string } }).listing;
+    // Disable market — the kill-switch must stop the NON-entry write too.
+    expect((await putSetting(adminCookie, "market.enabled", "disabled")).status).toBe(200);
+    const submitBlocked = await apiPost(
+      worker,
+      vendor.cookieHeader,
+      `/api/market/vendor/listings/${listingB.id}/submit`,
+      {},
+    );
+    expect(submitBlocked.status).toBe(503);
+    expect(((await submitBlocked.json()) as { error: { code: string } }).error.code).toBe(
+      "module_globally_disabled",
+    );
+    // Personal bookmarks (saved listings) stay available — they are the
+    // reader's own data, not module business activity.
+    const saved = await apiPost(worker, vendor.cookieHeader, `/api/market/saved/${listingA.id}`, {});
+    expect(saved.status).toBe(200);
+    expect(((await saved.json()) as { saved: boolean }).saved).toBe(true);
+    // Abuse reports stay available — an incident stop must never remove the
+    // way to report a problem.
+    const report = await apiPost(worker, vendor.cookieHeader, "/api/market/report", {
+      listingId: listingA.id,
+      reason: "spam",
+    });
+    expect(report.status).toBe(201);
+    // Admin review surfaces stay available (admins act DURING incidents).
+    expect((await apiGet(worker, adminCookie, "/api/market/review/queue")).status).toBe(200);
+
+    // Delivery non-entry write: create a draft while enabled, disable, then
+    // the submit of the EXISTING draft is blocked too.
+    const refs: WorkerRefs = { worker, adminCookie };
+    const driver = await createApprovedDriver(refs, "pe-driver-cov@example.test", "pe-driver-cov");
+    const owner = await signInAs(worker, { sub: "pe-oc", email: "pe-oc@example.test" });
+    const draft = await apiPost(
+      worker,
+      owner.cookieHeader,
+      "/api/delivery/requests",
+      BOOKING_PAYLOAD(driver.driverProfileId),
+    );
+    expect(draft.status).toBe(201);
+    expect((await putSetting(adminCookie, "delivery.enabled", "disabled")).status).toBe(200);
+    const submitDraftBlocked = await apiPost(
+      worker,
+      owner.cookieHeader,
+      `/api/delivery/requests/${((await draft.json()) as { request: { id: string } }).request.id}/submit`,
+      {},
+    );
+    expect(submitDraftBlocked.status).toBe(503);
+    expect(((await submitDraftBlocked.json()) as { error: { code: string } }).error.code).toBe(
+      "module_globally_disabled",
+    );
+    // Restore BOTH switches — later guards in this file (F-07/F-08) perform
+    // ordinary module writes and must not inherit an incident state.
+    expect((await putSetting(adminCookie, "market.enabled", "enabled")).status).toBe(200);
+    expect((await putSetting(adminCookie, "delivery.enabled", "enabled")).status).toBe(200);
+  });
 });
 
 describe("F-08: a multi-hat admin cannot review their own records", () => {

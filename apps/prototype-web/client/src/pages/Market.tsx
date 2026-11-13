@@ -176,7 +176,11 @@ export default function Market() {
         </Notice>
       )}
 
-      {state === "loading" ? <p className="micro-market-status">جارٍ التحميل…</p> : null}
+      {state === "loading" ? (
+        <p className="micro-market-status" role="status">
+          جارٍ التحميل…
+        </p>
+      ) : null}
       {state === "error" ? (
         <EmptyState
           title="تعذر تحميل السوق"
@@ -243,7 +247,8 @@ export default function Market() {
       {state === "ready" && hasMore ? (
         <div className="micro-market-more" data-testid="market-load-more">
           {moreState === "error" ? (
-            <p role="status" className="micro-market-status">
+            /* R10-B4/F-017 (Phase F — review 2): خطأ مؤكد يعلن بـ alert لا status. */
+            <p role="alert" className="micro-market-status">
               تعذر تحميل المزيد — أعد المحاولة.
             </p>
           ) : null}

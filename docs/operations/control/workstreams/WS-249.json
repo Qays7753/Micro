@@ -99,7 +99,7 @@
   "pr": null,
   "started_at": "2026-11-12",
   "updated_at": "2026-11-14",
-  "next_action": "مراجعة المالك/Manus لتسليم DOC-036 على SHA الدفع النهائي؛ ثم §31 إعداد المزود وUAT المتصل؛ قرار §20.3 (منبع miniflare) بلا استثناء مقبول.",
+  "next_action": "مراجعة المالك/Manus لتسليم Phase F (DOC-037) على SHA الدفع النهائي في §41-9 من EXECUTION-REPORT؛ ثم §31 إعداد المزود (Neon/Hyperdrive/R2/OAuth) والدخان/UAT المتصل؛ قرار §20.3 (منبع miniflare) بلا استثناء مقبول؛ لا دمج ولا نشر من جهة Z AI.",
   "notes": [
     "Hard boundaries from the owner master prompt (ce21b786): additive changes only — no refactoring, file moves, new root package, or features/ layer (post-Group-6 structural gate); synthetic data only; no provider-account access, secrets, deployment, paid upgrade, PR, merge, or main changes.",
     "Preserve sentinels: localSchemaVersion=41, localExportVersion=34, 29 accepted import pairs, lint ceiling 37 (baseline 35), bundle budgets 650,000/155,300, current-state <=20,480 bytes. Measurement baselines may only be re-anchored deliberately with documented reason, never to hide a violation.",

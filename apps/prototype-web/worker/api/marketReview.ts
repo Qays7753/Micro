@@ -135,7 +135,10 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
   const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
   const action = body.action;
-  const reason = typeof body.reason === "string" && body.reason.trim().length > 0 ? body.reason.trim() : null;
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
   if (action !== "approve" && (action === "changes_requested" || action === "reject") && !reason) {
     throw new HttpError(400, "bad_request", { field: "reason" });
   }
@@ -222,7 +225,10 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
   const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
   const action = body.action;
-  const reason = typeof body.reason === "string" && body.reason.trim().length > 0 ? body.reason.trim() : null;
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
   if (!["approve", "changes_requested", "reject", "admin_suspend"].includes(action ?? "")) {
     throw new HttpError(400, "bad_request", { field: "action" });
   }
@@ -418,9 +424,12 @@ export async function resolveReport(ctx: RouteContext, auth: AuthenticatedContex
       : null;
   if (!reason) throw new HttpError(400, "bad_request", { field: "reason" });
   const now = nowMs();
+  // Phase F (reviewer 4): a non-numeric :id is a plain 404 (never a cast-error 500).
+  const reportIdParam = ctx.params.id!;
+  if (!/^\d{1,18}$/.test(reportIdParam)) throw new HttpError(404, "not_found");
   const report = await db(ctx)
     .prepare("SELECT id, reporter_identity_id, status FROM market_report WHERE id = ?")
-    .bind(ctx.params.id!)
+    .bind(reportIdParam)
     .first<Record<string, unknown>>();
   if (!report) throw new HttpError(404, "not_found");
   const reportId = String(report.id);
@@ -429,12 +438,18 @@ export async function resolveReport(ctx: RouteContext, auth: AuthenticatedContex
     throw new HttpError(409, "conflict", { reason: "report_already_resolved" });
   }
   if (action === "close") {
-    await db(ctx)
+    // Phase F (reviewer 4): conditional UPDATE + changes check — the house
+    // optimistic-concurrency pattern — so two concurrent closes can never
+    // both succeed (last-writer-wins on the resolver identity is refused).
+    const closed = await db(ctx)
       .prepare(
-        "UPDATE market_report SET status = 'resolved', resolution_note = ?, resolved_by = ?, resolved_at = ? WHERE id = ?",
+        "UPDATE market_report SET status = 'resolved', resolution_note = ?, resolved_by = ?, resolved_at = ? WHERE id = ? AND status = 'open'",
       )
       .bind(reason, auth.identityId, now, reportId)
       .run();
+    if (Number(closed.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "report_already_resolved" });
+    }
   }
   await moderationEvent(db(ctx), "market_report", reportId, auth.identityId, action ?? "", reason, now);
   await notify(

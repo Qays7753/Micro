@@ -123,13 +123,18 @@ export async function deleteMedia(env: RuntimeEnv<Env>, db: Db, media: MediaObje
 
 /**
  * Is this media object publicly readable? Only when it is gallery/cover media
- * attached to a listing whose CURRENT public copy is published (OD-04/OD-09).
+ * attached to a listing whose CURRENT public copy is published (OD-04/OD-09)
+ * AND the owning supplier profile is currently approved — the SAME composite
+ * gate the listing browse/detail paths enforce (api/market.ts). Phase F
+ * (reviewer 3): a suspended vendor's listing detail 404s, so their imagery
+ * must not stay publicly readable by media id.
  */
 export async function isPubliclyAttachedListingMedia(db: Db, mediaId: string): Promise<boolean> {
   const row = await db
     .prepare(
-      "SELECT l.status AS listing_status, m.status AS media_status FROM listing_media lm " +
-        "JOIN supplier_listing l ON l.id = lm.listing_id JOIN media_object m ON m.id = lm.media_id " +
+      "SELECT l.status AS listing_status, m.status AS media_status, p.status AS profile_status " +
+        "FROM listing_media lm JOIN supplier_listing l ON l.id = lm.listing_id " +
+        "JOIN media_object m ON m.id = lm.media_id JOIN supplier_profile p ON p.id = l.supplier_profile_id " +
         "WHERE lm.media_id = ? LIMIT 1",
     )
     .bind(mediaId)
@@ -137,6 +142,7 @@ export async function isPubliclyAttachedListingMedia(db: Db, mediaId: string): P
   return (
     row !== null &&
     String(row.listing_status) === "approved_for_publish" &&
-    String(row.media_status) === "approved"
+    String(row.media_status) === "approved" &&
+    String(row.profile_status) === "approved"
   );
 }

@@ -6,7 +6,7 @@
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, isGlobalModuleEnabled, type Db } from "../db/db.ts";
+import { newId, type Db } from "../db/db.ts";
 import {
   parseMinorAmount,
   transitionContact,
@@ -73,12 +73,6 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
         : "product";
   const id = newId("dlv", randomToken);
   const now = nowMs();
-  // F-25: the global delivery kill-switch fails business actions closed
-  // BEFORE the workspace capability check (an incident-wide stop is the more
-  // informative state when both would apply). Entry points stay visible.
-  if (!(await isGlobalModuleEnabled(db(ctx), "delivery"))) {
-    throw new HttpError(503, "module_globally_disabled", { reason: "module_delivery_disabled_globally" });
-  }
   const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, now, randomToken);
   if (!workspace.deliveryEnabled) {
     throw new HttpError(403, "workspace_capability_disabled", { reason: "module_delivery_disabled" });

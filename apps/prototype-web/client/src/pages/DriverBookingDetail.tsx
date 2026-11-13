@@ -685,7 +685,9 @@ export default function DriverBookingDetail() {
                       id="statement-description"
                       value={statementDescription}
                       onChange={event => setStatementDescription(event.target.value)}
-                      placeholder={`مثال: تحصيل ${minorToJod(request.collectionMinor)} د.أ عن هذا الحجز`}
+                      /* F-11 (Phase F — review 2): المبلغ داخل placeholder لا
+                       * يمكن عزله بـ bdi — المثال بلا رقم. */
+                      placeholder="مثال: تحصيل قيمة هذا الحجز عن هذا الحجز"
                     />
                   </Field>
                   <Field label="قيمة البند (د.أ)" controlId="statement-amount">

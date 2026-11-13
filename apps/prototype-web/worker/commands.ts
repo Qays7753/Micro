@@ -44,7 +44,11 @@ export function command(seed: string, handler: RouteHandler): RouteHandler {
       throw error;
     }
     // Responses that carry a Set-Cookie (session changes) are never replayed.
-    if (response.status < 500 && !response.headers.has("set-cookie")) {
+    // Phase F (reviewer 3): 401 responses are never stored either — a replayed
+    // unauthenticated response is worthless to the caller, and skipping the
+    // store closes the unbounded anonymous idempotency-row write vector (the
+    // caller must authenticate and retry, which stores under its own session).
+    if (response.status < 500 && response.status !== 401 && !response.headers.has("set-cookie")) {
       await storeIdempotent(ctx.env.DB, { key: scopedKey }, requestHash, response, Date.now());
     }
     return response;

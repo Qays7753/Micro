@@ -25,7 +25,7 @@ import {
 import { resolveReport, reviewListing, reviewMedia, reviewProfile, reviewQueue } from "./api/marketReview.ts";
 import { runDueRemindersNow } from "./api/reminders.ts";
 import { command } from "./commands.ts";
-import { authedRoute } from "./routes.ts";
+import { authedRoute, moduleGated } from "./routes.ts";
 import type { ApiRouter } from "./router.ts";
 
 export function registerMarketRoutes(router: ApiRouter): void {
@@ -44,21 +44,21 @@ export function registerMarketRoutes(router: ApiRouter): void {
     "api/market/vendor/profile",
     command(
       "vendor-profile-save",
-      authedRoute((ctx, auth) => saveVendorProfile(ctx, auth)),
+      moduleGated("market", (ctx, auth) => saveVendorProfile(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/profile/submit",
     command(
       "vendor-profile-submit",
-      authedRoute((ctx, auth) => submitVendorProfile(ctx, auth)),
+      moduleGated("market", (ctx, auth) => submitVendorProfile(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/listings",
     command(
       "listing-create",
-      authedRoute((ctx, auth) => createListingDraft(ctx, auth)),
+      moduleGated("market", (ctx, auth) => createListingDraft(ctx, auth)),
     ),
   );
   router.get(
@@ -69,56 +69,56 @@ export function registerMarketRoutes(router: ApiRouter): void {
     "api/market/vendor/listings/:id",
     command(
       "listing-update",
-      authedRoute((ctx, auth) => updateListingDraft(ctx, auth)),
+      moduleGated("market", (ctx, auth) => updateListingDraft(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/submit",
     command(
       "listing-submit",
-      authedRoute((ctx, auth) => submitListing(ctx, auth)),
+      moduleGated("market", (ctx, auth) => submitListing(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/confirm-availability",
     command(
       "listing-confirm-availability",
-      authedRoute((ctx, auth) => confirmAvailability(ctx, auth)),
+      moduleGated("market", (ctx, auth) => confirmAvailability(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/direct-update",
     command(
       "listing-direct-update",
-      authedRoute((ctx, auth) => directUpdateListing(ctx, auth)),
+      moduleGated("market", (ctx, auth) => directUpdateListing(ctx, auth)),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/pause",
     command(
       "listing-pause",
-      authedRoute((ctx, auth) => vendorListingLifecycle(ctx, auth, "pause")),
+      moduleGated("market", (ctx, auth) => vendorListingLifecycle(ctx, auth, "pause")),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/resume",
     command(
       "listing-resume",
-      authedRoute((ctx, auth) => vendorListingLifecycle(ctx, auth, "resume")),
+      moduleGated("market", (ctx, auth) => vendorListingLifecycle(ctx, auth, "resume")),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/archive",
     command(
       "listing-archive",
-      authedRoute((ctx, auth) => vendorListingLifecycle(ctx, auth, "archive")),
+      moduleGated("market", (ctx, auth) => vendorListingLifecycle(ctx, auth, "archive")),
     ),
   );
   router.post(
     "api/market/vendor/listings/:id/media",
     command(
       "listing-attach-media",
-      authedRoute((ctx, auth) => attachListingMedia(ctx, auth)),
+      moduleGated("market", (ctx, auth) => attachListingMedia(ctx, auth)),
     ),
   );
   router.post(

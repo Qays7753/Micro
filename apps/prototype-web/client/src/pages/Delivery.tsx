@@ -212,7 +212,11 @@ export default function Delivery() {
         </section>
       ) : null}
 
-      {state === "loading" ? <p className="micro-delivery-status">جارٍ التحميل…</p> : null}
+      {state === "loading" ? (
+        <p className="micro-delivery-status" role="status">
+          جارٍ التحميل…
+        </p>
+      ) : null}
       {state === "error" ? (
         <EmptyState
           title="تعذر تحميل حجوزاتك"

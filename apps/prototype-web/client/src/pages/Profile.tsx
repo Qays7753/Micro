@@ -41,7 +41,7 @@ export default function Profile() {
   const { ownerProfile, profiles, cashContinuity, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   /* EX-D22: قراءة حالة الحساب المشترك (لا كتابة ولا ربط بيانات محلية). */
-  const { session, loading: sessionLoading, failed: sessionFailed } = useNetworkSession();
+  const { session, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [state, setState] = useState<ProfileState>({ phase: "loading" });
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -239,8 +239,14 @@ export default function Profile() {
           {sessionLoading ? (
             <p role="status">جارٍ التحقق من حسابك…</p>
           ) : sessionFailed ? (
-            /* R10-B4/F-017 (Phase E): خطأ مؤكد يعلن بـ alert لا status. */
-            <p role="alert">تعذر التحقق من حسابك الآن — بيانات مشروعك المحلية سليمة.</p>
+            <>
+              {/* R10-B4/F-017 (Phase E): خطأ مؤكد يعلن بـ alert لا status. */}
+              <p role="alert">تعذر التحقق من حسابك الآن — بيانات مشروعك المحلية سليمة.</p>
+              {/* Phase F (review 2): زر إعادة المحاولة كالأسطح الشقيقة. */}
+              <Button action="quiet" onClick={() => void refresh()}>
+                إعادة المحاولة
+              </Button>
+            </>
           ) : session.authenticated && session.identity ? (
             <>
               <dl>

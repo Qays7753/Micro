@@ -72,7 +72,7 @@ export default function AskMicro() {
           description="المدخل متاح لكل حساب Micro في كل سياق — سجّل الدخول بحسابك نفسه لطرح سؤالك داخل سياقك المصرح."
           action={
             <Button action="commit" onClick={() => signIn(returnTo)}>
-              الدخول بحساب Google
+              الدخول عبر Google
             </Button>
           }
         />

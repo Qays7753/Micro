@@ -10,7 +10,8 @@ import { readMedia, removeMedia, uploadMedia } from "./api/media.ts";
 import { listMyNotifications, markNotificationsRead, putAdminSetting } from "./api/system.ts";
 import type { AuthenticatedContext } from "./auth/session.ts";
 import { command } from "./commands.ts";
-import { errorResponse } from "./http.ts";
+import { errorResponse, HttpError } from "./http.ts";
+import { isGlobalModuleEnabled } from "./db/db.ts";
 import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
 import { askQuestion, askStatus } from "./api/ask.ts";
@@ -33,6 +34,31 @@ export function authedRoute(
   handler: (ctx: RouteContext, auth: AuthenticatedContext) => Promise<Response>,
 ): RouteHandler {
   return async (ctx: RouteContext) => withAuth(ctx, auth => handler(ctx, auth));
+}
+
+/**
+ * Phase F (final-review integration, F-25 completion): wrap a PARTY-FACING
+ * business write of a module with the global kill-switch check. The switch
+ * fails the module's business actions closed (503 module_globally_disabled)
+ * while public reads, personal bookmarks, abuse reports, admin review/
+ * settings/invitations, and the shared shell entry points all stay available
+ * (EX-D19) — an incident stop must never remove the way to report abuse or
+ * for admins to act. Thrown errors bypass idempotency storage, so wrapping
+ * inside command() is safe.
+ */
+export function moduleGated(
+  module: "market" | "delivery",
+  handler: (ctx: RouteContext, auth: AuthenticatedContext) => Promise<Response>,
+): RouteHandler {
+  return authedRoute(async (ctx, auth) => {
+    const enabled = await isGlobalModuleEnabled(ctx.env.DB, module);
+    if (!enabled) {
+      throw new HttpError(503, "module_globally_disabled", {
+        reason: `module_${module}_disabled_globally`,
+      });
+    }
+    return handler(ctx, auth);
+  });
 }
 
 export function buildRouter(): ApiRouter {

@@ -51,7 +51,7 @@ import { nowMs } from "./clock.ts";
 import { command } from "./commands.ts";
 import { errorResponse } from "./http.ts";
 import type { ApiRouter } from "./router.ts";
-import { authedRoute } from "./routes.ts";
+import { authedRoute, moduleGated } from "./routes.ts";
 
 export function registerDeliveryRoutes(router: ApiRouter): void {
   // Owner experience (contract 21).
@@ -69,70 +69,70 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/delivery/requests",
     command(
       "delivery-request-create",
-      authedRoute((ctx, auth) => createRequestDraft(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => createRequestDraft(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/submit",
     command(
       "delivery-request-submit",
-      authedRoute((ctx, auth) => submitRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => submitRequest(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/withdraw",
     command(
       "delivery-request-withdraw",
-      authedRoute((ctx, auth) => withdrawRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => withdrawRequest(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/accept-quote",
     command(
       "delivery-quote-accept",
-      authedRoute((ctx, auth) => decideQuote(ctx, auth, true)),
+      moduleGated("delivery", (ctx, auth) => decideQuote(ctx, auth, true)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/reject-quote",
     command(
       "delivery-quote-reject",
-      authedRoute((ctx, auth) => decideQuote(ctx, auth, false)),
+      moduleGated("delivery", (ctx, auth) => decideQuote(ctx, auth, false)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/cancel",
     command(
       "delivery-request-cancel",
-      authedRoute((ctx, auth) => cancelRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => cancelRequest(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/confirm-outcome",
     command(
       "delivery-outcome-confirm",
-      authedRoute((ctx, auth) => decideOutcome(ctx, auth, true)),
+      moduleGated("delivery", (ctx, auth) => decideOutcome(ctx, auth, true)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/object-outcome",
     command(
       "delivery-outcome-object",
-      authedRoute((ctx, auth) => decideOutcome(ctx, auth, false)),
+      moduleGated("delivery", (ctx, auth) => decideOutcome(ctx, auth, false)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/contact",
     command(
       "delivery-contact-answer",
-      authedRoute((ctx, auth) => answerContactAttempt(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => answerContactAttempt(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/rate",
     command(
       "delivery-rate",
-      authedRoute((ctx, auth) => rateRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => rateRequest(ctx, auth)),
     ),
   );
   router.post(
@@ -150,7 +150,7 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/delivery/statements/:id/confirm",
     command(
       "delivery-statement-confirm",
-      authedRoute((ctx, auth) => confirmStatement(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => confirmStatement(ctx, auth)),
     ),
   );
   // Driver portal (OD01: separately gated context, same Micro identity).
@@ -162,35 +162,35 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/driver/profile",
     command(
       "driver-profile-save",
-      authedRoute((ctx, auth) => saveDriverProfile(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => saveDriverProfile(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/vehicle",
     command(
       "driver-vehicle-save",
-      authedRoute((ctx, auth) => saveDriverVehicle(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => saveDriverVehicle(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/evidence",
     command(
       "driver-evidence-save",
-      authedRoute((ctx, auth) => saveDriverEvidence(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => saveDriverEvidence(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/submit",
     command(
       "driver-application-submit",
-      authedRoute((ctx, auth) => submitDriverApplication(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => submitDriverApplication(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/accepting-new",
     command(
       "driver-accepting-new",
-      authedRoute((ctx, auth) => setAcceptingNew(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => setAcceptingNew(ctx, auth)),
     ),
   );
   router.get(
@@ -201,28 +201,28 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/driver/requests/:id/accept",
     command(
       "driver-request-accept",
-      authedRoute((ctx, auth) => driverAcceptRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => driverAcceptRequest(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/requests/:id/decline",
     command(
       "driver-request-decline",
-      authedRoute((ctx, auth) => driverDeclineRequest(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => driverDeclineRequest(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/requests/:id/quote",
     command(
       "driver-quote-submit",
-      authedRoute((ctx, auth) => driverSubmitQuote(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => driverSubmitQuote(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/requests/:id/declare",
     command(
       "driver-declare",
-      authedRoute((ctx, auth) => driverDeclare(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => driverDeclare(ctx, auth)),
     ),
   );
   // Mutual consent for retry/holding/return (OD10, contract 21 §3.2-3):
@@ -232,21 +232,21 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/driver/requests/:id/propose-consent",
     command(
       "driver-propose-consent",
-      authedRoute((ctx, auth) => proposeConsent(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => proposeConsent(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/requests/:id/propose-consent/withdraw",
     command(
       "driver-withdraw-consent",
-      authedRoute((ctx, auth) => withdrawConsent(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => withdrawConsent(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/consent/decide",
     command(
       "requester-decide-consent",
-      authedRoute((ctx, auth) => decideConsent(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => decideConsent(ctx, auth)),
     ),
   );
   // Requester instructions out of `awaiting_instructions` (contract 21
@@ -255,7 +255,7 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/delivery/requests/:id/instructions",
     command(
       "requester-instructions",
-      authedRoute((ctx, auth) => recordInstructions(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => recordInstructions(ctx, auth)),
     ),
   );
   // Material change to a confirmed booking (OD11, contract 21 §3.2-2):
@@ -265,28 +265,28 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     "api/delivery/requests/:id/change",
     command(
       "party-propose-change",
-      authedRoute((ctx, auth) => proposeChange(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => proposeChange(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/change/decide",
     command(
       "party-decide-change",
-      authedRoute((ctx, auth) => decideChange(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => decideChange(ctx, auth)),
     ),
   );
   router.post(
     "api/delivery/requests/:id/change/withdraw",
     command(
       "party-withdraw-change",
-      authedRoute((ctx, auth) => withdrawChange(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => withdrawChange(ctx, auth)),
     ),
   );
   router.post(
     "api/driver/statements",
     command(
       "driver-statement-submit",
-      authedRoute((ctx, auth) => submitDailyStatement(ctx, auth)),
+      moduleGated("delivery", (ctx, auth) => submitDailyStatement(ctx, auth)),
     ),
   );
   router.get(
