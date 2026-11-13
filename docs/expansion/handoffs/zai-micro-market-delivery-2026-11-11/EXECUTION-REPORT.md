@@ -717,3 +717,59 @@
 - تسوية بيئتي السحابة لأسطح الحزم (خطوة ما بعد الدفع من تشغيل CI — §34 البروتوكول نفسه).
 - فجوات Phase E المصنفة (تدقيق delivery_scoped/المرفوضات، OD18 تقييم ذات الأدمن، حد معدل driverPublicProfile، role=alert، bdi، حل البلاغات، الدعوة) — التالية بعد Market/Delivery على PostgreSQL.
 - أي موفر ذكاء اصطناعي (قرار مالك لاحق حصرًا — خطوة الإعداد موثقة في worker/README.md).
+
+## 38. Phase C — Market على PostgreSQL: التحقق الكامل (S12-W4)
+
+> **طبيعة المرحلة:** سلوك Market v1 كان مكتملًا ومختبرًا (DOC-034/§25–§33)؛ مهمة هذه المرحلة هي إثباته **على مسار PostgreSQL الجديد** بسيناريو/OD مقابل فحص مركز لكل بند — لا إعادة بناء.
+
+**خريطة التحقق (OD/سيناريو ← الفحص المركز على PostgreSQL — كلها ضمن الـ97/97 الخضراء):**
+
+| المطلب | الفحص (ملف:الحالة) |
+|---|---|
+| استكشاف الضيف للمعتمد فقط + فراغ صادق + قناة الاتصال (OD-04/عقد 20 §2) | market.lifecycle: «guest browse sees only published…»/«published copy is public with its contact channel (OD-04)» |
+| النطاق الوطني: الفئات والمحافظات الـ12 (OD-01/OD-02) | market.lifecycle: «meta exposes categories and the 12 governorates» |
+| بدء أي مستخدم لمسار المورد بالحساب نفسه (OD-03/OD-15) + مساحة العمل الشخصية التلقائية | market.lifecycle (vendor flow) + workspace.ask: «first vendor action auto-creates ONE personal workspace» |
+| المسودات خاصة والنشر خلف بوابات المراجعة الذرية (OD-09/OD-16/مواصفة §7.4) | market.lifecycle: «drafts and submissions stay private (S-07)»/«approving listing content with a pending file does NOT publish»/«approving the file publishes atomically…» |
+| التحديث المباشر العددي بتحقق وسجل داخل النمط نفسه (OD-09) | market.directupdates: «OD-09 direct numeric updates…» + «updates the full validated tier list…» + «updates minimum + step…» |
+| الحداثة 30/60 والتجديد عبر المراجعة (OD-11) | market.lifecycle: «after 30 days… after 60 it hides; renewal restores through review» |
+| الترقيم المستقر بمؤشر keyset + رفض المؤشرات المعطوبة | market.pagination: الصفحات الأربع («pages through every published listing exactly once…» إلخ) |
+| عزل المورد عن موردي المنافسين (S-07) + الحرمان عابر المساحات | market.directupdates: «ownership: another vendor never reaches…» + workspace.ask: «records of another workspace are never visible…» |
+| وسائط خاصة: مالك/مراجع فقط، لا تسريب وجود، حذف المسودة | media.privacy (الحالات الخمس) |
+| تصريح MarketPrice الكامل (عقد 25 §3-ب) | market.lifecycle: «MarketPrice validation rejects wrong scales and shapes (contract 25)» |
+| قدرة السوق معطلة تفشل مغلقًا (EX-D19) | workspace.ask: «a disabled market capability fails closed…» |
+| البلاغ لا يحرك شيئًا (عقد 22 §2) | market.lifecycle: «reports never auto-mutate the listing» |
+| لا أثر مالي/Manage من أي فعل سوق (OD-14/EX-D05) | foundation.isolation: العزل البنيوي على PostgreSQL (صفر جداول مالية) + عدم التداخل |
+
+**حالة كل OD-01…OD-21:** كلها مثبتة بكود وفحص أعلاه عدا: **OD-06** (قبول متصل حقيقي — خطوة مالك/Manus خارجية بعد التهيئة، موثقة §31)؛ **OD-18** (تأجيل Ask Micro — **مُزاح بقرار المالك EX-D21 ونُفذ** §37-3)؛ **OD-20** (سؤال D1/Postgres — **حُسم بقرار المالك EX-D20 ونُفذ** §37-1)؛ **OD-21** (المسح قبل أي عمل هيكلي — **نُفذ** بمسح S12 §35).
+
+**المتبقي داخل نطاق Market لاحقًا (Phase E مصنفًا):** حل البلاغات (F-12)؛ حرس OD18 لتقييم ذات الأدمن (F-08)؛ علم التعطيل الإداري العام (F-25 — قدرة Workspace منفذة، والعلم العام للطوارئ في Phase E).
+
+## 39. Phase D — Delivery على PostgreSQL: التحقق الكامل (S12-W5)
+
+> **الطبيعة نفسها:** سلوك Delivery v1 مكتمل (DOC-035/036)؛ التحقق هنا على مسار PostgreSQL.
+
+**خريطة التحقق (المحاور والقرارات ← الفحص المركز — ضمن الـ97/97):**
+
+| المطلب | الفحص (ملف:الحالة) |
+|---|---|
+| الحجز الموجه لسائق معروف واحد؛ مسودة خاصة (OD03) | delivery.lifecycle: «a draft is private and directed to one known driver only» |
+| تجميد نسخة الاتفاق عند القبول (OD11) | delivery.lifecycle: «the driver accepts within the window and the agreement copy freezes the terms (OD11)» |
+| حجب تفاصيل المستلم خلف بوابة الإفصاح (EX-O14) | delivery.lifecycle: «the driver sees zones but NOT recipient details behind the disclosure gate (EX-O14)» |
+| عرض نهائي واحد يبطل سابقه؛ مهلة 30 دقيقة؛ لا بديل تلقائي (OD05/OD07/OD09-القديم) | delivery.lifecycle: «the driver submits ONE final quote…»/«rejecting the quote records the decision without any fallback driver (OD03/OD07)»/«a late acceptance is rejected…» |
+| انتهاء الإثبات يحجب الجديد فقط (OD30) | delivery.lifecycle: «expired evidence blocks NEW acceptance but never touches existing work» |
+| لا تقييم ذات؛ الأدمن وحده يقرر (OD17/OD18) | delivery.lifecycle: «the driver cannot review or approve their own application» |
+| محور التنفيذ والتأكيد (OD14) | delivery.execution: «declarations move the execution axis and open requester confirmation» |
+| حرس محاولة الاتصال قبل التعذر (OD15) | delivery.execution: «the OD15 guard blocks a failure declaration without a recorded contact attempt» |
+| لا إغلاق تلقائي عند صمت المالك أبدًا (OD16) | delivery.execution: «owner silence keeps the outcome awaiting — no auto-close ever (OD16)» |
+| التقييم مرة واحدة بعد التأكيد (OD17) | delivery.execution: «the owner confirms the outcome and can then rate ONCE (OD17)» |
+| الكشف اليومي: زوج/يوم واحد؛ تأكيد كامل؛ ملاحق جديدة فقط (OD13) | delivery.execution: «one awaiting statement per pair/day…» |
+| خصوصية إثباتات السائق (OD28) وعزل السائقين (S-10) | delivery.execution: «driver evidence images are denied to the owner, strangers, and other drivers»/«a driver never sees another driver's bookings (S-10)» |
+| الموافقة الصريحة المعلقة retry/hold/return (OD10) — الصمت لا ينفذ شيئًا | delivery.consent: الحالات الثماني كاملة |
+| التعديل النسخي المرقم للمؤثر (OD11) | delivery.change: الحالات العشر كاملة |
+| التذكيرات idempotent بلا نقل حالة (عقد 19 §9) | reminders: الحالات الأربع (30/60 سوقًا، 24 ساعة تأكيدًا، 7 أيام إثباتات، مسار الإداري=scheduled) |
+| قدرة التوصيل معطلة تفشل مغلقًا (EX-D19) | workspace.ask: «a disabled delivery capability fails closed for booking creation» |
+| لا أثر مالي/Manage (OD12) | foundation.isolation على PostgreSQL |
+
+**قرارات OD01…OD31:** كلها مثبتة كما في §6 crosswalk عدا: **OD23** (قبول متصل حقيقي — خارجي، §31)؛ **OD24** (تأجيل Ask Micro — مُزاح بEX-D21 ونُفذ)؛ **OD26** (المسح قبل الهيكلة — نُفذ بS12)؛ والدعوة (جزء OD22) **F-13 في Phase E** (جدول الدعوة محجوز بالمخطط منذ 0001 وبلا كود — موثقة).
+
+**ملاحظة فحص موحدة للمرحلتين:** الفحوص المركزة للموجة شُغلت مرة واحدة فوق شجرة Phase B النهائية (`52b3030e`) — 97/97 عامل + 3518/3518 تطبيق (أعلاه §37-5)؛ لا إعادة تشغيل بلا تغيير بعدهما حتى الآن.
