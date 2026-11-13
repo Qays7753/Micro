@@ -42,6 +42,15 @@ path; `db/migrations/` is kept untouched as labelled superseded history and
 | `BOOTSTRAP_OWNER_EMAIL` | Var/Secret (one-time)       | First admin bootstrap; remove after use                                          |
 | `GOOGLE` (optional)     | Service binding             | Synthetic Google in tests; in production unset — plain `fetch` to Google is used |
 
+**Google OAuth redirect URIs (owner/Manus hardening step, F-26):** the worker
+derives `redirect_uri` from the request origin
+(`<origin>/api/auth/google/callback`). When registering the OAuth client in
+Google Cloud Console, pin the EXACT authorized redirect URIs for the
+production and preview origins (e.g. `https://<pages-domain>/api/auth/google/callback`)
+instead of leaving the origin open — an origin-derived redirect is a
+bootstrap convenience, not the production posture. A failed callback now
+renders a visible Arabic error page (never a silent redirect).
+
 **Compatibility flag (required):** the project must enable `nodejs_compat`
 (the postgres.js workerd build imports `node:buffer`/`node:events`/
 `node:stream`, resolved natively by the Workers runtime). Pages: project
@@ -64,9 +73,10 @@ the Neon connection string, or Neon's console SQL editor:
 psql "$NEON_CONNECTION_STRING" -f apps/prototype-web/worker/db/migrations-pg/0001_init.sql
 ```
 
-| File            | Contents                                                                                |
-| --------------- | --------------------------------------------------------------------------------------- |
-| `0001_init.sql` | Full active schema: 31 tables (29 network + workspace layer), constraints, FKs, indexes |
+| File                         | Contents                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `0001_init.sql`              | Full active schema: 31 tables (29 network + workspace layer), constraints, FKs, indexes           |
+| `0002_report_moderation.sql` | Adds `market_report` to the moderation-event closed object set (report follow-up decisions, F-12) |
 
 The file header documents the lineage from the superseded D1 history
 (0001..0005), including the workspace layer new in the PostgreSQL target
@@ -76,7 +86,7 @@ later explicit owner/Manus read-only check.
 
 ## Operational settings (admin actions, allowlisted)
 
-Two network settings are owner/admin-controlled through the API —
+The network settings are owner/admin-controlled through the API —
 `PUT /api/admin/settings/:key` (admin session required, everything else
 returns 404/403):
 
@@ -88,6 +98,23 @@ returns 404/403):
 - `rate.limits` — engineering-reference abuse limits (submissionsPerDay,
   imagesPerDay, reportsPerDay, guestReadsPerMinute, authStartsPerMinute).
   Final pilot values are an owner action (EX-O16).
+- `market.enabled` / `delivery.enabled` — the global module kill-switches
+  (F-25): setting `disabled` fails the module's business WRITE actions closed
+  server-side (503 `module_globally_disabled`) while the shared shell entry
+  points and public reads stay available (EX-D19). Absence = enabled; the
+  switch exists for operational recovery during an incident.
+
+## Driver application invitations (OD22 — context only)
+
+Self-application AND invitation are both available (OD22). قيس (admin)
+issues a single-use invitation code (`POST /api/admin/driver-invitations`,
+default validity 7 days, revocable via `DELETE
+/api/admin/driver-invitations/:code`); the invited person signs in with the
+SAME shared Micro identity and consumes the code (`POST
+/api/driver/invitation/:code`). Consumption grants invitation CONTEXT only —
+no activation, no review skip, no membership; the normal reviewed application
+follows separately. An expired/cancelled/missing invitation never blocks
+self-application. Everything is audited (`driver_invitation_*`).
 
 ## Local development (no Cloudflare account required)
 

@@ -64,7 +64,9 @@
   "evidence": [
     "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
     "docs/architecture/refactoring/s12-structure-scan-20261114/S12-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
-    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md",
+    "apps/prototype-web/worker/tests/phaseE.guards.test.ts",
+    "apps/prototype-web/client/src/pages/SharedShell.phaseE.dom.test.tsx"
   ],
   "dependencies": [
     "DOC-033",
@@ -121,5 +123,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ Phase B (أساس PostgreSQL والهوية/القشرة المشتركة وAsk Micro وجسر Manage الأدنى) ثم C/D/E/F بتوثيق كل مرحلة في EXECUTION-REPORT والدفع بعد كل موجة."
+  "next_action": "Phase F على المرشح المتكامل: خمس مراجعات قراءة-فوق متوازية + pnpm check كامل مرة على رأس الدفع النهائي + تحديث EXECUTION-REPORT الختامي بالSHA الكامل؛ ثم التسوية البعدية لأسطح الحزم من تشغيل CI الفعلي."
 }

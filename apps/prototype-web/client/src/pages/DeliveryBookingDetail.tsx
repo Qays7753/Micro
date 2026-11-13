@@ -194,7 +194,7 @@ export default function DeliveryBookingDetail() {
             <section className="micro-quote-box" data-testid="quote-decision">
               <h2>عرض نهائي واحد</h2>
               <p>
-                الأجرة: {minorToJod(data.quote.fareMinor)} د.أ — يشمل: {data.quote.scope}
+                الأجرة: <bdi dir="ltr">{minorToJod(data.quote.fareMinor)}</bdi> د.أ — يشمل: {data.quote.scope}
               </p>
               <p className="micro-quote-expiry">
                 صالح حتى {formatLocalDateTime(new Date(data.quote.validUntil).toISOString()) ?? ""} — بعده
@@ -567,14 +567,20 @@ export default function DeliveryBookingDetail() {
             <dl className="micro-market-facts">
               <div>
                 <dt>الأجرة</dt>
-                <dd>{minorToJod(request.offeredFareMinor)} د.أ</dd>
+                <dd>
+                  <bdi dir="ltr">{minorToJod(request.offeredFareMinor)}</bdi> د.أ
+                </dd>
               </div>
               <div>
                 <dt>التحصيل</dt>
                 <dd>
-                  {request.collectionMinor === null
-                    ? "لا تحصيل"
-                    : `${minorToJod(request.collectionMinor)} د.أ`}
+                  {request.collectionMinor === null ? (
+                    "لا تحصيل"
+                  ) : (
+                    <>
+                      <bdi dir="ltr">{minorToJod(request.collectionMinor)}</bdi> د.أ
+                    </>
+                  )}
                 </dd>
               </div>
               <div>

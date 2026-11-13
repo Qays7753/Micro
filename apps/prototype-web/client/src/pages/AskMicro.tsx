@@ -20,7 +20,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 type AskMessage = { tone: "neutral" | "error" | "success"; text: string } | null;
 
 export default function AskMicro() {
-  const { loading: sessionLoading, session, signIn, failed: sessionFailed } = useNetworkSession();
+  const { loading: sessionLoading, session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
   const returnTo = useReturnPath();
   const [status, setStatus] = useState<AskStatus | null>(null);
   const [statusState, setStatusState] = useState<"loading" | "ready" | "error">("loading");
@@ -46,6 +46,23 @@ export default function AskMicro() {
       active = false;
     };
   }, [sessionLoading, session.authenticated]);
+
+  /* F-15/S12 (صادق مع الحقيقة — Phase E): تعذّر التحقق حالة مستقلة قبل بوابة
+   * الدخول — انقطاع الشبكة لا يُعرض أبدًا كأنه «غير مسجل» (كانت البوابة
+   * تسبق هذا الفحص فتحجب الحالة الصادقة). */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <div className="micro-page-pad" data-testid="ask-session-failed">
+        <h1>اسأل Micro</h1>
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة.
+        </Notice>
+        <Button action="secondary" onClick={() => void refresh()}>
+          إعادة المحاولة
+        </Button>
+      </div>
+    );
+  }
 
   if (!sessionLoading && !session.authenticated) {
     return (
@@ -98,9 +115,6 @@ export default function AskMicro() {
   return (
     <div className="micro-page-pad" data-testid="ask-surface">
       <h1>اسأل Micro</h1>
-      {sessionFailed ? (
-        <Notice tone="error">تعذر التحقق من جلستك الآن — تحقق من اتصالك ثم أعد المحاولة.</Notice>
-      ) : null}
       {statusState === "loading" ? (
         <div className="micro-route-loading" role="status">
           جارٍ تحضير سياقك المصرح…

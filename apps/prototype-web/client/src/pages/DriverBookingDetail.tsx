@@ -212,12 +212,20 @@ export default function DriverBookingDetail() {
             </div>
             <div>
               <dt>الأجرة</dt>
-              <dd>{minorToJod(request.offeredFareMinor)} د.أ</dd>
+              <dd>
+                <bdi dir="ltr">{minorToJod(request.offeredFareMinor)}</bdi> د.أ
+              </dd>
             </div>
             <div>
               <dt>التحصيل (اختياري)</dt>
               <dd>
-                {request.collectionMinor === null ? "لا تحصيل" : `${minorToJod(request.collectionMinor)} د.أ`}
+                {request.collectionMinor === null ? (
+                  "لا تحصيل"
+                ) : (
+                  <>
+                    <bdi dir="ltr">{minorToJod(request.collectionMinor)}</bdi> د.أ
+                  </>
+                )}
               </dd>
             </div>
             <div>

@@ -107,12 +107,16 @@ describe("foundation: sessions and CSRF", () => {
       name: "Attacker",
     };
     // A state value minted in ANOTHER browser (no micro_flow cookie here):
-    // the flow must be consumed atomically and fail closed.
+    // the flow must be consumed atomically and fail closed — with a VISIBLE
+    // honest error page (F-26), never a silent redirect that hides the failure.
     const hijacked = await worker.fetch(
       `/api/auth/google/callback?code=c3&state=${encodeURIComponent(params.get("state") ?? "")}`,
     );
-    expect(hijacked.status).toBe(302);
+    expect(hijacked.status).toBe(401);
     expect(hijacked.headers.get("set-cookie")).toBe(null);
+    const page = await hijacked.text();
+    expect(page).toContain("تعذّر إكمال تسجيل الدخول");
+    expect(page).toContain("لم تُفتح أي جلسة");
     const session = await worker.fetch("/api/auth/session");
     expect(((await session.json()) as { authenticated: boolean }).authenticated).toBe(false);
   });

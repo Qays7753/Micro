@@ -1546,6 +1546,10 @@
       "nbLoc": 585,
       "band": "WATCH"
     },
+    "apps/prototype-web/worker/api/marketReview.ts": {
+      "nbLoc": 454,
+      "band": "WATCH"
+    },
     "scripts/application-door-surfaces-baseline.json": {
       "nbLoc": 518,
       "band": "WATCH"

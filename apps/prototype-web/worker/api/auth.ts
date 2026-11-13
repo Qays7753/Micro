@@ -114,7 +114,40 @@ export async function googleStart(
   });
 }
 
-/** GET /api/auth/google/callback — exchange code, validate, open session. */
+/** GET /api/auth/google/callback — exchange code, validate, open session.
+ *
+ * F-26 (S12 scan): a FAILED sign-in callback is a VISIBLE honest error page
+ * (Arabic RTL) — never a silent redirect to "/" that hides what happened.
+ * The browser arrives here from Google's redirect, so the only honest
+ * surfaces are a completed sign-in or a page that says sign-in failed and
+ * why, with a way back. */
+const CSP_HEADER =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; " +
+  "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'";
+
+function signInErrorPage(status: number, reason: string): Response {
+  const page =
+    `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">` +
+    `<meta name="viewport" content="width=device-width, initial-scale=1">` +
+    `<title>تعذّر تسجيل الدخول — مايكرو</title></head>` +
+    `<body style="margin:0;font-family:system-ui,sans-serif;background:#faf7f2;color:#1c1917;">` +
+    `<main style="max-width:28rem;margin:0 auto;padding:3rem 1.25rem;text-align:center;">` +
+    `<h1 style="font-size:1.35rem;margin:0 0 .75rem;">تعذّر إكمال تسجيل الدخول</h1>` +
+    `<p style="margin:0 0 .5rem;">${reason}</p>` +
+    `<p style="margin:0 0 1.5rem;color:#57534e;font-size:.95rem;">لم تُفتح أي جلسة، ولم يتغير أي شيء في حسابك.</p>` +
+    `<a href="/" style="display:inline-block;padding:.7rem 1.4rem;background:#1c1917;color:#faf7f2;border-radius:.5rem;text-decoration:none;">العودة إلى مايكرو</a>` +
+    `</main></body></html>`;
+  return new Response(page, {
+    status,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "content-security-policy": CSP_HEADER,
+    },
+  });
+}
+
 export async function googleCallback(
   db: Db,
   env: RuntimeEnv<Env>,
@@ -122,37 +155,56 @@ export async function googleCallback(
   ctxRequest: Request,
   outbound?: OutboundFetch,
 ): Promise<Response> {
-  const toHome = new Response(null, { status: 302, headers: { location: "/" } });
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-    return errorResponse("network_not_configured", 503, { binding: "GOOGLE_*" });
+    return signInErrorPage(
+      503,
+      "طبقة الدخول غير مهيأة بعد (بيانات Google OAuth غير مربوطة) — هذه خطوة تهيئة للمالك/Manus.",
+    );
   }
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  if (!code || !state) return toHome;
+  if (!code || !state) {
+    return signInErrorPage(400, "رد الدخول من Google غير مكتمل — أعد المحاولة من صفحة الدخول.");
+  }
   const now = nowMs();
   const flowCookie = parseCookies(ctxRequest.headers.get("cookie")).get("micro_flow");
   const flow = await consumeOAuthFlow(db, state, flowCookie, now);
-  if (!flow) return toHome;
+  if (!flow) {
+    return signInErrorPage(
+      401,
+      "انتهت صلاحية محاولة الدخول أو تعذّر التحقق منها (حالة الدخول غير مطابقة) — أعد المحاولة.",
+    );
+  }
   const redirectUri = `${url.protocol}//${url.host}/api/auth/google/callback`;
   const outboundFetch: OutboundFetch =
     outbound ?? (env.GOOGLE ? (tokenUrl, init) => env.GOOGLE!.fetch(tokenUrl, init) : defaultOutboundFetch);
-  const { idTokenPayload } = await exchangeCode(
-    env.GOOGLE_CLIENT_ID,
-    env.GOOGLE_CLIENT_SECRET,
-    code,
-    redirectUri,
-    outboundFetch,
-  );
-  const profile = validateIdTokenPayload(idTokenPayload, {
-    clientId: env.GOOGLE_CLIENT_ID,
-    nonce: flow.nonce,
-    now,
-  });
-  const identityId = await upsertIdentity(db, profile, now, newId("idn", randomToken));
+  let idTokenPayload: ReturnType<typeof validateIdTokenPayload>;
+  try {
+    const exchanged = await exchangeCode(
+      env.GOOGLE_CLIENT_ID,
+      env.GOOGLE_CLIENT_SECRET,
+      code,
+      redirectUri,
+      outboundFetch,
+    );
+    idTokenPayload = validateIdTokenPayload(exchanged.idTokenPayload, {
+      clientId: env.GOOGLE_CLIENT_ID,
+      nonce: flow.nonce,
+      now,
+    });
+  } catch {
+    // Visible honest failure — the code exchange or the ID token validation
+    // failed (expired code, mismatched nonce/audience…). No session opens.
+    return signInErrorPage(
+      401,
+      "تعذّر التحقق من هويتك مع Google (فشل تبادل الرمز أو التحقق منه) — أعد المحاولة.",
+    );
+  }
+  const identityId = await upsertIdentity(db, idTokenPayload, now, newId("idn", randomToken));
   const bootstrapped = await bootstrapFirstAdmin(
     db,
     identityId,
-    profile.email,
+    idTokenPayload.email,
     env.BOOTSTRAP_OWNER_EMAIL,
     now,
   );

@@ -36,6 +36,19 @@ async function moderationEvent(
     .run();
 }
 
+/**
+ * F-08 (S12 scan; OD18 parity with the driver path): an admin who also OWNS
+ * the record under review (multi-hat account) must not review their own
+ * record — the same documented no-self-review rule the delivery review path
+ * enforces. The rejection is explicit (403 self_review_forbidden), never a
+ * silent skip; the record stays in the queue for another reviewer.
+ */
+function requireNotOwnRecord(authIdentityId: string, ownerIdentityId: string): void {
+  if (authIdentityId === ownerIdentityId) {
+    throw new HttpError(403, "self_review_forbidden");
+  }
+}
+
 /** GET /api/market/review/queue — pending profiles, listings, media, reports. */
 export async function reviewQueue(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
@@ -137,6 +150,7 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
   if (!profile) throw new HttpError(404, "not_found");
   const profileId = String(profile.id);
   const vendorIdentityId = String(profile.identity_id);
+  requireNotOwnRecord(auth.identityId, vendorIdentityId);
   if (action === "approve") {
     await db(ctx)
       .prepare(
@@ -225,6 +239,7 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
   if (!listing) throw new HttpError(404, "not_found");
   const listingId = String(listing.id);
   const vendorIdentityId = String(listing.identity_id);
+  requireNotOwnRecord(auth.identityId, vendorIdentityId);
   const status = String(listing.status);
   const revisionStatus = String(listing.revision_status);
   if (action === "approve") {
@@ -339,6 +354,7 @@ export async function reviewMedia(ctx: RouteContext, auth: AuthenticatedContext)
     .bind(ctx.params.mediaId!)
     .first<Record<string, unknown>>();
   if (!media) throw new HttpError(404, "not_found");
+  requireNotOwnRecord(auth.identityId, String(media.owner_identity_id));
   await db(ctx)
     .prepare("UPDATE media_object SET status = ? WHERE id = ?")
     .bind(body.action === "approve" ? "approved" : "rejected", String(media.id))
@@ -372,4 +388,77 @@ export async function reviewMedia(ctx: RouteContext, auth: AuthenticatedContext)
     now,
   );
   return jsonResponse({ ok: true });
+}
+
+/**
+ * POST /api/market/review/report/:id — report follow-up decisions
+ * (F-12, S12 scan; contract 22 §2 closed set:
+ * acknowledge / request_information / restrict / close).
+ *
+ * The decision is administrative and always recorded with actor + reason +
+ * time (moderation event + audit + reporter notification). It NEVER
+ * auto-mutates the reported object — a restriction is taken separately by
+ * the admin through the object's own review API, keeping the existing
+ * invariant "reports never auto-mutate the listing" (§38). Only `close`
+ * resolves the report; the other three are recorded follow-ups that keep it
+ * open. The admin who filed the report cannot resolve their own report
+ * (requireNotOwnRecord — F-08 parity).
+ */
+export async function resolveReport(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
+  const action = body.action;
+  const REPORT_ACTIONS = ["acknowledge", "request_information", "restrict", "close"] as const;
+  if (!REPORT_ACTIONS.includes((action ?? "") as (typeof REPORT_ACTIONS)[number])) {
+    throw new HttpError(400, "bad_request", { field: "action" });
+  }
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
+  if (!reason) throw new HttpError(400, "bad_request", { field: "reason" });
+  const now = nowMs();
+  const report = await db(ctx)
+    .prepare("SELECT id, reporter_identity_id, status FROM market_report WHERE id = ?")
+    .bind(ctx.params.id!)
+    .first<Record<string, unknown>>();
+  if (!report) throw new HttpError(404, "not_found");
+  const reportId = String(report.id);
+  requireNotOwnRecord(auth.identityId, String(report.reporter_identity_id));
+  if (String(report.status) === "resolved") {
+    throw new HttpError(409, "conflict", { reason: "report_already_resolved" });
+  }
+  if (action === "close") {
+    await db(ctx)
+      .prepare(
+        "UPDATE market_report SET status = 'resolved', resolution_note = ?, resolved_by = ?, resolved_at = ? WHERE id = ?",
+      )
+      .bind(reason, auth.identityId, now, reportId)
+      .run();
+  }
+  await moderationEvent(db(ctx), "market_report", reportId, auth.identityId, action ?? "", reason, now);
+  await notify(
+    db(ctx),
+    {
+      identityId: String(report.reporter_identity_id),
+      type: "report_replied",
+      targetPath: "/market",
+      payload: { action },
+      idempotencyKey: `report-decision:${reportId}:${now}`,
+    },
+    now,
+  ).catch(() => undefined);
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: `review_report_${action}`,
+      objectType: "market_report",
+      objectId: reportId,
+      result: "success",
+      meta: { reason },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true, action, resolved: action === "close" });
 }

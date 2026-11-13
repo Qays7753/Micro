@@ -296,6 +296,44 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
     expect(body.context.permittedRecordSummary.ownerPendingDecisions).toBe(0);
   });
 
+  it("a SUPPLIER (vendor) gets the entry with vendor-scoped context — their own listings only (Phase E)", async () => {
+    const vendor = await signInAs(worker, { sub: "ask-supplier", email: "ask-supplier@example.test" });
+    await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
+      displayName: "مورد السياق",
+      contactPhone: "+962790000020",
+      governorate: "عمان",
+    });
+    const response = await apiGet(worker, vendor.cookieHeader, "/api/ask/status");
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      available: boolean;
+      context: {
+        roles: { owner: boolean; vendor: boolean; driver: boolean; admin: boolean };
+        workspaces: Array<{ role: string }>;
+        permittedRecordSummary: { vendorListings: number };
+      };
+    };
+    expect(body.available).toBe(true);
+    expect(body.context.roles.vendor).toBe(true);
+    expect(body.context.roles.admin).toBe(false);
+    expect(body.context.workspaces).toHaveLength(1);
+    expect(body.context.permittedRecordSummary.vendorListings).toBe(0);
+  });
+
+  it("a REVIEWER/ADMIN gets the entry with the admin role in context (Phase E)", async () => {
+    const response = await apiGet(worker, adminCookie, "/api/ask/status");
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      available: boolean;
+      context: {
+        roles: { owner: boolean; vendor: boolean; driver: boolean; admin: boolean };
+      };
+    };
+    expect(body.available).toBe(true);
+    expect(body.context.roles.admin).toBe(true);
+    expect(body.context.roles.vendor).toBe(false);
+  });
+
   it("asking without an approved provider returns an honest 501 — no fabricated answers", async () => {
     const owner = await signInAs(worker, { sub: "ask-q", email: "ask-q@example.test" });
     const response = await apiPost(worker, owner.cookieHeader, "/api/ask", {

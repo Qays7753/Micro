@@ -239,7 +239,8 @@ export default function Profile() {
           {sessionLoading ? (
             <p role="status">جارٍ التحقق من حسابك…</p>
           ) : sessionFailed ? (
-            <p role="status">تعذر التحقق من حسابك الآن — بيانات مشروعك المحلية سليمة.</p>
+            /* R10-B4/F-017 (Phase E): خطأ مؤكد يعلن بـ alert لا status. */
+            <p role="alert">تعذر التحقق من حسابك الآن — بيانات مشروعك المحلية سليمة.</p>
           ) : session.authenticated && session.identity ? (
             <>
               <dl>

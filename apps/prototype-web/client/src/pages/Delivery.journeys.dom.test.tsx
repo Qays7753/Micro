@@ -252,7 +252,13 @@ describe("driver booking detail (directed request view)", () => {
     expect(await screen.findByText("طلب ينتظر ردك (30 دقيقة)")).toBeTruthy();
     expect(screen.getByText("ورشة الأمل")).toBeTruthy();
     expect(screen.getByText("عمان ← الزرقاء")).toBeTruthy();
-    expect(screen.getByText(/50.00 د\.أ/)).toBeTruthy();
+    /* F-11 (Phase E): المبلغ معزول بـ bdi كنونيًا — التحقق على البنية نفسها:
+     * رقم المبلغ داخل bdi والوحدة إلى جواره في نفس حاوية كل حقل. */
+    const fareBox = screen.getByText("الأجرة").closest("div") as HTMLElement;
+    expect(fareBox.querySelector("bdi")?.textContent).toBe("3.00");
+    expect(fareBox.textContent).toContain("د.أ");
+    const collectionBox = screen.getByText("التحصيل (اختياري)").closest("div") as HTMLElement;
+    expect(collectionBox.querySelector("bdi")?.textContent).toBe("50.00");
     expect(screen.getByRole("button", { name: "اقبل الأجرة المعروضة" })).toBeTruthy();
     expect(screen.getByText(/محجوبة حتى قرار الإفصاح/)).toBeTruthy();
     await waitFor(() => {

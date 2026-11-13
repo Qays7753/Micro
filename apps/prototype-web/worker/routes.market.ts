@@ -22,7 +22,7 @@ import {
   updateListingDraft,
   vendorListingLifecycle,
 } from "./api/marketListings.ts";
-import { reviewListing, reviewMedia, reviewProfile, reviewQueue } from "./api/marketReview.ts";
+import { resolveReport, reviewListing, reviewMedia, reviewProfile, reviewQueue } from "./api/marketReview.ts";
 import { runDueRemindersNow } from "./api/reminders.ts";
 import { command } from "./commands.ts";
 import { authedRoute } from "./routes.ts";
@@ -158,6 +158,15 @@ export function registerMarketRoutes(router: ApiRouter): void {
     command(
       "review-media",
       authedRoute((ctx, auth) => reviewMedia(ctx, auth)),
+    ),
+  );
+  // Report follow-up decisions (F-12 — contract 22 §2 closed set);
+  // recorded administrative decisions, never an auto-mutation of the object.
+  router.post(
+    "api/market/review/report/:id",
+    command(
+      "review-report",
+      authedRoute((ctx, auth) => resolveReport(ctx, auth)),
     ),
   );
   // In-app reminders due-processing (contract 19 §9): admin-only manual run —

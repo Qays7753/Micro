@@ -38,7 +38,7 @@ function minorToJod(minor: string | null): string | null {
 
 export default function Delivery() {
   const [, navigate] = useLocation();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [requests, setRequests] = useState<OwnerRequestSummary[]>([]);
   const [statements, setStatements] = useState<
     {
@@ -90,7 +90,15 @@ export default function Delivery() {
       </div>
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
-      {!session.authenticated ? (
+      {!session.authenticated && sessionFailed ? (
+        /* F-15/S12 (Phase E): انقطاع التحقق حالة مستقلة — لا تُعرض كبوابة دخول. */
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة.
+          <Button action="quiet" onClick={() => void refresh()}>
+            إعادة المحاولة
+          </Button>
+        </Notice>
+      ) : !session.authenticated ? (
         <Notice tone="neutral">
           حجز التوصيل وكشوفه يحتاجان تسجيل الدخول بهوية Micro. دليل السائقين العام متاح من زر «سائقوني».
           <Button action="quiet" onClick={() => signIn("/delivery")}>
@@ -120,12 +128,13 @@ export default function Delivery() {
             <article key={statement.id} className="micro-statement-card">
               <p>
                 {statement.driverName} — {formatLocalDate(statement.date)} —{" "}
-                {minorToJod(statement.totalMinor)} د.أ
+                {/* F-11 (S12/Phase E): عزل bidi كنوني للمبالغ عند المساس. */}
+                <bdi dir="ltr">{minorToJod(statement.totalMinor)}</bdi> د.أ
               </p>
               <ul className="micro-statement-card__items">
                 {(statement.items ?? []).map((item, index) => (
                   <li key={index}>
-                    {item.description} — {minorToJod(item.amountMinor)} د.أ
+                    {item.description} — <bdi dir="ltr">{minorToJod(item.amountMinor)}</bdi> د.أ
                   </li>
                 ))}
               </ul>
@@ -240,12 +249,21 @@ export default function Delivery() {
             >
               <strong>{STATUS_LABELS[request.status] ?? request.status}</strong>
               <span>
-                {request.pricingMode === "prepriced"
-                  ? `أجرة معروضة ${minorToJod(request.offeredFareMinor) ?? "—"} د.أ`
-                  : "طلب تسعير موجه"}
-                {request.collectionMinor !== null
-                  ? ` · تحصيل ${minorToJod(request.collectionMinor)} د.أ`
-                  : ""}
+                {request.pricingMode === "prepriced" ? (
+                  <>
+                    أجرة معروضة <bdi dir="ltr">{minorToJod(request.offeredFareMinor) ?? "—"}</bdi> د.أ
+                  </>
+                ) : (
+                  "طلب تسعير موجه"
+                )}
+                {request.collectionMinor !== null ? (
+                  <>
+                    {" · تحصيل "}
+                    <bdi dir="ltr">{minorToJod(request.collectionMinor)}</bdi> د.أ
+                  </>
+                ) : (
+                  ""
+                )}
               </span>
             </button>
           </li>

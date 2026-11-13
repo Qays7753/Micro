@@ -85,6 +85,22 @@ const ADMIN_SETTINGS_ALLOWLIST: Record<string, (value: unknown) => unknown> = {
     }
     return out;
   },
+  /* F-25 (S12 scan): global module kill-switches — business actions only.
+   * Setting "disabled" fails the module's business writes closed server-side
+   * (503 module_globally_disabled) while the shared shell entry points stay
+   * visible with an honest state (EX-D19). Absence of the key = enabled. */
+  "market.enabled": value => {
+    if (value !== "enabled" && value !== "disabled") {
+      throw new HttpError(400, "bad_request", { field: "value", reason: "invalid_module_flag" });
+    }
+    return { market_enabled: value === "enabled" };
+  },
+  "delivery.enabled": value => {
+    if (value !== "enabled" && value !== "disabled") {
+      throw new HttpError(400, "bad_request", { field: "value", reason: "invalid_module_flag" });
+    }
+    return { delivery_enabled: value === "enabled" };
+  },
 };
 
 /** PUT /api/admin/settings/:key — admin-only, allowlisted network settings. */

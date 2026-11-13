@@ -24,6 +24,11 @@ import {
 import { decideConsent, proposeConsent, withdrawConsent, recordInstructions } from "./api/deliveryConsent.ts";
 import { decideChange, proposeChange, withdrawChange } from "./api/deliveryChange.ts";
 import {
+  cancelDriverInvitation,
+  consumeDriverInvitation,
+  createDriverInvitation,
+} from "./api/driverInvitations.ts";
+import {
   driverPortal,
   saveDriverEvidence,
   saveDriverProfile,
@@ -291,6 +296,30 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
       if (!status) return errorResponse("not_found", 404);
       return driverStatements(ctx, auth, status.driverProfileId);
     }),
+  );
+  // Driver application invitations (F-13 — OD22: self-application AND
+  // invitation both available; an invitation grants CONTEXT ONLY — it never
+  // activates, never skips review, never creates a second account).
+  router.post(
+    "api/admin/driver-invitations",
+    command(
+      "driver-invitation-create",
+      authedRoute((ctx, auth) => createDriverInvitation(ctx, auth)),
+    ),
+  );
+  router.delete(
+    "api/admin/driver-invitations/:code",
+    command(
+      "driver-invitation-cancel",
+      authedRoute((ctx, auth) => cancelDriverInvitation(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/driver/invitation/:code",
+    command(
+      "driver-invitation-consume",
+      authedRoute((ctx, auth) => consumeDriverInvitation(ctx, auth)),
+    ),
   );
   // Delivery review (admin).
   router.get(

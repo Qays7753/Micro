@@ -7446,6 +7446,27 @@ button.micro-driver-request-card:focus-visible,
   border-bottom: 1px solid var(--color-border);
 }
 
+/* مدخل Ask Micro الشامل في ترويسة السائق (EX-D21). مراجعة RTL المرسومة
+ * (Phase E، 360/390/430): الزر بلا نمط كان 27px ارتفاعًا — أدنى من حد
+ * اللمس 32px؛ صار عنصر تحكم كامل الارتفاع بصمة هادئة على سطح الترويسة. */
+.micro-driver-ask-entry {
+  min-height: 36px;
+  min-width: 36px;
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.micro-driver-ask-entry:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: 2px;
+}
+
 .micro-service-areas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

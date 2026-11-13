@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "98d1ad23eec42deba95822f594561062e89f5957",
+  "head": "dbafa540342f884fa24c750e103da1d106b75244",
   "pages": {
     "total": 73,
     "map": {
@@ -13,7 +13,8 @@
       "pages/AskMicro.tsx": {
         "kind": "direct",
         "evidence": [
-          "pages/AskMicro.dom.test.tsx"
+          "pages/AskMicro.dom.test.tsx",
+          "pages/SharedShell.phaseE.dom.test.tsx"
         ]
       },
       "pages/AssetDetail.tsx": {

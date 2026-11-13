@@ -109,7 +109,14 @@ export default function MarketListingDetail() {
                   ? "يحتاج تسعيرًا — اسأل المورد"
                   : listing.priceMode === "tiered"
                     ? "السعر حسب الكمية — اسأل المورد عن الشرائح"
-                    : `${(BigInt(listing.priceMicroJod ?? "0") / 1_000_000n).toString()}.${(BigInt(listing.priceMicroJod ?? "0") % 1_000_000n).toString().padStart(6, "0").slice(0, 3)} د.أ`}
+                    : /* F-11 (S12/Phase E): عزل bidi كنوني للمبلغ. */
+                      ((priceJod: string) => (
+                        <>
+                          <bdi dir="ltr">{priceJod}</bdi> د.أ
+                        </>
+                      ))(
+                        `${(BigInt(listing.priceMicroJod ?? "0") / 1_000_000n).toString()}.${(BigInt(listing.priceMicroJod ?? "0") % 1_000_000n).toString().padStart(6, "0").slice(0, 3)}`,
+                      )}
               </dd>
             </div>
             <div>
@@ -137,7 +144,7 @@ export default function MarketListingDetail() {
             </label>
             {estimate?.kind === "estimated" ? (
               <p className="micro-market-estimate" data-testid="market-estimate">
-                قيمة تقديرية غير ملزمة: {estimate.displayJod} د.أ
+                قيمة تقديرية غير ملزمة: <bdi dir="ltr">{estimate.displayJod}</bdi> د.أ
               </p>
             ) : null}
             <p className="micro-market-contact__hint">

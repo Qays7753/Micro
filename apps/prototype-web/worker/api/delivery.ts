@@ -73,6 +73,9 @@ export async function driverDirectory(ctx: RouteContext): Promise<Response> {
 
 /** GET /api/delivery/drivers/:id — the driver's approved public profile. */
 export async function driverPublicProfile(ctx: RouteContext): Promise<Response> {
+  // F-09 (S12 scan): the same guest read limiter as the directory — an
+  // unbounded public profile surface is an unlimited scraping surface.
+  await enforceGuestReadLimit(ctx.env.DB, ctx.request, nowMs());
   const row = await db(ctx)
     .prepare("SELECT id, public_copy_json, status FROM driver_profile WHERE id = ?")
     .bind(ctx.params.id!)
@@ -128,8 +131,23 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
   if (!driverProfileRow) throw new HttpError(404, "not_found");
   const isRequester = requesterId === auth.identityId;
   const isDriver = String(driverProfileRow.identity_id) === auth.identityId;
-  if (!isRequester && !isDriver && !auth.isAdmin) throw new HttpError(404, "not_found");
   const now = nowMs();
+  if (!isRequester && !isDriver && !auth.isAdmin) {
+    // F-07 (contract 22 §4): a denied attempt to read a delivery record is
+    // audited — actor/reference/time only, never a content copy.
+    await audit(
+      db(ctx),
+      {
+        actorIdentityId: auth.identityId,
+        action: "delivery_request_read",
+        objectType: "delivery_request",
+        objectId: String(row.id),
+        result: "denied",
+      },
+      now,
+    );
+    throw new HttpError(404, "not_found");
+  }
   const status = effectiveRequestStatus(
     String(row.status) as RequestStatus,
     row.response_deadline_at === null ? null : Number(row.response_deadline_at),
@@ -137,6 +155,27 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
   );
   const payload = JSON.parse(String(row.payload_json)) as Record<string, unknown>;
   const disclosure = await getDisclosureSettings(db(ctx));
+  if (
+    isDriver &&
+    disclosure.recipient_details_to_driver === "allowed_after_acceptance" &&
+    status === "confirmed"
+  ) {
+    // F-07 (contract 22 §4, amendment E-12): the assigned driver reading
+    // recipient-scoped details (phone/address) is audited — actor/reference/
+    // time and the disclosure scope ONLY, never a copy of the field contents.
+    await audit(
+      db(ctx),
+      {
+        actorIdentityId: auth.identityId,
+        action: "delivery_scoped_read",
+        objectType: "delivery_request",
+        objectId: String(row.id),
+        result: "success",
+        meta: { scope: "recipient_details" },
+      },
+      now,
+    );
+  }
   const quote = row.quote_id
     ? await db(ctx)
         .prepare("SELECT id, fare_minor, scope_json, valid_until FROM delivery_quote WHERE id = ?")

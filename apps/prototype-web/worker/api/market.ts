@@ -8,7 +8,7 @@
 import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
-import { newId, type Db } from "../db/db.ts";
+import { newId, isGlobalModuleEnabled, type Db } from "../db/db.ts";
 import { enforceGuestReadLimit } from "../ratelimit.ts";
 import {
   conformsToQuantityRules,
@@ -302,6 +302,12 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
+  // F-25: the global market kill-switch fails business actions closed BEFORE
+  // the workspace capability check (an incident-wide stop is the more
+  // informative state when both would apply). Entry points stay visible.
+  if (!(await isGlobalModuleEnabled(db(ctx), "market"))) {
+    throw new HttpError(503, "module_globally_disabled", { reason: "module_market_disabled_globally" });
+  }
   const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, nowMs(), randomToken);
   if (!workspace.marketEnabled) {
     throw new HttpError(403, "workspace_capability_disabled", { reason: "module_market_disabled" });

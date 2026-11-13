@@ -36,7 +36,7 @@ function microToJod(micro: string | null): string | null {
 
 export default function Market() {
   const [, navigate] = useLocation();
-  const { session, signIn } = useNetworkSession();
+  const { session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
   const [meta, setMeta] = useState<MarketMeta | null>(null);
   const [listings, setListings] = useState<PublicListingSummary[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -158,6 +158,15 @@ export default function Market() {
             مساحة المورد — إعلاناتي
           </Button>
         </div>
+      ) : sessionFailed ? (
+        /* F-15/S12 (Phase E): انقطاع التحقق حالة مستقلة — لا تُعرض كبوابة دخول؛
+         * التصفح العام يستمر (لا يحتاج جلسة). */
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — التصفح العام متاح، ومساحة المورد تحتاج تحققًا ناجحًا. أعد المحاولة.
+          <Button action="quiet" onClick={() => void refresh()}>
+            إعادة المحاولة
+          </Button>
+        </Notice>
       ) : (
         <Notice tone="neutral">
           تسجيل الدخول بهوية Micro مطلوب لإضافة إعلانك كمورد — التصفح متاح للجميع.
@@ -214,11 +223,15 @@ export default function Market() {
                 {listing.quantityUnit}
               </span>
               <span className="micro-market-card__price">
-                {listing.priceMode === "fixed"
-                  ? `${microToJod(listing.priceMicroJod) ?? "0"} د.أ · سعر ثابت`
-                  : listing.priceMode === "tiered"
-                    ? "السعر حسب الكمية"
-                    : "يحتاج تسعيرًا"}
+                {listing.priceMode === "fixed" ? (
+                  <>
+                    <bdi dir="ltr">{microToJod(listing.priceMicroJod) ?? "0"}</bdi> د.أ · سعر ثابت
+                  </>
+                ) : listing.priceMode === "tiered" ? (
+                  "السعر حسب الكمية"
+                ) : (
+                  "يحتاج تسعيرًا"
+                )}
               </span>
               {FRESHNESS_LABELS[listing.freshness] ? (
                 <span className="micro-market-card__freshness">{FRESHNESS_LABELS[listing.freshness]}</span>

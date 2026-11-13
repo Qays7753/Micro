@@ -32,6 +32,19 @@ const ERROR_MESSAGES: Record<string, string> = {
   network_not_configured: "طبقة الشبكة غير مهيأة بعد (رابط D1/R2 مفقود) — راجع خطوات التهيئة.",
   internal_error: "حدث خطأ غير متوقع — سُجل بلا أي بيانات خاصة.",
   method_not_allowed: "طريقة الطلب غير مدعومة لهذا المسار.",
+  /* Phase E honesty fix (S12/W6): deliberate product states must never
+   * render as "unexpected error" — every code a signed-in person can hit in
+   * the UI carries its own honest Arabic message. */
+  workspace_capability_disabled: "هذا الفعل معطل لمساحة عملك الحالية — راجع إعدادات مساحة العمل.",
+  workspace_missing: "لا توجد مساحة عمل نشطة لحسابك بعد — أنشئ مساحتك من أول فعل عمل.",
+  ask_not_configured:
+    "Ask Micro غير مهيأة بعد: لا يوجد مزود ذكاء اصطناعي معتمد مرتبط — الإعداد خطوة مالك/Manus لاحقة.",
+  module_globally_disabled: "هذه الوحدة موقوفة مؤقتًا على مستوى النظام بصلاحية إدارية — أعد المحاولة لاحقًا.",
+  self_review_forbidden: "لا يجوز مراجعة سجلك الخاص — القرار يحتاج مراجعًا آخر.",
+  invitation_already_used: "رابط الدعوة مستهلك بالفعل — كل دعوة تُلحق حسابًا واحدًا فقط.",
+  invitation_expired: "انتهت صلاحية رابط الدعوة — التقديم الذاتي يبقى متاحًا دائمًا.",
+  invitation_cancelled: "أُلغيت هذه الدعوة — التقديم الذاتي يبقى متاحًا دائمًا.",
+  report_already_resolved: "هذا البلاغ محلول بالفعل — لا يُعاد فتحه من هذا المسار.",
 };
 
 export function errorResponse(

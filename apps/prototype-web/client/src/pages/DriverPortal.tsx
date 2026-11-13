@@ -80,7 +80,7 @@ function minorToJod(minor: string | null): string {
 
 export default function DriverPortal() {
   const [, navigate] = useLocation();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [portal, setPortal] = useState<DriverPortalState | null>(null);
   const [requests, setRequests] = useState<DriverRequestSummary[]>([]);
   const [statements, setStatements] = useState<DriverStatementSummary[]>([]);
@@ -132,6 +132,25 @@ export default function DriverPortal() {
   useEffect(() => {
     if (session.authenticated) void load();
   }, [session.authenticated, load]);
+
+  /* F-15/S12 (Phase E): تعذّر التحقق حالة مستقلة قبل بوابة الدخول — انقطاع
+   * الشبكة لا يُعرض كأنه «غير مسجل». */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <section className="micro-page micro-driver-portal" data-testid="driver-portal-unverified">
+        <div className="micro-page-heading">
+          <span className="micro-overline">Micro — السائق</span>
+          <h1>بوابة السائق</h1>
+        </div>
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة.
+        </Notice>
+        <Button action="secondary" onClick={() => void refresh()}>
+          إعادة المحاولة
+        </Button>
+      </section>
+    );
+  }
 
   if (!sessionLoading && !session.authenticated) {
     return (
@@ -411,9 +430,14 @@ export default function DriverPortal() {
                         </strong>
                         <span>
                           {request.needType === "deliver_to_customer" ? "توصيل للزبون" : "إحضار أغراض جاهزة"}
-                          {request.collectionMinor !== null
-                            ? ` · تحصيل ${minorToJod(request.collectionMinor)} د.أ`
-                            : ""}
+                          {request.collectionMinor !== null ? (
+                            <>
+                              {" · تحصيل "}
+                              <bdi dir="ltr">{minorToJod(request.collectionMinor)}</bdi> د.أ
+                            </>
+                          ) : (
+                            ""
+                          )}
                         </span>
                       </button>
                     </li>
@@ -430,13 +454,14 @@ export default function DriverPortal() {
                 {statements.map(statement => (
                   <li key={statement.id} className="micro-statement-card">
                     <p>
-                      {formatLocalDate(statement.date)} — {minorToJod(statement.totalMinor)} د.أ —{" "}
+                      {formatLocalDate(statement.date)} —{" "}
+                      <bdi dir="ltr">{minorToJod(statement.totalMinor)}</bdi> د.أ —{" "}
                       {STATEMENT_STATUS_LABELS[statement.status] ?? statement.status}
                     </p>
                     <ul className="micro-statement-card__items">
                       {statement.items.map((item, index) => (
                         <li key={index}>
-                          {item.description} — {minorToJod(item.amountMinor)} د.أ
+                          {item.description} — <bdi dir="ltr">{minorToJod(item.amountMinor)}</bdi> د.أ
                         </li>
                       ))}
                     </ul>

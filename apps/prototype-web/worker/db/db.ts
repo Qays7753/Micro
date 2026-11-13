@@ -154,3 +154,23 @@ export const DEFAULT_DISCLOSURE: DisclosureSettings = { recipient_details_to_dri
 export async function getDisclosureSettings(db: Db): Promise<DisclosureSettings> {
   return getSetting<DisclosureSettings>(db, "disclosure.recipient", DEFAULT_DISCLOSURE);
 }
+
+/**
+ * Global module kill-switch (F-25, S12 scan — operational recovery during an
+ * incident): the admin can disable market/delivery BUSINESS ACTIONS globally
+ * through the allowlisted settings (`market.enabled` / `delivery.enabled`).
+ * The flags never hide the shared shell entry points (EX-D19) — the action
+ * fails closed server-side with an honest state, and the client renders that
+ * state. Absence of a setting means ENABLED (the default posture); the
+ * switch exists to be turned OFF deliberately during an incident.
+ */
+export interface GlobalModuleFlags {
+  market_enabled?: boolean;
+  delivery_enabled?: boolean;
+}
+
+export async function isGlobalModuleEnabled(db: Db, module: "market" | "delivery"): Promise<boolean> {
+  const key = module === "market" ? "market.enabled" : "delivery.enabled";
+  const flags = await getSetting<GlobalModuleFlags>(db, key, {});
+  return module === "market" ? flags.market_enabled !== false : flags.delivery_enabled !== false;
+}
