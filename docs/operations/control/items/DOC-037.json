@@ -1,0 +1,125 @@
+{
+  "id": "DOC-037",
+  "title": "مهمة المالك المنقحة 2026-11-13: حساب Micro واحد وقشرة مشتركة بمداخل أربعة (Manage/Market/Delivery/Ask Micro)، Ask Micro شاملة بكل سياق مصرح بما فيه السائق، إكمال Market/Delivery على PostgreSQL واحد عبر Hyperdrive، وجسر Manage الأدنى — تنفيذ متواصل بعد مسح S12",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "market-delivery-postgresql-shared-account-20261113",
+  "summary": "تنفيذ تفويض المالك المنقح (EX-D19…EX-D22 المسجلة في DECISIONS.md §1): حساب Micro عالمي واحد بقشرة مشتركة بمداخل أربعة وتصريح بيانات محصور خادميًا بWorkspace/دور/ملكية/تعيين؛ Ask Micro شاملة بحد API خادمي لكل طلب ولا موفر مدفوع ولا ردود مفبركة (حالة «غير مهيأ» صادقة عند غياب موفر معتمد)؛ نقل Market/Delivery عن D1 إلى PostgreSQL واحد (Neon Free عبر Cloudflare Hyperdrive) بترحيلات مرتبة ومسار اختبار محلي وإبقاء ترحيلات D1 تاريخًا موسومًا؛ جسر قشري/هوياتي أدنى لـManage بلا أي تغيير لسلوكه المالي/المحلي (41/34 و29 زوجًا محفوظة)؛ إغلاق فجوات الجاهزية المؤكدة داخل النطاق (تدقيق delivery_scoped والمرفوضات، OD18 تقييم ذات الأدمن، حد معدل driverPublicProfile، role=alert وbdi للأسطح المتصلة، حل البلاغات، Cron/Pages توثيقيًا، علم تعطيل إداري) مع مراجعة UX عربية مرسومة ومراجعات خمس ختامية على المرشح النهائي.",
+  "source": {
+    "report": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "discovered_at_sha": "0d4ae258f774b7f99457c0f18420440f7e971847",
+    "evidence": [
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/ONLINE-READINESS-ANALYSIS-REPORT-2026-11-13.md",
+      "docs/architecture/refactoring/s12-structure-scan-20261114/S12-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    ]
+  },
+  "acceptance": [
+    "حساب واحد/جلسة واحدة يصل إلى مداخل المنتج الأربعة بلا اختيار وحدة عند التسجيل ولا دخول منفصل؛ فحوص Workspace تثبت وصول Market-only وDelivery-only ومجتمعًا ومتعدد Workspaces بلا تسريب سجلات.",
+    "صفر وصول غير مصرح عابرًا للWorkspaces/الأدوار/الموارد في فحوص API إيجابية وسلبية، بما فيها كائنات R2 خاصة وحدود تعيين السائق.",
+    "صفر مسار تشغيل نشط لD1 في Market/Delivery بعد الانتقال؛ كل الترحيلات/الفحوص المعنية على مسار PostgreSQL المعتمد؛ لا حذف أي مورد/بيانات مزود حية.",
+    "صفر تغيير لسلوك Manage المالي/المجالي أو مخازنه أو تصديره/استيراده وصفر أثر مالي جانبي من Market/Delivery؛ اختبارات Manage القائمة تبقى خضراء بلا تعديل.",
+    "Ask Micro ظاهرة في كل سياق موقع بما فيه السائق، بحد خادمي مفروضًا ولا وصول قاعدة مباشر ولا كتابات مالية/تشغيلية ولا كلفة.",
+    "كل كتابة حساسة متعددة الصفوف معاملاتية وحتمية تحت إعادة المحاولة/التزامن.",
+    "حدود الطبقة المجانية محفوظة: لا خطة مدفوعة ولا سر في GitHub ووسائط خاصة تفشل مغلقًا وحصص منضوبة لا تنفق.",
+    "الفحوص الواجبة على SHA المرشح النهائي خضراء أو NOT_RUN/BLOCKED بدليل وخطوة دقيقة — لا يُدعى المنتج حيًا أو مقبولًا بدليل كود وحده."
+  ],
+  "areas": [
+    "apps/prototype-web/worker/",
+    "apps/prototype-web/worker/db/",
+    "apps/prototype-web/worker/auth/",
+    "apps/prototype-web/worker/api/",
+    "apps/prototype-web/worker/tests/",
+    "apps/prototype-web/client/src/application/network/",
+    "apps/prototype-web/client/src/application/market/",
+    "apps/prototype-web/client/src/application/delivery/",
+    "apps/prototype-web/client/src/app/",
+    "apps/prototype-web/client/src/components/layout/",
+    "apps/prototype-web/client/src/pages/Market.tsx",
+    "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+    "apps/prototype-web/client/src/pages/Delivery.tsx",
+    "apps/prototype-web/client/src/pages/DriverPortal.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/TRACKER.md",
+    "docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md",
+    "docs/expansion/ROLE-ACCESS-MATRIX.md",
+    "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
+    "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/19-services-notification-manage-boundary-contract.md",
+    "docs/contracts/20-market-need-response-listing-moderation-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/22-network-moderation-consent-audit-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+    "docs/contracts/24-network-data-classification-field-dictionary-contract.md",
+    "docs/contracts/25-network-money-representation-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md"
+  ],
+  "evidence": [
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "docs/architecture/refactoring/s12-structure-scan-20261114/S12-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+  ],
+  "dependencies": [
+    "DOC-033",
+    "DOC-034",
+    "DOC-035",
+    "DOC-036"
+  ],
+  "related_items": [
+    "DOC-033",
+    "DOC-034",
+    "DOC-035",
+    "DOC-036"
+  ],
+  "owner": "Micro owner (Qays7753); ZAI sole implementation writer per revised owner master prompt 0d4ae258",
+  "owner_decision": "قرارات المالك المنقحة 2026-11-13 (EX-D19…EX-D22 في DECISIONS.md §1): حساب واحد/قشرة مشتركة/Workspaces؛ PostgreSQL واحد عبر Neon Free/Hyperdrive بلا D1 نشط بعده؛ Ask Micro شاملة بلا موفر مدفوع؛ جسر Manage الأدنى فقط؛ تنفيذ متواصل بلا وقفات موافقة بعد مسح S12 الهيكلي الواجب — بلا main/PR/دمج/نشر/وصول مزود/موارد مدفوعة/Google Drive.",
+  "tests_required": [
+    "فحوص PostgreSQL محلية: ترحيلات مرتبة + دورات Market/Delivery كاملة فوق قاعدة حقيقية أو محاكاة موثقة + فحوص سلبية عابرة للWorkspaces/الأدوار/التعيين.",
+    "فحوص القشرة المشتركة: جلسة قشرية واحدة، سياق سائق مقيّد (Delivery + Ask Micro فقط)، ضيف بلا فرض /setup، حالات غياب تهيئة Workspace.",
+    "فحوص Ask Micro: توافر المدخل لكل دور بما فيه السائق + حدود الاسترجاع بكل دور + لا كتابات.",
+    "فحوص ثوابت Manage: مجموعات فحوصه القائمة تبقى خضراء بلا تعديل (إثبات الجسر الأدنى).",
+    "البوابة الكاملة pnpm check على المرشح النهائي مرة واحدة."
+  ],
+  "layers": [
+    "api",
+    "database",
+    "application",
+    "presentation",
+    "security",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "updated_at": "2026-11-14",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-14",
+      "actor": "zai-claim-2026-11-14",
+      "reason": "أنشئ البند بتفويض المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258) بعد نشر مسح S12 الهيكلي الإلزامي؛ نفس فرع التسليم ومطالبة WS-249 القائمة (لا مطالبة متداخلة — استمرار الكاتب الواحد نفسه)."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-14",
+      "actor": "zai-claim-2026-11-14",
+      "reason": "استُولي عليه بمطالبة WS-249 (أُضيف إلى بنودها) لتنفيذ الأطوار A–F المتواصلة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-14",
+      "actor": "zai-implementation-writer",
+      "reason": "اكتمل Phase A توثيقيًا: تسجيل EX-D19…EX-D22 في DECISIONS.md وتعديل العقود 18§9/26§9/20§3.3/مصفوفة الدور/IA§7/قرار المعمارية§6/بوابة Migration بتواريخ صريحة + TRACKER E-00.19؛ يليها Phase B (أساس PostgreSQL/الهوية/القشرة/Ask Micro/جسر Manage)."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تنفيذ Phase B (أساس PostgreSQL والهوية/القشرة المشتركة وAsk Micro وجسر Manage الأدنى) ثم C/D/E/F بتوثيق كل مرحلة في EXECUTION-REPORT والدفع بعد كل موجة."
+}
