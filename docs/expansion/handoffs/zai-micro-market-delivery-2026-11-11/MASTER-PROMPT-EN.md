@@ -1,14 +1,15 @@
-# Z AI 5.3 — Owner-Authorized Micro Market + Delivery Implementation
+# Z AI 5.3 — Whole Micro Online Readiness Analysis (READ-ONLY)
 
-**Status:** The sole controlling execution prompt for the existing handoff branch. It supersedes the earlier analysis-only prompt.<br>
+**Status:** Current owner-authorized task for the existing Z AI conversation (2026-11-13). Follow `ONLINE-READINESS-ANALYSIS-PROMPT-EN.md` for this invocation. The prior implementation instructions retained below are suspended until the owner separately authorizes implementation.<br>
 **Repository:** `Qays7753/Micro`<br>
 **Branch:** `zai/micro-market-delivery-handoff-20261111` — verify the live branch before acting.<br>
-**Latest independently reviewed branch SHA:** `1cdbdde1f0e9c17c5f56fd2913444a5ad93ab7c8` (reference only; verify live before acting).<br>
-**Working rule:** GitHub in this repository is the only source of truth for this task. Use no external file service and no external-file-service link or identifier.
+**Last observed branch SHA:** `e8cf476836c75895112a9b6f8536c79ccc8f9374` (reference only; verify live).<br>
+**Current owner direction:** analyze Micro as one connected product including Manage, Market, and Delivery; treat older conflicting local-only/feature-limited assumptions as prior decisions to assess, not as blockers.<br>
+**Source of truth:** GitHub files in this repository only. No Google Drive or external-file-service links/IDs.
 
-## CURRENT OWNER-APPROVED CONTINUATION — 2026-11-12 (HIGHEST PRIORITY)
+## HISTORICAL IMPLEMENTATION PROMPT — SUSPENDED FOR THIS ANALYSIS
 
-This continuation is the owner's latest authorization and takes priority over the original phase sequence below wherever that sequence would repeat completed work. Continue on this same branch without another approval pause and complete all remaining in-scope code, user-experience (UX), documentation, and verification work described here. The owner means the experience of using the app, not a field pilot. Do not invent or set a pilot location, duration, participant count, or real-user launch plan; those are later owner/Manus decisions and do not block this work.
+The following 2026-11-12 continuation and its implementation phases are retained for history only. Do not implement code, modify earlier documents/Control, rerun prior work, configure providers, or follow any write/test/deploy instruction below during this task. The only current task is the read-only analysis in `ONLINE-READINESS-ANALYSIS-PROMPT-EN.md`; the only permitted repository write is the single report file named there, pushed to this existing branch only if safe.
 
 ### Resume without repeating work
 
