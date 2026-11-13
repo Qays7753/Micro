@@ -28,6 +28,32 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Stage B (S13/M-F3، 2026-11-14): حاوية خدمة PostgreSQL تحل محل إقلاع
+    # PostgreSQL المدمج داخل `pnpm prototype:test`. الثنائيات المدمجة
+    # (@embedded-postgres/linux-x64@17.5.0-beta.15) مترابطة مع libicuuc.so.60
+    # التي لم تعد صورة ubuntu-latest تحملها — وهو السبب الجذري الوحيد لفشل
+    # التشغيلين 43491920672 (رأس 52b3030e) و43519977749 (رأس 4c93e04c) عند
+    # خطوة initdb نفسها. `MICRO_TEST_PG_CONNECTION` هي مسار التجاوز المدعوم
+    # في الكود أصلًا (apps/prototype-web/scripts/pg-test-server.mjs) — لا اختبار
+    # يُتخطى أو يُضعف أو يُعاد إرساؤه: المجموعات نفسها تعمل فوق PostgreSQL 17
+    # حقيقي بنسخة مطابقة للمدمجة (17.5). المصادقة trust على localhost فقط —
+    # نفس وضع الخادم المدمج نفسه (initdb --auth=trust)، وسلسلة الاتصال بلا
+    # كلمة مرور فلا تلمس حراسة الأسرار (db-url-with-credentials تلتقط
+    # user:pass@ حصرًا).
+    services:
+      postgres:
+        image: postgres:17.5
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MICRO_TEST_PG_CONNECTION: postgres://postgres@localhost:5432/postgres
     steps:
       - name: Checkout
         # R10-B5/F-025 (2026-10-13): تثبيت الإصدار بالبصمة الكاملة (SHA) لا
