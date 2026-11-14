@@ -134,3 +134,15 @@ export async function getRecord(ctx: RouteContext, auth: AuthenticatedContext): 
     updatedAt: Number(row.updated_at),
   });
 }
+
+/** GET /api/manage/mode — the guarded online-only cutover state (M6).
+ * Read-only by design: the flag flips ONLY through the operator's direct
+ * database action after the owner's cutover gate — never through any API. */
+export async function manageMode(db: Db, auth: AuthenticatedContext): Promise<Response> {
+  const owner = await requireManageOwnerAudited(db, auth, "manage.read.mode");
+  const row = await db
+    .prepare("SELECT manage_online_only FROM workspace WHERE id = ?")
+    .bind(owner.workspaceId)
+    .first<Record<string, unknown>>();
+  return jsonResponse({ workspaceId: owner.workspaceId, onlineOnly: Number(row?.manage_online_only) === 1 });
+}

@@ -35,6 +35,7 @@ export {
   applyManageMigration,
   fetchManageMigrationStatus,
   rollbackManageMigration,
+  fetchManageMode,
 } from "./manageOnlineService";
 export type {
   ManageOnlineState,

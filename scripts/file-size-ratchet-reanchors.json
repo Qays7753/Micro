@@ -11155,6 +11155,82 @@
     "trigger": "Workstream B M5 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
     "ocRef": "DOC-040"
    }
+  },
+  {
+   "id": "doc040-2026-11-14-m6-services-context-online-guard",
+   "date": "2026-11-14",
+   "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+   "from": {
+    "nbLoc": 360,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 657,
+    "band": "WATCH"
+   },
+   "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): تغليف المخزن الوحيد بوكيل حارس الوضع المتصل-فقط (commit* وحدها تُفحص؛ القراءة والاستبدال المحمي والمسودات تمر كما هي) + قراءة الوضع مرة عند الإقلاع بفشل مفتوح نحو المحلي — معطل بنيويًا حتى قرار المشغل فسلوك اليوم مطابق حرفيًا (يستكمل سلسلة إرساءات الملف حتى 651).",
+   "authorization": {
+    "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6: guarded online-only mode مع بقاء التصدير/الاسترداد المحلي)",
+    "trigger": "Workstream B M6 (DOC-040) — راتشة الحجم تشترط إرساء موثقًا لأي نمو",
+    "ocRef": "DOC-040"
+   }
+  },
+  {
+   "id": "doc040-2026-11-14-m6-module-boundaries-type-edge",
+   "date": "2026-11-14",
+   "path": "scripts/check-module-boundaries.mjs",
+   "from": {
+    "nbLoc": 822,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 840,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): توثيق حافة النوع الجديدة app/manageOnlineGuard.ts -> @/storage/local/types في أساس R8 (النوع وحده لتغليف المخزن الوحيد بوكيل الحارس — نفس نمط ملفَي app-shell الموثقين) — يستكمل سلسلة إرساءات الحارس حتى 836.",
+   "authorization": {
+    "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+    "trigger": "Workstream B M6 (DOC-040) — حارس الحدود يشترط تحديث الأساس الموثق في نفس الالتزام",
+    "ocRef": "DOC-040"
+   }
+  },
+  {
+   "id": "doc040-2026-11-14-m6-density-policy-mode-line",
+   "date": "2026-11-14",
+   "path": "scripts/text_density_policy.py",
+   "from": {
+    "nbLoc": 989,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1045,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): رفع سقف كثافة Profile 40→42 بتوثيق مؤرخ — سطر وضع العمل المتصل-فقط المحروس (محلي افتراضيًا / متصل فقط بقرار مشغل)؛ الذهبي الكثيف أُعيد توليده في نفس الالتزام — يستكمل سلسلة إرساءات الملف حتى 1043.",
+   "authorization": {
+    "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+    "trigger": "Workstream B M6 (DOC-040) — سقف الكثافة يُرفع بسجل مؤرخ بمرجع مالك لا بصمت",
+    "ocRef": "DOC-040"
+   }
+  },
+  {
+   "id": "doc040-2026-11-14-m6-network-door-surface",
+   "date": "2026-11-14",
+   "path": "scripts/application-door-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 518,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 561,
+    "band": "WATCH"
+   },
+   "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): إرساء موثق رابع لسطح باب الشبكة بعد إضافة fetchManageMode (قراءة وضع القطع المحروس) بملاحظة PC-3 مؤرخة — يستكمل إرساءات M3/M4/M5.",
+   "authorization": {
+    "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+    "trigger": "Workstream B M6 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
+    "ocRef": "DOC-040"
+   }
   }
  ]
 }

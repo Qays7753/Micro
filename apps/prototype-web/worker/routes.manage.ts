@@ -8,7 +8,7 @@
  * status/rollback family.
  */
 import { linkConfirm, linkStart, manageState, unlinkManage } from "./api/manage.ts";
-import { getRecord, listFamilies, listFamilyRecords } from "./api/manageReads.ts";
+import { getRecord, listFamilies, listFamilyRecords, manageMode } from "./api/manageReads.ts";
 import { saveManageRecord } from "./api/manageWrites.ts";
 import { applyMigration, migrationStatus, rollbackMigration } from "./api/manageMigration.ts";
 import { command } from "./commands.ts";
@@ -40,6 +40,10 @@ export function registerManageRoutes(router: ApiRouter): void {
       "manage-link-delete",
       authedRoute((ctx, auth) => unlinkManage(ctx.env.DB, ctx, auth)),
     ),
+  );
+  router.get(
+    "api/manage/mode",
+    authedRoute((ctx, auth) => manageMode(ctx.env.DB, auth)),
   );
   router.get(
     "api/manage/families",

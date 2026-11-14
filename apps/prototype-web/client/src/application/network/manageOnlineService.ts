@@ -212,3 +212,11 @@ export function generateManageProofSecret(): string {
   }
   return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
 }
+
+/** وضع القطع المحروس (EX-D23 M6): يقرأه المالك المربوط وحده؛ معطل افتراضيًا
+ * ولا مسار يبدله — تفعيله قرار مشغل مباشر بعد بوابة المالك النهائية. */
+export async function fetchManageMode(
+  signal?: AbortSignal,
+): Promise<{ workspaceId: string; onlineOnly: boolean }> {
+  return apiFetch<{ workspaceId: string; onlineOnly: boolean }>("/api/manage/mode", { signal });
+}

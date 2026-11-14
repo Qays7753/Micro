@@ -84,6 +84,9 @@ import type { RecurringExpenseService } from "@/application/finance";
 /* Stage 2 — OPS-004 (tracker): قراءة التكلفة/الكمية المخططتين للقوالب — قراءة فقط. */
 import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
+/* EX-D23 (M6 — 2026-11-14): حارس الوضع المتصل-فقط حول المخزن الوحيد — معطل
+ * بنيويًا حتى قرار المشغل؛ كتابة/تصدير/استرداد اليوم كما هي حرفيًا. */
+import { guardLocalStoreForOnlineMode, refreshManageOnlineMode } from "@/app/manageOnlineGuard";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 /* المجموعة ٤ (عقد ٢٩): الأصول وتصنيف العربون المحتفظ به — خدمتا الأصول
  * والعربون هنا؛ خدمة القروض الصادرة تُحمّل ديناميكيًا بعد الإقلاع (سابقة
@@ -240,6 +243,9 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     void import("@/application/security").then(module => {
       void module.retireLocalLockRecord(singletonStore);
     });
+    /* EX-D23 (M6): قراءة وضع القطع مرة عند الإقلاع — فشل القراءة يعني
+     * «محلي» (الواقع الحالي)؛ لا أثر إطلاقًا قبل قرار المشغل. */
+    void refreshManageOnlineMode();
   }, []);
   const notifyDataChanged = useCallback(() => {
     setDataVersion(version => version + 1);
@@ -555,7 +561,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
  * (حقول قراءة فقط في منشئاتها) فلا حالة مشتركة تُفسد بين الأسطح.
  * EXE-014: المخزن نفسه عنصر وحيد معلن — خدمات النقل الخاملة تُبنى فوقه
  * لاحقًا فترى البيانات نفسها لا نسخة ثانية. */
-const singletonStore = createBrowserLocalStore();
+const singletonStore = guardLocalStoreForOnlineMode(createBrowserLocalStore());
 function createServices(): Omit<
   PrototypeServices,
   | "dataVersion"

@@ -12,6 +12,7 @@ import {
   ApiError,
   confirmManageLink,
   fetchManageFamilies,
+  fetchManageMode,
   fetchManageOnlineState,
   generateManageProofSecret,
   startManageLink,
@@ -37,6 +38,9 @@ export function ManageOnlineSection() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [familiesText, setFamiliesText] = useState<string | null>(null);
   const [familiesLoading, setFamiliesLoading] = useState(false);
+  /* EX-D23 (M6): وضع العمل المتصل-فقط المحروس — محلي افتراضيًا حتى قرار
+   * المشغل بعد بوابة المالك النهائية؛ يُعرض كما هو بلا ادعاء قطع. */
+  const [onlineOnly, setOnlineOnly] = useState<boolean | null>(null);
 
   const loadState = useCallback(async () => {
     setStateLoading(true);
@@ -76,6 +80,21 @@ export function ManageOnlineSection() {
   useEffect(() => {
     if (linked) void loadFamilies();
   }, [linked, loadFamilies]);
+
+  useEffect(() => {
+    if (!linked) return;
+    let active = true;
+    fetchManageMode()
+      .then(mode => {
+        if (active) setOnlineOnly(mode.onlineOnly);
+      })
+      .catch(() => {
+        if (active) setOnlineOnly(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [linked]);
 
   async function beginLink(): Promise<void> {
     setActionError(null);
@@ -158,6 +177,14 @@ export function ManageOnlineSection() {
             ربط موثق قائم: هذا الحساب هو مالك Manage لهذه المساحة (بإثبات ملكية موثق، لا بمطابقة البريد).
           </p>
           <p role="status">{familiesLoading ? "جارٍ قراءة حالة بيانات الخادم…" : familiesText}</p>
+          <p data-testid="manage-working-mode">
+            وضع العمل:{" "}
+            {onlineOnly === null
+              ? "جارٍ قراءة وضع العمل…"
+              : onlineOnly
+                ? "متصل فقط — مفعّل بقرار المشغل؛ الكتابة المالية متصلة حصرًا"
+                : "محلي (الافتراضي) — الكتابة المالية على هذا الجهاز حتى قرار القطع الموثق"}
+          </p>
           <div className="micro-form-actions">
             <Button
               action="secondary"

@@ -43,6 +43,7 @@ export async function ensureManageSchema(db: Db): Promise<void> {
   const row = await db
     .prepare(
       "SELECT (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'workspace' AND column_name = 'manage_enabled') AS has_column, " +
+        "(SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'workspace' AND column_name = 'manage_online_only') AS has_mode_column, " +
         "(SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'manage_owner_link') AS has_link_table, " +
         "(SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'manage_record') AS has_record_table",
     )
@@ -50,6 +51,7 @@ export async function ensureManageSchema(db: Db): Promise<void> {
   if (
     row === null ||
     Number(row.has_column) !== 1 ||
+    Number(row.has_mode_column) !== 1 ||
     Number(row.has_link_table) !== 1 ||
     Number(row.has_record_table) !== 1
   ) {

@@ -85,24 +85,25 @@ describe("manage foundation (M2): honest configuration states", () => {
     await db.prepare("DROP INDEX IF EXISTS idx_manage_owner_identity").run();
     await db.prepare("DROP TABLE IF EXISTS manage_owner_link").run();
     await db.prepare("ALTER TABLE workspace DROP COLUMN IF EXISTS manage_enabled").run();
+    await db.prepare("ALTER TABLE workspace DROP COLUMN IF EXISTS manage_online_only").run();
     const owner = await signInAs(worker, { sub: "sub-unconfigured", email: "unconfigured@example.test" });
     const state = await apiGet(worker, owner.cookieHeader, "/api/manage/state");
     expect(state.status).toBe(503);
     const body = (await state.json()) as { error: { code: string } };
     expect(body.error.code).toBe("manage_not_configured");
-    // Restore the schema exactly as migration 0003 defines it.
-    const sql = readFileSync(
-      path.join(workerRoot, "db", "migrations-pg", "0003_manage_online_foundation.sql"),
-      "utf8",
-    );
-    for (const statement of sql
-      .split("\n")
-      .filter(line => !line.trimStart().startsWith("--"))
-      .join("\n")
-      .split(";")
-      .map(s => s.trim())
-      .filter(s => s.length > 0)) {
-      await db.prepare(statement).run();
+    // Restore the schema exactly as migrations 0003 + 0006 define it (the
+    // configuration probe covers both workspace columns).
+    for (const file of ["0003_manage_online_foundation.sql", "0006_manage_online_only.sql"]) {
+      const sql = readFileSync(path.join(workerRoot, "db", "migrations-pg", file), "utf8");
+      for (const statement of sql
+        .split("\n")
+        .filter(line => !line.trimStart().startsWith("--"))
+        .join("\n")
+        .split(";")
+        .map(s => s.trim())
+        .filter(s => s.length > 0)) {
+        await db.prepare(statement).run();
+      }
     }
     const restored = await apiGet(worker, owner.cookieHeader, "/api/manage/state");
     expect(restored.status).toBe(200);
