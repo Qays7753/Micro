@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "c2276ad9",
+        "head": "746daee4",
         "date": "2026-11-14",
-        "method": "Stage C post-push cloud re-anchor (2026-11-14, CI run 43544110065 on head c2276ad9 over the Node runner class — the documented post-push identity-class settlement): github-actions re-anchored on the run's directly measured values (lazy 1,617,729/490,402 byte-identical to the local Node-24 measurement; precache 3,070,313 = local 3,070,223 + the +90 hex-identity footprint as per-environment records exist for exactly this) and cloudflare-pages by the proven environment-class derivation; all other surfaces byte-identical (entry 603,668/147,314 budget PASS; swRuntime 28,664; initial companions unchanged; counts 145/2/99/200/2). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-038)."
+        "method": "Workstream A post-push cloud re-anchor (2026-11-14, CI run 43598783132 on head 746daee4): derived by the proven environment-class derivation from the run's directly measured github-actions values — cloudflare-pages precache 3,071,669 = the run's 3,071,579 + the same +90 hex-identity footprint class delta observed at every prior settlement; all other surfaces byte-identical to the run (lazy 1,618,555/490,809; swRuntime 28,724; entry 603,972/147,423; counts 146/2/99/201/2). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-039)."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -63,24 +63,24 @@
       "measurements": {
         "initialRawTotal": 224186,
         "initialGzipNormTotal": 70556,
-        "lazyRawTotal": 1617729,
-        "lazyGzipNormTotal": 490402,
-        "precacheBytesTotal": 3070313,
-        "swRuntimeRawTotal": 28664
+        "lazyRawTotal": 1618555,
+        "lazyGzipNormTotal": 490809,
+        "precacheBytesTotal": 3071669,
+        "swRuntimeRawTotal": 28724
       },
       "counts": {
-        "lazyJsCount": 145,
+        "lazyJsCount": 146,
         "initialJsCount": 2,
         "dynamicRootsCount": 99,
-        "precacheEntryCount": 200,
+        "precacheEntryCount": 201,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "c2276ad9",
+        "head": "746daee4",
         "date": "2026-11-14",
-        "method": "Stage C post-push cloud re-anchor (2026-11-14, CI run 43544110065 on head c2276ad9 over the Node runner class — the documented post-push identity-class settlement): github-actions re-anchored on the run's directly measured values (lazy 1,617,729/490,402 byte-identical to the local Node-24 measurement; precache 3,070,313 = local 3,070,223 + the +90 hex-identity footprint as per-environment records exist for exactly this) and cloudflare-pages by the proven environment-class derivation; all other surfaces byte-identical (entry 603,668/147,314 budget PASS; swRuntime 28,664; initial companions unchanged; counts 145/2/99/200/2). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-038)."
+        "method": "Workstream A post-push cloud re-anchor (2026-11-14, CI run 43598783132 on head 746daee4 over the Node 22.23.3 runner class — the documented post-push identity-class settlement): re-anchored on the run's directly measured values (lazy 1,618,555/490,809 byte-identical to the local Node-24 measurement; precache 3,071,579 = local 3,071,489 + the +90 hex-identity footprint exactly as the per-environment records exist for; swRuntime 28,724 identical; entry 603,972/147,423 budget PASS; counts 146/2/99/201/2). Every earlier gate green on the same head (the run reached the build step after the full pnpm check passed). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-039)."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -94,16 +94,16 @@
       "measurements": {
         "initialRawTotal": 224186,
         "initialGzipNormTotal": 70556,
-        "lazyRawTotal": 1617729,
-        "lazyGzipNormTotal": 490402,
-        "precacheBytesTotal": 3070313,
-        "swRuntimeRawTotal": 28664
+        "lazyRawTotal": 1618555,
+        "lazyGzipNormTotal": 490809,
+        "precacheBytesTotal": 3071579,
+        "swRuntimeRawTotal": 28724
       },
       "counts": {
-        "lazyJsCount": 145,
+        "lazyJsCount": 146,
         "initialJsCount": 2,
         "dynamicRootsCount": 99,
-        "precacheEntryCount": 200,
+        "precacheEntryCount": 201,
         "swRuntimeFileCount": 2
       }
     }
