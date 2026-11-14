@@ -1,6 +1,7 @@
 # Z AI 5.3 — Complete Micro Market & Delivery on PostgreSQL
 
-**Status:** ACTIVE owner-authorized execution prompt, 2026-11-13. This replaces the earlier D1-only implementation prompt and the completed read-only analysis assignment.
+**Status:** COMPLETED for the Market/Delivery implementation phase, 2026-11-14. Retain this file as the historical execution contract for that phase; do not restart it as a new task.
+**Next-phase authority:** For the owner-approved Manage Online implementation and the explicitly listed UX follow-ups, use `docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md`. It supersedes only the completed phase's stop/no-new-branch instructions for the scope authorized there; all other repository, financial, security, and no-main constraints remain in force.
 
 **Repository:** `Qays7753/Micro`<br>
 **Authorized branch:** `zai/micro-market-delivery-handoff-20261111` — verify the live branch and SHA before every write.<br>
