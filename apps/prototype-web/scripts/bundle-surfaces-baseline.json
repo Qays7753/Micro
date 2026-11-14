@@ -54,9 +54,9 @@
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "746daee4",
+    "head": "a1b83f95",
     "date": "2026-11-14",
-    "method": "Workstream A post-push cloud re-anchor (2026-11-14, CI run 43598783132 on head 746daee4): derived by the proven environment-class derivation from the run's directly measured github-actions values — cloudflare-pages precache 3,071,669 = the run's 3,071,579 + the same +90 hex-identity footprint class delta observed at every prior settlement; all other surfaces byte-identical to the run (lazy 1,618,555/490,809; swRuntime 28,724; entry 603,972/147,423; counts 146/2/99/201/2). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-039)."
+    "method": "Manage Online M1–M6 post-push cloud re-anchor (2026-11-14, CI run 43619909889 on head a1b83f95): derived by the proven environment-class derivation from the run's directly measured github-actions values — cloudflare-pages precache 3,079,398 = the run's 3,079,308 + the same +90 hex-identity footprint class delta observed at every prior settlement; all other surfaces identical to the run's measurements; no ceiling, tolerance, or guard code changed."
    },
    "toolchain": {
     "node": "v24.22.3",
@@ -68,11 +68,11 @@
     "identityMode": "env"
    },
    "measurements": {
-    "initialRawTotal": 224186,
-    "initialGzipNormTotal": 70556,
-    "lazyRawTotal": 1618555,
-    "lazyGzipNormTotal": 490809,
-    "precacheBytesTotal": 3071669,
+    "initialRawTotal": 224378,
+    "initialGzipNormTotal": 70612,
+    "lazyRawTotal": 1624584,
+    "lazyGzipNormTotal": 492520,
+    "precacheBytesTotal": 3079398,
     "swRuntimeRawTotal": 28724
    },
    "counts": {
@@ -85,9 +85,9 @@
   },
   "github-actions": {
    "anchored": {
-    "head": "746daee4",
+    "head": "a1b83f95",
     "date": "2026-11-14",
-    "method": "Workstream A post-push cloud re-anchor (2026-11-14, CI run 43598783132 on head 746daee4 over the Node 22.23.3 runner class — the documented post-push identity-class settlement): re-anchored on the run's directly measured values (lazy 1,618,555/490,809 byte-identical to the local Node-24 measurement; precache 3,071,579 = local 3,071,489 + the +90 hex-identity footprint exactly as the per-environment records exist for; swRuntime 28,724 identical; entry 603,972/147,423 budget PASS; counts 146/2/99/201/2). Every earlier gate green on the same head (the run reached the build step after the full pnpm check passed). No ceiling, tolerance, or guard code changed. ocRef=WS-249 (DOC-039)."
+    "method": "Manage Online M1–M6 post-push cloud re-anchor (2026-11-14, CI run 43619909889 on the final push head a1b83f95 over the Node 22.23.3 runner class — the documented post-push identity-class settlement): the run fails exactly the five grown surfaces against these stale records as the protocol predicts (every earlier gate green in the same run); re-anchored on the run's directly measured values (initial 224,378/70,612; lazy 1,624,584/492,520 byte-identical to the local Node-24 measurement; precache 3,079,308 = local 3,079,218 + the same +90 identity footprint; swRuntime 28,724 identical; entry 605,454/147,966 reported under the untouched 650,000/155,300 ceilings; counts 146/2/99/201/2 all unchanged)."
    },
    "toolchain": {
     "node": "v24.22.3",
@@ -99,11 +99,11 @@
     "identityMode": "env"
    },
    "measurements": {
-    "initialRawTotal": 224186,
-    "initialGzipNormTotal": 70556,
-    "lazyRawTotal": 1618555,
-    "lazyGzipNormTotal": 490809,
-    "precacheBytesTotal": 3071579,
+    "initialRawTotal": 224378,
+    "initialGzipNormTotal": 70612,
+    "lazyRawTotal": 1624584,
+    "lazyGzipNormTotal": 492520,
+    "precacheBytesTotal": 3079308,
     "swRuntimeRawTotal": 28724
    },
    "counts": {
