@@ -1,0 +1,110 @@
+{
+ "id": "DOC-040",
+ "title": "مهمة المالك 2026-11-14 (المرحلة ب): تنفيذ Manage Online M1–M6 على الفرع المخصص — العقود والسيناريوهات ثم الأساس الخادمي (قدرة manage + مالك واحد + ربط موثق + حارس requireManageOwner) ثم القراءات ثم الكتابات المؤكدة ثم مسار الترحيل الاصطناعي ثم وضع المتصل-فقط المحروس غير المفعّل",
+ "type": "FEATURE",
+ "status": "IN_PROGRESS",
+ "priority": "P1",
+ "stage": "manage-online-20261114",
+ "summary": "تنفيذ Workstream B من أمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) على الفرع المخصص zai/micro-manage-online-20261114 من الرأس النهائي المُتحقق 84f30151، بموجات S13 المقبولة M1–M6 بترتيب الاعتماد الصارم وكل موجة قابلة للمراجعة والرجوع باستقلال: M1 تسجيل القرارات الملزمة (حساب Google واحد؛ مالك Manage واحد لكل Workspace؛ كتابات مالية متصلة فقط بعد الترحيل بلا كتابة دون اتصال ولا طابور تزامن ولا آخر-كاتب-يفوز؛ «محفوظ» بعد تأكيد الخادم فقط؛ ربط هوية موثق لا بالبريد وحده أبدًا؛ PostgreSQL المشترك هدف الحقيقة النهائي بلا D1 للإنتاج؛ الحفاظ الحرفي على 41/34 والـ29 زوجًا والمخازن واللقطات والتصدير/الاستعادة؛ بيانات اصطناعية حصرًا والبيانات الحقيقية محجوبة حتى حل الاحتفاظ/الحذف/التصدير/الخصوصية/الاسترداد) في المصادر الكانونية + سيناريوهات ومعايير قبول Manage Online. M2 قدرة manage في نموذج Workspace + قيد مالك واحد + جدول ربط شبكي الجانب ببروتوكول §2-ب المزدوج التوقيع + حارس requireManageOwner + تعطيل افتراضي حتى يطبق المشغل المخطط ويتحققه + فحوص سالبة (ضيف/هوية غير مربوطة/مطابقة بريد فقط/أدوار أخرى/أدمن منصة/عبور Workspace). M3 مسارات قراءة مصرحة بمالك واحد تصل الشاشات القائمة عبر أصغر حد تطبيقي متوافق مع حالات صدق (غير مربوط/غير مهيأ/غير متاح) وبلا تمكين ضد قاعدة المعاينة قبل تطبيق المخطط وتحقق المشغل. M4 كتابات خادمية معاملاتية حتمية بمالك واحد بإعادة استخدام أعراف الحتمية/التعارض القائمة، ورفض الكتابة عند الانقطاع، و«محفوظ» بعد تأكيد الخادم فقط، مع إثبات أن إعادة المحاولة/التزامن لا تكرر الأثر المالي والحفاظ على كل الثوابت المالية وتمثيل المال الدقيق. M5 مسار ترحيل تصدير→PostgreSQL ببيانات اصطناعية: تحقق وعدادات وفحص قيم دقيقة وبصمات واسترداد حتمي ورجوع، مع بقاء التصدير المحلي مصدر الاسترداد، وبلا قراءة أو تحوير لبيانات متصفح المالك وبلا تنفيذ ضد Neon. M6 وضع المتصل-فقط المحروس مع بقاء التصدير/الاسترداد المحلي، غير مفعّل لأي Workspace حقيقي وبلا ادعاء قطع — تفعيله الفعلي ببوابة مشغل لاحقة. لا نشر إنتاجي ولا PR ولا دمج ولا main ولا كتابة مزود ولا تكلفة (الحد الصلب NO_CLEANUP في نهاية التنفيذ).",
+ "source": {
+  "report": "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+  "discovered_at_sha": "cf9ac194f3bbde648fa68b76fd5a90f380d94833",
+  "evidence": [
+   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+   "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+   "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-REPORT-2026-11-14.md"
+  ]
+ },
+ "acceptance": [
+  "M1: القرارات الملزمة مسجلة مؤرخة في DECISIONS.md (EX-D23) وبوابة الترحيل (بطاقات §3) والعقود 04/18/23/25 بامتدادات مؤرخة بلا مسح تاريخ؛ صفوف سيناريو Manage Online (MO) في مصفوفة E-00 بمعايير قبول؛ تصريح موثق أن البيانات الحقيقية محجوبة حتى حل الاحتفاظ/الحذف/التصدير/الخصوصية/الاسترداد وبلا اختراع مدد قانونية ولا ادعاء سياسة نسخ إنتاجية؛ صفر كود في M1.",
+  "M2: فحوص سالبة فوق PostgreSQL حقيقي تثبت: ضيف 401، هوية غير مربوطة مرفوضة، مطابقة البريد وحدها لا تكفي أبدًا (اختبار سلبي صريح)، مورد/سائق مرفوضان، أدمن المنصة مرفوض، عبور Workspace مرفوضًا ومدققًا؛ مالكان Manage لنفس Workspace مرفوضان على الخادم؛ القدرة معطلة افتراضيًا حتى تطبيق المخطط وتحقق المشغل؛ 41/34 والـ29 زوجًا والمخازن المحلية بلا أي مساس (فحوصها القائمة خضراء بلا تعديل).",
+  "M3: قراءة مصرحة تعيد بيانات مالك Workspace وحده؛ كل رفض عبور/دور 403/404 مدقق؛ حالات صدق كاملة عند غير مربوط/غير مهيأ/غير متاح/غير مهاجر؛ لا تمكين ضد قاعدة المعاينة المشتركة قبل تطبيق المخطط وتحقق المشغل؛ العامل هو حد التصريح والمتصفح لا يتصل بPostgreSQL مباشرة.",
+  "M4: كتابات معاملاتية حتمية بمالك واحد؛ إعادة المحاولة بالمفتاح نفسه تعيد النتيجة نفسها ولا تكرر الأثر المالي (اختبار تزامن/إعادة فعلي)؛ رفض صادق عند الانقطاع أو فشل الخادم؛ «محفوظ» تظهر بعد تأكيد الخادم فقط؛ صفر كتابة صامتة وصفر حالة محفوظة كاذبة؛ تمثيل المال الدقيق محفوظ حرفيًا.",
+  "M5: مسار ترحيل التصدير→PostgreSQL مختبر ببيانات اصطناعية: فحص فراغ موثق، عدادات ما قبل/بعد متطابقة آليًا، فحص قيم دقيقة وبصمات، استرداد حتمي (نفس التصدير مرتين = الإيصال نفسه بلا أثر ثانٍ)، رجوع كامل مجرب؛ التصدير المحلي يبقى مصدر الاسترداد؛ لا قراءة لبيانات متصفح المالك ولا تنفيذ ضد Neon ولا ادعاء ترحيل منجز.",
+  "M6: وضع المتصل-فقط محروس ومعطل افتراضيًا لكل Workspace؛ عند تفعيله (اختبارًا فقط) تُرفض الكتابة المالية دون اتصال رفضًا صادقًا والتصدير/الاسترداد المحلي يعملان؛ لا تفعيل لWorkspace حقيقي ولا تعطيل لكتابة المالك المحلية ولا ادعاء قطع منجز — تفعيل القطع الفعلي ببوابة مشغل لاحقة بعد مراجعة الترحيل والاسترداد النهائية.",
+  "الكل: كل موجة التزام مستقل قابل للrevert؛ فحوص مركزة لكل موجة والبوابة الكاملة مرة واحدة على المرشح النهائي + CI (workflow_dispatch) على SHA النهائي ببروتوكول ما بعد الدفع الموثق للأسطح النامية؛ راتشات النمو والكثافة وأسطح الحزمة تُحدّث بالباترن الموثق بلا رفع أي سقف ملكي؛ تقرير عربي نهائي واحد تحت مجلد التسليم مع روابط التنفيذ المحدثة، مع تسمية كل ادعاء VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER."
+ ],
+ "areas": [
+  "docs/expansion/DECISIONS.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+  "docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md",
+  "docs/expansion/TRACKER.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "apps/prototype-web/worker/db/migrations-pg/",
+  "apps/prototype-web/worker/api/",
+  "apps/prototype-web/worker/routes.ts",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/tests/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/presentation/",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md"
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+  "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md"
+ ],
+ "dependencies": [
+  "DOC-038",
+  "DOC-039"
+ ],
+ "related_items": [
+  "DOC-037",
+  "DOC-038",
+  "DOC-039"
+ ],
+ "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner prompt cf9ac194",
+ "owner_decision": "أمر المالك المؤرخ 2026-11-14 (الالتزام cf9ac194): قَبِل مسح S13 وتوصياته وفتح تنفيذ Manage Online المتواصل بالموجات M1–M6 على الفرع المخصص، باستثناء صريح واحد: لا عمل وضع داكن (Micro بلا وضع داكن). القرارات الملزمة المسجلة في M1: تطبيق ويب واحد متجاوب بحساب Google واحد وجلسة واحدة ومداخل أربعة للموثق (Manage/Market/Delivery/Ask Micro)؛ Manage لمالك Workspace وحده وبلا وصول مالي لأي دور آخر بما فيه أدمن المنصة؛ PostgreSQL المشترك (Neon Free عبر Hyperdrive) هدف الحقيقة النهائي ولا D1 للإنتاج؛ لا ربط بالبريد وحده أبدًا؛ كتابات مالية متصلة فقط بعد الترحيل (لا كتابة دون اتصال ولا طابور تزامن ولا آخر-كاتب-يفوز) و«محفوظ» بعد تأكيد الخادم فقط؛ جهاز عمل واحد للمالك والاسترداد من جهاز آخر ليس مزامنة؛ الحفاظ الحرفي على عقود البيانات المحلية 41/34 والأزواج المقبولة والمخازن واللقطات والدلالات المالية؛ بيانات اصطناعية حصرًا (لا مستخدمين ولا سجلات حقيقية اليوم — يعاد التحقق عند بوابة الترحيل الفعلية) ولا بيانات شريك حقيقية قبل حل الاحتفاظ/الحذف/التصدير/الخصوصية/الاسترداد؛ Ask Micro يبقى قراءة-فقط مقيد الصلاحية بحالته غير المهيأة الصادقة؛ لا فحص أو نسخ من مستودع مكونات الواجهة المنفصل أو Google Drive.",
+ "tests_required": [
+  "M2: فحوص سالبة خادمية فوق PostgreSQL حقيقي (ضيف/غير مربوط/بريد فقط/مورد/سائق/أدمن/عبور Workspace/مالك ثانٍ) + بقاء فحوص التخزين/القدرات المحلية خضراء بلا تعديل.",
+  "M3: فحوص عزل موجبة/سالبة لكل مسار قراءة + حالات الصدق عند غير مربوط/غير مهيأ/غير مهاجر.",
+  "M4: فحوص تزامن وإعادة محاولة وانقطاع فعلية تثبت صفر تكرار أثر مالي وصفر حالة محفوظة كاذبة.",
+  "M5: فحوص ترحيل اصطناعية (عدادات/قيم دقيقة/بصمات/استرداد حتمي/رجوع كامل) + فحص أن التصدير المحلي لم يتغير.",
+  "M6: فحص أن الوضع معطل افتراضيًا وأن تفعيله الاختباري يرفض الكتابة دون اتصال بصدق ويبقي التصدير يعمل.",
+  "البوابة الكاملة مرة على المرشح النهائي + CI موثق على SHA النهائي."
+ ],
+ "layers": [
+  "documentation",
+  "worker-api",
+  "application",
+  "presentation",
+  "operations-control"
+ ],
+ "classification": "BUILD_AFTER_EVIDENCE",
+ "gate_classification": "NOT_APPLICABLE",
+ "updated_at": "2026-11-14",
+ "status_history": [
+  {
+   "status": "READY",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أنشئ البند بأمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) — Workstream B: تنفيذ Manage Online M1–M6 على الفرع المخصص zai/micro-manage-online-20261114 من الرأس النهائي المُتحقق 84f30151، ضمن مطالبة WS-250 الجديدة (لا تداخل مع WS-249 التي أُغلقت متابعاتها عند بوابة المراجعة)."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أُضيف إلى بنود مطالبة WS-250 مع areas تشمل مصادر العقود والسيناريوهات والعامل والمسارات والعميل ومجلد التسليم."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "M1 منجزة في هذا الالتزام نفسه (توثيق فقط — صفر كود): EX-D23 في DECISIONS.md، بطاقات قرار §3 في بوابة الترحيل، امتدادات مؤرخة للعقود 04/18/23/25، صفوف سيناريو MO في مصفوفة E-00، صف TRACKER E-00.21؛ يليها M2 الأساس الخادمي بترتيب الاعتماد الصارم."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "M2: الأساس الخادمي — قدرة manage في نموذج Workspace (معطلة افتراضيًا) + جدول الربط شبكي الجانب ببروتوكول §2-ب المزدوج التوقيع + حارس requireManageOwner + فحوص سالبة كاملة فوق PostgreSQL حقيقي."
+}

@@ -1,0 +1,65 @@
+{
+ "id": "WS-250",
+ "title": "Manage Online M1–M6 — تنفيذ مستودعي على الفرع المخصص (أمر المالك 2026-11-14 — MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194)",
+ "status": "IN_PROGRESS",
+ "items": [
+  "DOC-040"
+ ],
+ "branch": "zai/micro-manage-online-20261114",
+ "base_sha": "84f30151f1b18dc818fc816808c344b7d6abde91",
+ "areas": [
+  "docs/expansion/DECISIONS.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+  "docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md",
+  "docs/expansion/TRACKER.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "apps/prototype-web/worker/db/migrations-pg/",
+  "apps/prototype-web/worker/api/",
+  "apps/prototype-web/worker/routes.ts",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/tests/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/presentation/",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md"
+ ],
+ "agent": "ZAI — sole implementation writer per owner prompt cf9ac194 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md); one writer/integrator only, no parallel writers",
+ "pr": null,
+ "started_at": "2026-11-14",
+ "updated_at": "2026-11-14",
+ "next_action": "تنفيذ الموجات M1–M6 بترتيب الاعتماد الصارم: M1 عقود وسيناريوهات (هذا الالتزام)، ثم M2 أساس خادمي، ثم M3 قراءات، ثم M4 كتابات، ثم M5 مسار ترحيل ببيانات اصطناعية، ثم M6 وضع المتصل-فقط المحروس (غير مفعّل)، مع فحوص مركزة لكل موجة والبوابة الكاملة مرة على المرشح النهائي + CI على SHA النهائي ببروتوكول ما بعد الدفع الموثق.",
+ "notes": [
+  "Hard boundaries from the owner order cf9ac194: no production deployment, no migration applied to Neon, no Cloudflare/Neon settings or API writes, no real-data transfer, no merge, no PR, no main changes, no branch deletion; synthetic data only; Manage capability disabled by default until the operator applies and verifies the schema; local schema/export 41/34, 29 accepted pairs, local stores, snapshots and export/recovery preserved untouched (M-P1/M-P2); M-O1..M-O4 remain prohibited.",
+  "The branch was created from the verified final head of the Market/Delivery branch (84f30151 — docs-only evidence commit on top of the CI-green c6e99716, run 43599295588). Workstream A (DOC-039) closed IN_REVIEW on that branch."
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+  "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md"
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أنشئت المطالبة بأمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) لتنفيذ Manage Online M1–M6 على الفرع المخصص zai/micro-manage-online-20261114 من الرأس النهائي المُتحقق لفرع Market/Delivery (84f30151 فوق الأخضر c6e99716 — التشغيل 43599295588)، بعد تحرير مطالبة WS-249 قانونيًا إلى REVIEW_REQUIRED بنمط WS-244..WS-247 نفسه. بند DOC-040 ضمن هذه المطالبة؛ لا تداخل مع أي مطالبة نشطة أخرى (WS-249 حُررت قانونيًا إلى REVIEW_REQUIRED بأمر المالك نفسه)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "بدء التنفيذ بموجة M1 (القرارات والعقود والسيناريوهات — هذا الالتزام نفسه): تسجيل EX-D23 في DECISIONS.md، وبطاقات قرار §3 في بوابة الترحيل، وامتدادات مؤرخة للعقود 04/18/23/25، وصفوف سيناريو MO في مصفوفة E-00، وصف TRACKER E-00.21؛ يليها M2 (الأساس الخادمي) بترتيب الاعتماد الصارم."
+  }
+ ],
+ "migration_baseline": false
+}

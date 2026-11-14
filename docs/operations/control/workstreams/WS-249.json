@@ -1,7 +1,7 @@
 {
  "id": "WS-249",
  "title": "Micro Market + Delivery — التنفيذ المتوافق مع Cloudflare بترخيص المالك 2026-11-12 (الأساس المشترك ثم Market ثم Delivery)",
- "status": "IN_PROGRESS",
+ "status": "REVIEW_REQUIRED",
  "items": [
   "DOC-033",
   "DOC-034",
@@ -106,7 +106,7 @@
  "pr": null,
  "started_at": "2026-11-12",
  "updated_at": "2026-11-14",
- "next_action": "Workstream A (DOC-039) مكتملة بدليل الدفع النهائي — التشغيل 43599295588 أخضر كاملًا على الرأس النهائي c6e99716 (مع الالتزام التوثيقي أعلاه لهذا الدليل)؛ يليها إنشاء مطالبة WS-250 المستقلة لتنفيذ Manage Online M1–M6 على الفرع المخصص zai/micro-manage-online-20261114 من هذا الرأس.",
+ "next_action": "بانتظار مراجعة المالك/قرار الدمج للفرع zai/micro-market-delivery-handoff-20261111 عند رأسه النهائي المُتحقق 84f30151 (كل بنوده السبعة IN_REVIEW؛ لا PR ولا دمج ولا main من هذه السلسلة)؛ استكمال السلسلة يجري على الفرع المخصص zai/micro-manage-online-20261114 تحت مطالبة WS-250/DOC-040 المستقلة.",
  "notes": [
   "Hard boundaries from the owner master prompt (ce21b786): additive changes only — no refactoring, file moves, new root package, or features/ layer (post-Group-6 structural gate); synthetic data only; no provider-account access, secrets, deployment, paid upgrade, PR, merge, or main changes.",
   "Preserve sentinels: localSchemaVersion=41, localExportVersion=34, 29 accepted import pairs, lint ceiling 37 (baseline 35), bundle budgets 650,000/155,300, current-state <=20,480 bytes. Measurement baselines may only be re-anchored deliberately with documented reason, never to hide a violation.",
@@ -132,6 +132,18 @@
    "changed_at": "2026-11-12",
    "actor": "zai-implementation-writer",
    "reason": "بدأ التنفيذ فورًا بالمرحلة التوثيقية المصرح بها (القرار المعماري EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد تنقل العقد 26 §8) ثم يتبعها الكود الإضافي للأساس المشترك ثم Market ثم Delivery والتزامات منفصلة لكل إنجاز."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "اكتمل تنفيذ مطالبة WS-249 بكل بنودها السبعة (DOC-033..DOC-039) كلها IN_REVIEW عند الرأس النهائي المُتحقق 84f30151 للفرع zai/micro-market-delivery-handoff-20261111: آخر موجاتها Workstream A (DOC-039 — المتابعات المعتمدة) بدليل الدفع النهائي الكامل (التشغيل الختامي 43599295588 أخضر كاملًا على c6e99716 فوق حاوية خدمة PostgreSQL 17.5، ثم الالتزام التوثيقي 84f30151 لهذا الدليل خارج نطاق بوابات CI)؛ لا PR فُتح ولا دمج ولا main من هذه السلسلة أبدًا."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) يوجه استكمال السلسلة على الفرع المخصص zai/micro-manage-online-20261114 بمطالبة WS-250/DOC-040 المستقلة — فيحرر مطالبة WS-249 من IN_REVIEW إلى REVIEW_REQUIRED عبر الانتقال القانوني نفسه الذي حرر WS-244..WS-247 قبل W05، مع الحفظ الصريح على انتظار مراجعة المالك وقرار الدمج للفرع القائم؛ لا يعني النقل أي قبول ولا أي دمج."
   }
  ],
  "migration_baseline": false
