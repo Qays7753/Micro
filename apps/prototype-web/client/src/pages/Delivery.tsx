@@ -14,6 +14,7 @@ import {
   type OwnerRequestSummary,
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
+import { bookingRouteText, bookingScheduleText } from "@/presentation/bookingSummaryText";
 import { formatLocalDate } from "@/presentation/formatters";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -269,6 +270,13 @@ export default function Delivery() {
               onClick={() => navigate(`/delivery/booking/${request.id}`)}
             >
               <strong>{STATUS_LABELS[request.status] ?? request.status}</strong>
+              {/* R1-17 (أمر المالك 2026-11-14): المسار والموعد واسم السائق
+               * المعيّن (إن وجد) على البطاقة نفسها — القرار قبل الفتح؛ من
+               * الملخص الخادمي الآمن والنسخة العامة المعتمدة وحدها. */}
+              <span className="micro-delivery-card__route">
+                المسار: {bookingRouteText(request.route)} · الموعد: {bookingScheduleText(request.schedule)}
+                {request.driverName != null ? ` · السائق: ${request.driverName}` : ""}
+              </span>
               <span>
                 {request.pricingMode === "prepriced" ? (
                   <>

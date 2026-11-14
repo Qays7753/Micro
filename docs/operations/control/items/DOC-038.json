@@ -1,118 +1,118 @@
 {
-  "id": "DOC-038",
-  "title": "مهمة المالك 2026-11-14: جاهزية Manage + إغلاق CI/UX — مسح S13 قراءة-فقط ثم إصلاح جذر CI (حاوية خدمة PostgreSQL) ثم مراجعة وتنفيذ UX الشاملة بمصفوفة مقاييس كاملة ثم خطة تسليم Manage، والتوقف عند بوابة مراجعة المالك قبل أي إعادة هيكلة أو تنفيذ Online",
-  "type": "FEATURE",
-  "status": "IN_REVIEW",
-  "priority": "P1",
-  "stage": "manage-readiness-ci-ux-20261114",
-  "summary": "تنفيذ أمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md عند الرأس 0c9d49fc) على الفرع المصرح نفسه: (Stage A) مسح S13 الكنوني الخامس القراءة-فقط لجاهزية Manage للعَبرنة على رأس مثبَّت بصفر كتابة كود/مزود مع سجل مكتشفات M-P/M-F/M-D/M-O وخريطة هدف وست موجات M1–M6 خلف بوابة المالك؛ (Stage B) إصلاح جذر فشل CI الموثق (libicuuc.so.60 غائبة عن ubuntu-latest لثنائيات @embedded-postgres) بأقل الحلول هشاشة: حاوية خدمة PostgreSQL 17.5 عبر MICRO_TEST_PG_CONNECTION المدعوم في pg-test-server.mjs بلا أي إضعاف/تخطية/إعادة إرساء للاختبارات؛ (Stage C) مراجعة UX عربية/RTL/موبايل حقيقية للتطبيق كاملًا بكل الأدوار والسياقات مع تنفيذ التحسينات المؤكدة غير الهيكلية ومصفوفة مقاييس كاملة 100% لكل صفحة/مكون بمصادر معيارية مميزة (WCAG 2.2 AA مقابل أهداف Micro 44/48) وأدلة قبل/بعد؛ (Stage D) خطة تسليم Manage Online من المسح (تحليل وتخطيط فقط). لا تنفيذ لـManage Online ولا إعادة هيكلة ولا نقل ملفات ولا تغيير مخطط/تخزين/دومين/مالية ولا تغيير دلالات منتج؛ التوقف عند بوابة مراجعة المالك.",
-  "source": {
-    "report": "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
-    "discovered_at_sha": "0c9d49fc78ee8e263bebb9e5b4f777451569ab53",
-    "evidence": [
-      "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
-      "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
-      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
-    ]
-  },
-  "acceptance": [
-    "مسح S13 منشور على الرأس المثبَّت 0c9d49fc بصفر كتابة كود/مزود أثناء Stage A وبقرار صريح أن التقرير لا يمنح إذن تنفيذ هيكليًا.",
-    "CI على الفرع أخضر على العدّاء نفسه عبر حاوية خدمة PostgreSQL مع رقم تشغيل موثق على SHA الدفع النهائي، دون أي تعديل/تخطية/إعادة إرساء لأي اختبار وبلا تنزيل حزم ICU قديمة.",
-    "مصفوفة مقاييس UX تغطي 100% من صفحات الإنتاج ومساراتها حسب الدور/السياق وكل مكون قابل لإعادة الاستخدام وحالاته، بمصدر معياري ونتيجة فعلية وأدلة ودرجة لكل صف.",
-    "كل تحسين UX منفذ غير هيكلي، مبرر بأدلة مرسومة قبل/بعد عند عروض الهاتف 320/360/390/430، محافظ على سلوك الخادم والمال والدلالات، مع خريطة تصرف محتوى لكل صفحة (لا حذف صامت لملاحظات).",
-    "صفر تغيير لثوابت Manage (41/34، 29 زوجًا، مخازنه، تصديره/استيراده) وصفر كتابة مالية/تشغيلية من Market/Delivery.",
-    "خطة تسليم Manage Online منفصلة التصنيف (VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER) بلا أي تنفيذ أو إنشاء فرع أو لمس مزود.",
-    "تقرير نهائي عربي شامل في مسار أمر المهمة يربط S13 وكل الأدلة، وفقرة ربط موجزة واحدة في EXECUTION-REPORT بلا إعادة كتابة أدلة سابقة."
-  ],
-  "areas": [
-    ".github/workflows/ci.yml",
-    "docs/architecture/refactoring/s13-manage-online-readiness-20261114/",
-    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/",
-    "apps/prototype-web/client/src/pages/",
-    "apps/prototype-web/client/src/components/",
-    "apps/prototype-web/client/src/app/",
-    "apps/prototype-web/client/src/application/network/",
-    "apps/prototype-web/client/src/presentation/",
-    "apps/prototype-web/ARCHITECTURE.md",
-    "docs/architecture/EXTENSION_PLAYBOOK.md",
-    "docs/00-document-index.md",
-    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
-  ],
-  "contracts": [
-    "AGENTS.md",
-    "docs/operations/control/README.md",
-    "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
-    "docs/expansion/ROLE-ACCESS-MATRIX.md",
-    "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
-    "docs/contracts/18-network-identity-workspace-access-contract.md",
-    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
-    "docs/architecture/SOURCE_OF_TRUTH.md",
-    "docs/architecture/UI_AUX_ARCHITECTURE.md",
-    "ai-skills/micro-web-native-ux/SKILL.md",
-    "ai-skills/micro-design-system/SKILL.md"
-  ],
+ "id": "DOC-038",
+ "title": "مهمة المالك 2026-11-14: جاهزية Manage + إغلاق CI/UX — مسح S13 قراءة-فقط ثم إصلاح جذر CI (حاوية خدمة PostgreSQL) ثم مراجعة وتنفيذ UX الشاملة بمصفوفة مقاييس كاملة ثم خطة تسليم Manage، والتوقف عند بوابة مراجعة المالك قبل أي إعادة هيكلة أو تنفيذ Online",
+ "type": "FEATURE",
+ "status": "IN_REVIEW",
+ "priority": "P1",
+ "stage": "manage-readiness-ci-ux-20261114",
+ "summary": "تنفيذ أمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md عند الرأس 0c9d49fc) على الفرع المصرح نفسه: (Stage A) مسح S13 الكنوني الخامس القراءة-فقط لجاهزية Manage للعَبرنة على رأس مثبَّت بصفر كتابة كود/مزود مع سجل مكتشفات M-P/M-F/M-D/M-O وخريطة هدف وست موجات M1–M6 خلف بوابة المالك؛ (Stage B) إصلاح جذر فشل CI الموثق (libicuuc.so.60 غائبة عن ubuntu-latest لثنائيات @embedded-postgres) بأقل الحلول هشاشة: حاوية خدمة PostgreSQL 17.5 عبر MICRO_TEST_PG_CONNECTION المدعوم في pg-test-server.mjs بلا أي إضعاف/تخطية/إعادة إرساء للاختبارات؛ (Stage C) مراجعة UX عربية/RTL/موبايل حقيقية للتطبيق كاملًا بكل الأدوار والسياقات مع تنفيذ التحسينات المؤكدة غير الهيكلية ومصفوفة مقاييس كاملة 100% لكل صفحة/مكون بمصادر معيارية مميزة (WCAG 2.2 AA مقابل أهداف Micro 44/48) وأدلة قبل/بعد؛ (Stage D) خطة تسليم Manage Online من المسح (تحليل وتخطيط فقط). لا تنفيذ لـManage Online ولا إعادة هيكلة ولا نقل ملفات ولا تغيير مخطط/تخزين/دومين/مالية ولا تغيير دلالات منتج؛ التوقف عند بوابة مراجعة المالك.",
+ "source": {
+  "report": "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
+  "discovered_at_sha": "0c9d49fc78ee8e263bebb9e5b4f777451569ab53",
   "evidence": [
-    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
-    "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
-    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-REPORT-2026-11-14.md",
-    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md",
-    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
-  ],
-  "dependencies": [
-    "DOC-037"
-  ],
-  "related_items": [
-    "DOC-033",
-    "DOC-034",
-    "DOC-035",
-    "DOC-036",
-    "DOC-037"
-  ],
-  "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner prompt 0c9d49fc",
-  "owner_decision": "أمر المالك المؤرخ 2026-11-14: مسح Manage قراءة-فقط ثم متابعة CI/UX بلا وقفة موافقة، مع التوقف الصريح عند بوابة مراجعة المالك قبل أي إعادة هيكلة لـManage أو تنفيذ Manage Online؛ لا فرع جديد ولا main ولا PR ولا دمج ولا تغيير مزوّد ولا موارد مدفوعة ولا نشر إنتاجي ولا Google Drive؛ أسرار المستقبل عبر حقل الإدخال الآمن فقط.",
-  "tests_required": [
-    "الفاحص المركز (worker suite كاملًا 111/111) فوق PostgreSQL خارجي عبر MICRO_TEST_PG_CONNECTION محليًا قبل الدفع.",
-    "فحوص سياسة سير عمل CI (ci-workflow-policy.test.mjs) وحارس الأسرار بعد تعديل ci.yml.",
-    "فحوص UI/RTL/إتاحة المتصلة بكل تغيير UX مع أدلة مرسومة قبل/بعد عند 320/360/390/430.",
-    "البوابة الكاملة pnpm check مرة واحدة على شجرة المرشح النهائي (ببيئة PostgreSQL خارجية مطابقة للعدّاء).",
-    "إطلاق workflow_dispatch الموثق على الفرع المصرح وتوثيق رقم التشغيل ونتيجته على SHA الدفع النهائي."
-  ],
-  "layers": [
-    "ci",
-    "presentation",
-    "application",
-    "documentation",
-    "operations-control"
-  ],
-  "classification": "BUILD_AFTER_EVIDENCE",
-  "gate_classification": "NOT_APPLICABLE",
-  "updated_at": "2026-11-14",
-  "status_history": [
-    {
-      "status": "READY",
-      "changed_at": "2026-11-14",
-      "actor": "zai-claim-2026-11-14",
-      "reason": "أنشئ البند بأمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md عند 0c9d49fc) على الفرع المصرح نفسه ومطالبة WS-249 القائمة — استمرار الكاتب الواحد نفسه بلا مطالبة متداخلة."
-    },
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-11-14",
-      "actor": "zai-claim-2026-11-14",
-      "reason": "استُولي عليه بمطالبة WS-249 (أُضيف إلى بنودها) لتنفيذ مراحل أمر المالك الأربع."
-    },
-    {
-      "status": "IN_PROGRESS",
-      "changed_at": "2026-11-14",
-      "actor": "zai-implementation-writer",
-      "reason": "Stage A منجزة: مسح S13 القراءة-فقط منشور عند الالتزام 3e7d4b66 بصفر كتابة كود/مزود (سجل مكتشفات M-P/M-F/M-D/M-O + خريطة هدف + موجات M1–M6 خلف بوابة المالك) مع صف فهرس 12P وفقرة ربط الجزء السابع؛ يليها Stage B (إصلاح جذر CI بحاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION) ثم Stage C (مراجعة وتنفيذ UX الشاملة) ثم Stage D (خطة تسليم Manage) والتقرير النهائي العربي."
-    },
-    {
-      "status": "IN_REVIEW",
-      "changed_at": "2026-11-14",
-      "actor": "zai-implementation-writer",
-      "reason": "اكتمال المراحل الأربع وتسليم حزمة بوابة المالك: Stage B ملتزمة (7df25cf1 حاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION — لا اختبار أُضعف)؛ Stage C منجزة فوق الرأس 4e9a9149: مراجعة خماسية قراءة-فقط ثم تنفيذ 42 مكتشفًا مؤكدًا غير هيكلي في 31 ملفًا (صفوف عربية مسماة بدل JSON أمام قرارات الطرفين، حالات تعذر التحقق المستقلة على كل البوابات، حارس الفعل الواحد، الربط البرمجي للتسميات 71 موقعًا، الرئيسية الصادقة بلا مشروع، حماية الشرائح، بوابة نشر بعمى المحتوى) مع 3538/3538 تطبيقًا وقياس RTL مرسوم 24/24 أخضر على 320/360/390/430 ومصفوفة KPI 100% (73 صفحة + 71 مكونًا)؛ Stage D خطة تسليم Manage M1–M6 تحليلًا فقط؛ التقرير النهائي العربي + فقرة ربط الجزء السابع؛ المؤجل الموثق بقراراته (تباين داكن R3-2/R3-3، مقاعد الضيف NAV-001، حقول بطاقة الحجز R1-17، OD01/R5-9). workflow_dispatch على SHA الدفع النهائي يوثق في ملاحظة الدفع المعنية. التوقف عند بوابة مراجعة المالك كما أمر المالك."
-    }
-  ],
-  "migration_baseline": false,
-  "next_action": "بوابة مراجعة المالك: قبول مكتشفات مسح S13 وموجات M1–M6 وقرارات المؤجل الموثقة (الرمز اللوني للتباين الداكن R3-2، مقاعد الضيف NAV-001، حقول بطاقة الحجز R1-17) — لا يبدأ أي عمل هيكلي لـManage أو تنفيذ Online قبل القبول الكتابي."
+   "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
+   "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+   "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+  ]
+ },
+ "acceptance": [
+  "مسح S13 منشور على الرأس المثبَّت 0c9d49fc بصفر كتابة كود/مزود أثناء Stage A وبقرار صريح أن التقرير لا يمنح إذن تنفيذ هيكليًا.",
+  "CI على الفرع أخضر على العدّاء نفسه عبر حاوية خدمة PostgreSQL مع رقم تشغيل موثق على SHA الدفع النهائي، دون أي تعديل/تخطية/إعادة إرساء لأي اختبار وبلا تنزيل حزم ICU قديمة.",
+  "مصفوفة مقاييس UX تغطي 100% من صفحات الإنتاج ومساراتها حسب الدور/السياق وكل مكون قابل لإعادة الاستخدام وحالاته، بمصدر معياري ونتيجة فعلية وأدلة ودرجة لكل صف.",
+  "كل تحسين UX منفذ غير هيكلي، مبرر بأدلة مرسومة قبل/بعد عند عروض الهاتف 320/360/390/430، محافظ على سلوك الخادم والمال والدلالات، مع خريطة تصرف محتوى لكل صفحة (لا حذف صامت لملاحظات).",
+  "صفر تغيير لثوابت Manage (41/34، 29 زوجًا، مخازنه، تصديره/استيراده) وصفر كتابة مالية/تشغيلية من Market/Delivery.",
+  "خطة تسليم Manage Online منفصلة التصنيف (VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER) بلا أي تنفيذ أو إنشاء فرع أو لمس مزود.",
+  "تقرير نهائي عربي شامل في مسار أمر المهمة يربط S13 وكل الأدلة، وفقرة ربط موجزة واحدة في EXECUTION-REPORT بلا إعادة كتابة أدلة سابقة."
+ ],
+ "areas": [
+  ".github/workflows/ci.yml",
+  "docs/architecture/refactoring/s13-manage-online-readiness-20261114/",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/",
+  "apps/prototype-web/client/src/pages/",
+  "apps/prototype-web/client/src/components/",
+  "apps/prototype-web/client/src/app/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/presentation/",
+  "apps/prototype-web/ARCHITECTURE.md",
+  "docs/architecture/EXTENSION_PLAYBOOK.md",
+  "docs/00-document-index.md",
+  "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/operations/control/README.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md",
+  "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+  "docs/architecture/SOURCE_OF_TRUTH.md",
+  "docs/architecture/UI_AUX_ARCHITECTURE.md",
+  "ai-skills/micro-web-native-ux/SKILL.md",
+  "ai-skills/micro-design-system/SKILL.md"
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
+  "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-REPORT-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+ ],
+ "dependencies": [
+  "DOC-037"
+ ],
+ "related_items": [
+  "DOC-033",
+  "DOC-034",
+  "DOC-035",
+  "DOC-036",
+  "DOC-037"
+ ],
+ "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner prompt 0c9d49fc",
+ "owner_decision": "قرار المالك المؤرخ 2026-11-14 (التزام cf9ac194 — أمر MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md): قبل المالك مسح S13 وتوصياته وفتح مرحلة التنفيذ، باستثناء صريح واحد: عمل الوضع الداكن غير منطقي — Micro لا يملك وضعًا داكنًا (R3-2 تصنف NOT_APPLICABLE بقرار المالك). البند يبقى IN_REVIEW حتى الدمج (لا PR ولا main من هذه السلسلة)؛ القبول موثق هنا والاستكمال المصرح به يسجل في DOC-039 (متابعات UX) وDOC-040 (Manage Online M1–M6).",
+ "tests_required": [
+  "الفاحص المركز (worker suite كاملًا 111/111) فوق PostgreSQL خارجي عبر MICRO_TEST_PG_CONNECTION محليًا قبل الدفع.",
+  "فحوص سياسة سير عمل CI (ci-workflow-policy.test.mjs) وحارس الأسرار بعد تعديل ci.yml.",
+  "فحوص UI/RTL/إتاحة المتصلة بكل تغيير UX مع أدلة مرسومة قبل/بعد عند 320/360/390/430.",
+  "البوابة الكاملة pnpm check مرة واحدة على شجرة المرشح النهائي (ببيئة PostgreSQL خارجية مطابقة للعدّاء).",
+  "إطلاق workflow_dispatch الموثق على الفرع المصرح وتوثيق رقم التشغيل ونتيجته على SHA الدفع النهائي."
+ ],
+ "layers": [
+  "ci",
+  "presentation",
+  "application",
+  "documentation",
+  "operations-control"
+ ],
+ "classification": "BUILD_AFTER_EVIDENCE",
+ "gate_classification": "NOT_APPLICABLE",
+ "updated_at": "2026-11-14",
+ "status_history": [
+  {
+   "status": "READY",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أنشئ البند بأمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md عند 0c9d49fc) على الفرع المصرح نفسه ومطالبة WS-249 القائمة — استمرار الكاتب الواحد نفسه بلا مطالبة متداخلة."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "استُولي عليه بمطالبة WS-249 (أُضيف إلى بنودها) لتنفيذ مراحل أمر المالك الأربع."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "Stage A منجزة: مسح S13 القراءة-فقط منشور عند الالتزام 3e7d4b66 بصفر كتابة كود/مزود (سجل مكتشفات M-P/M-F/M-D/M-O + خريطة هدف + موجات M1–M6 خلف بوابة المالك) مع صف فهرس 12P وفقرة ربط الجزء السابع؛ يليها Stage B (إصلاح جذر CI بحاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION) ثم Stage C (مراجعة وتنفيذ UX الشاملة) ثم Stage D (خطة تسليم Manage) والتقرير النهائي العربي."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "اكتمال المراحل الأربع وتسليم حزمة بوابة المالك: Stage B ملتزمة (7df25cf1 حاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION — لا اختبار أُضعف)؛ Stage C منجزة فوق الرأس 4e9a9149: مراجعة خماسية قراءة-فقط ثم تنفيذ 42 مكتشفًا مؤكدًا غير هيكلي في 31 ملفًا (صفوف عربية مسماة بدل JSON أمام قرارات الطرفين، حالات تعذر التحقق المستقلة على كل البوابات، حارس الفعل الواحد، الربط البرمجي للتسميات 71 موقعًا، الرئيسية الصادقة بلا مشروع، حماية الشرائح، بوابة نشر بعمى المحتوى) مع 3538/3538 تطبيقًا وقياس RTL مرسوم 24/24 أخضر على 320/360/390/430 ومصفوفة KPI 100% (73 صفحة + 71 مكونًا)؛ Stage D خطة تسليم Manage M1–M6 تحليلًا فقط؛ التقرير النهائي العربي + فقرة ربط الجزء السابع؛ المؤجل الموثق بقراراته (تباين داكن R3-2/R3-3، مقاعد الضيف NAV-001، حقول بطاقة الحجز R1-17، OD01/R5-9). workflow_dispatch على SHA الدفع النهائي يوثق في ملاحظة الدفع المعنية. التوقف عند بوابة مراجعة المالك كما أمر المالك."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "قبول المالك موثق أعلاه؛ لا يوجد فعل إغلاق إضافي على هذا البند قبل الدمج (لا PR ولا main من هذه السلسلة). التنفيذ المصرح به اللاحق يسجل في DOC-039 (متابعات UX المعتمدة على الفرع القائم) وDOC-040 (Manage Online M1–M6 على الفرع المخصص)."
 }

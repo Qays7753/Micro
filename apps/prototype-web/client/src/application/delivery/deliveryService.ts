@@ -17,12 +17,21 @@ export interface DriverDirectoryEntryDto {
   ratingsCount: number;
 }
 
-export interface OwnerRequestSummary {
+/* R1-17 (أمر المالك 2026-11-14): ملخص القرار على بطاقات القوائم —
+ * المحافظتان والموعد وحدهما من الملخص الخادمي الآمن؛ التفاصيل خلف
+ * الإفصاح في صفحة الحجز. */
+export interface BookingSummaryFields {
+  route: { pickupGovernorate: string | null; dropoffGovernorate: string | null };
+  schedule: { date: string | null; pickupWindow: string | null };
+}
+
+export interface OwnerRequestSummary extends BookingSummaryFields {
   id: string;
   status: string;
   pricingMode: string;
   offeredFareMinor: string | null;
   collectionMinor: string | null;
+  driverName: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -95,7 +104,7 @@ export interface DriverPortalState {
   vehicle: { id: string; info: { plate?: string; vehicleType?: string }; status: string } | null;
 }
 
-export interface DriverRequestSummary {
+export interface DriverRequestSummary extends BookingSummaryFields {
   id: string;
   status: string;
   pricingMode: string;

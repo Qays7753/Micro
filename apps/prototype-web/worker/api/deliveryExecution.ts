@@ -30,6 +30,7 @@ import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 import {
   advanceMoneyAxisForItems,
+  bookingPayloadSummary,
   buildAgreementCopy,
   recordEvent,
   requireDriverProfile,
@@ -45,7 +46,7 @@ export async function driverRequests(ctx: RouteContext, auth: AuthenticatedConte
   const now = nowMs();
   const rows = await db(ctx)
     .prepare(
-      "SELECT id, status, response_deadline_at, pricing_mode, offered_fare_minor, collection_minor, collection_content, need_type, updated_at " +
+      "SELECT id, status, response_deadline_at, pricing_mode, offered_fare_minor, collection_minor, collection_content, need_type, payload_json, updated_at " +
         "FROM delivery_request WHERE driver_profile_id = ? ORDER BY updated_at DESC LIMIT 50",
     )
     .bind(driverProfileId)
@@ -63,6 +64,10 @@ export async function driverRequests(ctx: RouteContext, auth: AuthenticatedConte
       collectionMinor: row.collection_minor === null ? null : String(row.collection_minor),
       collectionContent: row.collection_content === null ? null : String(row.collection_content),
       needType: String(row.need_type),
+      /* R1-17: المسار (المحافظتان) والموعد على البطاقة نفسها قبل قرار
+       * القبول — ملخص المحافظتين/الموعد وحده؛ لا عناوين ولا مناطق
+       * ولا هواتف في القوائم أبدًا (عقد 21). */
+      ...bookingPayloadSummary(row.payload_json),
       updatedAt: Number(row.updated_at),
     })),
   });

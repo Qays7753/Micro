@@ -30,6 +30,7 @@ import {
   STATEMENT_STATUS_LABELS,
   UNKNOWN_STATUS_LABEL,
 } from "@/presentation/deliveryLabels";
+import { bookingRouteText, bookingScheduleText } from "@/presentation/bookingSummaryText";
 import { normalizeAsciiDigits } from "@/application/input";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -449,6 +450,14 @@ export default function DriverPortal() {
                             ? "طلب جديد ينتظر ردك"
                             : (DRIVER_REQUEST_STATUS_LABELS[request.status] ?? UNKNOWN_STATUS_LABEL)}
                         </strong>
+                        {/* R1-17 (أمر المالك 2026-11-14): المسار والموعد على
+                         * البطاقة نفسها — الحد الأدنى لقرار القبول قبل فتح
+                         * التفاصيل؛ من الملخص الخادمي الآمن (المحافظتان
+                         * والموعد فقط). */}
+                        <span className="micro-driver-request-card__route">
+                          المسار: {bookingRouteText(request.route)} · الموعد:{" "}
+                          {bookingScheduleText(request.schedule)}
+                        </span>
                         <span>
                           {request.needType === "deliver_to_customer" ? "توصيل للزبون" : "إحضار أغراض جاهزة"}
                           {" · الأجرة "}

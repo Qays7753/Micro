@@ -35,6 +35,15 @@ vi.mock("wouter", () => ({
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: () => ({
     ownerProfile: { read: () => Promise.resolve({ ok: true, value: null }) },
+    /* DOC-039 (NAV-001/R1-15): القشرة تقرأ وجود المشروع المحلي لمقاعد الضيف —
+     * سياق المالك هنا صاحب مشروع محلي فالمقاعد الخمسة كاملة. */
+    profiles: {
+      load: () =>
+        Promise.resolve({
+          ok: true,
+          value: { id: "local", activityName: "مشروع المالك", currency: "JOD" },
+        }),
+    },
     preferences: {
       readInstallBannerDismissal: () => Promise.resolve({ ok: true, dismissedAt: null }),
       load: () => Promise.resolve({ ok: true, value: "light" }),

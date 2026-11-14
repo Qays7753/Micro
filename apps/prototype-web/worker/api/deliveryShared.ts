@@ -29,6 +29,45 @@ export async function recordEvent(
     .run();
 }
 
+/* R1-17 (أمر المالك 2026-11-14 — Workstream A): ملخص قرارٍ أدنى من payload
+ * الحجز لبطاقات القوائم (وارد السائق ونظرة المالك): المحافظتان والموعد
+ * وحدهما — العناوين التفصيلية والأسماء والهواتف والمناطق تبقى خلف قرار
+ * الإفصاح في صفحة التفاصيل (عقد 21 §الخصوصية). الاستخراج دفاعي: أي payload
+ * غير المتوقع يعطي قيمًا null صادقة لا خطأ. */
+export interface BookingPayloadSummary {
+  route: { pickupGovernorate: string | null; dropoffGovernorate: string | null };
+  schedule: { date: string | null; pickupWindow: string | null };
+}
+
+function summaryText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+export function bookingPayloadSummary(payloadJson: unknown): BookingPayloadSummary {
+  let payload: Record<string, unknown> = {};
+  if (typeof payloadJson === "string" && payloadJson !== "") {
+    try {
+      const parsed: unknown = JSON.parse(payloadJson);
+      if (parsed && typeof parsed === "object") payload = parsed as Record<string, unknown>;
+    } catch {
+      /* بطاقة الملخص لا تفشل على payload تالف — القيم null */
+    }
+  }
+  const pickup = (payload.pickup ?? null) as Record<string, unknown> | null;
+  const dropoff = (payload.dropoff ?? null) as Record<string, unknown> | null;
+  const schedule = (payload.schedule ?? null) as Record<string, unknown> | null;
+  return {
+    route: {
+      pickupGovernorate: summaryText(pickup?.governorate),
+      dropoffGovernorate: summaryText(dropoff?.governorate),
+    },
+    schedule: {
+      date: summaryText(schedule?.date),
+      pickupWindow: summaryText(schedule?.pickupWindow),
+    },
+  };
+}
+
 export async function notifyDriver(
   ctx: RouteContext,
   driverProfileId: string,

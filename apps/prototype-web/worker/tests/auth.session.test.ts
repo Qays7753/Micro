@@ -191,7 +191,11 @@ describe("foundation: idempotent commands", () => {
 
   it("the same key with a DIFFERENT body is a 409 conflict", async () => {
     const user = await signInAs(worker, { sub: "sub-idem-2", email: "idem2@example.test" });
-    const doUpload = (bytes: Uint8Array, key: string) =>
+    /* DOC-039 (أمر المالك 2026-11-14 — Workstream A): تصحيح كتابة أدنى فقط —
+     * المعامل يوسم بBodyInit (النوع الذي يطلبه fetch أصلًا) بدل Uint8Array
+     * المجرد، فيقبل Uint8Array<ArrayBuffer> تحت TS 5.9 وUint8Array تحت
+     * TS 5.6 المثبت في التطبيق معًا؛ سلوك التشغيل لم يتغير. */
+    const doUpload = (bytes: BodyInit, key: string) =>
       worker.fetch("/api/media?purpose=market_listing_media", {
         method: "POST",
         headers: {

@@ -7169,6 +7169,16 @@ button.micro-driver-request-card:focus-visible,
   font-size: 0.8125rem;
 }
 
+/* R1-17 (أمر المالك 2026-11-14 — Workstream A): سطر ملخص القرار (المسار
+ * والموعد واسم السائق للمالك) على بطاقتي الوارد/النظرة — نفس مقياس نص
+ * البطاقة الثانوي مع تمييز لوني خفيف لأنه يحمل معلومة القرار قبل الفتح. */
+.micro-driver-request-card__route,
+.micro-delivery-card__route {
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
 .micro-market-card__price {
   color: var(--color-text-primary);
   font-family: var(--font-numeric);

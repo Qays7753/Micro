@@ -131,8 +131,11 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء.
      * (Stage C S13 — أمر المالك 2026-11-14، DOC-038/WS-249): تقاعد وحدة
      * futureServices.ts الميتة (إعلانات «قريبًا» لخدمات حية بلا مستهلكين —
-     * R5-7) — 419 -> 418؛ لا موضع تسجيل جديد ولا استثناء. */
-    expect(stdout).toMatch(/418 ملف إنتاج/);
+     * R5-7) — 419 -> 418؛ لا موضع تسجيل جديد ولا استثناء.
+     * (Workstream A DOC-039/WS-249 — أمر المالك 2026-11-14): وحدة عرض
+     * bookingSummaryText.ts الجديدة (R1-17 — سطرا ملخص القرار على بطاقات
+     * الحجز) — 418 -> 419؛ نقية بلا أي وصول تخزين متصفح. */
+    expect(stdout).toMatch(/419 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

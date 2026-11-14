@@ -115,6 +115,11 @@ export function minorToJodText(minor: string | null): string {
 /** صف عرض مسمى: القيمة المالية تُعزل بـ bdi من الصفحة (F-11). */
 export type LabeledRow = { label: string; value: string; money?: boolean };
 
+/* R1-17 (أمر المالك 2026-11-14 — Workstream A): سطرا ملخص بطاقة الحجز
+ * انتقلا إلى وحدة عرض مستقلة صغيرة (bookingSummaryText.ts) — الصفحات التي
+ * لا تستورد بقية تسميات التوصيل (نظرة المالك) لا تسحبها عدويا إلى كثافة
+ * نصها المحروسة. */
+
 /** شروط اقتراح الموافقة (retry/holding/return) إلى صفوف عربية — الحقول
  * المعروفة فقط، والقيم كما هي بلا اختراع؛ لا حقل يُعرض خامًا أبدًا. */
 export function consentTermRows(kind: string, terms: unknown): LabeledRow[] {

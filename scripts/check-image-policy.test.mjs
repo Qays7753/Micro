@@ -82,8 +82,12 @@ describe("check-image-policy", () => {
     /* Stage C (S13 — أمر المالك 2026-11-14، DOC-038/WS-249): 36 -> 44 —
      * قرار المالك الموثق في نفس الـPR (MANAGE-READINESS-CI-UX-PROMPT-EN.md
      * §6 يوجب إرفاق لقطات الأدلة المرسومة بالتقرير) يضيف مجلد أدلة هذه
-     * المهمة وحده (8 لقطات after-*.png) إلى خط الأساس. */
-    expect(imgs.length).toBe(44);
+     * المهمة وحده (8 لقطات after-*.png) إلى خط الأساس.
+     * Workstream A (DOC-039/WS-249 — أمر المالك 2026-11-14
+     * MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.3): 44 -> 50 — ست لقطات
+     * workstream-a-*.png للتدفقين المتغيرين (مقاعد الضيف وبطاقة القرار)
+     * في مجلد الأدلة نفسه. */
+    expect(imgs.length).toBe(50);
     expect(checkImagePolicy({ repoRoot: ROOT })).toEqual([]);
   });
 

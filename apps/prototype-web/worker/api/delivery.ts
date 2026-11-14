@@ -18,6 +18,7 @@ import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { driverStatus } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
+import { bookingPayloadSummary } from "./deliveryShared.ts";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
@@ -311,24 +312,42 @@ export async function ownerOverview(ctx: RouteContext, auth: AuthenticatedContex
   const now = nowMs();
   const rows = await db(ctx)
     .prepare(
-      "SELECT id, status, response_deadline_at, pricing_mode, offered_fare_minor, collection_minor, created_at, updated_at " +
-        "FROM delivery_request WHERE requester_identity_id = ? ORDER BY updated_at DESC LIMIT 50",
+      "SELECT r.id, r.status, r.response_deadline_at, r.pricing_mode, r.offered_fare_minor, r.collection_minor, r.payload_json, r.created_at, r.updated_at, p.public_copy_json AS driver_public_copy " +
+        "FROM delivery_request r LEFT JOIN driver_profile p ON p.id = r.driver_profile_id " +
+        "WHERE r.requester_identity_id = ? ORDER BY r.updated_at DESC LIMIT 50",
     )
     .bind(auth.identityId)
     .all<Record<string, unknown>>();
-  const requests = rows.results.map(row => ({
-    id: String(row.id),
-    status: effectiveRequestStatus(
-      String(row.status) as RequestStatus,
-      row.response_deadline_at === null ? null : Number(row.response_deadline_at),
-      now,
-    ),
-    pricingMode: String(row.pricing_mode),
-    offeredFareMinor: row.offered_fare_minor === null ? null : String(row.offered_fare_minor),
-    collectionMinor: row.collection_minor === null ? null : String(row.collection_minor),
-    createdAt: Number(row.created_at),
-    updatedAt: Number(row.updated_at),
-  }));
+  const requests = rows.results.map(row => {
+    /* R1-17 (أمر المالك 2026-11-14): المسار والموعد واسم السائق المعين
+     * (إن وجد) على بطاقة النظرة نفسها — الاسم من النسخة العامة المعتمدة
+     * وحدها (نمط الكشوف اليومية نفسه)؛ لا بيانات خاصة للسائق في القوائم. */
+    let driverName: string | null = null;
+    if (row.driver_public_copy !== null && row.driver_public_copy !== undefined) {
+      try {
+        const publicCopy = JSON.parse(String(row.driver_public_copy)) as { displayName?: unknown };
+        if (typeof publicCopy.displayName === "string" && publicCopy.displayName.trim() !== "")
+          driverName = publicCopy.displayName.trim();
+      } catch {
+        /* نسخة عامة تالفة لا تفشل النظرة — الاسم يبقى null */
+      }
+    }
+    return {
+      id: String(row.id),
+      status: effectiveRequestStatus(
+        String(row.status) as RequestStatus,
+        row.response_deadline_at === null ? null : Number(row.response_deadline_at),
+        now,
+      ),
+      pricingMode: String(row.pricing_mode),
+      offeredFareMinor: row.offered_fare_minor === null ? null : String(row.offered_fare_minor),
+      collectionMinor: row.collection_minor === null ? null : String(row.collection_minor),
+      ...bookingPayloadSummary(row.payload_json),
+      driverName,
+      createdAt: Number(row.created_at),
+      updatedAt: Number(row.updated_at),
+    };
+  });
   const saved = await db(ctx)
     .prepare(
       "SELECT sd.driver_profile_id, p.public_copy_json FROM saved_driver sd JOIN driver_profile p ON p.id = sd.driver_profile_id " +

@@ -65,8 +65,36 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const requestNavigation = useUnsavedChangesNavigation();
   /* EX-D19/EX-D21 (Phase B): جلسة قشرية واحدة تخدم القشرة — بند بوابة
    * السائق لحاملي الدور، ومدخل Ask Micro داخل ترويسة السائق المستقلة. */
-  const { session } = useNetworkSession();
+  const { session, loading: sessionLoading } = useNetworkSession();
   const hasDriverRole = Boolean(session.driver);
+  /* NAV-001/R1-15 (أمر المالك 2026-11-14 — Workstream A): مقاعد المالية
+   * والطلبات وجهات المالك وحده — تُخفى عن الضيف غير الموثق الذي لا مشروع
+   * محليًا على هذا الجهاز. القرار فتحًا لا غلقًا: الحالة المجهولة (إقلاع/
+   * تحميل) تعرض المقاعد الخمسة كاملة فلا يُحجب شيء عن المالك المحلي ولا
+   * يومض الإخفاء — المالك بعد التأسيس مباشرة يقرأ المشروع من المصدر نفسه
+   * الذي تقرأه بوابة الإقلاع فتعود مقاعده فورًا. المستخدم الموثق يبقى له
+   * كل المداخل (أمر المالك: لا تُزال المداخل المشتركة عن الموثقين)؛
+   * والإنكار الخادمي للمال بنيوي أصلًا: لا مسار مالي شبكي واحد موجود
+   * (foundation.isolation) — الإخفاء هنا تنقّل لا تخويل. */
+  const { ownerProfile, profiles, dataVersion } = usePrototypeServices();
+  const [hasLocalProject, setHasLocalProject] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    profiles
+      .load()
+      .then(result => {
+        if (!active || !result.ok) return;
+        setHasLocalProject(result.value !== null);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [profiles, dataVersion]);
+  const isGuest = hasLocalProject === false && !sessionLoading && session.authenticated === false;
+  const navItems = isGuest
+    ? primaryNavigation.filter(item => item.href !== "/finance" && item.href !== "/orders")
+    : primaryNavigation;
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
@@ -88,7 +116,6 @@ function ShellContent({ location, children }: { location: string; children: Reac
   /* Wave 4.3 — P-4.3-1 (D5): حالة اكتمال الحساب لقائمة الشعار — قراءة رسمية
    * واحدة من خدمة هوية المالك (لا Store جديد ولا كتابة). المجهول المؤقت
    * يعرض المدخل المحايد «الحساب» حتى تصل القراءة. */
-  const { ownerProfile, dataVersion } = usePrototypeServices();
   const [accountComplete, setAccountComplete] = useState<boolean | null>(null);
   useEffect(() => {
     let active = true;
@@ -164,7 +191,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
         {children}
       </main>
       {showGlobalChrome ? (
-        <BottomNav activePath={location} items={primaryNavigation} onNavigate={requestNavigation} />
+        <BottomNav activePath={location} items={navItems} onNavigate={requestNavigation} />
       ) : null}
     </div>
   );

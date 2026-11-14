@@ -10908,6 +10908,139 @@
         "trigger": "تنفيذ Stage C — حارس سياسة الصور يشترط قرار مالك موثق في نفس الـPR لتغيير خط الأساس",
         "ocRef": "DOC-038"
       }
+    },
+    {
+      "id": "doc039-2026-11-14-deliveryservice-guest-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 408,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: تمديد واجهتي ملخص البطاقة (OwnerRequestSummary/DriverRequestSummary) بحقلي المسار/الموعد واسم السائق المعين من الاستجابة الخادمية الجديدة — حقول عرض فقط لا منطقًا جديدًا.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-microappshell-nav001",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 195,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-039/NAV-001/R1-15: إخفاء مقاعد المالية/الطلبات عن الضيف غير الموثق بلا مشروع محلي — قراءة وجود المشروع مرة عند الإقلاع بقرار فتحًا لا غلقًا (لا يومض إخفاء أمام المالك)؛ المقاعد الخمسة كاملة للمالك المحلي والموثق.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-indexcss-r17-cards",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7465,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "DOC-039/R1-17: قاعدة واحدة لسطر ملخص القرار على بطاقتي الوارد/النظرة (micro-driver-request-card__route/micro-delivery-card__route) بمقياس نص البطاقة الثانوي — لا رموز تصميم جديدة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-driverportal-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 502,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: سطر المسار/الموعد على بطاقة الوارد قبل فتح التفاصيل — الحد الأدنى لقرار قبول الأجرة؛ من الملخص الخادمي الآمن (المحافظتان والموعد فقط).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-deliveryexecution-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 489,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 494,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: جلب payload_json في استعلام وارد السائق ونشر ملخص المحافظتين/الموعد عبر bookingPayloadSummary المشترك — لا حقول خاصة تنكشف.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-text-density-policy-r17",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1039,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DOC-039 (Workstream A — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.2/R1-17): رفعان موثقان بسقف كثافة النص بواقع سلسلة واحدة لكل من Delivery 23→24 وDriverPortal 140→141 لسطر ملخص القرار (المسار/الموعد) المأذون بهذا الأمر — بنمط الإرساء المؤرخ نفسه؛ لا نص محذوف ولا سقف آخر مُمس.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.2): R1-17 — تفاصيل القرار الحدّية قبل قبول السائق للعرض",
+        "trigger": "Workstream A (DOC-039) — سقفا كثافة بسجل مؤرخ بقرار مالك في نفس الـPR",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-image-policy-workstream-a",
+      "date": "2026-11-14",
+      "path": "scripts/check-image-policy.mjs",
+      "from": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 180,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-039 (Workstream A — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.3): توسيع موثق لعدد صور خط الأساس 44→50 بست لقطات workstream-a-*.png للتدفقين المتغيرين في مجلد أدلة المهمة نفسه — نمط Stage C نفسه؛ سياسة «لا لقطات تقريرية» خارج المجلد باقية كما هي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.3): لقطات قبل/بعد للتدفقين المتغيرين عند العروض المدعومة",
+        "trigger": "Workstream A (DOC-039) — حارس سياسة الصور يشترط قرار مالك موثق في نفس الـPR لتغيير خط الأساس",
+        "ocRef": "DOC-039"
+      }
     }
   ]
 }

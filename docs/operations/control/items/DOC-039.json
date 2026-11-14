@@ -1,0 +1,102 @@
+{
+ "id": "DOC-039",
+ "title": "مهمة المالك 2026-11-14 (المرحلة أ): المتابعات المعتمدة على فرع Market/Delivery القائم — مقاعد الضيف NAV-001/R1-15، حقول قرار السائق R1-17، تحديث مصفوفة KPI، R3-2 غير منطقي بقرار المالك، وتصحيح كتابة اختبار الجلسة",
+ "type": "FEATURE",
+ "status": "IN_PROGRESS",
+ "priority": "P1",
+ "stage": "manage-online-20261114",
+ "summary": "تنفيذ Workstream A من أمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) على الفرع القائم نفسه: (1) إخفاء مقاعد المالية/الطلبات — وجهات المالك وحده — عن الضيف غير الموثق بلا مشروع محلي، بلا مساس بمداخل المستخدم الموثق ولا بسياق السائق المقيد، مع توثيق أن الإنكار الخادمي قائم بنيويًا (لا مسار مالي شبكي أصلًا — اختبار العزل foundation.isolation)؛ (2) حقول R1-17: الحد الأدنى من تفاصيل القرار (المسار/الموعد + السائق المعين/الحالة حيث ينطبق) في واجهة الوارد للسائق وبطاقات نظرة المالك عبر ملخصات خادمية من payload بلا كشف عناوين تفصيلية، مع فحوص موجبة/سالبة؛ (3) تحديث مصفوفة KPI (73 صفحة + 71 مكونًا) بغرض/مهمة نوعية لكل صف ومعيار/فئة مصدر/عتبة/نتيجة/طريقة + قياس أهداف WCAG 24×24 مقابل أهداف راحة Micro 44/48 منفصلة + R3-2 = NOT_APPLICABLE بقرار المالك (لا وضع داكن)؛ (4) تصحيح كتابة اختبار auth.session.test.ts (Uint8Array<ArrayBuffer>) إن بقي خطأ الأساس. لا تغيير دلالات مالية ولا سلوك خادمي قائم ولا قرار مالك مؤجل آخر (OD01/R5-9 وR5-2 وP2/P3 الباقية تبقى مؤجلة).",
+ "source": {
+  "report": "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+  "discovered_at_sha": "cf9ac194f3bbde648fa68b76fd5a90f380d94833",
+  "evidence": [
+   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+   "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-REPORT-2026-11-14.md",
+   "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md"
+  ]
+ },
+ "acceptance": [
+  "الضيف غير الموثق بلا مشروع محلي لا يرى مقعدَي المالية/الطلبات؛ المالك المحلي والمستخدم الموثق يحتفظان بالمقاعد الخمسة كاملة؛ بوابة السائق وقائمة الترويسة كما هما؛ لا يومض إخفاء عند إقلاع المالك.",
+  "السائق يرى المسار (المحافظتان) والموعد (التاريخ/نافذة الاستلام) على بطاقة الوارد قبل فتح التفاصيل؛ المالك يرى المسار والموعد واسم السائق المعين على بطاقات نظرة التوصيل؛ لا كشف عناوين تفصيلية أو بيانات خاصة من بطاقات الملخص؛ الضيف مرفوض 401 والأجانب عن الحجز لا يرونه (فحوص سالبة).",
+  "مصفوفة KPI محدثة بغرض/مهمة نوعية لكل صف من 144، وأعمدة المعيار/فئة المصدر/العتبة/النتيجة/الطريقة، وقياس منفصل WCAG 2.5.8 (24×24) مقابل أهداف راحة Micro (44/48)، وR3-2 موثفة NOT_APPLICABLE بقرار المالك، ولقطات قبل/بعد للتدفقين المتغيرين عند 320/360/390/430 حيث ينطبق.",
+  "خطأ كتابة auth.session.test.ts الباقي إما مُصحح بتصحيح كتابة أدنى محفوظ لسلوك التشغيل أو موثق بعدم الحل مع سلسلة الأدوات والخطأ الدقيق.",
+  "فحوص التركيز للتغييرات ثم البوابة الكاملة مرة على مرشح الموجة + CI على SHA النهائي بلا إعادة فحص أخضر غير متغير."
+ ],
+ "areas": [
+  "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+  "apps/prototype-web/client/src/components/layout/BottomNav.tsx",
+  "apps/prototype-web/client/src/Nav001.dom.test.tsx",
+  "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+  "apps/prototype-web/client/src/pages/Delivery.tsx",
+  "apps/prototype-web/client/src/application/delivery/",
+  "apps/prototype-web/worker/api/deliveryExecution.ts",
+  "apps/prototype-web/worker/api/delivery.ts",
+  "apps/prototype-web/worker/tests/",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/operations/control/README.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+  "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md"
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md",
+  "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md"
+ ],
+ "dependencies": [
+  "DOC-038"
+ ],
+ "related_items": [
+  "DOC-033",
+  "DOC-034",
+  "DOC-035",
+  "DOC-036",
+  "DOC-037",
+  "DOC-038"
+ ],
+ "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner prompt cf9ac194",
+ "owner_decision": "أمر المالك المؤرخ 2026-11-14: قبول S13 مع استثناء الوضع الداكن (لا وضع داكن في Micro — R3-2 غير منطقي)؛ المتابعات المعتمدة حصرًا NAV-001/R1-15 وR1-17 وتحديث مصفوفة KPI وتصحيح كتابة الاختبار على الفرع القائم؛ بقية المؤجل يبقى مؤجلًا (OD01/R5-9 وR5-2 وP2/P3)؛ ثم Manage Online على الفرع المخصص؛ لا دمج ولا PR ولا main ولا نشر ولا كتابة مزود.",
+ "tests_required": [
+  "فحوص تنقل القشرة للضيف/المالك المحلي/الموثق (إخفاء المقعد + بقاء الخمسة للمالك + سلوك الإقلاع بلا يومض).",
+  "فحوص خادمية موجبة/سالبة لملخصات المسار/الموعد/السائق (عزل العناوين التفصيلية، ضيف 401، أجنبي 404).",
+  "typecheck خضراء بعد تصحيح كتابة الاختبار.",
+  "البوابة الكاملة pnpm check مرة على مرشح الموجة + workflow_dispatch موثق على SHA النهائي."
+ ],
+ "layers": [
+  "presentation",
+  "application",
+  "worker-api",
+  "documentation",
+  "operations-control"
+ ],
+ "classification": "BUILD_AFTER_EVIDENCE",
+ "gate_classification": "NOT_APPLICABLE",
+ "updated_at": "2026-11-14",
+ "status_history": [
+  {
+   "status": "READY",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أنشئ البند بأمر المالك المؤرخ 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md عند cf9ac194) — Workstream A: المتابعات المعتمدة على فرع Market/Delivery القائم ضمن مطالبة WS-249 القائمة (الكاتب الواحد نفسه، لا تداخل مطالبات)."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-14",
+   "actor": "zai-claim-2026-11-14",
+   "reason": "أُضيف إلى بنود مطالبة WS-249 مع توسيع areas بمسارات القشرة/التنقل والأدلة اللازمة للمهمة."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-14",
+   "actor": "zai-implementation-writer",
+   "reason": "بدء التنفيذ: التحقق الحي مكتمل (cf9ac194 = رأس origin؛ شجرة نظيفة؛ CI الأخضر 43544701361 على شجرة الكود نفسها 4365019a قابلة لإعادة الاستخدام)؛ يليه كود الموجة (NAV-001/R1-17/مصفوفة/تصحيح الكتابة) ثم الفحوص والبوابة والدفع."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "تنفيذ عناصر Workstream A الأربعة ثم البوابة الكاملة وCI على SHA النهائي؛ يليها إنشاء WS-250/DOC-040 لـManage Online على الفرع المخصص zai/micro-manage-online-20261114 من رأس الفرع القائم النهائي."
+}
