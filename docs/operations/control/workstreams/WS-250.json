@@ -38,7 +38,7 @@
  "pr": null,
  "started_at": "2026-11-14",
  "updated_at": "2026-11-14",
- "next_action": "تنفيذ الموجات M1–M6 بترتيب الاعتماد الصارم: M1 عقود وسيناريوهات (هذا الالتزام)، ثم M2 أساس خادمي، ثم M3 قراءات، ثم M4 كتابات، ثم M5 مسار ترحيل ببيانات اصطناعية، ثم M6 وضع المتصل-فقط المحروس (غير مفعّل)، مع فحوص مركزة لكل موجة والبوابة الكاملة مرة على المرشح النهائي + CI على SHA النهائي ببروتوكول ما بعد الدفع الموثق.",
+ "next_action": "التنفيذ مكتمل بدليل الدفع النهائي (التشغيل الختامي 43620704296 أخضر كاملًا على الرأس النهائي bf90754b) والبند DOC-040 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main من هذه السلسلة أبدًا؛ لا تنظيف (NO_CLEANUP).",
  "notes": [
   "Hard boundaries from the owner order cf9ac194: no production deployment, no migration applied to Neon, no Cloudflare/Neon settings or API writes, no real-data transfer, no merge, no PR, no main changes, no branch deletion; synthetic data only; Manage capability disabled by default until the operator applies and verifies the schema; local schema/export 41/34, 29 accepted pairs, local stores, snapshots and export/recovery preserved untouched (M-P1/M-P2); M-O1..M-O4 remain prohibited.",
   "The branch was created from the verified final head of the Market/Delivery branch (84f30151 — docs-only evidence commit on top of the CI-green c6e99716, run 43599295588). Workstream A (DOC-039) closed IN_REVIEW on that branch."

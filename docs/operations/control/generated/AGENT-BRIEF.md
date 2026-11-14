@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -40,4 +40,4 @@ python3 scripts/operations-control/validate.py
 | WS-246 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-030 | W02 (UXR-03) مكتملة التسليم عند رأس التسليم a315db6a مع مراجعتَي القراءة-فوق PASS عليه (وثيقتا التقرير UXR-W02-RESULT-2026-11-06)؛ أمر المالك المتصل المؤرخ 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT) يفرّغ المطالبة من العمل التنفيذي إلى REVIEW_REQUIRED بانتظار قرار المالك — الفحوص والمراجعات المجمعة تُنفذ بعد اكتمال W05 بأمر المرحلة النهائية. لا يعني النقل أي قبول. مطالبة W03+W04 المتصلة هي WS-247/DOC-031 على الفرع والـPR نفسيهما. |
 | WS-247 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-031 | W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ حرّرت المطالبة من IN_REVIEW إلى REVIEW_REQUIRED قانونيًا بأمر المرحلة النهائية المؤرخ 2026-11-06 — لا يعني النقل أي قبول: تنتظر التحقق المجموع (الفحوص المؤجلة والمراجعة الخماسية المستقلة على المرشح النهائي بعد اكتمال تنفيذ W05) وقرار المالك؛ لا قبول ذاتي ولا دمج. |
 | WS-249 | REVIEW_REQUIRED | `zai/micro-market-delivery-handoff-20261111` | — | DOC-033, DOC-034, DOC-035, DOC-036, DOC-037, DOC-038, DOC-039 | بانتظار مراجعة المالك/قرار الدمج للفرع zai/micro-market-delivery-handoff-20261111 عند رأسه النهائي المُتحقق 84f30151 (كل بنوده السبعة IN_REVIEW؛ لا PR ولا دمج ولا main من هذه السلسلة)؛ استكمال السلسلة يجري على الفرع المخصص zai/micro-manage-online-20261114 تحت مطالبة WS-250/DOC-040 المستقلة. |
-| WS-250 | IN_PROGRESS | `zai/micro-manage-online-20261114` | — | DOC-040 | تنفيذ الموجات M1–M6 بترتيب الاعتماد الصارم: M1 عقود وسيناريوهات (هذا الالتزام)، ثم M2 أساس خادمي، ثم M3 قراءات، ثم M4 كتابات، ثم M5 مسار ترحيل ببيانات اصطناعية، ثم M6 وضع المتصل-فقط المحروس (غير مفعّل)، مع فحوص مركزة لكل موجة والبوابة الكاملة مرة على المرشح النهائي + CI على SHA النهائي ببروتوكول ما بعد الدفع الموثق. |
+| WS-250 | IN_PROGRESS | `zai/micro-manage-online-20261114` | — | DOC-040 | التنفيذ مكتمل بدليل الدفع النهائي (التشغيل الختامي 43620704296 أخضر كاملًا على الرأس النهائي bf90754b) والبند DOC-040 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main من هذه السلسلة أبدًا؛ لا تنظيف (NO_CLEANUP). |
