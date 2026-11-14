@@ -11136,6 +11136,25 @@
     "trigger": "Workstream B M4 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
     "ocRef": "DOC-040"
    }
+  },
+  {
+   "id": "doc040-2026-11-14-m5-network-door-surface",
+   "date": "2026-11-14",
+   "path": "scripts/application-door-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 518,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 559,
+    "band": "WATCH"
+   },
+   "reason": "DOC-040 (M5 — أمر المالك 2026-11-14 §6-M5): إرساء موثق ثالث لسطح باب الشبكة بعد إضافة مسار الترحيل الاصطناعي (تطبيق/حالة/رجوع) بملاحظة PC-3 مؤرخة — يستكمل إرساءَي M3 (518→550) وM4 (518→553).",
+   "authorization": {
+    "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M5)",
+    "trigger": "Workstream B M5 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
+    "ocRef": "DOC-040"
+   }
   }
  ]
 }

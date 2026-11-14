@@ -32,6 +32,9 @@ export {
   unlinkManage,
   generateManageProofSecret,
   saveManageRecord,
+  applyManageMigration,
+  fetchManageMigrationStatus,
+  rollbackManageMigration,
 } from "./manageOnlineService";
 export type {
   ManageOnlineState,
@@ -42,4 +45,6 @@ export type {
   ManageFamilyRecords,
   ManageLinkStartResult,
   ManageRecordSaveResult,
+  ManageMigrationReceipt,
+  ManageMigrationEntry,
 } from "./manageOnlineService";

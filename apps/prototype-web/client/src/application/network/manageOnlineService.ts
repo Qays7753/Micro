@@ -138,6 +138,66 @@ export async function saveManageRecord(
 }
 
 /**
+ * مسار الترحيل (EX-D23 M5): تطبيق مظروف التصدير على مخزن الخادم — ببيانات
+ * اصطناعية حصرًا في العمل المستودعي، ولا يُنفَّذ ضد Neon قط. الإثبات المزدوج
+ * §2-ب: السر يُقدَّم مع المظروف ويطابق بصمة الربط المسجلة. الاسترداد الحتمي:
+ * نفس المظروف يعيد الإيصال نفسه؛ والرجوع الكامل يترك التصدير المحلي مصدر
+ * الاسترداد دائمًا. المتصل مسؤول عن التحقق من صيغة الملف محليًا قبل الإرسال.
+ */
+export interface ManageMigrationReceipt {
+  applied: true;
+  replayed: boolean;
+  fingerprint: string;
+  totalRecords: number;
+  familyCounts: Record<string, number>;
+  contentChecksum: string;
+  appliedAt: number;
+}
+
+export async function applyManageMigration(
+  envelope: unknown,
+  proofSecret: string,
+  idempotencyKey: string,
+  signal?: AbortSignal,
+): Promise<ManageMigrationReceipt> {
+  return apiFetch<ManageMigrationReceipt>(
+    "/api/manage/migrate/apply",
+    { method: "POST", body: JSON.stringify({ envelope, proofSecret }) },
+    { idempotencyKey, signal },
+  );
+}
+
+export interface ManageMigrationEntry {
+  fingerprint: string;
+  status: "applied" | "rolled_back";
+  totalRecords: number;
+  contentChecksum: string;
+  appliedAt: number;
+  rolledBackAt: number | null;
+}
+
+export async function fetchManageMigrationStatus(signal?: AbortSignal): Promise<{
+  workspaceId: string;
+  migrations: ManageMigrationEntry[];
+}> {
+  return apiFetch<{ workspaceId: string; migrations: ManageMigrationEntry[] }>("/api/manage/migrate/status", {
+    signal,
+  });
+}
+
+export async function rollbackManageMigration(
+  fingerprint: string,
+  idempotencyKey: string,
+  signal?: AbortSignal,
+): Promise<{ rolledBack: boolean; fingerprint: string }> {
+  return apiFetch<{ rolledBack: boolean; fingerprint: string }>(
+    "/api/manage/migrate/rollback",
+    { method: "POST", body: JSON.stringify({ fingerprint }) },
+    { idempotencyKey, signal },
+  );
+}
+
+/**
  * توليد سر إثبات الملكية داخل Manage (محليًا في الذاكرة فقط — لا يُخزن في
  * أي مخزن محلي ولا يدخل ملف التصدير أبدًا). البروتوكول §2-ب: السر يُولَّد
  * هنا ويعرض للمالك لنسخه، ثم يقدَّم في الجلسة السحابية، ولا يخزن الخادم
