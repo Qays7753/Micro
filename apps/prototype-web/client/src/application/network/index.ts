@@ -15,3 +15,29 @@ export { fetchSession, signOut, startGoogleSignIn } from "./sessionService";
 export type { NetworkSession, NetworkWorkspace } from "./sessionService";
 export { fetchAskStatus, askQuestion } from "./askMicroService";
 export type { AskStatus, AskStatusContext, AskAnswer } from "./askMicroService";
+
+/*
+ * توسيع مقصود مؤرخ (EX-D23 — M3 2026-11-14): خدمة Manage المتصلة (حالة
+ * الربط والقدرة والقراءات الخادمية المصرحة + مسار الربط المزدوج) — قراءة
+ * خادمية صرفة عبر العامل نفسه، بلا أي كتابة محلية، والربط بإثبات ملكية
+ * موثق لا بمطابقة البريد أبدًا.
+ */
+
+export {
+  fetchManageOnlineState,
+  fetchManageFamilies,
+  fetchManageFamilyRecords,
+  startManageLink,
+  confirmManageLink,
+  unlinkManage,
+  generateManageProofSecret,
+} from "./manageOnlineService";
+export type {
+  ManageOnlineState,
+  ManageWorkspaceOnlineState,
+  ManageFamilySummary,
+  ManageFamilies,
+  ManageRecordView,
+  ManageFamilyRecords,
+  ManageLinkStartResult,
+} from "./manageOnlineService";

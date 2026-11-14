@@ -2,9 +2,10 @@
  * ملف المالك والمشروع (المجموعة ١ — Scope G): هوية مالك محلية + معلومات المشروع.
  * سطح قراءة بسيط يُفتح من الترويسة/الإعدادات بلا مقعد سادس، والرجوع يحفظ المصدر.
  * EX-D22 (Phase B — 2026-11-14): جسر الحساب المشترك — يعرض حالة حساب Micro
- * المتصل (قراءة فقط) مع الصدق الكامل: مال Manage محلي على هذا الجهاز وغير
- * مرتبط بالحساب بعد؛ الربط الفعلي بروتوكول مستقبلي مستقل (بوابة Migration)،
- * ولا مزامنة ولا زر دخول وهمي هنا — الدخول من الأسطح المتصلة نفسها.
+ * المتصل (قراءة فقط) مع الصدق الكامل: مال Manage محلي على هذا الجهاز، ولا
+ * مزامنة ولا زر دخول وهمي هنا — الدخول من الأسطح المتصلة نفسها.
+ * EX-D23 (M3 — 2026-11-14): قسم «ربط Manage المتصل» تحت الحساب — الحالة
+ * الصادقة ومسار الربط المزدوج وقراءات الخادم المصرحة (ManageOnlineSection).
  */
 import { ArrowRight, CircleUserRound, Landmark, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -15,6 +16,7 @@ import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { resolveReturnPath, withReturnTo } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { ManageOnlineSection } from "@/components/profile/ManageOnlineSection";
 
 import { Button } from "@/components/primitives";
 type ProfileState =
@@ -258,7 +260,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <dt>حدود الربط</dt>
-                  <dd>مال مشروعك محلي على هذا الجهاز — غير مرتبط بهذا الحساب بعد</dd>
+                  <dd>مال مشروعك محلي على هذا الجهاز — حالة الربط الفعلية أدناه</dd>
                 </div>
               </dl>
               {session.workspaces && session.workspaces.length > 0 ? (
@@ -266,10 +268,9 @@ export default function Profile() {
                   مساحات عملك المتصلة: {session.workspaces.map(w => w.displayName).join("، ")}
                 </p>
               ) : null}
-              <p className="micro-profile-future-note">
-                ربط مال المشروع بهذا الحساب يحتاج ترحيلًا مستقليًا موثقًا في مرحلة لاحقة — لن يحدث تلقائيًا
-                أبدًا.
-              </p>
+              {/* EX-D23 (M3): الحالة الصادقة ومسار الربط المزدوج وقراءات الخادم —
+                  أصغر حد تطبيقي متوافق فوق جسر EX-D22 القائم. */}
+              <ManageOnlineSection />
             </>
           ) : (
             <>

@@ -111,11 +111,15 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "cash/cashCountMessages.ts",
   /* EX-D18 (2026-11-12): بيت الشبكة — عميل BFF نفس الأصل بلا أي كتابة تخزين محلي.
    * EX-D21 (DOC-037، Phase B — 2026-11-14): خدمة Ask Micro تُضاف للسجل —
-   * قراءة حالة/سياق وإرسال سؤال عبر الباب نفسه؛ لا كتابة محلية إطلاقًا. */
+   * قراءة حالة/سياق وإرسال سؤال عبر الباب نفسه؛ لا كتابة محلية إطلاقًا.
+   * EX-D23 M3 (DOC-040، 2026-11-14): خدمة Manage المتصلة تُضاف للسجل — قراءة
+   * الحالة/العائلات/السجلات المصرحة + مسار الربط الخادمي؛ التوليد المحلي للسر
+   * في الذاكرة فقط (لا مخزن ولا تصدير)، ولا كتابة محلية إطلاقًا. */
   "network/apiClient.ts",
   "network/index.ts",
   "network/sessionService.ts",
   "network/askMicroService.ts",
+  "network/manageOnlineService.ts",
   "market/marketService.ts",
   "market/marketEstimate.ts",
   "market/index.ts",

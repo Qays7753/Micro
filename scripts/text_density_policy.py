@@ -579,7 +579,11 @@ CAPS: dict[str, int] = {
     # Profile (2026-09-02, Group 1 Scope G, owner-approved execution prompt): new
     # mandated screen — two identity sections, states, edit mode, and local-truth line;
     # locked at 27 with headroom of 3 for future mandated labels only.
-    "Profile": 30,
+    # Profile 30 → 40 (2026-11-14, EX-D23 M3/DOC-040, owner order cf9ac194): قسم
+    # «ربط Manage المتصل» داخل ملف الحساب — الحالات الصادقة العشر (غير مهيأة/
+    # معطلة/غير مربوط/بانتظار التأكيد/مربوط/بيانات الخادم غير المهاجرة) ومسار
+    # الربط المزدوج وسر الإثبات المولد داخل Manage؛ تسميات مفروضة بالأمر نفسه.
+    "Profile": 40,
     # AskMicro (EX-D21/DOC-037، Phase B — 2026-11-14): مدخل Ask Micro الشامل —
     # الحالة الصادقة غير المهيأة + سياق الأدوار/المساحات + نموذج السؤال؛
     # القياس الأول 13 ويُقفل عند 16 برأس هامش 3 للتسميات المفروضة لاحقًا (سابقة Profile).

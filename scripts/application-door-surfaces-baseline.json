@@ -1,535 +1,550 @@
 {
-  "version": 1,
-  "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
-  "notes": [
-    "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
-    "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
-    "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم.",
-    "EX-D21/EX-D19 (DOC-037، Phase B — 2026-11-14): توسيع مقصود لباب الشبكة — خدمة Ask Micro (fetchAskStatus/askQuestion وأنواعها) + نوع NetworkWorkspace لعضويات مساحات العمل؛ نفس باب API نفس الأصل بلا أي كتابة محلية؛ موثق في رأس index.ts نفسه (PC-3)."
-  ],
-  "doors": {
-    "activity": {
-      "value": [],
-      "type": [
-        "ActivityEffectClass",
-        "ActivityFamily",
-        "ActivityReadPage",
-        "ActivityRecord",
-        "ActivityService"
-      ]
-    },
-    "agreements": {
-      "value": [
-        "agreementPriceIsReady",
-        "agreementSummaryParts",
-        "applyProtectionPriceAsStart",
-        "classifyFollowUpDate",
-        "clearScheduleProposal",
-        "consumeScheduleProposal",
-        "protectionPriceIsReadyForAgreement",
-        "readScheduleProposal",
-        "startAgreementPrice",
-        "storeScheduleProposal"
-      ],
-      "type": [
-        "AgreementContextService",
-        "AgreementResult",
-        "AgreementService",
-        "AgreementSourceValue"
-      ]
-    },
-    "assets": {
-      "value": [],
-      "type": [
-        "AssetOverviewRead",
-        "AssetService",
-        "AssetSummaryRow"
-      ]
-    },
-    "budgets": {
-      "value": [
-        "ExpenseBudgetService"
-      ],
-      "type": [
-        "ExpenseBudgetMonthList",
-        "ExpenseBudgetStatusLine",
-        "ExpenseBudgetStatusesReading"
-      ]
-    },
-    "cash": {
-      "value": [
-        "CashContinuityService",
-        "WalletLedgerService",
-        "cashCountDifferenceReason",
-        "cashCountSettlementNote"
-      ],
-      "type": [
-        "CashContinuityOverview",
-        "CashWalletBalance",
-        "WalletLedgerOverview"
-      ]
-    },
-    "catalog": {
-      "value": [],
-      "type": [
-        "CatalogService",
-        "TemplatePlannedCost",
-        "TemplatePlannedCostService"
-      ]
-    },
-    "collections": {
-      "value": [],
-      "type": [
-        "CollectionOutcome",
-        "CollectionReversalPreview",
-        "CollectionReversalResult",
-        "CollectionReversalService",
-        "CollectionService",
-        "ReceivableSource",
-        "ReversibleSaleCollection",
-        "SaleCollectionReversalPreview",
-        "SaleCollectionReversalService"
-      ]
-    },
-    "cost": {
-      "value": [],
-      "type": [
-        "CostEditorInput",
-        "CostService",
-        "GroupedCostEditorInput"
-      ]
-    },
-    "diagnostics": {
-      "value": [
-        "localDiagnostics",
-        "routeTemplateFor"
-      ],
-      "type": []
-    },
-    "drafts": {
-      "value": [
-        "FormDraftService"
-      ],
-      "type": [
-        "FormDraftValues"
-      ]
-    },
-    "estimates": {
-      "value": [],
-      "type": [
-        "CostEstimateInput",
-        "CostEstimateService"
-      ]
-    },
-    "finance": {
-      "value": [
-        "DueDatesService",
-        "IntegrityCheckService",
-        "PAYMENT_SOURCE_UNSET",
-        "PeriodComparisonService",
-        "ProfitToCashBridgeService",
-        "ProjectFinancialService",
-        "RecurringExpenseService",
-        "RecurringWorkService",
-        "StatementMarkdownService",
-        "StatementService",
-        "UpcomingService",
-        "isPeriodActive",
-        "previousEqualPeriod",
-        "resolveDefaultPaymentSource",
-        "resolvePeriodPreset"
-      ],
-      "type": [
-        "BridgeState",
-        "FinanceBlockId",
-        "FinanceState",
-        "FinancialInsights",
-        "FinancialMetricEvidence",
-        "IntegrityCheckReport",
-        "IntegrityCheckResult",
-        "IntegrityCheckStatus",
-        "IntegrityOffenderSummary",
-        "PayableDueRow",
-        "PayablesAgingOverview",
-        "PeriodComparisonReading",
-        "ProfitToCashBridgeReading",
-        "ProjectFinancialPosition",
-        "RecordedPeriodResult",
-        "RecurringExpenseDetailReading",
-        "RecurringExpenseSeriesCardReading",
-        "RecurringWorkPolicyInput",
-        "RecurringWorkReading",
-        "RecurringWorkReadings",
-        "SettleablePayable",
-        "StatementExpenseCategoryGroup",
-        "StatementLine",
-        "StatementReading",
-        "UpcomingBlockResult",
-        "UpcomingEntry",
-        "UpcomingOverview"
-      ]
-    },
-    "financial-pulse": {
-      "value": [],
-      "type": [
-        "FinancialPulseService",
-        "LocalFinancialPulse"
-      ]
-    },
-    "financial-records": {
-      "value": [
-        "CorrectionHistoryService",
-        "RetainedDepositService",
-        "deriveExpenseCategorySuggestions",
-        "expandExpenseRecordIntent",
-        "matchesSharedBillOwnerPartConfirmation",
-        "normalizeCategoryLabelInput",
-        "sharedBillOwnerPartConfirmationOf"
-      ],
-      "type": [
-        "CorrectionDigest",
-        "CorrectionHistoryEntry",
-        "CorrectionHistoryGroup",
-        "CorrectionHistoryKind",
-        "RetainedDepositRow",
-        "SharedBillOwnerPartConfirmation",
-        "SharedExpenseRecordInput"
-      ]
-    },
-    "follow-up": {
-      "value": [
-        "UnifiedFollowUpService",
-        "projectFollowUp"
-      ],
-      "type": [
-        "DailyFollowUp",
-        "DailyFollowUpService",
-        "FollowUpFilter",
-        "FollowUpGroup",
-        "FollowUpProjection",
-        "FollowUpSourceKey",
-        "FollowUpSourceState",
-        "FollowUpTask",
-        "FollowUpTaskKind",
-        "PayablesAgingReader",
-        "ReceivablesReader",
-        "SettleablePayablesReader",
-        "UnifiedFollowUpReading",
-        "UnifiedFollowUpResult"
-      ]
-    },
-    "fulfillment": {
-      "value": [],
-      "type": [
-        "DeliveryConsumptionAction",
-        "DeliveryReview",
-        "DeliveryReviewService",
-        "DepositOverview",
-        "FulfillmentResult",
-        "FulfillmentService"
-      ]
-    },
-    "home": {
-      "value": [],
-      "type": [
-        "HomeControlCenterViewModel",
-        "HomeFinancialGlimpse",
-        "HomeFollowUpBrief",
-        "HomeFollowUpRow",
-        "HomeGlimpseNumber",
-        "HomeGlimpsePeriodKind",
-        "HomeGlimpsePeriodNumbers"
-      ]
-    },
-    "input": {
-      "value": [
-        "allowsEnglishNumericText",
-        "blurEnglishNumericText",
-        "echoQuantityMilli",
-        "focusEnglishNumericText",
-        "formatEnglishNumericValue",
-        "formatEnglishQuantityEcho",
-        "normalizeAsciiDigits",
-        "parseEnglishNumericText",
-        "parseEnglishQuantityText",
-        "percentToBpsExact"
-      ],
-      "type": [
-        "EnglishNumericKind"
-      ]
-    },
-    "inventory": {
-      "value": [
-        "InventoryMaterialService",
-        "materialUnitLabel",
-        "readMaterialSuggestions",
-        "resolveInventoryMovementType"
-      ],
-      "type": [
-        "InventoryActivationState",
-        "InventoryMaterialOverview",
-        "InventoryMovementRouteType",
-        "InventoryOverview",
-        "InventoryReferences",
-        "MaterialSuggestion",
-        "OrderActualMaterialComparison",
-        "PeriodWasteReading",
-        "PurchaseReceiptStatus"
-      ]
-    },
-    "loans": {
-      "value": [
-        "ReceivedLoanService"
-      ],
-      "type": [
-        "LoanOverviewRead",
-        "LoanService",
-        "LoanSummaryRow",
-        "ReceivedLoanOverviewRead",
-        "ReceivedLoanSummaryRow"
-      ]
-    },
-    "owner-money": {
-      "value": [
-        "OwnerEntitlementService"
-      ],
-      "type": [
-        "CrossModelOwnerDuplicate",
-        "OwnerEntitlementOverview",
-        "OwnerMoneyOverview"
-      ]
-    },
-    "parties": {
-      "value": [
-        "purchasePartySnapshotOf",
-        "salePartySnapshotOf",
-        "supplierDisplayLabelOf"
-      ],
-      "type": [
-        "PartyAccountEntry",
-        "PartyDirectoryOverview",
-        "PartyDirectoryResult",
-        "PartyDirectoryService",
-        "PartyDirectoryServiceStore",
-        "PartyMovement",
-        "PartyMovementKind",
-        "RenamePartyInput",
-        "SavePartyInput",
-        "SetPartyArchiveInput"
-      ]
-    },
-    "preferences": {
-      "value": [
-        "isKnownCapabilityId",
-        "isOfferingPreference"
-      ],
-      "type": [
-        "BrowserPersistenceReading",
-        "CapabilityId",
-        "OfferingPreference",
-        "PreferenceService",
-        "ThemePreference"
-      ]
-    },
-    "scheduling": {
-      "value": [
-        "activeDeliveryLens",
-        "activeEntries",
-        "bucketOfDate",
-        "buildCapacityDecisionViewModel",
-        "compareEntries",
-        "entriesForDate",
-        "readScheduleCommunity",
-        "windowOf"
-      ],
-      "type": [
-        "ActiveDeliveryRow",
-        "DerivedScheduleStatus",
-        "MonthOverview",
-        "RecurrenceView",
-        "ScheduleCommunity",
-        "ScheduleCommunityEntry",
-        "ScheduleDay",
-        "ScheduleOverview",
-        "ScheduleReadResult",
-        "ScheduleReadStore",
-        "ScheduleRecurrenceService",
-        "ScheduleService",
-        "ScheduleWindow",
-        "ScheduledOrder"
-      ]
-    },
-    "security": {
-      "value": [
-        "retireLocalLockRecord"
-      ],
-      "type": [
-        "LockRetirementOutcome"
-      ]
-    },
-    "suppliers": {
-      "value": [],
-      "type": [
-        "SupplierPurchaseService",
-        "SupplierPurchaseSummary"
-      ]
-    },
-    "time": {
-      "value": [
-        "todayInAmman"
-      ],
-      "type": [
-        "ActualTimeService",
-        "OperatingModeValue"
-      ]
-    },
-    "transfers": {
-      "value": [
-        "AccountCompletionService",
-        "IMPORT_FILE_BYTES_LIMIT_MESSAGE",
-        "MAX_IMPORT_FILE_UNITS",
-        "createAccountCompletionHarness",
-        "isWithinImportFileBytes"
-      ],
-      "type": [
-        "AccountCompletionInput",
-        "AccountCompletionPlan",
-        "AccountCompletionPreview",
-        "AccountCompletionServiceResult",
-        "BoundRestoreIntent",
-        "CompletionAnswer",
-        "GuidedOpeningImportPreview",
-        "GuidedOpeningImportService",
-        "LocalTransferService",
-        "PreparedImport",
-        "RestoreIntentContext",
-        "RestoreResult",
-        "SummaryAnswer",
-        "TransferPreview",
-        "TransferSummary"
-      ]
-    },
-    "planning": {
-      "value": [
-        "previewPlanningCalculation",
-        "suggestPlanningPrice",
-        "computeHourValue",
-        "computeSalesQuantity",
-        "computeInvoiceShare",
-        "computeIdeaReview",
-        "IDEA_REVIEW_QUESTIONS"
-      ],
-      "type": [
-        "PlanningToolsResult"
-      ]
-    },
-    "network": {
-      "value": [
-        "ApiError",
-        "apiDownload",
-        "apiFetch",
-        "apiUpload",
-        "newIdempotencyKey",
-        "fetchSession",
-        "signOut",
-        "startGoogleSignIn",
-        "fetchAskStatus",
-        "askQuestion"
-      ],
-      "type": [
-        "ApiCallOptions",
-        "ApiErrorShape",
-        "NetworkSession",
-        "NetworkWorkspace",
-        "AskStatus",
-        "AskStatusContext",
-        "AskAnswer"
-      ]
-    },
-    "market": {
-      "value": [
-        "attachListingMedia",
-        "browseMarketListings",
-        "confirmListingAvailability",
-        "createListingDraft",
-        "directUpdateListing",
-        "estimateMaterialValue",
-        "fetchListingDetail",
-        "fetchMarketMeta",
-        "fetchVendorListingDraft",
-        "fetchVendorOverview",
-        "formatMicroJodAsJod",
-        "listingLifecycleAction",
-        "reportListing",
-        "submitListing",
-        "submitVendorProfile",
-        "toggleSavedListing",
-        "updateListingDraft",
-        "uploadListingImage",
-        "upsertVendorProfile"
-      ],
-      "type": [
-        "EstimateInput",
-        "EstimateResult",
-        "ListingDraftInput",
-        "MarketMeta",
-        "PublicListingDetail",
-        "PublicListingSummary",
-        "VendorListingDraft",
-        "VendorOverview"
-      ]
-    },
-    "delivery": {
-      "value": [
-        "answerContactAttempt",
-        "attachDriverEvidence",
-        "cancelDeliveryRequest",
-        "confirmDeliveryOutcome",
-        "confirmStatement",
-        "createDeliveryRequest",
-        "decideDeliveryChange",
-        "decideDeliveryConsent",
-        "decideDeliveryQuote",
-        "declareCollection",
-        "driverAcceptRequest",
-        "driverDeclare",
-        "driverDeclineRequest",
-        "driverRequestDetail",
-        "driverSubmitQuote",
-        "fetchBookingDetail",
-        "fetchDriverDirectory",
-        "fetchDriverPortal",
-        "fetchDriverRequests",
-        "fetchDriverStatements",
-        "fetchOwnerOverview",
-        "fetchOwnerStatements",
-        "proposeDeliveryChange",
-        "proposeDeliveryConsent",
-        "rateDeliveryBooking",
-        "recordDeliveryInstructions",
-        "setAcceptingNew",
-        "submitDeliveryRequest",
-        "submitDriverApplication",
-        "submitDriverStatement",
-        "toggleSavedDriver",
-        "uploadDriverEvidence",
-        "uploadVehicleProof",
-        "upsertDriverProfileDraft",
-        "upsertDriverVehicleDraft",
-        "withdrawDeliveryChange",
-        "withdrawDeliveryConsent"
-      ],
-      "type": [
-        "BookingDetail",
-        "DriverDirectoryEntryDto",
-        "DriverPortalState",
-        "DriverRequestSummary",
-        "DriverStatementSummary",
-        "OwnerRequestSummary"
-      ]
-    }
+ "version": 1,
+ "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
+ "notes": [
+  "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
+  "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
+  "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم.",
+  "EX-D21/EX-D19 (DOC-037، Phase B — 2026-11-14): توسيع مقصود لباب الشبكة — خدمة Ask Micro (fetchAskStatus/askQuestion وأنواعها) + نوع NetworkWorkspace لعضويات مساحات العمل؛ نفس باب API نفس الأصل بلا أي كتابة محلية؛ موثق في رأس index.ts نفسه (PC-3).",
+  "EX-D23 M3 (DOC-040 — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): باب الشبكة أضاف سطح خدمة Manage المتصلة (حالة الربط/القدرة + القراءات المصرحة + مسار الربط المزدوج بسر يُولَّد داخل Manage) — توسيع مقصود موثق في نفس الالتزام (PC-3)؛ مستهلكه Profile عبر components/profile/ManageOnlineSection.tsx واختباره Profile.manageOnline.dom."
+ ],
+ "doors": {
+  "activity": {
+   "value": [],
+   "type": [
+    "ActivityEffectClass",
+    "ActivityFamily",
+    "ActivityReadPage",
+    "ActivityRecord",
+    "ActivityService"
+   ]
   },
-  "rootFiles": [
-    "resultCodes.ts"
-  ]
+  "agreements": {
+   "value": [
+    "agreementPriceIsReady",
+    "agreementSummaryParts",
+    "applyProtectionPriceAsStart",
+    "classifyFollowUpDate",
+    "clearScheduleProposal",
+    "consumeScheduleProposal",
+    "protectionPriceIsReadyForAgreement",
+    "readScheduleProposal",
+    "startAgreementPrice",
+    "storeScheduleProposal"
+   ],
+   "type": [
+    "AgreementContextService",
+    "AgreementResult",
+    "AgreementService",
+    "AgreementSourceValue"
+   ]
+  },
+  "assets": {
+   "value": [],
+   "type": [
+    "AssetOverviewRead",
+    "AssetService",
+    "AssetSummaryRow"
+   ]
+  },
+  "budgets": {
+   "value": [
+    "ExpenseBudgetService"
+   ],
+   "type": [
+    "ExpenseBudgetMonthList",
+    "ExpenseBudgetStatusLine",
+    "ExpenseBudgetStatusesReading"
+   ]
+  },
+  "cash": {
+   "value": [
+    "CashContinuityService",
+    "WalletLedgerService",
+    "cashCountDifferenceReason",
+    "cashCountSettlementNote"
+   ],
+   "type": [
+    "CashContinuityOverview",
+    "CashWalletBalance",
+    "WalletLedgerOverview"
+   ]
+  },
+  "catalog": {
+   "value": [],
+   "type": [
+    "CatalogService",
+    "TemplatePlannedCost",
+    "TemplatePlannedCostService"
+   ]
+  },
+  "collections": {
+   "value": [],
+   "type": [
+    "CollectionOutcome",
+    "CollectionReversalPreview",
+    "CollectionReversalResult",
+    "CollectionReversalService",
+    "CollectionService",
+    "ReceivableSource",
+    "ReversibleSaleCollection",
+    "SaleCollectionReversalPreview",
+    "SaleCollectionReversalService"
+   ]
+  },
+  "cost": {
+   "value": [],
+   "type": [
+    "CostEditorInput",
+    "CostService",
+    "GroupedCostEditorInput"
+   ]
+  },
+  "diagnostics": {
+   "value": [
+    "localDiagnostics",
+    "routeTemplateFor"
+   ],
+   "type": []
+  },
+  "drafts": {
+   "value": [
+    "FormDraftService"
+   ],
+   "type": [
+    "FormDraftValues"
+   ]
+  },
+  "estimates": {
+   "value": [],
+   "type": [
+    "CostEstimateInput",
+    "CostEstimateService"
+   ]
+  },
+  "finance": {
+   "value": [
+    "DueDatesService",
+    "IntegrityCheckService",
+    "PAYMENT_SOURCE_UNSET",
+    "PeriodComparisonService",
+    "ProfitToCashBridgeService",
+    "ProjectFinancialService",
+    "RecurringExpenseService",
+    "RecurringWorkService",
+    "StatementMarkdownService",
+    "StatementService",
+    "UpcomingService",
+    "isPeriodActive",
+    "previousEqualPeriod",
+    "resolveDefaultPaymentSource",
+    "resolvePeriodPreset"
+   ],
+   "type": [
+    "BridgeState",
+    "FinanceBlockId",
+    "FinanceState",
+    "FinancialInsights",
+    "FinancialMetricEvidence",
+    "IntegrityCheckReport",
+    "IntegrityCheckResult",
+    "IntegrityCheckStatus",
+    "IntegrityOffenderSummary",
+    "PayableDueRow",
+    "PayablesAgingOverview",
+    "PeriodComparisonReading",
+    "ProfitToCashBridgeReading",
+    "ProjectFinancialPosition",
+    "RecordedPeriodResult",
+    "RecurringExpenseDetailReading",
+    "RecurringExpenseSeriesCardReading",
+    "RecurringWorkPolicyInput",
+    "RecurringWorkReading",
+    "RecurringWorkReadings",
+    "SettleablePayable",
+    "StatementExpenseCategoryGroup",
+    "StatementLine",
+    "StatementReading",
+    "UpcomingBlockResult",
+    "UpcomingEntry",
+    "UpcomingOverview"
+   ]
+  },
+  "financial-pulse": {
+   "value": [],
+   "type": [
+    "FinancialPulseService",
+    "LocalFinancialPulse"
+   ]
+  },
+  "financial-records": {
+   "value": [
+    "CorrectionHistoryService",
+    "RetainedDepositService",
+    "deriveExpenseCategorySuggestions",
+    "expandExpenseRecordIntent",
+    "matchesSharedBillOwnerPartConfirmation",
+    "normalizeCategoryLabelInput",
+    "sharedBillOwnerPartConfirmationOf"
+   ],
+   "type": [
+    "CorrectionDigest",
+    "CorrectionHistoryEntry",
+    "CorrectionHistoryGroup",
+    "CorrectionHistoryKind",
+    "RetainedDepositRow",
+    "SharedBillOwnerPartConfirmation",
+    "SharedExpenseRecordInput"
+   ]
+  },
+  "follow-up": {
+   "value": [
+    "UnifiedFollowUpService",
+    "projectFollowUp"
+   ],
+   "type": [
+    "DailyFollowUp",
+    "DailyFollowUpService",
+    "FollowUpFilter",
+    "FollowUpGroup",
+    "FollowUpProjection",
+    "FollowUpSourceKey",
+    "FollowUpSourceState",
+    "FollowUpTask",
+    "FollowUpTaskKind",
+    "PayablesAgingReader",
+    "ReceivablesReader",
+    "SettleablePayablesReader",
+    "UnifiedFollowUpReading",
+    "UnifiedFollowUpResult"
+   ]
+  },
+  "fulfillment": {
+   "value": [],
+   "type": [
+    "DeliveryConsumptionAction",
+    "DeliveryReview",
+    "DeliveryReviewService",
+    "DepositOverview",
+    "FulfillmentResult",
+    "FulfillmentService"
+   ]
+  },
+  "home": {
+   "value": [],
+   "type": [
+    "HomeControlCenterViewModel",
+    "HomeFinancialGlimpse",
+    "HomeFollowUpBrief",
+    "HomeFollowUpRow",
+    "HomeGlimpseNumber",
+    "HomeGlimpsePeriodKind",
+    "HomeGlimpsePeriodNumbers"
+   ]
+  },
+  "input": {
+   "value": [
+    "allowsEnglishNumericText",
+    "blurEnglishNumericText",
+    "echoQuantityMilli",
+    "focusEnglishNumericText",
+    "formatEnglishNumericValue",
+    "formatEnglishQuantityEcho",
+    "normalizeAsciiDigits",
+    "parseEnglishNumericText",
+    "parseEnglishQuantityText",
+    "percentToBpsExact"
+   ],
+   "type": [
+    "EnglishNumericKind"
+   ]
+  },
+  "inventory": {
+   "value": [
+    "InventoryMaterialService",
+    "materialUnitLabel",
+    "readMaterialSuggestions",
+    "resolveInventoryMovementType"
+   ],
+   "type": [
+    "InventoryActivationState",
+    "InventoryMaterialOverview",
+    "InventoryMovementRouteType",
+    "InventoryOverview",
+    "InventoryReferences",
+    "MaterialSuggestion",
+    "OrderActualMaterialComparison",
+    "PeriodWasteReading",
+    "PurchaseReceiptStatus"
+   ]
+  },
+  "loans": {
+   "value": [
+    "ReceivedLoanService"
+   ],
+   "type": [
+    "LoanOverviewRead",
+    "LoanService",
+    "LoanSummaryRow",
+    "ReceivedLoanOverviewRead",
+    "ReceivedLoanSummaryRow"
+   ]
+  },
+  "owner-money": {
+   "value": [
+    "OwnerEntitlementService"
+   ],
+   "type": [
+    "CrossModelOwnerDuplicate",
+    "OwnerEntitlementOverview",
+    "OwnerMoneyOverview"
+   ]
+  },
+  "parties": {
+   "value": [
+    "purchasePartySnapshotOf",
+    "salePartySnapshotOf",
+    "supplierDisplayLabelOf"
+   ],
+   "type": [
+    "PartyAccountEntry",
+    "PartyDirectoryOverview",
+    "PartyDirectoryResult",
+    "PartyDirectoryService",
+    "PartyDirectoryServiceStore",
+    "PartyMovement",
+    "PartyMovementKind",
+    "RenamePartyInput",
+    "SavePartyInput",
+    "SetPartyArchiveInput"
+   ]
+  },
+  "preferences": {
+   "value": [
+    "isKnownCapabilityId",
+    "isOfferingPreference"
+   ],
+   "type": [
+    "BrowserPersistenceReading",
+    "CapabilityId",
+    "OfferingPreference",
+    "PreferenceService",
+    "ThemePreference"
+   ]
+  },
+  "scheduling": {
+   "value": [
+    "activeDeliveryLens",
+    "activeEntries",
+    "bucketOfDate",
+    "buildCapacityDecisionViewModel",
+    "compareEntries",
+    "entriesForDate",
+    "readScheduleCommunity",
+    "windowOf"
+   ],
+   "type": [
+    "ActiveDeliveryRow",
+    "DerivedScheduleStatus",
+    "MonthOverview",
+    "RecurrenceView",
+    "ScheduleCommunity",
+    "ScheduleCommunityEntry",
+    "ScheduleDay",
+    "ScheduleOverview",
+    "ScheduleReadResult",
+    "ScheduleReadStore",
+    "ScheduleRecurrenceService",
+    "ScheduleService",
+    "ScheduleWindow",
+    "ScheduledOrder"
+   ]
+  },
+  "security": {
+   "value": [
+    "retireLocalLockRecord"
+   ],
+   "type": [
+    "LockRetirementOutcome"
+   ]
+  },
+  "suppliers": {
+   "value": [],
+   "type": [
+    "SupplierPurchaseService",
+    "SupplierPurchaseSummary"
+   ]
+  },
+  "time": {
+   "value": [
+    "todayInAmman"
+   ],
+   "type": [
+    "ActualTimeService",
+    "OperatingModeValue"
+   ]
+  },
+  "transfers": {
+   "value": [
+    "AccountCompletionService",
+    "IMPORT_FILE_BYTES_LIMIT_MESSAGE",
+    "MAX_IMPORT_FILE_UNITS",
+    "createAccountCompletionHarness",
+    "isWithinImportFileBytes"
+   ],
+   "type": [
+    "AccountCompletionInput",
+    "AccountCompletionPlan",
+    "AccountCompletionPreview",
+    "AccountCompletionServiceResult",
+    "BoundRestoreIntent",
+    "CompletionAnswer",
+    "GuidedOpeningImportPreview",
+    "GuidedOpeningImportService",
+    "LocalTransferService",
+    "PreparedImport",
+    "RestoreIntentContext",
+    "RestoreResult",
+    "SummaryAnswer",
+    "TransferPreview",
+    "TransferSummary"
+   ]
+  },
+  "planning": {
+   "value": [
+    "previewPlanningCalculation",
+    "suggestPlanningPrice",
+    "computeHourValue",
+    "computeSalesQuantity",
+    "computeInvoiceShare",
+    "computeIdeaReview",
+    "IDEA_REVIEW_QUESTIONS"
+   ],
+   "type": [
+    "PlanningToolsResult"
+   ]
+  },
+  "network": {
+   "value": [
+    "ApiError",
+    "apiDownload",
+    "apiFetch",
+    "apiUpload",
+    "newIdempotencyKey",
+    "fetchSession",
+    "signOut",
+    "startGoogleSignIn",
+    "fetchAskStatus",
+    "askQuestion",
+    "fetchManageOnlineState",
+    "fetchManageFamilies",
+    "fetchManageFamilyRecords",
+    "startManageLink",
+    "confirmManageLink",
+    "unlinkManage",
+    "generateManageProofSecret"
+   ],
+   "type": [
+    "ApiCallOptions",
+    "ApiErrorShape",
+    "NetworkSession",
+    "NetworkWorkspace",
+    "AskStatus",
+    "AskStatusContext",
+    "AskAnswer",
+    "ManageOnlineState",
+    "ManageWorkspaceOnlineState",
+    "ManageFamilySummary",
+    "ManageFamilies",
+    "ManageRecordView",
+    "ManageFamilyRecords",
+    "ManageLinkStartResult"
+   ]
+  },
+  "market": {
+   "value": [
+    "attachListingMedia",
+    "browseMarketListings",
+    "confirmListingAvailability",
+    "createListingDraft",
+    "directUpdateListing",
+    "estimateMaterialValue",
+    "fetchListingDetail",
+    "fetchMarketMeta",
+    "fetchVendorListingDraft",
+    "fetchVendorOverview",
+    "formatMicroJodAsJod",
+    "listingLifecycleAction",
+    "reportListing",
+    "submitListing",
+    "submitVendorProfile",
+    "toggleSavedListing",
+    "updateListingDraft",
+    "uploadListingImage",
+    "upsertVendorProfile"
+   ],
+   "type": [
+    "EstimateInput",
+    "EstimateResult",
+    "ListingDraftInput",
+    "MarketMeta",
+    "PublicListingDetail",
+    "PublicListingSummary",
+    "VendorListingDraft",
+    "VendorOverview"
+   ]
+  },
+  "delivery": {
+   "value": [
+    "answerContactAttempt",
+    "attachDriverEvidence",
+    "cancelDeliveryRequest",
+    "confirmDeliveryOutcome",
+    "confirmStatement",
+    "createDeliveryRequest",
+    "decideDeliveryChange",
+    "decideDeliveryConsent",
+    "decideDeliveryQuote",
+    "declareCollection",
+    "driverAcceptRequest",
+    "driverDeclare",
+    "driverDeclineRequest",
+    "driverRequestDetail",
+    "driverSubmitQuote",
+    "fetchBookingDetail",
+    "fetchDriverDirectory",
+    "fetchDriverPortal",
+    "fetchDriverRequests",
+    "fetchDriverStatements",
+    "fetchOwnerOverview",
+    "fetchOwnerStatements",
+    "proposeDeliveryChange",
+    "proposeDeliveryConsent",
+    "rateDeliveryBooking",
+    "recordDeliveryInstructions",
+    "setAcceptingNew",
+    "submitDeliveryRequest",
+    "submitDriverApplication",
+    "submitDriverStatement",
+    "toggleSavedDriver",
+    "uploadDriverEvidence",
+    "uploadVehicleProof",
+    "upsertDriverProfileDraft",
+    "upsertDriverVehicleDraft",
+    "withdrawDeliveryChange",
+    "withdrawDeliveryConsent"
+   ],
+   "type": [
+    "BookingDetail",
+    "DriverDirectoryEntryDto",
+    "DriverPortalState",
+    "DriverRequestSummary",
+    "DriverStatementSummary",
+    "OwnerRequestSummary"
+   ]
+  }
+ },
+ "rootFiles": [
+  "resultCodes.ts"
+ ]
 }

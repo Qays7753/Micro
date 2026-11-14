@@ -34,18 +34,25 @@ const PROOF_MIN = 32;
 const PROOF_MAX = 256;
 
 /**
- * Honest configuration probe: has the operator applied migration 0003 at all?
- * Absent schema is a deliberate unconfigured state (503 manage_not_configured,
- * the ask_not_configured pattern) — never a 500 and never a silent fallback.
+ * Honest configuration probe: has the operator applied the manage migrations
+ * (0003 foundation + 0004 records) at all? Absent schema is a deliberate
+ * unconfigured state (503 manage_not_configured, the ask_not_configured
+ * pattern) — never a 500 and never a silent fallback.
  */
 export async function ensureManageSchema(db: Db): Promise<void> {
   const row = await db
     .prepare(
       "SELECT (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'workspace' AND column_name = 'manage_enabled') AS has_column, " +
-        "(SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'manage_owner_link') AS has_table",
+        "(SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'manage_owner_link') AS has_link_table, " +
+        "(SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'manage_record') AS has_record_table",
     )
     .first<Record<string, unknown>>();
-  if (row === null || Number(row.has_column) !== 1 || Number(row.has_table) !== 1) {
+  if (
+    row === null ||
+    Number(row.has_column) !== 1 ||
+    Number(row.has_link_table) !== 1 ||
+    Number(row.has_record_table) !== 1
+  ) {
     throw new HttpError(503, "manage_not_configured", {
       reason: "manage_schema_not_applied_by_operator",
     });
