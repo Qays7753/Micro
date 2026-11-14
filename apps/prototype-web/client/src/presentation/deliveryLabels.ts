@@ -84,6 +84,97 @@ export const CONTACT_STATUS_LABELS: Record<string, string> = {
   contact_denied: "التواصل منفي منك",
 };
 
+/* ── Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»):
+ * عرض شروط الموافقة واقتراحات التعديل المؤثر بحقول عربية مسماة بدل JSON
+ * الخام — لا تتغير أي قيمة ولا أي معنى مالي/تعاقدي، فقط التسمية الصادقة
+ * للطرف القارئ قبل قراره (مصدر واحد لطرفي الحجز). ── */
+
+/** حالات الطلب كما يراها السائق — خريطة كاملة؛ القيمة الخام لا تصل المستخدم. */
+export const DRIVER_REQUEST_STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة عند صاحب المشروع",
+  awaiting_driver_response: "طلب جديد ينتظر ردك",
+  awaiting_requester_decision: "عرضك ينتظر قرار المشروع",
+  confirmed: "حجز مؤكد — نفّذ وصرّح",
+  driver_declined: "رفضتَ الطلب",
+  quote_rejected: "رفض المشروع عرضك",
+  withdrawn: "سحب المشروع الطلب",
+  response_expired: "انتهت مهلة الرد",
+  cancelled: "ألغى المشروع الحجز",
+};
+
+/** بديل التسمية عند غياب الحالة عن الخريطة — صادق بلا كود خام. */
+export const UNKNOWN_STATUS_LABEL = "حالة غير معروفة — أعد المحاولة";
+
+/** قيمة قاصر (فلس) إلى نص دنانير بخانتين — للعرض المعزول بـ bdi فقط. */
+export function minorToJodText(minor: string | null): string {
+  if (minor === null) return "—";
+  const value = BigInt(minor);
+  return `${(value / 100n).toString()}.${(value % 100n).toString().padStart(2, "0")}`;
+}
+
+/** صف عرض مسمى: القيمة المالية تُعزل بـ bdi من الصفحة (F-11). */
+export type LabeledRow = { label: string; value: string; money?: boolean };
+
+/** شروط اقتراح الموافقة (retry/holding/return) إلى صفوف عربية — الحقول
+ * المعروفة فقط، والقيم كما هي بلا اختراع؛ لا حقل يُعرض خامًا أبدًا. */
+export function consentTermRows(kind: string, terms: unknown): LabeledRow[] {
+  const t = (terms ?? {}) as Record<string, unknown>;
+  const rows: LabeledRow[] = [];
+  if (kind === "retry") {
+    if (t.attempts !== undefined) rows.push({ label: "عدد المحاولات", value: String(t.attempts) });
+    if (typeof t.priceMinor === "string" && t.priceMinor !== "")
+      rows.push({ label: "أجرة المحاولة", value: minorToJodText(t.priceMinor), money: true });
+    return rows;
+  }
+  if (kind === "holding") {
+    if (typeof t.durationText === "string" && t.durationText !== "")
+      rows.push({ label: "مدة الاحتفاظ", value: t.durationText });
+    if (typeof t.place === "string" && t.place !== "") rows.push({ label: "مكان الاحتفاظ", value: t.place });
+    if (typeof t.costMinor === "string" && t.costMinor !== "")
+      rows.push({ label: "تكلفة الاحتفاظ", value: minorToJodText(t.costMinor), money: true });
+    return rows;
+  }
+  if (kind === "return") {
+    if (t.destination === "requester") rows.push({ label: "جهة الإرجاع", value: "صاحب المشروع" });
+    else if (t.destination === "original_supplier")
+      rows.push({ label: "جهة الإرجاع", value: "المورد الأصلي" });
+    if (typeof t.costMinor === "string" && t.costMinor !== "")
+      rows.push({ label: "تكلفة الإرجاع", value: minorToJodText(t.costMinor), money: true });
+    return rows;
+  }
+  return rows;
+}
+
+/** تغييرات اقتراح التعديل المؤثر إلى صفوف عربية — البنية نفسها التي
+ * يكتبها نموذجا الطرفين (fareMinor/schedule/pickup/dropoff/load/collectionMinor). */
+export function changeFieldRows(changes: unknown): LabeledRow[] {
+  const source = changes ?? {};
+  const c = ((source as { changes?: Record<string, unknown> }).changes ??
+    (source as Record<string, unknown>)) as Record<string, unknown>;
+  const rows: LabeledRow[] = [];
+  if (typeof c.fareMinor === "string" && c.fareMinor !== "")
+    rows.push({ label: "الأجرة الجديدة", value: minorToJodText(c.fareMinor), money: true });
+  const schedule = c.schedule as { date?: string } | undefined;
+  if (schedule && typeof schedule.date === "string" && schedule.date !== "")
+    rows.push({ label: "الموعد الجديد", value: schedule.date });
+  const pickup = c.pickup as { area?: string } | undefined;
+  if (pickup && typeof pickup.area === "string" && pickup.area !== "")
+    rows.push({ label: "منطقة الاستلام الجديدة", value: pickup.area });
+  const dropoff = c.dropoff as { area?: string } | undefined;
+  if (dropoff && typeof dropoff.area === "string" && dropoff.area !== "")
+    rows.push({ label: "منطقة التسليم الجديدة", value: dropoff.area });
+  const load = c.load as { description?: string; parcels?: number } | undefined;
+  if (load) {
+    if (typeof load.description === "string" && load.description !== "")
+      rows.push({ label: "الحمولة الجديدة", value: load.description });
+    if (load.parcels !== undefined && load.parcels !== null)
+      rows.push({ label: "عدد الطرود الجديد", value: String(load.parcels) });
+  }
+  if (typeof c.collectionMinor === "string" && c.collectionMinor !== "")
+    rows.push({ label: "مبلغ التحصيل الجديد", value: minorToJodText(c.collectionMinor), money: true });
+  return rows;
+}
+
 /** يترجم حدث خط الزمن أو يعيد التركيب الخام المصون عند غياب التسمية. */
 export function deliveryEventLabel(axis: string, type: string): string {
   return DELIVERY_EVENT_LABELS[`${axis}:${type}`] ?? `${axis}: ${type}`;

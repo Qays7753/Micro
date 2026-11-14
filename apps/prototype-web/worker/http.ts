@@ -29,7 +29,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   conflict: "الواقع تغير — أعد المحاولة من الحالة الحالية.",
   gone: "انتهت مهلة هذا الإجراء.",
   too_many_requests: "تجاوزت الحد المسموح مؤقتًا — أعد المحاولة لاحقًا.",
-  network_not_configured: "طبقة الشبكة غير مهيأة بعد (رابط D1/R2 مفقود) — راجع خطوات التهيئة.",
+  network_not_configured: "طبقة الشبكة غير مهيأة بعد — راجع خطوات التهيئة مع مسؤول النظام.",
   internal_error: "حدث خطأ غير متوقع — سُجل بلا أي بيانات خاصة.",
   method_not_allowed: "طريقة الطلب غير مدعومة لهذا المسار.",
   /* Phase E honesty fix (S12/W6): deliberate product states must never

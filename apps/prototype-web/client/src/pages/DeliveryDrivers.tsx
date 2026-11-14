@@ -19,7 +19,7 @@ import { Button, EmptyState, Notice } from "@/components/primitives";
 export default function DeliveryDrivers() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { session, signIn } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [drivers, setDrivers] = useState<DriverDirectoryEntryDto[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -56,7 +56,16 @@ export default function DeliveryDrivers() {
         <p>اختر سائقًا معروف الهوية والمركبة — الترشيح حسب المسار والأهلية، بلا ترتيب مدفوع.</p>
       </div>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
-      {!session.authenticated ? (
+      {/* S12/F-15 (Stage C — أمر المالك 2026-11-14): انقطاع التحقق حالة
+       * مستقلة — الدليل العام يبقى متاحًا للضيف بلا جلسة. */}
+      {!sessionLoading && sessionFailed ? (
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — التصفح العام متاح، وحفظ السائقين يحتاج تحققًا ناجحًا. أعد المحاولة.
+          <Button action="quiet" onClick={() => void refresh()}>
+            إعادة المحاولة
+          </Button>
+        </Notice>
+      ) : !session.authenticated ? (
         <Notice tone="neutral">
           حفظ السائقين والحجز يحتاجان تسجيل الدخول.
           <Button action="quiet" onClick={() => signIn("/delivery/drivers")}>

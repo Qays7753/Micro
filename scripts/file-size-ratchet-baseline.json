@@ -2025,6 +2025,14 @@
     "tools/micromatch-shim/lib/braces-free.js": {
       "nbLoc": 317,
       "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx": {
+      "nbLoc": 401,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/MarketListingEditor.tsx": {
+      "nbLoc": 493,
+      "band": "WATCH"
     }
   }
 }

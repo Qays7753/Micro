@@ -500,6 +500,13 @@ describe("mutual consent + instructions + material change (OD10/OD11 — §17-4/
     expect(await screen.findByText("ارفض الاقتراح")).toBeTruthy();
     // honest silence note
     expect(await screen.findByText(/لا ينفذان شيئًا تلقائيًا/)).toBeTruthy();
+    /* Stage C (S13/R2-1): الشروط صفوف عربية مسماة بالدينار — لا JSON خام
+     * ولا فلس أمام قرار المالك (المصطلح retry: محاولة/عدد/أجرة). */
+    const terms = await screen.findByTestId("consent-terms-rows");
+    expect(terms.textContent).toContain("عدد المحاولات: 2");
+    expect(terms.textContent).toContain("أجرة المحاولة: 1.50");
+    expect(terms.textContent).not.toContain("{");
+    expect(terms.textContent).not.toContain("priceMinor");
   });
 
   it("owner records instructions out of awaiting_instructions", async () => {
@@ -577,7 +584,9 @@ describe("mutual consent + instructions + material change (OD10/OD11 — §17-4/
     });
     render(<DriverBookingDetail />);
     expect(await screen.findByTestId("driver-consent-propose")).toBeTruthy();
-    expect(await screen.findByText(/لا يعلنها طرف واحد/)).toBeTruthy();
+    /* Stage C (S13/R2-7): الترويسة الكنونية الجديدة — نفس المعنى التشغيلي
+     * (لا إعلان من طرف واحد) بلا مرجع القاعدة الداخلي OD10 للمستخدم. */
+    expect(await screen.findByText(/لا يُنفذ إلا بقبوله الصريح/)).toBeTruthy();
     expect(await screen.findByText("أرسل الاقتراح")).toBeTruthy();
     // The old single-party declaration buttons are gone for this state
     expect(screen.queryByText("اتفقنا على محاولة جديدة")).toBeNull();
@@ -635,5 +644,12 @@ describe("mutual consent + instructions + material change (OD10/OD11 — §17-4/
     expect(await screen.findByText("ارفض التعديل")).toBeTruthy();
     // The explicit other-party-decision framing (OD11).
     expect(await screen.findByText(/ينتظر قرارك الصريح/)).toBeTruthy();
+    /* Stage C (S13/R1-3): التغييرات صفوف عربية مسماة بالدينار — الأجرة
+     * الجديدة 350.00 د.أ والموعد الجديد، لا JSON خام ولا fareMinor. */
+    const fields = await screen.findByTestId("change-fields-rows");
+    expect(fields.textContent).toContain("الأجرة الجديدة: 350.00");
+    expect(fields.textContent).toContain("الموعد الجديد: 2026-11-25");
+    expect(fields.textContent).not.toContain("{");
+    expect(fields.textContent).not.toContain("fareMinor");
   });
 });

@@ -33,6 +33,9 @@ const CONTEXT_REPEATS_H1 = new Set([
   "/market/vendor",
   "/market/review",
   "/delivery/drivers",
+  /* Stage C (S13/R5-10): ترويسة «مراجعة التوصيل» كانت تكرر عنوان h1
+   * نفسه — ضمّها لمجموعة عدم التكرار كأخواتها في مراجعة السوق. */
+  "/delivery/review",
 ]);
 
 export function MicroAppShell({ children }: { children: ReactNode }) {

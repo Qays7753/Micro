@@ -25,12 +25,18 @@ import {
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
-import { STATEMENT_STATUS_LABELS } from "@/presentation/deliveryLabels";
+import {
+  DRIVER_REQUEST_STATUS_LABELS,
+  STATEMENT_STATUS_LABELS,
+  UNKNOWN_STATUS_LABEL,
+} from "@/presentation/deliveryLabels";
 import { normalizeAsciiDigits } from "@/application/input";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة — أكمل البيانات وأرسل للمراجعة",
-  submitted: "مقدمة — بانتظار مراجعة قيس",
+  /* Stage C (S13/R2-13): لا أسماء داخلية في نص المستخدم — المراجعة يدوية
+   * لا شخصية؛ نفس لغة رسالة النجاح عند الإرسال. */
+  submitted: "مقدمة — بانتظار المراجعة اليدوية",
   under_review: "تحت المراجعة",
   changes_requested: "تحتاج استكمالًا — راجع الملاحظات وأعد الإرسال",
   rejected: "مرفوضة",
@@ -84,6 +90,9 @@ export default function DriverPortal() {
   const [portal, setPortal] = useState<DriverPortalState | null>(null);
   const [requests, setRequests] = useState<DriverRequestSummary[]>([]);
   const [statements, setStatements] = useState<DriverStatementSummary[]>([]);
+  /* Stage C (S13/R4-9): فشل جلب الكشوف ليس «لا كشوف» — حالة مستقلة صادقة
+   * مع إعادة محاولة، لا قسم يختفي بصمت. */
+  const [statementsFailed, setStatementsFailed] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
     null,
@@ -117,7 +126,16 @@ export default function DriverPortal() {
       if (state.driver) {
         const [list, statementList] = await Promise.all([
           fetchDriverRequests(),
-          fetchDriverStatements().catch(() => ({ statements: [] as DriverStatementSummary[] })),
+          fetchDriverStatements().then(
+            result => {
+              setStatementsFailed(false);
+              return result;
+            },
+            () => {
+              setStatementsFailed(true);
+              return { statements: [] as DriverStatementSummary[] };
+            },
+          ),
         ]);
         setRequests(list.requests);
         setStatements(statementList.statements);
@@ -203,7 +221,9 @@ export default function DriverPortal() {
       </div>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
-      {loadState === "loading" && session.authenticated ? (
+      {/* Stage C (S13/R1-25): حالة التحميل تُعلن أيضًا أثناء التحقق من
+       * الجلسة — لا صفحة فارغة تحت الترويسة. */}
+      {loadState === "loading" && (session.authenticated || sessionLoading) ? (
         <p className="micro-route-loading" role="status">
           جارٍ تحميل بوابة السائق…
         </p>
@@ -421,15 +441,18 @@ export default function DriverPortal() {
                         className="micro-driver-request-card"
                         onClick={() => navigate(`/driver/booking/${request.id}`)}
                       >
+                        {/* Stage C (S13/R1-18 + R2-5): خريطة الحالات الكاملة
+                         * من المصدر المشترك بلا كود خام، والأجرة المعروضة
+                         * على البطاقة — أول رقم قرار قبل الفتح. */}
                         <strong>
                           {request.status === "awaiting_driver_response"
                             ? "طلب جديد ينتظر ردك"
-                            : request.status === "confirmed"
-                              ? "حجز مؤكد — تابع التنفيذ"
-                              : request.status}
+                            : (DRIVER_REQUEST_STATUS_LABELS[request.status] ?? UNKNOWN_STATUS_LABEL)}
                         </strong>
                         <span>
                           {request.needType === "deliver_to_customer" ? "توصيل للزبون" : "إحضار أغراض جاهزة"}
+                          {" · الأجرة "}
+                          <bdi dir="ltr">{minorToJod(request.offeredFareMinor)}</bdi> د.أ
                           {request.collectionMinor !== null ? (
                             <>
                               {" · تحصيل "}
@@ -447,6 +470,17 @@ export default function DriverPortal() {
             </section>
           ) : null}
 
+          {/* Stage C (S13/R4-9): فشل جلب الكشوف حالة معلنة مع إعادة محاولة —
+           * لا يُعرض أبدًا كأن لا كشوف. */}
+          {driver.status === "approved" && statementsFailed ? (
+            <section className="micro-driver-statements" data-testid="driver-statements-failed">
+              <h2>كشوفك اليومية</h2>
+              <p role="alert">تعذر تحميل كشوفك الآن — لا تعني غيابها. أعد المحاولة.</p>
+              <Button action="secondary" onClick={() => void load()}>
+                إعادة المحاولة
+              </Button>
+            </section>
+          ) : null}
           {driver.status === "approved" && statements.length > 0 ? (
             <section className="micro-driver-statements" data-testid="driver-statements">
               <h2>كشوفك اليومية</h2>

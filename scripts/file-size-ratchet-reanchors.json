@@ -10642,6 +10642,272 @@
         "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
         "ocRef": "DOC-037"
       }
+    },
+    {
+      "id": "stage-c-2026-11-14-navigationts",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 69,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إزالة تسمية مسار المشاركة الملغى (R5-8) وتعليق التوثيق المكافئ — لا نمو وظيفي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MicroAppShelltsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 167,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ضم /delivery/review لمجموعة CONTEXT_REPEATS_H1 (R5-10) مع التعليق الموثق — منع تكرار العنوان في الترويسة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-OrderDepositPanelstsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 530,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ترقية نوع run إلى Promise<boolean> (R4-8) — إعادة نتيجة صادقة ليحفظ المتصل حالته بعد نجاح مؤكد فقط.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-Fieldtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/primitives/Field.tsx",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 82,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): الربط البرمجي التلقائي للتسمية عبر useId (R3-1 — WCAG 2.2 AA SC 3.3.2): كل حقل بلا controlId يحصل على اسم برمجي؛ 71 موقعًا يُصلَح دفعة واحدة من المصدر الواحد.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-indexcss",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7456,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): أنماط سطح Ask Micro المفقودة (R5-4) + تمرير قائمة أفعال الورقة (R5-5) + التفاف الرموز الطويلة في العناوين وبطاقات الإعلان (R5-11) + حز السائقين الآمن (R5-12) + سطران بسقف لسجل العمليات (R5-14).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DeliveryBookingDetailtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 720,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): شروط الموافقة وتغييرات التعديل صفوفًا عربية مسماة (R1-2/R1-3/R2-1/R2-2)، إلغاء بتأكيد بخطوتين ومتاح للمسودة (R1-5/R1-6)، مهلة رد السائق للمالك (R4-12)، حالة التحقق المستقلة (S12/F-15)، مرجع دعم bdi (R2-11)، حارس الفعل الواحد (R4-1).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DeliveryBookingEditortsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ملف جديد نسبيًا للأساس (Phase B) يدخل WATCH بقراءة كثيفة: حالة التحقق المستقلة (S12/F-15)، معرف المسودة المحفوظ لإعادة المحاولة بلا ازدواج (R4-13)، تعطيل السائق غير المستقبل (R1-23)، ورسالة الفشل الصادقة. new-file-enters-band موثق لا صامت.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DriverBookingDetailtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 845,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): خريطة حالات الطلب الكاملة بلا كود خام (R2-4)، الموعد والحمولة أمام قرار القبول (R1-1)، تغييرات التعديل صفوفًا عربية (R1-4)، فصل حقلي المبلغ (R4-17)، إعادة تعيين النموذج بعد النجاح (R4-18)، حالة التحقق المستقلة (S12/F-15)، مرجع دعم bdi (R2-11)، حارس الفعل الواحد (R4-2). التصعيد إلى SPLIT_CANDIDATE موثق هنا ويُعرض على المالك في بوابة المراجعة — التقسيم الهيكلي نفسه خلف البوابة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DriverPortaltsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): خريطة الحالات من المصدر المشترك (R2-5)، الأجرة على بطاقة الوارد (R1-18)، إعادة محاولة فشل جلب الكشوف (R4-9)، إعلان التحميل أثناء التحقق (R1-25)، إزالة الاسم الداخلي (R2-13).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-Markettsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 267,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إعلان فشل جلب الميتا داخل لوحة الفلاتر مع إعادة المحاولة (R4-14) — لا قائمة تصنيفات فارغة صامتة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MarketListingEditortsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/MarketListingEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ملف جديد نسبيًا للأساس يدخل WATCH: حماية إعلان الشرائح من التحويل الصامت (R1-10)، رفع الصور بفشل معلن باسم الملف ونجاح تزايدي (R4-4)، حفظ كمسودة صريح (R1-12)، حارس المغادرة يحفظ المسودة لا الإرسال (R1-11)، معرف المسودة المحفوظ (R4-13)، حالة التحقق المستقلة (S12/F-15)، إعلان فشل الميتا (R4-14). (تضمين تنسيق prettier النهائي: 493)",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MarketVendorWorkspacetsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 590,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): حالة التحقق المستقلة (S12/F-15)، فشل تعبئة التحديث المباشر معطل للحفظ ومع إعادة محاولة (R4-10)، حارس الفعل الواحد (R4-3)، فعل التجديد الظاهر للإعلان المخفي (R1-13)، الإرسال متاح للمرفوض (R1-13).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-text_density_policypy",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1031,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إرساء كثافة النص الموثق لأربعة أسطح Stage C (DeliveryBookingDetail 145، DriverBookingDetail 148، DriverPortal 140، DeliveryReviewQueue 23) بتعليقات مؤرخة ومرجع DOC-038 — نفس مسار الإرساء المعتمد من الموجات السابقة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-image-policy-baseline",
+      "date": "2026-11-14",
+      "path": "scripts/check-image-policy.mjs",
+      "from": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 175,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): توسيع خط أساس صور المستودع بقرار المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6 يوجب إرفاق لقطات الأدلة المرسومة بالتقرير) — قاعدة واحدة محصورة بمجلد أدلة هذه المهمة فقط (8 لقطات after-*.png) والعدد 36→44؛ سياسة «لا لقطات تقريرية تاريخية» خارج المجلد باقية كما هي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): إرفاق لقطات الشاشة المرسومة بالتقرير النهائي",
+        "trigger": "تنفيذ Stage C — حارس سياسة الصور يشترط قرار مالك موثق في نفس الـPR لتغيير خط الأساس",
+        "ocRef": "DOC-038"
+      }
     }
   ]
 }

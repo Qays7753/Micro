@@ -400,6 +400,9 @@ html[data-micro-route-kind="surface"] {
   font-size: 1.5rem; /* UX-001 V2: screen-title 22-26px (was 28) */
   font-weight: 700;
   line-height: 1.32;
+  /* Stage C (S13/R5-11): الرموز اللاتينية الطويلة (أكواد/روابط) تلتف
+     ولا تدفع الصفحة لتمرير أفقي عند 320px. */
+  overflow-wrap: anywhere;
 }
 .micro-page h2 {
   color: var(--color-text-primary);
@@ -927,6 +930,10 @@ textarea:disabled,
 .micro-sheet-actions {
   display: grid;
   gap: var(--space-2);
+  /* Stage C (S13/R5-5): على الشاشات القصيرة/المكبرة قد تتجاوز قائمة
+     الأفعال سقف الورقة (80vh مع overflow:hidden) — تمرير داخل القائمة
+     يبقي آخر فعل قابلًا للوصول بلا قص. */
+  overflow-y: auto;
   padding: var(--space-2) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
 }
 /* المجموعة ١ — سؤال الإغلاق الهادئ بمدخل مكتوب: خياران صريحان لا إغلاق صامت. */
@@ -6893,9 +6900,12 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-activity-row-main strong {
+  /* Stage C (S13/R5-14): سطران بسقف بدل قص أحادي — الاسم الطويل يظل
+     مقروءًا في قائمة سجل العمليات والتفصيل يحمل الكامل. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .micro-activity-row-main small {
   color: var(--color-text-secondary);
@@ -7149,6 +7159,8 @@ button.micro-driver-request-card:focus-visible,
 .micro-vendor-listing strong {
   color: var(--color-text-primary);
   font-size: 0.9375rem;
+  /* Stage C (S13/R5-11): عنوان إعلان برمز طويل لا يقص بعرض 320px. */
+  overflow-wrap: anywhere;
 }
 
 .micro-market-card__meta,
@@ -7441,7 +7453,10 @@ button.micro-driver-request-card:focus-visible,
   align-items: center;
   justify-content: space-between;
   min-height: var(--vf-control-height);
-  padding: var(--space-2) var(--space-3);
+  /* Stage C (S13/R5-12): نفس حجز الحز الآمن العلوي الذي تحمله ترويسة
+     المالك — وضع PWA المستقل على الأجهزة ذات النوتش لا يضع شريط هوية
+     السائق تحت شريط الحالة. */
+  padding: calc(var(--space-2) + env(safe-area-inset-top)) var(--space-3) var(--space-2);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -7449,6 +7464,62 @@ button.micro-driver-request-card:focus-visible,
 /* مدخل Ask Micro الشامل في ترويسة السائق (EX-D21). مراجعة RTL المرسومة
  * (Phase E، 360/390/430): الزر بلا نمط كان 27px ارتفاعًا — أدنى من حد
  * اللمس 32px؛ صار عنصر تحكم كامل الارتفاع بصمة هادئة على سطح الترويسة. */
+/* Stage C (S13/R5-4): أنماط سطح Ask Micro — كانت أسماء بلا قواعد فتُركت
+ * خارج نظام التصميم؛ الآن بنفس لغة البطاقات والحقق الكنونية. */
+.micro-page-pad {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  max-width: 640px;
+  margin-inline: auto;
+}
+.micro-ask-unconfigured {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg-well);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+.micro-ask-context {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+.micro-ask-context ul {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.micro-ask-form {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-ask-form textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  resize: vertical;
+}
+.micro-ask-form textarea:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 1px;
+}
+
 .micro-driver-ask-entry {
   min-height: 36px;
   min-width: 36px;

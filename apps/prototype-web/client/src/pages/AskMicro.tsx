@@ -11,6 +11,8 @@
  *  - غير المسجل يرى بوابة دخول صادقة (المدخل موجود؛ الاستعمال يحتاج حسابًا).
  */
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+import { ArrowRight } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import { fetchAskStatus, askQuestion, type AskStatus } from "@/application/network";
 import { ApiError } from "@/application/network";
@@ -22,6 +24,7 @@ type AskMessage = { tone: "neutral" | "error" | "success"; text: string } | null
 export default function AskMicro() {
   const { loading: sessionLoading, session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
   const returnTo = useReturnPath();
+  const [, navigate] = useLocation();
   const [status, setStatus] = useState<AskStatus | null>(null);
   const [statusState, setStatusState] = useState<"loading" | "ready" | "error">("loading");
   const [question, setQuestion] = useState("");
@@ -114,6 +117,11 @@ export default function AskMicro() {
 
   return (
     <div className="micro-page-pad" data-testid="ask-surface">
+      {/* Stage C (S13/R1-21 + R5-3): مسار عميق بلا شريط سفلي — زر الرجوع
+       * الكنوني نفسه المستخدم في كل المسارات العميقة (عقد U-005). */}
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnTo)}>
+        <ArrowRight aria-hidden="true" /> رجوع
+      </button>
       <h1>اسأل Micro</h1>
       {statusState === "loading" ? (
         <div className="micro-route-loading" role="status">
@@ -121,7 +129,25 @@ export default function AskMicro() {
         </div>
       ) : null}
       {statusState === "error" ? (
-        <Notice tone="error">تعذر تحميل سياق Ask Micro الآن — أعد المحاولة.</Notice>
+        /* Stage C (S13/R4-16): نص «أعد المحاولة» بلا زر كان طريقًا مسدودًا —
+         * زر إعادة المحاولة فعلًا يعيد جلب السياق. */
+        <>
+          <Notice tone="error">تعذر تحميل سياق Ask Micro الآن — بياناتك المحلية سليمة.</Notice>
+          <Button
+            action="secondary"
+            onClick={() => {
+              setStatusState("loading");
+              fetchAskStatus()
+                .then(result => {
+                  setStatus(result);
+                  setStatusState("ready");
+                })
+                .catch(() => setStatusState("error"));
+            }}
+          >
+            إعادة المحاولة
+          </Button>
+        </>
       ) : null}
       {statusState === "ready" ? (
         <>
@@ -168,7 +194,7 @@ export default function AskMicro() {
                 placeholder="اكتب سؤالك عن أعمالك داخل سياقك…"
               />
             </label>
-            <Button action="commit" type="submit" disabled={busy || question.trim().length < 2}>
+            <Button action="commit" type="submit" loading={busy} disabled={question.trim().length < 2}>
               اسأل
             </Button>
           </form>

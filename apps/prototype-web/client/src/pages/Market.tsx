@@ -87,10 +87,21 @@ export default function Market() {
     void load();
   }, [load]);
 
-  useEffect(() => {
+  /* Stage C (S13/R4-14): فشل جلب الميتا حالة معلنة داخل لوحة الفلاتر —
+   * لا قائمة تصنيفات فارغة صامتة. */
+  const [metaFailed, setMetaFailed] = useState(false);
+  const loadMeta = () => {
+    setMetaFailed(false);
     void fetchMarketMeta()
       .then(setMeta)
-      .catch(() => setMeta(null));
+      .catch(() => {
+        setMeta(null);
+        setMetaFailed(true);
+      });
+  };
+  /* قصد أول تحميل فقط — إعادة المحاولة بيد المستخدم من لوحة الفلاتر. */
+  useEffect(() => {
+    loadMeta();
   }, []);
 
   return (
@@ -119,6 +130,14 @@ export default function Market() {
 
       {filtersOpen ? (
         <div className="micro-market-filters" data-testid="market-filters">
+          {metaFailed ? (
+            <p role="alert" className="micro-market-status">
+              تعذر تحميل التصنيفات — أعد المحاولة.
+              <Button action="quiet" onClick={loadMeta}>
+                إعادة المحاولة
+              </Button>
+            </p>
+          ) : null}
           <label>
             التصنيف
             <select value={category} onChange={event => setCategory(event.target.value)}>

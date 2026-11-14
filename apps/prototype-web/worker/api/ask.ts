@@ -89,11 +89,13 @@ export async function askQuestion(db: Db, ctx: RouteContext): Promise<Response> 
   if (question.length > 2000)
     throw new HttpError(400, "bad_request", { field: "question", reason: "too_long" });
   if (!ASK_PROVIDER_CONFIGURED) {
+    /* Stage C (S13/R2-12): لا أسماء مشغلين داخلية في نص المستخدم — الرمز
+     * الآلي يبقى في details فقط (لا يعرضه العميل أبدًا). */
     throw new HttpError(501, "ask_not_configured", {
       step: "owner_manus_provider_setup",
       message:
         "Ask Micro غير مهيأة بعد: لا يوجد مزود ذكاء اصطناعي معتمد مرتبط. " +
-        "الإعداد خطوة مالك/Manus لاحقة عبر مزود معتمد — ولا تُرسل أي بيانات لخدمة خارجية قبل ذلك.",
+        "الإعداد خطوة لاحقة لمالك النظام عبر مزود معتمد — ولا تُرسل أي بيانات لخدمة خارجية قبل ذلك.",
     });
   }
   // A configured provider path would be wired here — behind the same

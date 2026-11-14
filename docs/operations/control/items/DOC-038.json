@@ -2,7 +2,7 @@
   "id": "DOC-038",
   "title": "مهمة المالك 2026-11-14: جاهزية Manage + إغلاق CI/UX — مسح S13 قراءة-فقط ثم إصلاح جذر CI (حاوية خدمة PostgreSQL) ثم مراجعة وتنفيذ UX الشاملة بمصفوفة مقاييس كاملة ثم خطة تسليم Manage، والتوقف عند بوابة مراجعة المالك قبل أي إعادة هيكلة أو تنفيذ Online",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "manage-readiness-ci-ux-20261114",
   "summary": "تنفيذ أمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md عند الرأس 0c9d49fc) على الفرع المصرح نفسه: (Stage A) مسح S13 الكنوني الخامس القراءة-فقط لجاهزية Manage للعَبرنة على رأس مثبَّت بصفر كتابة كود/مزود مع سجل مكتشفات M-P/M-F/M-D/M-O وخريطة هدف وست موجات M1–M6 خلف بوابة المالك؛ (Stage B) إصلاح جذر فشل CI الموثق (libicuuc.so.60 غائبة عن ubuntu-latest لثنائيات @embedded-postgres) بأقل الحلول هشاشة: حاوية خدمة PostgreSQL 17.5 عبر MICRO_TEST_PG_CONNECTION المدعوم في pg-test-server.mjs بلا أي إضعاف/تخطية/إعادة إرساء للاختبارات؛ (Stage C) مراجعة UX عربية/RTL/موبايل حقيقية للتطبيق كاملًا بكل الأدوار والسياقات مع تنفيذ التحسينات المؤكدة غير الهيكلية ومصفوفة مقاييس كاملة 100% لكل صفحة/مكون بمصادر معيارية مميزة (WCAG 2.2 AA مقابل أهداف Micro 44/48) وأدلة قبل/بعد؛ (Stage D) خطة تسليم Manage Online من المسح (تحليل وتخطيط فقط). لا تنفيذ لـManage Online ولا إعادة هيكلة ولا نقل ملفات ولا تغيير مخطط/تخزين/دومين/مالية ولا تغيير دلالات منتج؛ التوقف عند بوابة مراجعة المالك.",
@@ -53,7 +53,10 @@
   ],
   "evidence": [
     "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-PROMPT-EN.md",
-    "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md"
+    "docs/architecture/refactoring/s13-manage-online-readiness-20261114/S13-MANAGE-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-11-14.md",
+    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/MANAGE-READINESS-CI-UX-REPORT-2026-11-14.md",
+    "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/UX-KPI-MATRIX-2026-11-14.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
   ],
   "dependencies": [
     "DOC-037"
@@ -102,8 +105,14 @@
       "changed_at": "2026-11-14",
       "actor": "zai-implementation-writer",
       "reason": "Stage A منجزة: مسح S13 القراءة-فقط منشور عند الالتزام 3e7d4b66 بصفر كتابة كود/مزود (سجل مكتشفات M-P/M-F/M-D/M-O + خريطة هدف + موجات M1–M6 خلف بوابة المالك) مع صف فهرس 12P وفقرة ربط الجزء السابع؛ يليها Stage B (إصلاح جذر CI بحاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION) ثم Stage C (مراجعة وتنفيذ UX الشاملة) ثم Stage D (خطة تسليم Manage) والتقرير النهائي العربي."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-14",
+      "actor": "zai-implementation-writer",
+      "reason": "اكتمال المراحل الأربع وتسليم حزمة بوابة المالك: Stage B ملتزمة (7df25cf1 حاوية خدمة PostgreSQL عبر MICRO_TEST_PG_CONNECTION — لا اختبار أُضعف)؛ Stage C منجزة فوق الرأس 4e9a9149: مراجعة خماسية قراءة-فقط ثم تنفيذ 42 مكتشفًا مؤكدًا غير هيكلي في 31 ملفًا (صفوف عربية مسماة بدل JSON أمام قرارات الطرفين، حالات تعذر التحقق المستقلة على كل البوابات، حارس الفعل الواحد، الربط البرمجي للتسميات 71 موقعًا، الرئيسية الصادقة بلا مشروع، حماية الشرائح، بوابة نشر بعمى المحتوى) مع 3538/3538 تطبيقًا وقياس RTL مرسوم 24/24 أخضر على 320/360/390/430 ومصفوفة KPI 100% (73 صفحة + 71 مكونًا)؛ Stage D خطة تسليم Manage M1–M6 تحليلًا فقط؛ التقرير النهائي العربي + فقرة ربط الجزء السابع؛ المؤجل الموثق بقراراته (تباين داكن R3-2/R3-3، مقاعد الضيف NAV-001، حقول بطاقة الحجز R1-17، OD01/R5-9). workflow_dispatch على SHA الدفع النهائي يوثق في ملاحظة الدفع المعنية. التوقف عند بوابة مراجعة المالك كما أمر المالك."
     }
   ],
   "migration_baseline": false,
-  "next_action": "إكمال Stage B (تعديل ci.yml + التحقق المحلي للفاحص المركز فوق PostgreSQL خارجي + دفع)، ثم Stage C (مراجعة UX الخماسية والتنفيذ غير الهيكلي بمصفوفة كاملة)، ثم Stage D والتقرير النهائي وإطلاق workflow_dispatch على SHA الدفع النهائي — ثم التوقف عند بوابة مراجعة المالك."
+  "next_action": "بوابة مراجعة المالك: قبول مكتشفات مسح S13 وموجات M1–M6 وقرارات المؤجل الموثقة (الرمز اللوني للتباين الداكن R3-2، مقاعد الضيف NAV-001، حقول بطاقة الحجز R1-17) — لا يبدأ أي عمل هيكلي لـManage أو تنفيذ Online قبل القبول الكتابي."
 }

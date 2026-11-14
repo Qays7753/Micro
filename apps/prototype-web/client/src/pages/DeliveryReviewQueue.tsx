@@ -44,7 +44,7 @@ function shortRef(id: string): string {
 
 export default function DeliveryReviewQueue() {
   const [, navigate] = useLocation();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [queue, setQueue] = useState<ReviewQueue | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error" | "forbidden">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
@@ -92,6 +92,25 @@ export default function DeliveryReviewQueue() {
     }
   };
 
+  /* S12/F-15 (Stage C): انقطاع التحقق حالة مستقلة — لا يُعرض كأنه «لا صلاحية». */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <section className="micro-page">
+        <div className="micro-page-heading">
+          <h1>مراجعة التوصيل</h1>
+        </div>
+        <EmptyState
+          title="تعذر التحقق من جلستك الآن"
+          description="انقطاع الشبكة لا يعني أنك فقدت الصلاحية. تحقق من اتصالك ثم أعد المحاولة."
+          action={
+            <Button action="secondary" onClick={() => void refresh()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      </section>
+    );
+  }
   if (!sessionLoading && !session.authenticated) {
     return (
       <section className="micro-page">
@@ -129,10 +148,7 @@ export default function DeliveryReviewQueue() {
         </p>
       ) : null}
       {state === "forbidden" ? (
-        <EmptyState
-          title="لا تملك صلاحية المراجعة"
-          description="هذه الأدوات للمراجع المخول فقط (قيس بالبداية)."
-        />
+        <EmptyState title="لا تملك صلاحية المراجعة" description="هذه الأدوات للجهة المخولة فقط." />
       ) : null}
       {state === "error" ? (
         <EmptyState

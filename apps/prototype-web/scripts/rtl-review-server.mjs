@@ -5,6 +5,13 @@
  * cloudflare:sockets) and serves the built SPA — a real HTTP origin for the
  * rendered-UI review at 360/390/430 CSS px. No provider account, no network
  * egress beyond localhost; synthetic data only.
+ *
+ * Stage B (S13/M-F3, 2026-11-14): setting MICRO_TEST_PG_CONNECTION uses an
+ * existing PostgreSQL server instead of booting the embedded one — the same
+ * harness-supported override as scripts/pg-test-server.mjs, so the tool keeps
+ * working on machines/runners whose images no longer ship the libicuuc.so.60
+ * the embedded binaries link against. The review database micro_rtl_review is
+ * still created/migrated in isolation on that server; nothing else changes.
  */
 import { spawnSync } from "node:child_process";
 import { createServer } from "node:http";
@@ -32,24 +39,42 @@ function run(bin, args) {
 
 async function main() {
   if (!existsSync(path.join(DIST, "_worker.js"))) throw new Error("dist/public/_worker.js missing — run the build first");
-  // 1. Embedded PostgreSQL (isolated database micro_rtl_review).
-  rmSync(DATA_DIR, { recursive: true, force: true });
-  mkdirSync(DATA_DIR, { recursive: true });
-  run(resolveBin("initdb"), ["-D", path.join(DATA_DIR, "data"), "-U", "postgres", "--no-locale", "-E", "UTF8"]);
-  run(resolveBin("pg_ctl"), [
-    "-D", path.join(DATA_DIR, "data"), "-o", `-p ${PG_PORT}`, "-l", path.join(DATA_DIR, "server.log"), "start",
-  ]);
   const postgres = (await import("postgres")).default;
-  const admin = postgres(`postgres://postgres@127.0.0.1:${PG_PORT}/postgres`, { max: 1 });
+  const externalAdmin = process.env.MICRO_TEST_PG_CONNECTION ?? null;
+  let admin;
+  if (externalAdmin !== null) {
+    // External server override (Stage B/M-F3): identical isolation — the
+    // review still gets its own micro_rtl_review database with fresh
+    // migrations; the embedded binaries never run in this mode.
+    admin = postgres(externalAdmin, { max: 1 });
+    console.log(`[rtl-review] using external PostgreSQL: ${externalAdmin}`);
+  } else {
+    // 1. Embedded PostgreSQL (isolated database micro_rtl_review).
+    rmSync(DATA_DIR, { recursive: true, force: true });
+    mkdirSync(DATA_DIR, { recursive: true });
+    run(resolveBin("initdb"), ["-D", path.join(DATA_DIR, "data"), "-U", "postgres", "--no-locale", "-E", "UTF8"]);
+    run(resolveBin("pg_ctl"), [
+      "-D", path.join(DATA_DIR, "data"), "-o", `-p ${PG_PORT}`, "-l", path.join(DATA_DIR, "server.log"), "start",
+    ]);
+    admin = postgres(`postgres://postgres@127.0.0.1:${PG_PORT}/postgres`, { max: 1 });
+  }
+  const pgPort = externalAdmin !== null ? null : PG_PORT;
+  const reviewDbAdmin = externalAdmin !== null ? externalAdmin : `postgres://postgres@127.0.0.1:${pgPort}/postgres`;
   const exists = await admin`select 1 as ok from pg_database where datname = 'micro_rtl_review'`;
   if (exists.length === 0) await admin`create database micro_rtl_review`;
-  const db = postgres(`postgres://postgres@127.0.0.1:${PG_PORT}/micro_rtl_review`, { max: 1 });
+  else if (externalAdmin !== null) {
+    // External mode: fresh review state per run, matching the embedded path's
+    // rmSync(DATA_DIR) semantics (migrations are re-applied on a clean DB).
+    await admin`drop database micro_rtl_review with (force)`;
+    await admin`create database micro_rtl_review`;
+  }
+  const db = postgres(`${reviewDbAdmin.replace(/\/[^/]*$/, "")}/micro_rtl_review`, { max: 1 });
   const migrationsDir = path.join(appDir, "worker", "db", "migrations-pg");
   const { readdirSync } = await import("node:fs");
   for (const file of readdirSync(migrationsDir).filter(f => f.endsWith(".sql")).sort()) {
     await db.unsafe(readFileSync(path.join(migrationsDir, file), "utf8"));
   }
-  console.log(`[rtl-review] PostgreSQL ready on :${PG_PORT} (migrations applied)`);
+  console.log(`[rtl-review] PostgreSQL ready${externalAdmin !== null ? " (external)" : ` on :${PG_PORT}`} (migrations applied)`);
   await admin.end();
 
   // 2. Miniflare with the REAL worker + static assets + PG binding.
@@ -63,7 +88,7 @@ async function main() {
     bindings: {
       GOOGLE_CLIENT_ID: "rtl-review-client-id",
       GOOGLE_CLIENT_SECRET: "rtl-review-secret",
-      DB: { connectionString: `postgres://postgres@127.0.0.1:${PG_PORT}/micro_rtl_review` },
+      DB: { connectionString: `${reviewDbAdmin.replace(/\/[^/]*$/, "")}/micro_rtl_review` },
     },
     serviceBindings: {
       ASSETS: async request => {
@@ -107,7 +132,9 @@ async function main() {
   const shutdown = () => {
     try {
       server.close();
-      run(resolveBin("pg_ctl"), ["-D", path.join(DATA_DIR, "data"), "stop"]);
+      if (externalAdmin === null) {
+        run(resolveBin("pg_ctl"), ["-D", path.join(DATA_DIR, "data"), "stop"]);
+      }
     } finally {
       process.exit(0);
     }

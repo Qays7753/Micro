@@ -318,6 +318,32 @@ describe("W2 Field: label association and inline error recovery", () => {
     expect(container.querySelector("label")?.getAttribute("for")).toBe("amount-input");
   });
 
+  /* Stage C (S13/R3-1 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»):
+   * الربط البرمجي تلقائي عند غياب controlId — كل حقل بلا معرف صريح يحصل
+   * على اسم برمجي (WCAG 2.2 AA SC 3.3.2)؛ بلا تغيير لمن يمرر controlId. */
+  it("auto-wires the label to a generated control id when controlId is absent", () => {
+    const { container } = render(
+      <Field label="سبب الاقتراح">
+        <input />
+      </Field>,
+    );
+    const input = container.querySelector("input");
+    const label = container.querySelector("label");
+    expect(input?.id).toBeTruthy();
+    expect(label?.getAttribute("for")).toBe(input?.id);
+    expect(screen.getByLabelText("سبب الاقتراح")).toBeTruthy();
+  });
+
+  it("auto-wiring injects the id without touching an explicit control id", () => {
+    const { container } = render(
+      <Field label="المبلغ" controlId="explicit-id">
+        <input id="explicit-id" />
+      </Field>,
+    );
+    expect(container.querySelector("input")?.id).toBe("explicit-id");
+    expect(container.querySelector("label")?.getAttribute("for")).toBe("explicit-id");
+  });
+
   it("error state renders the error word with a marker and marks the field invalid", () => {
     const { container } = render(
       <Field label="المبلغ" controlId="a" error="المبلغ مطلوب">

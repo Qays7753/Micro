@@ -78,7 +78,7 @@ function textToQuantityMilli(text: string): string | null {
 export default function MarketVendorWorkspace() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [overview, setOverview] = useState<VendorOverview | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
@@ -94,6 +94,11 @@ export default function MarketVendorWorkspace() {
    * own work copy; verified and logged server-side. */
   const [directEditFor, setDirectEditFor] = useState<string | null>(null);
   const [directDraft, setDirectDraft] = useState<VendorListingDraft | null>(null);
+  /* Stage C (S13/R4-10): فشل تعبئة القيم الحالية حالة معلنة — لا سطر
+   * «جارٍ التعبئة» أبديًا ولا حفظ فوق قيم مجهولة. */
+  const [directDraftFailed, setDirectDraftFailed] = useState(false);
+  /* Stage C (S13/R4-3): فعل واحد قيد التنفيذ في مساحة المورد كلها. */
+  const [pendingAction, setPendingAction] = useState(false);
   const [priceValue, setPriceValue] = useState("");
   const [tierRows, setTierRows] = useState<{ min: string; price: string }[]>([]);
   const [minValue, setMinValue] = useState("");
@@ -140,6 +145,7 @@ export default function MarketVendorWorkspace() {
       try {
         const result = await fetchVendorListingDraft(listingId);
         const draft = result.listing;
+        setDirectDraftFailed(false);
         setDirectDraft(draft);
         if (priceMode === "tiered" && draft.pricing?.tiers) {
           setTierRows(
@@ -154,8 +160,9 @@ export default function MarketVendorWorkspace() {
           setStepValue(milliToText(draft.quantity.stepMilli));
         }
       } catch {
-        // The panel still opens for the fixed price; the work-copy prefill is
-        // best-effort and the server re-validates everything anyway.
+        /* Stage C (S13/R4-10): الفشل يُعلن ويُعطَّل الحفظ حتى تعبئة ناجحة —
+         * القيم الحالية غير معروفة فلا يُكتب فوقها. */
+        setDirectDraftFailed(true);
       }
     },
     [],
@@ -196,6 +203,27 @@ export default function MarketVendorWorkspace() {
     [priceValue, tierRows, minValue, stepValue, availabilityValue, load],
   );
 
+  /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
+   * قبل بوابة الدخول — انقطاع الشبكة لا يُعرض كأنه «غير مسجل». */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <section className="micro-page" data-testid="market-vendor-session-failed">
+        <div className="micro-page-heading">
+          <h1>مساحة المورد</h1>
+        </div>
+        <EmptyState
+          title="تعذر التحقق من جلستك الآن"
+          description="انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة."
+          action={
+            <Button action="secondary" onClick={() => void refresh()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      </section>
+    );
+  }
+
   if (!sessionLoading && !session.authenticated) {
     return (
       <section className="micro-page" data-testid="market-vendor-gate">
@@ -217,7 +245,11 @@ export default function MarketVendorWorkspace() {
 
   const vendorStatus = overview?.vendor?.status ?? null;
 
+  /* Stage C (S13/R4-3): فعل واحد قيد التنفيذ — يُمنع الإطلاق المزدوج أثناء
+   * انتظار الخادم (مفتاح idempotency جديد لكل استدعاء). */
   const run = async (action: () => Promise<void>, successMessage: string) => {
+    if (pendingAction) return;
+    setPendingAction(true);
     try {
       await action();
       setMessage({ tone: "success", text: successMessage });
@@ -227,6 +259,8 @@ export default function MarketVendorWorkspace() {
         tone: "error",
         text: error instanceof Error ? error.message : "تعذر تنفيذ الفعل — أعد المحاولة.",
       });
+    } finally {
+      setPendingAction(false);
     }
   };
 
@@ -352,12 +386,27 @@ export default function MarketVendorWorkspace() {
                 <Button action="quiet" onClick={() => navigate(`/market/vendor/${listing.id}`)}>
                   تحرير
                 </Button>
-                {listing.status === "draft" || listing.status === "changes_requested" ? (
+                {listing.status === "draft" ||
+                listing.status === "changes_requested" ||
+                listing.status === "rejected" ? (
                   <Button
                     action="save"
+                    disabled={pendingAction}
                     onClick={() => void run(() => submitListing(listing.id), "أُرسل الإعلان للمراجعة.")}
                   >
                     إرسال للمراجعة
+                  </Button>
+                ) : null}
+                {/* Stage C (S13/R1-13): الإعلان المخفي لعدم تأكيد التوفر
+                 * يطلب التجديد — الفعل المطلوب يظهر بدل تعليمة بلا زر؛
+                 * التجديد يمر بالمراجعة كالعادة (OD-11) لا إظهار مباشر. */}
+                {listing.status === "approved_for_publish" && listing.freshness === "hidden_stale" ? (
+                  <Button
+                    action="save"
+                    disabled={pendingAction}
+                    onClick={() => void run(() => submitListing(listing.id), "أُرسل طلب التجديد للمراجعة.")}
+                  >
+                    أعد الإرسال للتجديد
                   </Button>
                 ) : null}
                 {listing.status === "approved_for_publish" ? (
@@ -494,12 +543,29 @@ export default function MarketVendorWorkspace() {
                       والمضاعف، والتوفر — يُوثق بحدث إشرافي ولا يمس المحتوى أو الصور أو الفئة أو الوحدة أو
                       قناة الاتصال (هذه تمر بالمراجعة).
                     </p>
-                    {directDraft === null ? (
+                    {directDraftFailed ? (
+                      /* Stage C (S13/R4-10): فشل التعبئة يُعلن مع إعادة محاولة
+                       * ويُعطَّل الحفظ — لا كتابة فوق قيم حالية غير معروفة. */
+                      <div data-testid="direct-draft-failed">
+                        <p role="alert" className="micro-review-item__meta">
+                          تعذر جلب القيم الحالية — الحفظ معطل حتى تظهر. أعد المحاولة.
+                        </p>
+                        <Button
+                          action="secondary"
+                          onClick={() =>
+                            void openDirectEdit(listing.id, listing.priceMode, listing.priceMicroJod)
+                          }
+                        >
+                          إعادة المحاولة
+                        </Button>
+                      </div>
+                    ) : directDraft === null ? (
                       <p className="micro-review-item__meta">جارٍ تعبئة القيم الحالية…</p>
                     ) : null}
                     <div className="micro-form-actions">
                       <Button
                         action="save"
+                        disabled={pendingAction || directDraftFailed || directDraft === null}
                         onClick={() =>
                           void run(
                             () => saveDirectUpdate(listing.id, listing.priceMode),

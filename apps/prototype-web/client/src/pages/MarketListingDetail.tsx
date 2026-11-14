@@ -7,7 +7,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight, Phone } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { estimateMaterialValue, fetchListingDetail, type PublicListingDetail } from "@/application/market";
+import {
+  estimateMaterialValue,
+  fetchListingDetail,
+  fetchMarketMeta,
+  type PublicListingDetail,
+} from "@/application/market";
 import { Button, EmptyState, Notice } from "@/components/primitives";
 import { normalizeAsciiDigits } from "@/application/input";
 
@@ -31,6 +36,9 @@ export default function MarketListingDetail() {
   const [data, setData] = useState<DetailPayload | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [quantityText, setQuantityText] = useState("");
+  /* Stage C (S13/R2-6): خريطة تسميات التصنيف من الميتا الكنونية — لا معرّف
+   * خام («packaging») في صفحة عامة. */
+  const [categoryLabels, setCategoryLabels] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setState("loading");
@@ -45,6 +53,21 @@ export default function MarketListingDetail() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /* Stage C (S13/R2-6): جلب الميتا مرة واحدة — تسمية التصنيف الكنونية
+   * نفسها التي تظهر في الفلاتر والمحرر. */
+  useEffect(() => {
+    let active = true;
+    void fetchMarketMeta()
+      .then(meta => {
+        if (!active) return;
+        setCategoryLabels(Object.fromEntries(meta.categories.map(entry => [entry.id, entry.label])));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const listing = data?.listing;
   const quantityDigits = normalizeAsciiDigits(quantityText.trim());
@@ -63,11 +86,22 @@ export default function MarketListingDetail() {
         })
       : null;
 
+  /* Stage C (S13/R1-20): نص الاستفسار يجهّز العنوان والكمية المكتوبة — لا
+   * رسالة فارغة بلا سياق للمورد؛ يفتح في تبويب جديد فلا يفقد المستخدم
+   * موضعه في التطبيق. */
   const contactHref =
     listing === undefined
       ? null
       : listing.contactChannel.type === "whatsapp"
-        ? `https://wa.me/${listing.contactChannel.value.replace(/[^\d]/g, "")}`
+        ? (() => {
+            const phone = listing.contactChannel.value.replace(/[^\d]/g, "");
+            const quantity = quantityMilli !== "" ? quantityDigits : null;
+            const text =
+              quantity !== null
+                ? `استفسار عن «${listing.title}» — الكمية المطلوبة: ${quantity} ${listing.quantityUnit}`
+                : `استفسار عن «${listing.title}»`;
+            return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+          })()
         : `tel:${listing.contactChannel.value}`;
 
   return (
@@ -123,10 +157,14 @@ export default function MarketListingDetail() {
               <dt>الحد الأدنى للطلب</dt>
               <dd>{`${(BigInt(listing.minQuantityMilli) / 1000n).toString()} ${listing.quantityUnit}`}</dd>
             </div>
-            <div>
-              <dt>التصنيف</dt>
-              <dd>{listing.category}</dd>
-            </div>
+            {/* Stage C (S13/R2-6): التسمية الكنونية من الميتا؛ يُحذف الصف
+             * كاملًا إن جهل التصنيف — لا معرّف خام ولا صف فارغ للمستخدم العام. */}
+            {categoryLabels[listing.category] != null ? (
+              <div>
+                <dt>التصنيف</dt>
+                <dd>{categoryLabels[listing.category]}</dd>
+              </div>
+            ) : null}
           </dl>
           <p className="micro-market-description">{listing.description}</p>
 
@@ -151,7 +189,7 @@ export default function MarketListingDetail() {
               يفتح الاتصال قناة التواصل الخارجية المعتمدة — لا يرسل التطبيق شيئًا تلقائيًا ولا يسجل «أُرسلت».
             </p>
             {contactHref ? (
-              <a className="micro-market-contact__action" href={contactHref} rel="noreferrer">
+              <a className="micro-market-contact__action" href={contactHref} rel="noreferrer" target="_blank">
                 <Phone aria-hidden="true" />
                 {listing.contactChannel.type === "whatsapp" ? "تواصل واتساب" : "اتصال مباشر"}
               </a>

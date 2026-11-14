@@ -3,7 +3,7 @@
  * المراجعة والإرسال. معاينة الإفصاح تظهر ما سيراه السائق (مناطق لا عناوين
  * حتى قرار الإفصاح)، ومبلغ التحصيل اختياري يراه السائق قبل القبول (OD13).
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -40,11 +40,16 @@ export default function DeliveryBookingEditor() {
    * السائقين — يُستهلك مرة واحدة عند الفتح ثم يُنسخ من الرابط. */
   const preselectedDriver = new URLSearchParams(location.split("?")[1] ?? "").get("driver");
   const returnPath = useReturnPath();
-  const { session, signIn } = useNetworkSession();
+  /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
+   * قبل بوابة الدخول — انقطاع الشبكة لا يُعرض كأنه «غير مسجل». */
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [drivers, setDrivers] = useState<DriverDirectoryEntryDto[] | null>(null);
   const [directoryError, setDirectoryError] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /* Stage C (S13/R4-13): معرّف المسودة المنشأة يُحفظ — إعادة المحاولة بعد
+   * فشل الإرسال تُرسل المسودة نفسها لا تنشئ مسودة ثانية. */
+  const createdRequestIdRef = useRef<string | null>(null);
   const [form, setForm] = useState({
     needType: "deliver_to_customer" as "deliver_to_customer" | "fetch_ready_goods",
     driverProfileId: "",
@@ -111,7 +116,24 @@ export default function DeliveryBookingEditor() {
   ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => submit() });
 
-  if (!session.authenticated) {
+  /* S12/F-15 (Stage C): انقطاع التحقق حالة مستقلة صادقة مع إعادة محاولة. */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <section className="micro-page">
+        <div className="micro-page-heading">
+          <h1>حجز توصيل</h1>
+        </div>
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة.
+          <Button action="quiet" onClick={() => void refresh()}>
+            إعادة المحاولة
+          </Button>
+        </Notice>
+      </section>
+    );
+  }
+
+  if (!sessionLoading && !session.authenticated) {
     return (
       <section className="micro-page">
         <div className="micro-page-heading">
@@ -148,36 +170,47 @@ export default function DeliveryBookingEditor() {
       const collectionMinor = /^\d+(\.\d{1,2})?$/.test(collectionText)
         ? `${Math.round(Number(collectionText) * 100)}`
         : undefined;
-      const created = await createDeliveryRequest({
-        driverProfileId: form.driverProfileId,
-        needType: form.needType,
-        pricingMode: form.pricingMode,
-        offeredFareMinor: fareMinor,
-        collectionMinor,
-        collectionContent: collectionMinor === undefined ? undefined : "product",
-        payload: {
-          pickup: { governorate: form.pickupGovernorate, area: form.pickupArea },
-          dropoff: {
-            governorate: form.dropoffGovernorate,
-            area: form.dropoffArea,
-            name: form.recipientName,
-            phone: form.recipientPhone,
-            address: form.recipientAddress,
+      /* Stage C (S13/R4-13): المسودة المُنشأة تُرسل نفسها عند إعادة المحاولة —
+       * لا مسودة ثانية من كل محاولة إرسال فاشلة. */
+      let requestId = createdRequestIdRef.current;
+      if (requestId === null) {
+        const created = await createDeliveryRequest({
+          driverProfileId: form.driverProfileId,
+          needType: form.needType,
+          pricingMode: form.pricingMode,
+          offeredFareMinor: fareMinor,
+          collectionMinor,
+          collectionContent: collectionMinor === undefined ? undefined : "product",
+          payload: {
+            pickup: { governorate: form.pickupGovernorate, area: form.pickupArea },
+            dropoff: {
+              governorate: form.dropoffGovernorate,
+              area: form.dropoffArea,
+              name: form.recipientName,
+              phone: form.recipientPhone,
+              address: form.recipientAddress,
+            },
+            load: {
+              description: form.loadDescription,
+              parcels: Number(normalizeAsciiDigits(form.parcels)) || 1,
+              fragile: false,
+            },
+            schedule: { date: form.date, pickupWindow: form.pickupWindow, dropoffWindow: form.dropoffWindow },
           },
-          load: {
-            description: form.loadDescription,
-            parcels: Number(normalizeAsciiDigits(form.parcels)) || 1,
-            fragile: false,
-          },
-          schedule: { date: form.date, pickupWindow: form.pickupWindow, dropoffWindow: form.dropoffWindow },
-        },
-      });
-      await submitDeliveryRequest(created.request.id);
-      setMessage("أُرسل الطلب الموجه للسائق — مهلة رده 30 دقيقة.");
-      navigate(`/delivery/booking/${created.request.id}`);
+        });
+        requestId = created.request.id;
+        createdRequestIdRef.current = requestId;
+      }
+      await submitDeliveryRequest(requestId);
+      /* Stage C (S13/R4-12): رسالة النجاح كانت تُحذف فورًا بالإبحار وتُعرض
+       * بنبرة خطأ — مهلة الرد تظهر في تفاصيل الحجز نفسها؛ هنا رسالة صادقة
+       * قصيرة قبل الانتقال فقط عند بقاء المسار. */
+      navigate(`/delivery/booking/${requestId}`);
       return true;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر إرسال الحجز — راجع الحقول.");
+      setMessage(
+        error instanceof Error ? error.message : "تعذر إرسال الحجز — راجع الاتصال؛ الحجز محفوظ كمسودة.",
+      );
       return false;
     } finally {
       setBusy(false);
@@ -325,6 +358,8 @@ export default function DeliveryBookingEditor() {
                   type="radio"
                   name="driver"
                   checked={form.driverProfileId === driver.driverProfileId}
+                  /* Stage C (S13/R1-23): نفس قاعدة الدليل العام — لا يُبنى حجز محدود المصير بالرفض الخادمي. */
+                  disabled={!driver.eligibleForNewWork || !driver.acceptingNew}
                   onChange={() => update({ driverProfileId: driver.driverProfileId })}
                 />
                 <span>

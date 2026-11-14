@@ -32,7 +32,12 @@ export type HomeControlCenterServiceStore = Pick<PrototypeLocalStore, "getProfil
 
 export type HomeControlCenterResult =
   | { ok: true; value: ReturnType<typeof buildHomeControlCenterViewModel> }
-  | { ok: false; code: "storage_error"; message: string };
+  | { ok: false; code: "storage_error"; message: string }
+  /* Stage C (S13/R5-1 — أمر المالك 2026-11-14): لا مشروع بعد
+   * حالة صادقة مستقلة عن فشل القراءة — الضيف/الحساب
+   * المتصل بلا إعداد Manage يرى دعوة
+   * إعداد لا شاشة خطأ مزيفة. */
+  | { ok: false; code: "no_project"; message: string };
 
 const localDate = ammanLocalDate;
 
@@ -82,14 +87,16 @@ export class HomeControlCenterService {
        * عند القارئ المشترك بابه لاحقًا؛ العرض اللازم لا يُحذف. */
       this.dailyFollowUp.read(),
     ]);
-    if (
-      !profile.ok ||
-      !profile.value ||
-      !preferences.ok ||
-      !position.ok ||
-      !todayPeriod.ok ||
-      !monthPeriod.ok
-    )
+    if (!profile.ok) return storageFailure("تعذر قراءة بيانات مشروعك المحلية.");
+    /* Stage C (S13/R5-1): قراءة ناجحة ولا مشروع — ليس خطأً؛ دعوة
+     * إعداد صادقة تمامًا كمثال الإعداد في StartupGate. */
+    if (!profile.value)
+      return {
+        ok: false as const,
+        code: "no_project" as const,
+        message: "لم يؤسس مشروع بعد — أنشئ مشروعك من صفحة الإعداد.",
+      };
+    if (!preferences.ok || !position.ok || !todayPeriod.ok || !monthPeriod.ok)
       return storageFailure("تعذر قراءة بيانات مشروعك المحلية.");
     if (!unified.ok) return storageFailure(unified.message);
     if (!daily.ok) return storageFailure(daily.message);

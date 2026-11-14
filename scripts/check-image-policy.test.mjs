@@ -79,7 +79,11 @@ describe("check-image-policy", () => {
   it("live repo: all images within the approved baseline (WS-204 regression pin)", () => {
     expect(enumerationMode(ROOT)).toBe("git");
     const imgs = listImages(ROOT);
-    expect(imgs.length).toBe(36);
+    /* Stage C (S13 — أمر المالك 2026-11-14، DOC-038/WS-249): 36 -> 44 —
+     * قرار المالك الموثق في نفس الـPR (MANAGE-READINESS-CI-UX-PROMPT-EN.md
+     * §6 يوجب إرفاق لقطات الأدلة المرسومة بالتقرير) يضيف مجلد أدلة هذه
+     * المهمة وحده (8 لقطات after-*.png) إلى خط الأساس. */
+    expect(imgs.length).toBe(44);
     expect(checkImagePolicy({ repoRoot: ROOT })).toEqual([]);
   });
 

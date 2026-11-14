@@ -46,7 +46,7 @@ interface ReviewQueue {
 
 export default function MarketReview() {
   const [, navigate] = useLocation();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const [queue, setQueue] = useState<ReviewQueue | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error" | "forbidden">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
@@ -74,7 +74,13 @@ export default function MarketReview() {
     else if (!sessionLoading) setState("forbidden");
   }, [session.authenticated, sessionLoading, load]);
 
+  /* Stage C (S13/R4-15): قرار واحد قيد التنفيذ في كل لحظة — يمنع سباق
+   * قرارين متتاليين على العنصر نفسه أثناء تحديث الطابور. */
+  const [pendingDecision, setPendingDecision] = useState<string | null>(null);
   const decide = async (kind: "profile" | "listing" | "media", id: string, action: string) => {
+    const key = `${kind}:${id}:${action}`;
+    if (pendingDecision !== null) return;
+    setPendingDecision(key);
     const reason = reasons[`${kind}:${id}`] ?? "";
     try {
       await apiFetch(
@@ -86,9 +92,31 @@ export default function MarketReview() {
       await load();
     } catch (error) {
       setMessage({ tone: "error", text: error instanceof Error ? error.message : "تعذر تسجيل القرار." });
+    } finally {
+      setPendingDecision(null);
     }
   };
 
+  /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
+   * — انقطاع الشبكة لا يُعرض كأنه «لا تملك الصلاحية» أبدًا. */
+  if (!sessionLoading && sessionFailed) {
+    return (
+      <section className="micro-page">
+        <div className="micro-page-heading">
+          <h1>مراجعة السوق</h1>
+        </div>
+        <EmptyState
+          title="تعذر التحقق من جلستك الآن"
+          description="انقطاع الشبكة لا يعني أنك فقدت الصلاحية. تحقق من اتصالك ثم أعد المحاولة."
+          action={
+            <Button action="secondary" onClick={() => void refresh()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      </section>
+    );
+  }
   if (!sessionLoading && !session.authenticated) {
     return (
       <section className="micro-page">
@@ -124,10 +152,7 @@ export default function MarketReview() {
         </p>
       ) : null}
       {state === "forbidden" ? (
-        <EmptyState
-          title="لا تملك صلاحية المراجعة"
-          description="هذه الأدوات للمراجع المخول فقط (قيس بالبداية)."
-        />
+        <EmptyState title="لا تملك صلاحية المراجعة" description="هذه الأدوات للجهة المخولة فقط." />
       ) : null}
       {state === "error" ? (
         <EmptyState
@@ -192,39 +217,133 @@ export default function MarketReview() {
             {queue.listings.length === 0 ? (
               <p className="micro-review-queue-empty">لا إعلانات معلقة.</p>
             ) : null}
-            {queue.listings.map(listing => (
-              <article key={listing.id} className="micro-review-item">
-                <strong>{listing.title}</strong>
-                <p className="micro-review-item__meta">
-                  {LISTING_STATUS_LABELS[listing.status] ?? listing.status}
-                  {listing.revision_status !== "none"
-                    ? ` · ${REVISION_STATUS_LABELS[listing.revision_status] ?? listing.revision_status}`
-                    : ""}
-                </p>
-                <Field label="سبب القرار">
-                  <input
-                    value={reasons[`listing:${listing.id}`] ?? ""}
-                    onChange={event =>
-                      setReasons(current => ({ ...current, [`listing:${listing.id}`]: event.target.value }))
-                    }
-                  />
-                </Field>
-                <div className="micro-review-item__actions">
-                  <Button action="save" onClick={() => void decide("listing", listing.id, "approve")}>
-                    قبول المحتوى
-                  </Button>
-                  <Button
-                    action="outline"
-                    onClick={() => void decide("listing", listing.id, "changes_requested")}
-                  >
-                    طلب تعديل
-                  </Button>
-                  <Button action="destructive" onClick={() => void decide("listing", listing.id, "reject")}>
-                    رفض
-                  </Button>
-                </div>
-              </article>
-            ))}
+            {queue.listings.map(listing => {
+              /* Stage C (S13/R1-9): المحتوى الكامل قبل قرار البوابة — كان
+               * المراجع يقبل/يرفض من العنوان وحده؛ النسخة العاملة تُعرض
+               * كاملة كما تُعرض ملفات الموردين في القسم أعلاه. */
+              const work = JSON.parse(listing.work_copy_json) as {
+                title?: string;
+                category?: string;
+                governorate?: string;
+                description?: string;
+                pricing?: { mode?: string; priceMicroJod?: string | null };
+                quantity?: { unit?: string; minQuantityMilli?: string };
+                contactType?: string;
+                contactValue?: string;
+              };
+              return (
+                <article key={listing.id} className="micro-review-item">
+                  <strong>{listing.title}</strong>
+                  <dl className="micro-review-item__meta" data-testid={`listing-work-${listing.id}`}>
+                    <div>
+                      <dt>التصنيف</dt>
+                      <dd>{work.category ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt>المحافظة</dt>
+                      <dd>{work.governorate ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt>السعر</dt>
+                      <dd>
+                        {work.pricing?.mode === "quote_required" ? (
+                          "يحتاج تسعيرًا"
+                        ) : work.pricing?.mode === "tiered" ? (
+                          "حسب الكمية"
+                        ) : work.pricing?.priceMicroJod != null ? (
+                          <>
+                            <bdi dir="ltr">
+                              {`${(BigInt(work.pricing.priceMicroJod) / 1_000_000n).toString()}.${(
+                                BigInt(work.pricing.priceMicroJod) % 1_000_000n
+                              )
+                                .toString()
+                                .padStart(6, "0")
+                                .slice(0, 3)}`}
+                            </bdi>{" "}
+                            د.أ
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>الحد الأدنى</dt>
+                      <dd>
+                        {work.quantity?.minQuantityMilli != null ? (
+                          <>
+                            <bdi dir="ltr">
+                              {(() => {
+                                const value = BigInt(work.quantity.minQuantityMilli);
+                                const whole = value / 1000n;
+                                const fraction = value % 1000n;
+                                return fraction === 0n
+                                  ? whole.toString()
+                                  : `${whole.toString()}.${fraction.toString().padStart(3, "0")}`;
+                              })()}
+                            </bdi>{" "}
+                            {work.quantity?.unit ?? ""}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>التواصل</dt>
+                      <dd>
+                        {work.contactValue != null ? (
+                          <>
+                            {work.contactType === "whatsapp" ? "واتساب: " : "هاتف: "}
+                            <bdi dir="ltr">{work.contactValue}</bdi>
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="micro-review-item__meta">{work.description ?? ""}</p>
+                  <p className="micro-review-item__meta">
+                    {LISTING_STATUS_LABELS[listing.status] ?? listing.status}
+                    {listing.revision_status !== "none"
+                      ? ` · ${REVISION_STATUS_LABELS[listing.revision_status] ?? listing.revision_status}`
+                      : ""}
+                  </p>
+                  <Field label="سبب القرار">
+                    <input
+                      value={reasons[`listing:${listing.id}`] ?? ""}
+                      onChange={event =>
+                        setReasons(current => ({ ...current, [`listing:${listing.id}`]: event.target.value }))
+                      }
+                    />
+                  </Field>
+                  <div className="micro-review-item__actions">
+                    <Button
+                      action="save"
+                      disabled={pendingDecision !== null}
+                      onClick={() => void decide("listing", listing.id, "approve")}
+                    >
+                      قبول المحتوى
+                    </Button>
+                    <Button
+                      action="outline"
+                      disabled={pendingDecision !== null}
+                      onClick={() => void decide("listing", listing.id, "changes_requested")}
+                    >
+                      طلب تعديل
+                    </Button>
+                    <Button
+                      action="destructive"
+                      disabled={pendingDecision !== null}
+                      onClick={() => void decide("listing", listing.id, "reject")}
+                    >
+                      رفض
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </section>
 
           <section>

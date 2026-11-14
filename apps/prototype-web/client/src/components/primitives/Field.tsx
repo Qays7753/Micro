@@ -1,5 +1,5 @@
 import React from "react";
-import type { HTMLAttributes, ReactNode } from "react";
+import { useId, type HTMLAttributes, type ReactNode } from "react";
 import clsx from "clsx";
 import { StateMarker } from "./markers";
 
@@ -11,47 +11,64 @@ import { StateMarker } from "./markers";
  * مالية فقط). الخطأ: كلمة + علامة تنبيه بحبر الخطأ، ويُرى مع بقاء المدخلات
  * (الاسترجاع لا يمسح ما كتبه المالك). العنصر التحكم نفسه يُمرَّر كأبناء —
  * السياسة المالية والتقريب ملك المنتج خارج هذا العقد.
- * وصلات الوصول مسؤولية المستهلك: aria-invalid + aria-describedby على
- * العنصر التحكم عندما يظهر خطأ (موثقة في عقد المكوّن).
  *
  * R10-B4/F-017 (قاعدة الحزم الموحدة): نص خطأ الحقل فشل تحقق مؤكد —
  * يعلن بـ role="alert" حازمًا كقنوات الخطأ كلها؛ كان الوحيد status.
+ *
+ * Stage C (S13/R3-1 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»):
+ * الربط البرمجي للتسمية لم يعد اختياريًا — عند غياب controlId يُولَّد معرّف
+ * ثابت بـ useId ويُحقن على عنصر التحكم الوحيد نفسه (cloneElement)، فيحصل كل
+ * حقل على اسم برمجي (WCAG 2.2 AA SC 3.3.2 Labels or Instructions) في كل
+ * المستهلكين دفعة واحدة؛ controlId الصريح يبقى محترمًا كما هو (لا تغيير
+ * لأي مستهلك قائم ولا لهوية العناصر المختبرة).
  */
 
 export interface FieldProps extends HTMLAttributes<HTMLDivElement> {
-  /** تسمية الحقل (تُربط بـ htmlFor عند تمرير id العنصر التحكم). */
+  /** تسمية الحقل (تُربط بـ htmlFor دائمًا — صراحةً عبر controlId أو تلقائيًا). */
   label: ReactNode;
   /** بيانات وصفية غير مالية (12px). */
   hint?: ReactNode;
   /** نص الخطأ مع مسار استرجاه — وجوده يحوّل الحقل للوضع الخاطئ. */
   error?: ReactNode;
-  /** id العنصر التحكم لربط التسمية. */
+  /** id العنصر التحكم لربط التسمية (اختياري — يُولَّد عند غيابه). */
   controlId?: string;
   children: ReactNode;
 }
 
 export function Field({ label, hint, error, controlId, className, children, ...rest }: FieldProps) {
+  /* Stage C (S13/R3-1): معرّف مستقر لكل مثيل حقل — التسمية مربوطة برمجيًا
+   * حتى بلا controlId صريح؛ معرفات React آمنة للأرقام والأحرف ولا تصطدم
+   * بين المثيلات. */
+  const autoId = useId();
+  const resolvedId = controlId ?? autoId;
   /* Wave 4.4 — P-4.4-5: الربط تلقائي الآن — عنصر التحكم الذي يمرر controlId
    * يستلم aria-invalid وaria-describedby عند الخطأ (ترقية العقد الموثق في
    * رأس الملف: الوصلات لم تعد عبئًا على كل مستهلك). */
-  const errorId = controlId ? `${controlId}-field-error` : undefined;
-  const wiredChildren =
-    error && errorId && React.isValidElement(children)
-      ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
-          "aria-invalid": true,
-          "aria-describedby":
-            [(children.props as Record<string, unknown>)["aria-describedby"] as string | undefined, errorId]
-              .filter(Boolean)
-              .join(" ") || undefined,
-        })
-      : children;
+  const errorId = `${resolvedId}-field-error`;
+  const wiredChildren = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+        id: ((children.props as Record<string, unknown>)["id"] as string | undefined) ?? resolvedId,
+        ...(error
+          ? {
+              "aria-invalid": true,
+              "aria-describedby":
+                [
+                  (children.props as Record<string, unknown>)["aria-describedby"] as string | undefined,
+                  errorId,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined,
+            }
+          : {}),
+      })
+    : children;
   return (
     <div
       className={clsx("micro-prim-field", error && "micro-prim-field--error")}
       data-invalid={error ? true : undefined}
       {...rest}
     >
-      <label className="micro-prim-field__label" htmlFor={controlId}>
+      <label className="micro-prim-field__label" htmlFor={resolvedId}>
         {label}
       </label>
       {wiredChildren}

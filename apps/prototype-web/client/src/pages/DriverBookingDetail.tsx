@@ -26,7 +26,13 @@ import {
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 import { formatLocalDateTime } from "@/presentation/formatters";
-import { DRIVER_EXECUTION_STATUS_LABELS, deliveryEventLabel } from "@/presentation/deliveryLabels";
+import {
+  DRIVER_EXECUTION_STATUS_LABELS,
+  DRIVER_REQUEST_STATUS_LABELS,
+  UNKNOWN_STATUS_LABEL,
+  changeFieldRows,
+  deliveryEventLabel,
+} from "@/presentation/deliveryLabels";
 import { normalizeAsciiDigits } from "@/application/input";
 
 const EXECUTION_ACTIONS: Record<string, { label: string; kind: string; needsReason?: boolean }[]> = {
@@ -66,21 +72,47 @@ function minorToJod(minor: string | null): string {
   return `${(value / 100n).toString()}.${(value % 100n).toString().padStart(2, "0")}`;
 }
 
+/* Stage C (S13 — أمر المالك 2026-11-14): صفوف عربية مسماة لشروط الموافقة
+ * وتغييرات التعديل المؤثر — يعاد استخدامها في عرض قرار كل طرف؛ المبالغ
+ * تُعزل بـ bdi من العرض. */
+function labeledRowsList(rows: { label: string; value: string; money?: boolean }[]) {
+  return rows.map(row => (
+    <li key={row.label}>
+      {row.label}:{" "}
+      {row.money ? (
+        <>
+          <bdi dir="ltr">{row.value}</bdi> د.أ
+        </>
+      ) : (
+        row.value
+      )}
+    </li>
+  ));
+}
+
 export default function DriverBookingDetail() {
   const [match] = useLocation();
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
+   * قبل أي بوابة — انقطاع الشبكة لا يُعرض كأنه «الطلب غير متاح» أبدًا. */
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const bookingId = match.replace("/driver/booking/", "").split("/")[0] ?? "";
   const [data, setData] = useState<BookingDetail | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
     null,
   );
+  /* Stage C (S13/R4): فعل واحد قيد التنفيذ في أي لحظة — الزر لا يُعاد
+   * إطلاقه أثناء انتظار الخادم (مفتاح idempotency جديد لكل استدعاء). */
+  const [pendingAction, setPendingAction] = useState(false);
   const [quoteJod, setQuoteJod] = useState("");
   const [quoteScope, setQuoteScope] = useState("");
   const [failureReason, setFailureReason] = useState("");
+  /* Stage C (S13/R4-17): مبلغ التصريح بالتحصيل وقيمة بند الكشف حقلتان
+   * مستقلتان — كانا يتشاركان حالة واحدة فتُمسح إحداهما بمسح الأخرى. */
   const [collectionJod, setCollectionJod] = useState("");
+  const [statementAmountJod, setStatementAmountJod] = useState("");
   const [statementDescription, setStatementDescription] = useState("");
   /* OD10: نموذج اقتراح الموافقة (retry/holding/return) — لا يعلنها السائق
    * وحده أبدًا؛ تقترح وتقبل صراحة من الطرف الآخر. */
@@ -117,7 +149,11 @@ export default function DriverBookingDetail() {
     else if (!sessionLoading) setState("error");
   }, [session.authenticated, sessionLoading, load]);
 
+  /* Stage C (S13/R4-1): حارس الفعل الواحد — قيد التنفيذ يُعلن ويُمنع
+   * الإطلاق المزدوج؛ الرسالة الصادقة تبقى كما هي. */
   const act = async (action: () => Promise<void>, success: string) => {
+    if (pendingAction) return;
+    setPendingAction(true);
     try {
       await action();
       setMessage({ tone: "success", text: success });
@@ -127,6 +163,8 @@ export default function DriverBookingDetail() {
         tone: "error",
         text: error instanceof Error ? error.message : "تعذر تنفيذ الفعل.",
       });
+    } finally {
+      setPendingAction(false);
     }
   };
 
@@ -154,7 +192,20 @@ export default function DriverBookingDetail() {
         <ArrowRight aria-hidden="true" /> بوابة السائق
       </button>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
-      {state === "error" ? (
+      {/* S12/F-15 (Stage C): انقطاع التحقق حالة مستقلة صادقة مع إعادة محاولة —
+          لا يُعرض أبدًا كأنه «غير متاح» أو «غير مسجل». */}
+      {!sessionLoading && sessionFailed ? (
+        <EmptyState
+          title="تعذر التحقق من جلستك الآن"
+          description="انقطاع الشبكة لا يعني أن الطلب اختفى ولا أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة."
+          action={
+            <Button action="secondary" onClick={() => void refresh()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : null}
+      {state === "error" && !(!sessionLoading && sessionFailed) ? (
         <EmptyState
           title="الطلب غير متاح"
           description={
@@ -167,7 +218,11 @@ export default function DriverBookingDetail() {
               <Button action="secondary" onClick={() => signIn(`/driver/booking/${bookingId}`)}>
                 الدخول عبر Google
               </Button>
-            ) : undefined
+            ) : (
+              <Button action="secondary" onClick={() => void load()}>
+                إعادة المحاولة
+              </Button>
+            )
           }
         />
       ) : null}
@@ -191,13 +246,13 @@ export default function DriverBookingDetail() {
       {state === "ready" && request && data && data.viewerRole === "driver" ? (
         <article>
           <div className="micro-page-heading">
-            <span className="micro-overline">طلب موجه إليك — {request.id.slice(0, 12)}</span>
+            {/* Stage C (S13): المعرف الخام لا يُعرض مقطوعًا في الترويسة —
+                مرجع الدعم الكامل المعزول بـ bdi أسفل الصفحة. */}
+            <span className="micro-overline">طلب توصيل موجه إليك</span>
             <h1>
               {request.status === "awaiting_driver_response"
                 ? "طلب ينتظر ردك (30 دقيقة)"
-                : request.status === "confirmed"
-                  ? "حجز مؤكد — نفّذ وصرّح"
-                  : request.status}
+                : (DRIVER_REQUEST_STATUS_LABELS[request.status] ?? UNKNOWN_STATUS_LABEL)}
             </h1>
           </div>
 
@@ -208,6 +263,33 @@ export default function DriverBookingDetail() {
                 {String((request.payload.pickup as Record<string, unknown> | undefined)?.governorate ?? "—")}{" "}
                 ←{" "}
                 {String((request.payload.dropoff as Record<string, unknown> | undefined)?.governorate ?? "—")}
+              </dd>
+            </div>
+            {/* Stage C (S13/R1-1): الموعد والحمولة أمام قرار القبول — كانتا
+                محجوبتين عن السائق قبل أصغر قرار (قبول/رفض الأجرة). */}
+            <div>
+              <dt>الموعد</dt>
+              <dd>
+                {(() => {
+                  const schedule = (
+                    request.payload as { schedule?: { date?: string; pickupWindow?: string } }
+                  ).schedule;
+                  if (!schedule || (!schedule.date && !schedule.pickupWindow)) return "—";
+                  return `${schedule.date ?? ""}${schedule.pickupWindow ? ` (استلام ${schedule.pickupWindow})` : ""}`;
+                })()}
+              </dd>
+            </div>
+            <div>
+              <dt>الحمولة</dt>
+              <dd>
+                {(() => {
+                  const loadInfo = (request.payload as { load?: { description?: string; parcels?: number } })
+                    .load;
+                  if (!loadInfo || (!loadInfo.description && loadInfo.parcels == null)) return "—";
+                  return `${loadInfo.description ?? ""}${
+                    loadInfo.parcels != null ? ` — ${loadInfo.parcels} طرود` : ""
+                  }`;
+                })()}
               </dd>
             </div>
             <div>
@@ -360,7 +442,9 @@ export default function DriverBookingDetail() {
                   </div>
                 ) : (
                   <div className="micro-consent-propose" data-testid="driver-consent-propose">
-                    <h3>اقترح على صاحب المشروع (لا يعلنها طرف واحد — OD10)</h3>
+                    {/* Stage C (S13): مرجع القاعدة الداخلي (OD10) لا يظهر
+                     * للمستخدم — الجملة التشغيلية الصادقة تبقى كما هي. */}
+                    <h3>اقترح على صاحب المشروع — لا يُنفذ إلا بقبوله الصريح</h3>
                     <Field label="نوع الاقتراح">
                       <select
                         value={consentKind}
@@ -504,8 +588,10 @@ export default function DriverBookingDetail() {
               {changeOpen ? (
                 <div className="micro-change-form" data-testid="driver-change-form">
                   <p className="micro-review-item__meta">
+                    {/* Stage C (S13): مرجع القاعدة الداخلي (OD11) ينتقل إلى
+                     * التعليق — الجملة القرارية تبقى نصًا للمستخدم. */}
                     الاتفاق السابق يبقى ساريًا حتى يقبل صاحب المشروع صراحة؛ عند قبوله تُنشأ نسخة اتفاق جديدة
-                    وتبقى السابقة في التاريخ (OD11).
+                    وتبقى السابقة في التاريخ.
                   </p>
                   <Field label="الأجرة الجديدة (د.أ — فارغة لبلا تغيير)">
                     <input
@@ -585,6 +671,16 @@ export default function DriverBookingDetail() {
                         void act(async () => {
                           await proposeDeliveryChange(request.id, changes);
                           setChangeOpen(false);
+                          /* Stage C (S13/R4-18): إعادة تعيين حقول النموذج بعد
+                           * النجاح فقط — لا تبقى قيم الاقتراح السابق عند الفتح
+                           * اللاحق. */
+                          setChangeFare("");
+                          setChangeDate("");
+                          setChangePickupArea("");
+                          setChangeDropoffArea("");
+                          setChangeLoad("");
+                          setChangeParcels("");
+                          setChangeCollection("");
                         }, "أُرسل اقتراح التعديل — ينتظر قبول المشروع صراحة.");
                       }}
                     >
@@ -615,12 +711,11 @@ export default function DriverBookingDetail() {
               {requesterPendingChange ? (
                 <div className="micro-change-decision" data-testid="driver-change-decision">
                   <h3>اقتراح تعديل من صاحب المشروع — ينتظر قرارك الصريح</h3>
-                  <p className="micro-review-item__meta">
-                    التغييرات المقترحة:{" "}
-                    {JSON.stringify(
-                      (requesterPendingChange.changes ?? {}).changes ?? requesterPendingChange.changes,
-                    )}
-                  </p>
+                  {/* Stage C (S13/R1-4): التغييرات المقترحة تُعرض صفوفًا عربية
+                   * مسماة بالمبالغ بالدينار — لا JSON خام قبل قرار. */}
+                  <ul className="micro-review-item__meta" data-testid="driver-change-fields">
+                    {labeledRowsList(changeFieldRows(requesterPendingChange.changes))}
+                  </ul>
                   <div className="micro-form-actions">
                     <Button
                       action="commit"
@@ -679,30 +774,34 @@ export default function DriverBookingDetail() {
               {request.collectionMinor !== null &&
               ["agreed", "collection_declared"].includes(execution.money) ? (
                 <div className="micro-statement-item">
-                  <h3>أرسل بند كشف اليوم لهذا الحجز (كامل التأكيد فقط — لا تسوية جزئية)</h3>
+                  <h3>أرسل بند كشف اليوم لهذا الحجز (تأكيد كامل فقط — لا تسوية جزئية)</h3>
                   <Field label="وصف البند" controlId="statement-description">
                     <input
                       id="statement-description"
                       value={statementDescription}
                       onChange={event => setStatementDescription(event.target.value)}
                       /* F-11 (Phase F — review 2): المبلغ داخل placeholder لا
-                       * يمكن عزله بـ bdi — المثال بلا رقم. */
-                      placeholder="مثال: تحصيل قيمة هذا الحجز عن هذا الحجز"
+                       * يمكن عزله بـ bdi — المثال بلا رقم. Stage C (S13/R2-18):
+                       * صياغة المثال بلا تكرار. */
+                      placeholder="مثال: تحصيل مبلغ هذا الحجز من المستلم"
                     />
                   </Field>
                   <Field label="قيمة البند (د.أ)" controlId="statement-amount">
                     <input
                       id="statement-amount"
-                      value={collectionJod}
-                      onChange={event => setCollectionJod(event.target.value)}
+                      value={statementAmountJod}
+                      onChange={event => setStatementAmountJod(event.target.value)}
                       inputMode="decimal"
+                      dir="ltr"
+                      lang="en"
                     />
                   </Field>
                   <Button
                     action="save"
+                    disabled={pendingAction}
                     onClick={() =>
                       void act(async () => {
-                        const text = normalizeAsciiDigits(collectionJod.trim());
+                        const text = normalizeAsciiDigits(statementAmountJod.trim());
                         const minor = /^\d+(\.\d{1,2})?$/.test(text)
                           ? `${Math.round(Number(text) * 100)}`
                           : null;
@@ -720,7 +819,7 @@ export default function DriverBookingDetail() {
                           ],
                         });
                         setStatementDescription("");
-                        setCollectionJod("");
+                        setStatementAmountJod("");
                       }, "أُرسل بند الكشف — ينتظر تأكيد المشروع كاملًا.")
                     }
                   >
@@ -747,6 +846,12 @@ export default function DriverBookingDetail() {
                 </li>
               ))}
             </ul>
+            {/* Stage C (S13/R2-11): مرجع دعم كامل واحد معزول بـ bdi — بديلًا
+             * عن المقطع الخام في الترويسة؛ موجود عند الحاجة بلا قصّ منتصف
+             * المعرّف. */}
+            <p className="micro-review-item__meta">
+              مرجع الطلب للدعم: <bdi dir="ltr">{request.id}</bdi>
+            </p>
           </section>
         </article>
       ) : null}

@@ -52,6 +52,9 @@ export default function Delivery() {
   >([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [notice, setNotice] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(null);
+  /* Stage C (S13/R4-20): تأكيد واحد قيد التنفيذ لكشف واحد — لا إدارة مزدوجة
+   * متطلبة تنتهي بصراح 409 بعد إعلام النجاح. */
+  const [confirmingStatementId, setConfirmingStatementId] = useState<string | null>(null);
   const [differenceFor, setDifferenceFor] = useState<string | null>(null);
   const [differenceNote, setDifferenceNote] = useState("");
 
@@ -99,12 +102,19 @@ export default function Delivery() {
           </Button>
         </Notice>
       ) : !session.authenticated ? (
-        <Notice tone="neutral">
-          حجز التوصيل وكشوفه يحتاجان تسجيل الدخول بهوية Micro. دليل السائقين العام متاح من زر «سائقوني».
-          <Button action="quiet" onClick={() => signIn("/delivery")}>
-            الدخول عبر Google
+        /* Stage C (S13/R1-16): الزر المذكور للضيف يظهر فعلًا — الدليل العام
+         * مسار عام لا يحتاج جلسة، فلا يُخفى المدخل العام عن الجمهور. */
+        <div className="micro-delivery-guest">
+          <Notice tone="neutral">
+            حجز التوصيل وكشوفه يحتاجان تسجيل الدخول بهوية Micro.
+            <Button action="quiet" onClick={() => signIn("/delivery")}>
+              الدخول عبر Google
+            </Button>
+          </Notice>
+          <Button action="outline" onClick={() => navigate("/delivery/drivers")}>
+            سائقوني والبحث عن سائق
           </Button>
-        </Notice>
+        </div>
       ) : (
         <div className="micro-delivery-actions">
           <Button action="create" onClick={() => navigate("/delivery/booking/new")}>
@@ -151,9 +161,10 @@ export default function Delivery() {
                   <div className="micro-form-actions">
                     <Button
                       action="save"
-                      disabled={differenceNote.trim().length === 0}
+                      disabled={differenceNote.trim().length === 0 || confirmingStatementId !== null}
                       onClick={async () => {
                         try {
+                          setConfirmingStatementId(statement.id);
                           await confirmStatement(statement.id, "difference", differenceNote.trim());
                           setNotice({
                             tone: "success",
@@ -167,6 +178,8 @@ export default function Delivery() {
                             tone: "error",
                             text: error instanceof Error ? error.message : "تعذر تسجيل الفرق.",
                           });
+                        } finally {
+                          setConfirmingStatementId(null);
                         }
                       }}
                     >
@@ -187,8 +200,10 @@ export default function Delivery() {
                 <div className="micro-form-actions">
                   <Button
                     action="save"
+                    disabled={confirmingStatementId !== null}
                     onClick={async () => {
                       try {
+                        setConfirmingStatementId(statement.id);
                         await confirmStatement(statement.id, "full");
                         setNotice({ tone: "success", text: "أُكد استلام الكشف كاملًا." });
                         await load();
@@ -197,6 +212,8 @@ export default function Delivery() {
                           tone: "error",
                           text: error instanceof Error ? error.message : "تعذر التأكيد.",
                         });
+                      } finally {
+                        setConfirmingStatementId(null);
                       }
                     }}
                   >

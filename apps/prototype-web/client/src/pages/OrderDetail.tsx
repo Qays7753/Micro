@@ -444,7 +444,9 @@ export default function OrderDetail() {
     }
   }
 
-  async function run(action: () => Promise<FulfillmentResult | AgreementResult>) {
+  /* Stage C (S13/R4-8): يعيد نتيجة صريحة — الفاشل false والناجح true —
+   * ليحفظ المتصل حالته بعد نجاح مؤكد فقط. */
+  async function run(action: () => Promise<FulfillmentResult | AgreementResult>): Promise<boolean> {
     setMessage(null);
     setIsActing(true);
     const next = await action();
@@ -452,7 +454,7 @@ export default function OrderDetail() {
     if (!next.ok) {
       if (next.code === "storage_stale") setStaleConflict(true);
       setMessage(next.message);
-      return;
+      return false;
     }
     setStored(next.stored);
     setState({ phase: "ready", stored: next.stored });
@@ -461,6 +463,7 @@ export default function OrderDetail() {
     if ("reused" in next && next.reused)
       setMessage("رد العربون هذا سُجّل سابقًا بنفس التأكيد — لم يُنشأ حدث جديد.");
     notifyDataChanged();
+    return true;
   }
 
   /* Conflict B: تسمية جهة الطلب غير المسمّى — تعبئة باتجاه واحد عبر النطاق. */
@@ -529,10 +532,14 @@ export default function OrderDetail() {
   }
 
   async function cancelWithReason(reason: string) {
-    setCancelPanelOpen(false);
-    setOtherReasonOpen(false);
-    setOtherReason("");
-    await run(() => fulfillment.cancel(stored!.id, reason));
+    /* Stage C (S13/R4-8): المسح بعد النجاح فقط — فشل الحفظ يبقي
+     * السبب المكتوب واللوحة مفتوحة للإعادة بعد تصحيح التعارض. */
+    const outcome = await run(() => fulfillment.cancel(stored!.id, reason));
+    if (outcome === true) {
+      setCancelPanelOpen(false);
+      setOtherReasonOpen(false);
+      setOtherReason("");
+    }
   }
 
   /* المجموعة ٣ (عقد D4): عكس التسليم — الإيراد يُحيَّد والحركات تُعكس مرآةً

@@ -128,8 +128,11 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     /* إغلاق فجوات §17 (WS-249، 2026-11-12): صفحة طابور مراجعة التوصيل
      * (DeliveryReviewQueue.tsx — OD17/OD22/OD28–OD31) — 415 -> 416؛
      * (EX-D21/EX-D19 Phase B 2026-11-14: NetworkSessionContext + AskMicro + askMicroService) — 416 -> 419؛
-     * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء. */
-    expect(stdout).toMatch(/419 ملف إنتاج/);
+     * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء.
+     * (Stage C S13 — أمر المالك 2026-11-14، DOC-038/WS-249): تقاعد وحدة
+     * futureServices.ts الميتة (إعلانات «قريبًا» لخدمات حية بلا مستهلكين —
+     * R5-7) — 419 -> 418؛ لا موضع تسجيل جديد ولا استثناء. */
+    expect(stdout).toMatch(/418 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

@@ -24,7 +24,13 @@ import {
 } from "@/application/delivery";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 import { formatLocalDateTime } from "@/presentation/formatters";
-import { CONTACT_STATUS_LABELS, deliveryEventLabel } from "@/presentation/deliveryLabels";
+import {
+  CONTACT_STATUS_LABELS,
+  UNKNOWN_STATUS_LABEL,
+  changeFieldRows,
+  consentTermRows,
+  deliveryEventLabel,
+} from "@/presentation/deliveryLabels";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
@@ -70,13 +76,21 @@ export default function DeliveryBookingDetail() {
   const [match] = useLocation();
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { session, signIn, loading: sessionLoading } = useNetworkSession();
+  /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
+   * قبل أي بوابة — انقطاع الشبكة لا يُعرض كأنه «الحجز غير متاح» أبدًا. */
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
   const bookingId = match.replace("/delivery/booking/", "").split("/")[0] ?? "";
   const [data, setData] = useState<BookingDetail | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(
     null,
   );
+  /* Stage C (S13/R4-1): فعل واحد قيد التنفيذ — يُمنع الإطلاق المزدوج أثناء
+   * انتظار الخادم (مفتاح idempotency جديد لكل استدعاء). */
+  const [pendingAction, setPendingAction] = useState(false);
+  /* Stage C (S13/R1-5): الإلغاء فعل لاحق لا رجعة فيه — تأكيد صريح بخطوتين
+   * لا نقرة واحدة صامتة. */
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [stars, setStars] = useState(5);
   const [instructionNote, setInstructionNote] = useState("");
   const [changeOpen, setChangeOpen] = useState(false);
@@ -103,7 +117,11 @@ export default function DeliveryBookingDetail() {
     else if (!sessionLoading) setState("error");
   }, [session.authenticated, sessionLoading, load]);
 
+  /* Stage C (S13/R4-1): حارس الفعل الواحد — قيد التنفيذ يُعلن ويُمنع
+   * الإطلاق المزدوج؛ الرسالة الصادقة تبقى كما هي. */
   const act = async (action: () => Promise<void>, success: string) => {
+    if (pendingAction) return;
+    setPendingAction(true);
     try {
       await action();
       setMessage({ tone: "success", text: success });
@@ -113,6 +131,8 @@ export default function DeliveryBookingDetail() {
         tone: "error",
         text: error instanceof Error ? error.message : "تعذر تنفيذ الفعل.",
       });
+    } finally {
+      setPendingAction(false);
     }
   };
 
@@ -137,7 +157,7 @@ export default function DeliveryBookingDetail() {
   };
   const routeSummary =
     agreementPayload.pickup && agreementPayload.dropoff
-      ? `${agreementPayload.pickup.governorate ?? ""} → ${agreementPayload.dropoff.governorate ?? ""}`
+      ? `${agreementPayload.pickup.governorate ?? ""} ← ${agreementPayload.dropoff.governorate ?? ""}`
       : "—";
   const scheduleSummary = agreementPayload.schedule
     ? `${agreementPayload.schedule.date ?? ""} (استلام ${agreementPayload.schedule.pickupWindow ?? "—"})`
@@ -159,7 +179,19 @@ export default function DeliveryBookingDetail() {
           جارٍ تحميل الحجز…
         </p>
       ) : null}
-      {state === "error" ? (
+      {/* S12/F-15 (Stage C): انقطاع التحقق حالة مستقلة صادقة مع إعادة محاولة. */}
+      {!sessionLoading && sessionFailed ? (
+        <EmptyState
+          title="تعذر التحقق من جلستك الآن"
+          description="انقطاع الشبكة لا يعني أن الحجز اختفى ولا أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة."
+          action={
+            <Button action="secondary" onClick={() => void refresh()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : null}
+      {state === "error" && !(!sessionLoading && sessionFailed) ? (
         <EmptyState
           title="الحجز غير متاح"
           description="تحقق من الرابط أو سجل الدخول بحساب صاحب الحجز."
@@ -168,7 +200,11 @@ export default function DeliveryBookingDetail() {
               <Button action="secondary" onClick={() => signIn(`/delivery/booking/${bookingId}`)}>
                 الدخول عبر Google
               </Button>
-            ) : undefined
+            ) : (
+              <Button action="secondary" onClick={() => void load()}>
+                إعادة المحاولة
+              </Button>
+            )
           }
         />
       ) : null}
@@ -186,9 +222,23 @@ export default function DeliveryBookingDetail() {
       {state === "ready" && request && data && data.viewerRole !== "driver" ? (
         <article>
           <div className="micro-page-heading">
-            <span className="micro-overline">حجز {request.id.slice(0, 12)}</span>
-            <h1>{STATUS_LABELS[request.status] ?? request.status}</h1>
+            {/* Stage C (S13): المعرف الخام لا يُعرض مقطوعًا في الترويسة —
+                مرجع الدعم الكامل في قسم الاتفاق أدناه. */}
+            <span className="micro-overline">تفاصيل حجز التوصيل</span>
+            <h1>{STATUS_LABELS[request.status] ?? UNKNOWN_STATUS_LABEL}</h1>
           </div>
+
+          {/* Stage C (S13/R4-12): مهلة رد السائق أمام صاحب المشروع أيضًا — كانت
+           * تُعلن في رسالة محذوفة بالإبحار فقط. */}
+          {request.status === "awaiting_driver_response" ? (
+            <Notice tone="info">
+              الطلب موجه للسائق — مهلة رده{" "}
+              {request.responseDeadlineAt != null
+                ? `حتى ${formatLocalDateTime(new Date(request.responseDeadlineAt).toISOString()) ?? ""}`
+                : "30 دقيقة"}
+              ؛ لا تحويل تلقائي لسائق آخر بعد انتهائها.
+            </Notice>
+          ) : null}
 
           {request.status === "awaiting_requester_decision" && data.quote ? (
             <section className="micro-quote-box" data-testid="quote-decision">
@@ -310,12 +360,25 @@ export default function DeliveryBookingDetail() {
                 <div className="micro-consent-decision" data-testid="consent-decision">
                   <h3>
                     اقتراح السائق ينتظر قرارك الصريح —{" "}
-                    {CONSENT_KIND_LABELS[pendingConsent.kind] ?? pendingConsent.kind}
+                    {CONSENT_KIND_LABELS[pendingConsent.kind] ?? "نوع اقتراح غير معروف"}
                   </h3>
-                  <p className="micro-review-item__meta">
-                    الشروط المقترحة: {JSON.stringify(pendingConsent.terms)} — الإرجاع إرجاع أغراض لا استرداد
-                    مال.
-                  </p>
+                  {/* Stage C (S13/R2-1): الشروط المقترحة تُعرض صفوفًا عربية
+                   * مسماة بالمبالغ بالدينار — لا JSON خام ولا فلس أمام قرار. */}
+                  <ul className="micro-review-item__meta" data-testid="consent-terms-rows">
+                    {consentTermRows(pendingConsent.kind, pendingConsent.terms).map(row => (
+                      <li key={row.label}>
+                        {row.label}:{" "}
+                        {row.money ? (
+                          <>
+                            <bdi dir="ltr">{row.value}</bdi> د.أ
+                          </>
+                        ) : (
+                          row.value
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="micro-review-item__meta">الإرجاع إرجاع أغراض لا استرداد مال.</p>
                   <p role="status">سكوتك أو رفضك لا ينفذان شيئًا تلقائيًا أبدًا؛ الحالة تبقى بانتظار واضح.</p>
                   <div className="micro-form-actions">
                     <Button
@@ -345,8 +408,10 @@ export default function DeliveryBookingDetail() {
               ) : null}
               {execution.execution === "undeliverable_declared" && !pendingConsent ? (
                 <Notice tone="info">
+                  {/* Stage C (S13): مرجع القاعدة الداخلي (OD10) ينتقل إلى
+                   * التعليق — الجملة التشغيلية تبقى نصًا للمستخدم. */}
                   بعد التعذر: محاولة جديدة أو احتفاظ أو إرجاع تحتاج اقتراحًا من السائق يقبله صاحب المشروع
-                  صراحة داخل التطبيق — لا يعلنها طرف واحد ولا تنفذ آليًا (OD10).
+                  صراحة داخل التطبيق — لا يعلنها طرف واحد ولا تنفذ آليًا.
                 </Notice>
               ) : null}
 
@@ -407,8 +472,10 @@ export default function DeliveryBookingDetail() {
               {changeOpen ? (
                 <div className="micro-change-form" data-testid="change-proposal-form">
                   <p className="micro-review-item__meta">
+                    {/* Stage C (S13): مرجع القاعدة الداخلي (OD11) ينتقل إلى
+                     * التعليق — الجملة القرارية تبقى نصًا للمستخدم. */}
                     الاتفاق السابق يبقى ساريًا وغير قابل للكتابة فوقه حتى يقبل السائق صراحة؛ يُنشأ عند القبول
-                    نسخة اتفاق جديدة وتبقى السابقة في التاريخ (OD11).
+                    نسخة اتفاق جديدة وتبقى السابقة في التاريخ.
                   </p>
                   <Field label="الأجرة الجديدة (د.أ — اتركها فارغة لبلا تغيير)">
                     <input
@@ -518,12 +585,22 @@ export default function DeliveryBookingDetail() {
               {driverPendingChange ? (
                 <div className="micro-change-decision" data-testid="change-decision">
                   <h3>اقتراح تعديل من السائق — ينتظر قرارك الصريح</h3>
-                  <p className="micro-review-item__meta">
-                    التغييرات المقترحة:{" "}
-                    {JSON.stringify(
-                      (driverPendingChange.changes ?? {}).changes ?? driverPendingChange.changes,
-                    )}
-                  </p>
+                  {/* Stage C (S13/R1-3): التغييرات المقترحة تُعرض صفوفًا عربية
+                   * مسماة بالمبالغ بالدينار — لا JSON خام قبل قرار. */}
+                  <ul className="micro-review-item__meta" data-testid="change-fields-rows">
+                    {changeFieldRows(driverPendingChange.changes).map(row => (
+                      <li key={row.label}>
+                        {row.label}:{" "}
+                        {row.money ? (
+                          <>
+                            <bdi dir="ltr">{row.value}</bdi> د.أ
+                          </>
+                        ) : (
+                          row.value
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                   <div className="micro-form-actions">
                     <Button
                       action="commit"
@@ -551,19 +628,56 @@ export default function DeliveryBookingDetail() {
                 </div>
               ) : null}
 
-              <Button
-                action="quiet"
-                onClick={() =>
-                  void act(() => cancelDeliveryRequest(request.id), "أُلغي الحجز وفق شروط السائق المحفوظة.")
-                }
-              >
-                إلغاء الحجز (بشروط السائق المحفوظة)
-              </Button>
+              {/* Stage C (S13/R1-5 + R1-6): الإلغاء متاح للحالات غير المنتهية
+               * (مسودة/انتظار/مؤكد) بتأكيد صريح بخطوتين وزر تحذيري — لا نقرة
+               * واحدة صامتة على فعل لا رجعة فيه، ولا مسودة عالقة بلا مخرج. */}
+              {["draft", "awaiting_driver_response", "awaiting_requester_decision", "confirmed"].includes(
+                request.status,
+              ) ? (
+                cancelConfirmOpen ? (
+                  <div className="micro-cancel-confirm" data-testid="cancel-confirm">
+                    <p role="alert">
+                      الإلغاء نهائي وفق شروط السائق المحفوظة — لا يتراجع تلقائيًا. أكّد فقط إن كنت تعني ذلك.
+                    </p>
+                    <div className="micro-form-actions">
+                      <Button
+                        action="destructive"
+                        disabled={pendingAction}
+                        onClick={() =>
+                          void act(async () => {
+                            await cancelDeliveryRequest(request.id);
+                            setCancelConfirmOpen(false);
+                          }, "أُلغي الحجز وفق شروط السائق المحفوظة.")
+                        }
+                      >
+                        أكّد الإلغاء النهائي
+                      </Button>
+                      <Button action="quiet" onClick={() => setCancelConfirmOpen(false)}>
+                        تراجع
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button action="quiet" onClick={() => setCancelConfirmOpen(true)}>
+                    إلغاء الحجز (بشروط السائق المحفوظة)
+                  </Button>
+                )
+              ) : null}
             </section>
           ) : null}
 
           <section>
-            <h2>اتفاق الحجز (نسخة محفوظة — الإصدار v{data.agreementVersion ?? 1})</h2>
+            {/* Stage C (S13/R2-17): رقم الإصدار يُعرض فقط إذا كان معروفًا — لا
+             * اختراع v1 من قيمة غائبة؛ الرقم معزول بـ bdi داخل نص عربي. */}
+            <h2>
+              اتفاق الحجز (نسخة محفوظة)
+              {data.agreementVersion != null ? (
+                <>
+                  {" "}
+                  — الإصدار <bdi dir="ltr">v{data.agreementVersion}</bdi>
+                </>
+              ) : null}
+            </h2>
             <dl className="micro-market-facts">
               <div>
                 <dt>الأجرة</dt>
@@ -600,6 +714,11 @@ export default function DeliveryBookingDetail() {
                 <dd>{loadSummary}</dd>
               </div>
             </dl>
+            {/* Stage C (S13/R2-11): مرجع دعم كامل واحد معزول بـ bdi — بديلًا
+             * عن المقطع الخام في الترويسة. */}
+            <p className="micro-review-item__meta">
+              مرجع الحجز للدعم: <bdi dir="ltr">{request.id}</bdi>
+            </p>
           </section>
 
           <section>

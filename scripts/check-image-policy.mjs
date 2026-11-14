@@ -45,15 +45,26 @@ import { fileURLToPath } from "node:url";
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"];
-export const EXPECTED_IMAGE_COUNT = 36;
+export const EXPECTED_IMAGE_COUNT = 44;
 
 /**
  * خط الأساس المعتمد 2026-10-01 بعد تصحيح المالك:
  * - apps/prototype-web/client/public/brand/** — أصول تشغيلية (favicon/PWA/motion/splash) تستهلكها الواجهة والبناء.
  * - لا توجد حزمة Screenshots تخطيطية أو تقريرية مسموحة داخل المستودع.
+ *
+ * Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»، DOC-038/WS-249):
+ * أمر المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6) يوجب صراحة التقاط
+ * أدلة مرسومة قبل/بعد عند عروض الهاتف 320/360/390/430 وإرفاق لقطات الشاشة بالتقرير —
+ * قرار مالك موثق في نفس الـPR يوسع خط الأساس لمجلد أدلة هذه المهمة وحده (8 لقطات
+ * after-*.png)؛ العدد 36 → 44. لا يمس سياسة «لا لقطات تقريرية تاريخية» خارج هذا المجلد.
  */
 export const BASELINE_RULES = [
   { prefix: "apps/", reason: "operational application/build assets" },
+  {
+    prefix: "docs/expansion/handoffs/zai-micro-manage-readiness-2026-11-14/evidence/",
+    reason:
+      "Stage C rendered UX evidence — owner order 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md section 6: capture before/after rendered evidence at 320/360/390/430 and attach the screenshots to the report); bounded to this task's evidence directory only",
+  },
 ];
 
 /** الجذور المفحوصة (المصدر السلطوي للسياسة — لا يُفحص خارجها). */

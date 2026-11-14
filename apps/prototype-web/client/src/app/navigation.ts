@@ -47,7 +47,8 @@ export function getNavigationLabel(pathname: string) {
   /* N-06 (Wave 4.2 — F-09/قرار المالك): الاسم الموحد للسطح «منتجاتي وخدماتي»
    * في كل المواضع الظاهرة — «الكتالوج» مصطلح نظام لا اسم ملكية. */
   if (pathname.startsWith("/catalog")) return "منتجاتي وخدماتي";
-  if (pathname.startsWith("/share")) return "معاينة المشاركة";
+  /* Stage C (S13/R5-8): مسار المشاركة أزيل بقرار UNIT-040 — لا تسمية
+   * حية لمسار ملغى؛ رابطه القديم يسقط إلى 404 الصادقة بتسميتها. */
   if (pathname.startsWith("/foundation")) return "صفحة الأساس";
   /* EX-D21 (Phase B): مدخل Ask Micro الشامل — سطح عمق واحد بلا شريط سفلي،
    * يُدخل من القائمة (سياق المالك) أو من ترويسة بوابة السائق (سياق السائق). */
