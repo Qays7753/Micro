@@ -31,6 +31,7 @@ export {
   confirmManageLink,
   unlinkManage,
   generateManageProofSecret,
+  saveManageRecord,
 } from "./manageOnlineService";
 export type {
   ManageOnlineState,
@@ -40,4 +41,5 @@ export type {
   ManageRecordView,
   ManageFamilyRecords,
   ManageLinkStartResult,
+  ManageRecordSaveResult,
 } from "./manageOnlineService";

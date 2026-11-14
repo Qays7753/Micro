@@ -106,6 +106,38 @@ export async function unlinkManage(): Promise<{ unlinked: boolean; workspaceId: 
 }
 
 /**
+ * كتابة سجل متصلة (EX-D23 M4): «محفوظ» تعود بعد تأكيد الخادم فقط — أي فشل
+ * يرمى ولا يُدَّعى نجاح. المفتاح يمرره المستدعي كي تعيد المحاولةُ نفسُها
+ * المفتاحَ نفسه (إيصال واحد، أثر واحد). expectedUpdatedAt = أساس CAS الصادق:
+ * تعارض 409 يعني أن الواقع تغيّر ويجب إعادة القراءة — لا آخر-كاتب-يفوز.
+ */
+export interface ManageRecordSaveResult {
+  saved: true;
+  family: string;
+  id: string;
+  updatedAt: number;
+  created: boolean;
+}
+
+export async function saveManageRecord(
+  family: string,
+  id: string,
+  data: Record<string, unknown>,
+  expectedUpdatedAt: number | null,
+  idempotencyKey: string,
+  signal?: AbortSignal,
+): Promise<ManageRecordSaveResult> {
+  return apiFetch<ManageRecordSaveResult>(
+    `/api/manage/records/${encodeURIComponent(family)}/${encodeURIComponent(id)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ data, expectedUpdatedAt }),
+    },
+    { idempotencyKey, signal },
+  );
+}
+
+/**
  * توليد سر إثبات الملكية داخل Manage (محليًا في الذاكرة فقط — لا يُخزن في
  * أي مخزن محلي ولا يدخل ملف التصدير أبدًا). البروتوكول §2-ب: السر يُولَّد
  * هنا ويعرض للمالك لنسخه، ثم يقدَّم في الجلسة السحابية، ولا يخزن الخادم

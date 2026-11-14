@@ -6,7 +6,8 @@
   "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
   "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم.",
   "EX-D21/EX-D19 (DOC-037، Phase B — 2026-11-14): توسيع مقصود لباب الشبكة — خدمة Ask Micro (fetchAskStatus/askQuestion وأنواعها) + نوع NetworkWorkspace لعضويات مساحات العمل؛ نفس باب API نفس الأصل بلا أي كتابة محلية؛ موثق في رأس index.ts نفسه (PC-3).",
-  "EX-D23 M3 (DOC-040 — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): باب الشبكة أضاف سطح خدمة Manage المتصلة (حالة الربط/القدرة + القراءات المصرحة + مسار الربط المزدوج بسر يُولَّد داخل Manage) — توسيع مقصود موثق في نفس الالتزام (PC-3)؛ مستهلكه Profile عبر components/profile/ManageOnlineSection.tsx واختباره Profile.manageOnline.dom."
+  "EX-D23 M3 (DOC-040 — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): باب الشبكة أضاف سطح خدمة Manage المتصلة (حالة الربط/القدرة + القراءات المصرحة + مسار الربط المزدوج بسر يُولَّد داخل Manage) — توسيع مقصود موثق في نفس الالتزام (PC-3)؛ مستهلكه Profile عبر components/profile/ManageOnlineSection.tsx واختباره Profile.manageOnline.dom.",
+  "EX-D23 M4 (DOC-040 — أمر المالك 2026-11-14 §6-M4): باب الشبكة أضاف الكتابة المتصلة saveManageRecord (UPSERT حتمي بCAS — «محفوظ» بعد تأكيد الخادم فقط) — توسيع مقصود موثق في نفس الالتزام (PC-3)."
  ],
  "doors": {
   "activity": {
@@ -442,7 +443,8 @@
     "startManageLink",
     "confirmManageLink",
     "unlinkManage",
-    "generateManageProofSecret"
+    "generateManageProofSecret",
+    "saveManageRecord"
    ],
    "type": [
     "ApiCallOptions",
@@ -458,7 +460,8 @@
     "ManageFamilies",
     "ManageRecordView",
     "ManageFamilyRecords",
-    "ManageLinkStartResult"
+    "ManageLinkStartResult",
+    "ManageRecordSaveResult"
    ]
   },
   "market": {

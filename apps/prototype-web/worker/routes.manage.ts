@@ -2,11 +2,13 @@
  * Manage Online route registration (EX-D23 — contract 18 §10, waves M2+M3).
  * The state read is honest-by-design (configured / capability / link per
  * workspace); the link commands are idempotent commands; the record reads
- * are owner-scoped behind requireManageOwner with denied-read auditing.
- * Business writes (M4) and the migration path (M5) register later.
+ * are owner-scoped behind requireManageOwner with denied-read auditing, and
+ * record writes (M4) are transactional idempotent CAS upserts. The migration
+ * path (M5) registers later.
  */
 import { linkConfirm, linkStart, manageState, unlinkManage } from "./api/manage.ts";
 import { getRecord, listFamilies, listFamilyRecords } from "./api/manageReads.ts";
+import { saveManageRecord } from "./api/manageWrites.ts";
 import { command } from "./commands.ts";
 import { authedRoute } from "./routes.ts";
 import type { ApiRouter } from "./router.ts";
@@ -48,5 +50,12 @@ export function registerManageRoutes(router: ApiRouter): void {
   router.get(
     "api/manage/records/:family/:id",
     authedRoute((ctx, auth) => getRecord(ctx, auth)),
+  );
+  router.put(
+    "api/manage/records/:family/:id",
+    command(
+      "manage-record-save",
+      authedRoute((ctx, auth) => saveManageRecord(ctx, auth)),
+    ),
   );
 }
