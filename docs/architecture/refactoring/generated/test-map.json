@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "dbafa540342f884fa24c750e103da1d106b75244",
+  "head": "b4893588710eef0e5977af272d0f5f97a3fa46a0",
   "pages": {
     "total": 73,
     "map": {
@@ -437,6 +437,7 @@
         "kind": "direct",
         "evidence": [
           "ArabicRtlContent.w44.dom.test.tsx",
+          "pages/Profile.manageOnline.dom.test.tsx",
           "pages/Profile.ui.test.tsx"
         ]
       },

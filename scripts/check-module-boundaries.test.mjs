@@ -380,9 +380,9 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 });
 
 describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD Option A)", () => {
-  it("the full baseline is exactly 22 keys and the historical 17 is a strict subset modulo the two documented retirements", () => {
-    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(22);
-    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(22);
+  it("the full baseline is exactly 23 keys and the historical 17 is a strict subset modulo the two documented retirements" /* EX-D23 M6 (DOC-040، 2026-11-14): 22→23 — حافة نوع حارس الوضع المتصل (النوع وحده). */, () => {
+    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(23);
+    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(23);
     expect(UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17).toHaveLength(17);
     /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): مفتاحان
      * تاريخيان تُقاعدا بتوثيق — EstimateDetail.tsx وTools.tsx لم يعودا
@@ -407,6 +407,9 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
       "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
+      /* EX-D23 M6 (DOC-040، 2026-11-14، نفس-الالتزام): حافة نوع حارس الوضع
+       * المتصل-فقط (النوع وحده لتغليف المخزن الوحيد بوكيل الحارس). */
+      "apps/prototype-web/client/src/app/manageOnlineGuard.ts -> @/storage/local/types",
       "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
       "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
@@ -414,10 +417,10 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     ]);
   });
 
-  it("the live repository passes at the baseline: 22 type edges, zero violations", () => {
+  it("the live repository passes at the baseline: 23 type edges, zero violations" /* EX-D23 M6 (DOC-040، 2026-11-14): 22→23. */, () => {
     const result = checkModuleBoundaries(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.uiToStorageType).toBe(22);
+    expect(result.stats.uiToStorageType).toBe(23);
   });
 
   it("growth: a new type-only UI->storage edge is rejected", () => {
@@ -537,7 +540,7 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     write(root, "apps/prototype-web/client/src/pages/Unrelated.tsx", "export const u = 1;\n");
     const result = checkModuleBoundaries(root);
     const stale = result.violations.filter(v => v.rule === "R8-baseline-stale");
-    expect(stale).toHaveLength(22);
+    expect(stale).toHaveLength(23);
     /* على المستودع الحي: صفر مفاتيح متقدمة (يثبته اختبار المستودع الحي أعلاه). */
   });
 

@@ -31,7 +31,11 @@ vi.mock("wouter", () => ({
 }));
 
 const sessionMocks = vi.hoisted(() => ({
-  session: { authenticated: true, identity: { email: "owner@example.test", displayName: "المالك" } },
+  session: {
+    authenticated: true as boolean,
+    identity: { email: "owner@example.test", displayName: "المالك" } as
+      { email: string; displayName: string } | undefined,
+  },
   loading: false,
   failed: false,
 }));
@@ -119,7 +123,9 @@ function stateOfWorkspaces(workspaces: ManageOnlineState["workspaces"]): ManageO
 }
 
 beforeEach(() => {
-  mockedUsePrototypeServices.mockReturnValue(mockServices() as unknown as ReturnType<typeof mockServices>);
+  mockedUsePrototypeServices.mockReturnValue(
+    mockServices() as unknown as ReturnType<typeof usePrototypeServices>,
+  );
   sessionMocks.loading = false;
   sessionMocks.failed = false;
   sessionMocks.session = {
@@ -139,7 +145,7 @@ afterEach(() => {
 
 function renderProfile() {
   return render(
-    <UnsavedChangesProvider>
+    <UnsavedChangesProvider navigate={wouterMocks.navigate}>
       <Profile />
     </UnsavedChangesProvider>,
   );
@@ -247,7 +253,7 @@ describe("Profile manage-online section (M3): truthful states", () => {
   });
 
   it("does not render the section for an unauthenticated visitor", async () => {
-    sessionMocks.session = { authenticated: false };
+    sessionMocks.session = { authenticated: false, identity: undefined };
     renderProfile();
     await waitFor(() => {
       expect(screen.getByText(/لديك حساب Micro واحد لكل المنتجات/)).toBeDefined();

@@ -135,7 +135,7 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * (Workstream A DOC-039/WS-249 — أمر المالك 2026-11-14): وحدة عرض
      * bookingSummaryText.ts الجديدة (R1-17 — سطرا ملخص القرار على بطاقات
      * الحجز) — 418 -> 419؛ نقية بلا أي وصول تخزين متصفح. */
-    expect(stdout).toMatch(/419 ملف إنتاج/);
+    expect(stdout).toMatch(/422 ملف إنتاج/); /* EX-D23 M3+M6 (DOC-040، 2026-11-14): 419→422 — خدمة Manage المتصلة وقسمها وحارس الوضع (ثلاثة ملفات إنتاج جديدة، لا وصول لتخزين المتصفح في أيٍّ منها — التسجيل يبقى موضعًا واحدًا بالضبط). */
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

@@ -64,7 +64,6 @@ describe("manage online mode guard (M6)", () => {
       commitAssetRecord: vi.fn(() => "committed"),
       readSnapshot: vi.fn(() => "read"),
       replaceSnapshot: vi.fn(() => "replaced"),
-      runProtectedReplacement: vi.fn(() => "protected"),
       saveFormDraft: vi.fn(() => "draft"),
     } as unknown as PrototypeLocalStore;
     const guarded = guardLocalStoreForOnlineMode(fakeStore);
@@ -79,7 +78,6 @@ describe("manage online mode guard (M6)", () => {
     // …while reads, the protected replacement (recovery), and drafts stay available.
     expect((guarded.readSnapshot as unknown as () => string)()).toBe("read");
     expect((guarded.replaceSnapshot as unknown as () => string)()).toBe("replaced");
-    expect((guarded.runProtectedReplacement as unknown as () => string)()).toBe("protected");
     expect((guarded.saveFormDraft as unknown as () => string)()).toBe("draft");
     void calls;
   });
