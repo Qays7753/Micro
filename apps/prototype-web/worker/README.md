@@ -23,9 +23,9 @@ path; `db/migrations/` is kept untouched as labelled superseded history and
 | `auth/`             | Google OIDC (authorization-code + strict payload validation), PostgreSQL-backed sessions, CSRF/origin |
 | `db/db.ts`          | The `Db` seam (prepare/batch) + request-scoped client resolution + row/settings helpers               |
 | `db/pg.ts`          | PostgreSQL adapter (postgres.js workerd build; `?`→`$n` translation; batch = one transaction)         |
-| `db/migrations-pg/` | **ACTIVE** ordered PostgreSQL migrations (network entities ONLY — never Manage data)                  |
+| `db/migrations-pg/` | **ACTIVE** ordered PostgreSQL migrations (network entities; since 0003/EX-D23 also the Manage Online foundation: capability + owner-identity link; synthetic-data manage tables land with M3+; never applied to the shared Neon project by Z AI) |
 | `db/migrations/`    | Superseded D1 history (0001..0005) — kept labelled, never applied by tests or code                    |
-| `api/`              | Route handlers (auth, media, system, ask)                                                             |
+| `api/`              | Route handlers (auth, media, system, ask, manage — EX-D23 M2: state + verified owner link)            |
 | `authorization.ts`  | Server-side capability resolution (guest/authenticated/vendor/driver/admin + workspaces EX-D19)       |
 | `media.ts`          | Private R2 object handling (random keys, authorized reads only)                                       |
 | `tests/`            | Real workerd + PostgreSQL + R2 emulation tests (Miniflare + esbuild harness)                          |

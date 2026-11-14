@@ -45,6 +45,18 @@ const ERROR_MESSAGES: Record<string, string> = {
   invitation_expired: "انتهت صلاحية رابط الدعوة — التقديم الذاتي يبقى متاحًا دائمًا.",
   invitation_cancelled: "أُلغيت هذه الدعوة — التقديم الذاتي يبقى متاحًا دائمًا.",
   report_already_resolved: "هذا البلاغ محلول بالفعل — لا يُعاد فتحه من هذا المسار.",
+  /* Manage Online (EX-D23, M2): deliberate unconfigured/disabled states are
+   * honest product states, never "unexpected error" (the ask_not_configured
+   * pattern). */
+  manage_not_configured:
+    "طبقة Manage المتصلة غير مهيأة بعد — لم يطبّق المشغل مخططها ويتحقق منه؛ راجع خطوات التهيئة مع مسؤول النظام.",
+  manage_capability_disabled:
+    "قدرة Manage غير مفعلة لمساحة عملك بعد — التفعيل خطوة مشغل بعد تطبيق المخطط والتحقق منه.",
+  manage_not_linked:
+    "هذا الحساب غير مربوط بملكية Manage لهذه المساحة — الربط يتم بإثبات ملكية موثق من داخل Manage، لا بمطابقة البريد الإلكتروني أبدًا.",
+  manage_owner_exists: "لهذه المساحة مالك Manage مربوط بالفعل — لا يمكن ربط مالك ثانٍ.",
+  manage_link_expired: "انتهت مهلة طلب الربط — ابدأ الربط من جديد من داخل الإعدادات.",
+  manage_already_linked: "هذا الحساب مربوط بملكية Manage لهذه المساحة بالفعل.",
 };
 
 export function errorResponse(

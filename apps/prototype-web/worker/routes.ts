@@ -16,6 +16,7 @@ import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
 import { askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
+import { registerManageRoutes } from "./routes.manage.ts";
 
 /** Resolve the session then run the handler with it (uniform auth guard). */
 export function withAuth(
@@ -121,5 +122,6 @@ export function buildRouter(): ApiRouter {
   router.post("api/ask", async ctx => askQuestion(ctx.env.DB, ctx));
   registerMarketRoutes(router);
   registerDeliveryRoutes(router);
+  registerManageRoutes(router);
   return router;
 }

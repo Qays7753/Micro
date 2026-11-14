@@ -239,3 +239,60 @@ export async function requireModuleWorkspace(
   }
   return enabled[0];
 }
+
+/* ───────────── Manage Online (EX-D23, contract 18 §10) ───────────── */
+
+export interface ManageOwnerContext {
+  workspaceId: string;
+  displayName: string;
+}
+
+/**
+ * THE Manage owner gate (EX-D23 / decision card §3-د / scenarios MO-06+MO-07):
+ * the only doorway to connected Manage surfaces. Resolves everything from the
+ * database at request time — session identity + active workspace membership +
+ * the manage capability + the VERIFIED owner-identity link (migration-gate
+ * §2-b). Fails closed with honest codes:
+ *  - 403 manage_capability_disabled — the operator has not enabled the
+ *    capability for the caller's workspace(s) yet (the default posture);
+ *  - 403 manage_not_linked — capability enabled but this identity has no
+ *    verified link (an UNLINKED identity — even one sharing the owner's exact
+ *    email address — is refused: email matching is never consulted, MO-03).
+ * The platform-admin flag is deliberately NOT consulted here: an admin is
+ * refused exactly like any other non-owner role (contract 18 §10-4).
+ */
+export async function requireManageOwner(db: Db, identityId: string): Promise<ManageOwnerContext> {
+  const rows = await db
+    .prepare(
+      "SELECT m.workspace_id, w.display_name, w.manage_enabled, " +
+        "(SELECT l.status FROM manage_owner_link l WHERE l.workspace_id = m.workspace_id AND l.identity_id = m.identity_id LIMIT 1) AS own_link " +
+        "FROM workspace_member m JOIN workspace w ON w.id = m.workspace_id " +
+        "WHERE m.identity_id = ? AND m.status = 'active' AND m.role = 'owner' ORDER BY w.created_at",
+    )
+    .bind(identityId)
+    .all<Record<string, unknown>>();
+  const memberships = rows.results;
+  if (memberships.length === 0) {
+    // Distinguish an identity with no workspace at all from a member who is
+    // simply not the manage owner (supplier/driver/second owner) — both are
+    // refused, but each gets its own honest reason.
+    const anyMembership = await db
+      .prepare("SELECT 1 AS ok FROM workspace_member WHERE identity_id = ? AND status = 'active' LIMIT 1")
+      .bind(identityId)
+      .first<Record<string, unknown>>();
+    if (anyMembership === null) {
+      throw new HttpError(403, "workspace_missing", { reason: "no_active_workspace" });
+    }
+    throw new HttpError(403, "manage_not_linked", { reason: "not_the_manage_owner" });
+  }
+  const enabled = memberships.filter(row => Number(row.manage_enabled) === 1);
+  if (enabled.length === 0) {
+    throw new HttpError(403, "manage_capability_disabled", { reason: "manage_not_enabled_for_workspace" });
+  }
+  for (const row of enabled) {
+    if (row.own_link !== null && String(row.own_link) === "linked") {
+      return { workspaceId: String(row.workspace_id), displayName: String(row.display_name) };
+    }
+  }
+  throw new HttpError(403, "manage_not_linked", { reason: "no_verified_manage_owner_link" });
+}
