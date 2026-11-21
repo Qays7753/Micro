@@ -26,6 +26,20 @@ export { fetchAskStatus, askQuestion } from "./askMicroService";
 export type { AskStatus, AskStatusContext, AskAnswer } from "./askMicroService";
 
 /*
+ * توسيع مقصود مؤرخ (Post-Group 6 continuous completion — 2026-11-22 /
+ * EX-D24 §4 G01): دورة الأدوار من «حسابي» (إلغاء المسودة الفوري وإزالة
+ * الدور المفعّل بطلبه — قرارات المالك النهائية ب/Q5) — أوامر خادمية
+ * موثقة فقط، بلا أي كتابة محلية.
+ */
+export {
+  cancelSupplierDraft,
+  cancelDriverDraft,
+  removeSupplierRole,
+  removeDriverRole,
+} from "./accountRolesService";
+export type { RoleDraftCancelled, RoleRemoved } from "./accountRolesService";
+
+/*
  * توسيع مقصود مؤرخ (Post-Group 6 W1 — 2026-11-21 / EX-D24): جلسات
  * الأجهزة وإبطالها الخادمي (قرار أ-7) وإنشاء المشروع الواحد الصريح
  * (قرار أ-3/أ-4) — نفس باب API نفس الأصل بلا أي كتابة محلية، والسياق

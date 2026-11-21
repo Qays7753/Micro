@@ -20,6 +20,7 @@ import { ManageOnlineSection } from "@/components/profile/ManageOnlineSection";
 import { CreateProjectCard } from "@/components/profile/CreateProjectCard";
 import { DeviceSessionsSection } from "@/components/profile/DeviceSessionsSection";
 import { PushNotificationsSection } from "@/components/profile/PushNotificationsSection";
+import { RolesSection } from "@/components/profile/RolesSection";
 
 import { Button } from "@/components/primitives";
 type ProfileState =
@@ -283,6 +284,16 @@ export default function Profile() {
               {/* Wave 3 (قرار د-6/G09): تنبيهات Web Push أفضل جهد — تسجيل
                * الجهاز وشرح الآيفون وحالات الرفض، بلا ادعاء وصول أبدًا. */}
               <PushNotificationsSection />
+              {/* Post-Group 6 continuous completion (قرار ب/Q5 — G01): دورة
+               * الأدوار من «حسابي» — إلغاء المسودة الفوري وإزالة الدور
+               * المفعّل بطلبه بحماياتها (حجز جارئ للسائق؛ إخفاء وأرشفة
+               * إعلانات المورد)؛ لا حذف سجلات أبدًا. */}
+              <RolesSection
+                vendorStatus={session.vendor?.status ?? null}
+                driverStatus={session.driver?.status ?? null}
+                hasProject={(session.workspaces?.length ?? 0) > 0}
+                onChanged={() => void refresh()}
+              />
             </>
           ) : (
             <>

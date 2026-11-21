@@ -12105,6 +12105,101 @@
         "trigger": "post-group6-w2-badge-decision",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 769,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the driver status joins the request-detail SELECT and the owner-overview query, and the «مستخدم سابق» former-user mask replaces the removed driver's name/phone in the two requester-facing views (his own view keeps his identity)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-02",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 694,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the removed-profile guard in saveVendorProfile: a removed supplier role is never silently revived by a profile save (409 supplier_role_removed)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-03",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 656,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the removed-supplier guard at the single listing-mutation choke points: createListingDraft refuses a removed profile and requireOwnListing (every listing mutation path) refuses a removed supplier",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-04",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — mounting the RolesSection (the account's own role lifecycle: statuses, immediate draft cancellation, activated-role removal with the decision's protections) inside the account section; the section itself lives in its own component file",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-05",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1082,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 continuous completion G01 — the dated Profile cap ledger entry 50 → 70 for the mandated role-lifecycle labels (the eight role states, the confirm-box facts, and the undecided owner-project-delete boundary note)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }
