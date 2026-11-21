@@ -41,7 +41,9 @@ const ONGOING_BOOKING_STATUSES =
 /** POST /api/account/roles/supplier/cancel-draft — «إلغاء المسودة فوري». */
 export async function cancelSupplierDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(404, "not_found", { reason: "no_supplier_profile" });
@@ -83,7 +85,9 @@ export async function cancelSupplierDraft(ctx: RouteContext, auth: Authenticated
 /** POST /api/account/roles/driver/cancel-draft — «إلغاء المسودة فوري». */
 export async function cancelDriverDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM driver_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM driver_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(404, "not_found", { reason: "no_driver_profile" });
@@ -115,7 +119,9 @@ export async function cancelDriverDraft(ctx: RouteContext, auth: AuthenticatedCo
 /** POST /api/account/roles/supplier/remove — «المورد تُخفى إعلاناته فورًا وتُؤرشف». */
 export async function removeSupplierRole(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(404, "not_found", { reason: "no_supplier_profile" });
@@ -162,7 +168,9 @@ export async function removeSupplierRole(ctx: RouteContext, auth: AuthenticatedC
 /** POST /api/account/roles/driver/remove — «السائق لا يُزال دوره وعنده حجز جارٍ». */
 export async function removeDriverRole(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM driver_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM driver_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(404, "not_found", { reason: "no_driver_profile" });

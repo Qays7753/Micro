@@ -252,34 +252,13 @@ describe("G01 role lifecycle: supplier removal — «تُخفى إعلاناته
     expect(Number(auditRow!.n)).toBe(1);
   });
 
-  it("a removed supplier cannot silently revive the role or mutate listings", async () => {
+  it("a removed supplier's OLD application stays frozen — archived listings are not revived or mutated", async () => {
     const vendor = await activeVendorWithListings("remove2");
     await apiPost(worker, vendor.cookie, "/api/account/roles/supplier/remove", {});
-    const save = await apiPost(worker, vendor.cookie, "/api/market/vendor/profile", {
-      displayName: "مورد محاول استعادة",
-      contactPhone: "+962790100001",
-      governorate: "عمان",
-      supplierType: "manufacturer",
-      deliveryOption: "delivery",
-      termsAccepted: true,
-      workspaceId: vendor.workspaceId,
-    });
-    expect(save.status).toBe(409);
-    const saveBody = (await save.json()) as { error: { details: { reason: string } } };
-    expect(saveBody.error.details.reason).toBe("supplier_role_removed");
-    const create = await apiPost(worker, vendor.cookie, "/api/market/vendor/listings", {
-      title: "إعلان بعد الإزالة لا يُقبل مطلقًا",
-      category: "packaging",
-      governorate: "عمان",
-      description: "وصف كافٍ للطول المطلوب في التحقق الخادمي للاختبار.",
-      contactType: "phone",
-      contactValue: "+962790100001",
-      pricing: { mode: "fixed", priceMicroJod: "800000", basis: { units: "5", unit: "حبة" } },
-      quantity: { unit: "حبة", minQuantityMilli: "5000", stepMilli: "5000", unpacked: true },
-    });
-    expect(create.status).toBe(409);
-    const createBody = (await create.json()) as { error: { details: { reason: string } } };
-    expect(createBody.error.details.reason).toBe("supplier_role_removed");
+    /* Owner supplement §10.1-1 (2026-11-22): re-adding is a NEW application
+     * — the save below now creates a fresh profile (asserted in the re-add
+     * suite); this test pins that the OLD application itself stays frozen:
+     * its listings are never un-archived or mutated through their own paths. */
     const update = await apiPost(
       worker,
       vendor.cookie,
@@ -289,6 +268,147 @@ describe("G01 role lifecycle: supplier removal — «تُخفى إعلاناته
     expect(update.status).toBe(409);
     const secondRemove = await apiPost(worker, vendor.cookie, "/api/account/roles/supplier/remove", {});
     expect(secondRemove.status).toBe(409);
+    const db = await rawDb(worker);
+    const oldListings = await db
+      .prepare("SELECT status FROM supplier_listing WHERE supplier_profile_id = ?")
+      .bind(vendor.profileId)
+      .all<{ status: string }>();
+    expect(oldListings.results).toHaveLength(2);
+    for (const row of oldListings.results) {
+      expect(row.status).toBe("archived");
+    }
+  });
+});
+
+describe("G01 role re-add (owner supplement §10.1-1): a removed role is re-added as a NEW application", () => {
+  it("supplier re-add: a fresh application row, the archived history untouched, nothing restored", async () => {
+    const vendor = await activeVendorWithListings("readd1");
+    await apiPost(worker, vendor.cookie, "/api/account/roles/supplier/remove", {});
+    // Re-add = a new application through the normal save path (201, new id).
+    const save = await apiPost(worker, vendor.cookie, "/api/market/vendor/profile", {
+      displayName: "مورد عاد بطلب جديد",
+      contactPhone: "+962790100001",
+      governorate: "عمان",
+      supplierType: "manufacturer",
+      deliveryOption: "delivery",
+      termsAccepted: true,
+      workspaceId: vendor.workspaceId,
+    });
+    expect(save.status).toBe(201);
+    const saved = (await save.json()) as {
+      profile: { id: string; status: string };
+      reapplied?: boolean;
+    };
+    expect(saved.profile.id).not.toBe(vendor.profileId);
+    expect(saved.profile.status).toBe("active"); // the NORMAL new-application flow (complete + terms)
+    expect(saved.reapplied).toBe(true);
+    const db = await rawDb(worker);
+    // The OLD row stays archived history — exactly as it was.
+    const oldProfile = await db
+      .prepare("SELECT status, removed_at FROM supplier_profile WHERE id = ?")
+      .bind(vendor.profileId)
+      .first<{ status: string; removed_at: number | null }>();
+    expect(oldProfile!.status).toBe("removed");
+    expect(oldProfile!.removed_at).not.toBeNull();
+    const oldListings = await db
+      .prepare("SELECT status FROM supplier_listing WHERE supplier_profile_id = ?")
+      .bind(vendor.profileId)
+      .all<{ status: string }>();
+    expect(oldListings.results).toHaveLength(2);
+    for (const row of oldListings.results) {
+      expect(row.status).toBe("archived"); // NOT restored — no permission revives
+    }
+    // The old archived listing is NOT publicly revived by the re-add.
+    const detail = await apiGet(worker, null, `/api/market/listings/${vendor.publishedListingId}`);
+    expect(detail.status).toBe(404);
+    // The archived listing of the OLD application is still frozen for edits.
+    const updateOld = await apiPost(
+      worker,
+      vendor.cookie,
+      `/api/market/vendor/listings/${vendor.draftListingId}`,
+      { title: "تحرير إعلان الأرشيف مرفوض" },
+    );
+    expect(updateOld.status).toBe(409);
+    // The NEW application starts from the beginning: a new listing is possible.
+    const createNew = await apiPost(worker, vendor.cookie, "/api/market/vendor/listings", {
+      title: "إعلان الطلب الجديد بعد الإعادة",
+      category: "packaging",
+      governorate: "عمان",
+      description: "وصف كافٍ للطول المطلوب في التحقق الخادمي للاختبار.",
+      contactType: "phone",
+      contactValue: "+962790100001",
+      pricing: { mode: "fixed", priceMicroJod: "700000", basis: { units: "4", unit: "حبة" } },
+      quantity: { unit: "حبة", minQuantityMilli: "4000", stepMilli: "4000", unpacked: true },
+    });
+    expect(createNew.status).toBe(201);
+    const auditRow = await db
+      .prepare(
+        "SELECT COUNT(*) AS n FROM network_audit_event WHERE action = 'supplier_role_reapplied' AND result = 'success'",
+      )
+      .first<{ n: number }>();
+    expect(Number(auditRow!.n)).toBe(1);
+  });
+
+  it("driver re-add: a fresh draft application; the old bookings keep «مستخدم سابق»; approval is the normal admin flow", async () => {
+    const owner = await signInAs(worker, { sub: "rv-readd-owner", email: "rv-readd-owner@example.test" });
+    const ownerWorkspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع إعادة السائق");
+    const driver = await createApprovedDriver(refs, "drv-readd@example.test", "drv-readd");
+    const bookingId = await setupExecutionPair(
+      worker,
+      owner.cookieHeader,
+      driver.cookie,
+      driver.driverProfileId,
+      ownerWorkspaceId,
+    );
+    // Terminate the booking honestly, then remove the role (no ongoing booking).
+    await apiPost(worker, driver.cookie, `/api/driver/requests/${bookingId}/cancel`, {
+      reason: "إنهاء لإجراء اختبار الإضافة من جديد",
+    });
+    const remove = await apiPost(worker, driver.cookie, "/api/account/roles/driver/remove", {});
+    expect(remove.status).toBe(200);
+    // Re-apply through the normal save path: a NEW draft row (201, new id).
+    const save = await apiPost(worker, driver.cookie, "/api/driver/profile", {
+      displayName: "سائق عاد بطلب جديد",
+      phone: "+962790000010",
+      serviceAreas: ["عمان"],
+    });
+    expect(save.status).toBe(201);
+    const saved = (await save.json()) as { driverProfileId: string; reapplied?: boolean };
+    expect(saved.driverProfileId).not.toBe(driver.driverProfileId);
+    expect(saved.reapplied).toBe(true);
+    const db = await rawDb(worker);
+    // The OLD profile stays archived history; the old booking keeps pointing at it.
+    const oldProfile = await db
+      .prepare("SELECT status FROM driver_profile WHERE id = ?")
+      .bind(driver.driverProfileId)
+      .first<{ status: string }>();
+    expect(oldProfile!.status).toBe("removed");
+    const oldVehicles = await db
+      .prepare("SELECT COUNT(*) AS n FROM driver_vehicle WHERE driver_profile_id = ?")
+      .bind(driver.driverProfileId)
+      .first<{ n: number }>();
+    expect(Number(oldVehicles!.n)).toBeGreaterThan(0); // preserved archived, never deleted
+    // The requester's record of the old booking keeps the «مستخدم سابق» mask.
+    const overview = (await (await apiGet(worker, owner.cookieHeader, "/api/delivery/overview")).json()) as {
+      requests: { id: string; driverName: string | null }[];
+    };
+    const oldBooking = overview.requests.find(request => request.id === bookingId);
+    expect(oldBooking?.driverName).toBe("مستخدم سابق");
+    // The NEW application starts from the beginning: draft → submit needs its
+    // own evidence; the admin approval is the normal flow (not a restoration).
+    const newProfileStatus = await db
+      .prepare("SELECT status FROM driver_profile WHERE id = ?")
+      .bind(saved.driverProfileId)
+      .first<{ status: string }>();
+    expect(newProfileStatus!.status).toBe("draft");
+    const submitTooEarly = await apiPost(worker, driver.cookie, "/api/driver/submit", {});
+    expect(submitTooEarly.status).toBe(400); // identity+license of the NEW application required first
+    const auditRow = await db
+      .prepare(
+        "SELECT COUNT(*) AS n FROM network_audit_event WHERE action = 'driver_role_reapplied' AND result = 'success'",
+      )
+      .first<{ n: number }>();
+    expect(Number(auditRow!.n)).toBe(1);
   });
 });
 
@@ -361,15 +481,25 @@ describe("G01 role lifecycle: driver removal — «لا يُزال دوره وع
       driver: { status: string } | null;
     };
     expect(portal.driver?.status).toBe("removed");
-    // Re-adding after removal is refused (unspecified recovery semantic).
+    /* Owner supplement §10.1-1 (2026-11-22): a save after removal is now a
+     * NEW application (a fresh draft row — proven in the re-add suite); here
+     * we pin that it is NOT a restoration: the removed row keeps its state
+     * and stays out of the public directory. */
     const save = await apiPost(worker, driver.cookie, "/api/driver/profile", {
       displayName: "سائق يحاول العودة",
       phone: "+962790300010",
       serviceAreas: ["عمان"],
     });
-    expect(save.status).toBe(409);
-    const saveBody = (await save.json()) as { error: { details: { reason: string } } };
-    expect(saveBody.error.details.reason).toBe("driver_role_removed");
+    expect(save.status).toBe(201);
+    const oldRow = await db
+      .prepare("SELECT status FROM driver_profile WHERE id = ?")
+      .bind(driver.driverProfileId)
+      .first<{ status: string }>();
+    expect(oldRow!.status).toBe("removed"); // never restored by the re-application
+    const directoryAfter = (await (await apiGet(worker, null, "/api/delivery/drivers")).json()) as {
+      drivers: { driverProfileId: string }[];
+    };
+    expect(directoryAfter.drivers.find(d => d.driverProfileId === driver.driverProfileId)).toBeUndefined();
     // Audited.
     const auditRow = await db
       .prepare(

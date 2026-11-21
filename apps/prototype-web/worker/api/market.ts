@@ -298,7 +298,7 @@ export async function vendorOverview(ctx: RouteContext, auth: AuthenticatedConte
   const profile = await vendorStatus(db(ctx), auth.identityId);
   const profileRow = await db(ctx)
     .prepare(
-      "SELECT review_reason, work_copy_json, public_copy_json, terms_accepted_at, activated_at, supplier_type, delivery_option FROM supplier_profile WHERE identity_id = ? ORDER BY created_at LIMIT 1",
+      "SELECT review_reason, work_copy_json, public_copy_json, terms_accepted_at, activated_at, supplier_type, delivery_option FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
     )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
@@ -416,20 +416,16 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     termsVersion: termsAccepted ? SUPPLIER_TERMS_VERSION : null,
   });
   const existing = await db(ctx)
-    .prepare("SELECT id, status, workspace_id FROM supplier_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status, workspace_id FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
-  if (existing) {
+  if (existing && String(existing.status) !== "removed") {
     if (String(existing.workspace_id) !== workspace.workspaceId) {
       // The supplier profile is bound to its project at first save; moving it
       // to another workspace is a cross-context mutation — refused honestly.
       throw new HttpError(409, "conflict", { reason: "profile_workspace_mismatch" });
-    }
-    /* Post-Group 6 continuous completion (G01 — دورة الدور): دور أُزيل لا
-     * يُستعاد بحفظ الملف — إعادة الإضافة بعد الإزالة دلالة استرداد غير
-     * محددة في قرارات المالك، فترفض بصمتٍ صادق لا أن تُخترع. */
-    if (String(existing.status) === "removed") {
-      throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
     }
     const currentStatus = String(existing.status);
     // Auto-activation (final decision ب-قواعد): complete profile + accepted
@@ -494,6 +490,12 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     }
     return jsonResponse({ profile: { id: String(existing.id), status: nextStatus } });
   }
+  /* Owner supplement §10.1-1 (2026-11-22): re-adding a removed role means a
+   * NEW application. The removed row (and its archived listings) stays as
+   * archived history — no approval or permission is restored automatically;
+   * this fresh row starts the normal flow from the beginning exactly like a
+   * first application. */
+  const reappliedAfterRemoval = existing !== null && String(existing.status) === "removed";
   const id = newId("sp", randomToken);
   const activatable =
     displayName !== null &&
@@ -530,15 +532,29 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     db(ctx),
     {
       actorIdentityId: auth.identityId,
-      action: activatable ? "vendor_profile_activated" : "vendor_profile_draft",
+      action: reappliedAfterRemoval
+        ? "supplier_role_reapplied"
+        : activatable
+          ? "vendor_profile_activated"
+          : "vendor_profile_draft",
       objectType: "supplier_profile",
       objectId: id,
       result: "success",
-      ...(activatable ? { meta: { termsVersion: SUPPLIER_TERMS_VERSION } } : {}),
+      ...(reappliedAfterRemoval
+        ? { meta: { previousProfileId: String(existing!.id), previousStatus: "removed" } }
+        : activatable
+          ? { meta: { termsVersion: SUPPLIER_TERMS_VERSION } }
+          : {}),
     },
     now,
   );
-  return jsonResponse({ profile: { id, status: activatable ? "active" : "draft" } }, 201);
+  return jsonResponse(
+    {
+      profile: { id, status: activatable ? "active" : "draft" },
+      ...(reappliedAfterRemoval ? { reapplied: true } : {}),
+    },
+    201,
+  );
 }
 
 /** The already-recorded terms acceptance (kept when a later save omits the flag). */

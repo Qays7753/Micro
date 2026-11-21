@@ -117,7 +117,9 @@ export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedC
   if (variants !== undefined) validateVariants(variants);
   const effectiveMin = effectiveMinQuantityMilli(quantity.minQuantityMilli, variants);
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(409, "conflict", { reason: "vendor_profile_required" });

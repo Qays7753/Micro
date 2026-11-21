@@ -1,14 +1,18 @@
 /**
- * Post-Group 6 continuous completion (WS-251/DOC-041 — owner order 7593b9c4
- * §4 G01): قسم «الأدوار» داخل ملف الحساب — إضافة الأدوار من أسطحها،
- * وإلغاء المسودة فوريًا، وإزالة الدور المفعّل بطلبه مع الحماية المقررة:
- * السائق عنده حجز جارٍ لا يُزال، وإعلانات المورد تُخفى وتُؤرشف (لا حذف
- * أبدًا)، وسجلات الطرف الآخر تبقى باسم «مستخدم سابق». دور صاحب المشروع:
- * التصدير أولًا ثم حذف بيانات المشروع — حد الحذف غير معرّف بعد، فلا زر
- * حذف هنا إطلاقًا (DEFER عند المالك).
+ * Post-Group 6 continuous completion (WS-251/DOC-041 — owner order
+ * 7593b9c4 §4 G01 + owner supplement §10.1-1 2026-11-22): قسم «الأدوار»
+ * داخل ملف الحساب — مداخل إضافة الأدوار من «حسابي» في أي وقت (Q5)
+ * بما فيها إعادة التقديم بعد إزالة دور (طلب جديد كامل؛ السوابق مؤرشفة
+ * ولا يُستعاد شيء تلقائيًا)، وإلغاء المسودة فوريًا، وإزالة الدور المفعّل
+ * بطلبه مع الحمايات المقررة: السائق عنده حجز جارٍ لا يُزال، وإعلانات
+ * المورد تُخفى وتُؤرشف (لا حذف أبدًا)، وسجلات الطرف الآخر تبقى باسم
+ * «مستخدم سابق». دور صاحب المشروع: التصدير أولًا ثم حذف بيانات المشروع
+ * (حدوده معرفة في الملحق §10.1-3 — تدخل مع موجة الحساب لاحقًا في هذا
+ * التسليم نفسه).
  */
 import { UsersRound } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import {
   ApiError,
   cancelDriverDraft,
@@ -55,6 +59,7 @@ function driverStatusLabel(status: string): string {
 }
 
 export function RolesSection({ vendorStatus, driverStatus, hasProject, onChanged }: RolesSectionProps) {
+  const [, navigate] = useLocation();
   const [confirming, setConfirming] = useState<
     "supplier-draft" | "driver-draft" | "supplier-remove" | "driver-remove" | null
   >(null);
@@ -98,12 +103,30 @@ export function RolesSection({ vendorStatus, driverStatus, hasProject, onChanged
         </div>
       </div>
       <p className="micro-roles-note">
-        كل دور وضع مستقل بإضافته من سطحه (المورد من «إعلاناتي»، والسائق من بوابة السائق). الإزالة بطلبك ولا
-        تحذف سجلاتك أبدًا.
+        كل دور وضع مستقل — أضفه من هنا أو من سطحه في أي وقت. الإزالة بطلبك ولا تحذف سجلاتك أبدًا؛ وإعادة دور
+        أُزال تعني طلبًا جديدًا يبدأ من البداية (سوابقك تبقى مؤرشفة ولا يُستعاد شيء تلقائيًا).
       </p>
-      {noRoles ? (
-        <p role="status">لا أدوار بعد على حسابك — أضف الدور الذي تحتاجه من سطحه.</p>
-      ) : (
+      {noRoles ? <p role="status">لا أدوار بعد على حسابك — أضف الدور الذي تحتاجه من هنا.</p> : null}
+      {/* Q5 + الملحق §10.1-1: مداخل الإضافة من «حسابي» — لكل حساب بلا الدور
+       * مدخل واحد صريح، وللدور المُزال مدخل إعادة تقديم بنسخة صادقة. */}
+      <div className="micro-roles-add" data-testid="roles-add-entry-points">
+        {!hasProject ? (
+          <Button action="create" onClick={() => navigate("/setup")}>
+            أنشئ مشروعك (دور صاحب المشروع)
+          </Button>
+        ) : null}
+        {vendorStatus === null ? (
+          <Button action="create" onClick={() => navigate("/market/vendor")}>
+            أضف دور المورد
+          </Button>
+        ) : null}
+        {driverStatus === null ? (
+          <Button action="create" onClick={() => navigate("/driver")}>
+            أضف دور السائق
+          </Button>
+        ) : null}
+      </div>
+      {!noRoles ? (
         <dl className="micro-profile-facts">
           {hasProject ? (
             <div>
@@ -143,7 +166,11 @@ export function RolesSection({ vendorStatus, driverStatus, hasProject, onChanged
                 ) : null}
                 {supplierRemoved ? (
                   <small className="micro-role-note">
-                    إعلاناتك مخفية ومؤرشفة — إعادة الدور خطوة لاحقة عند المالك
+                    إعلاناتك السابقة مخفية ومؤرشفة محفوظة — إعادة الدور طلب جديد يبدأ من البداية ولا تستعيد
+                    الإعلانات المؤرشفة.
+                    <Button action="secondary" onClick={() => navigate("/market/vendor")}>
+                      قدّم طلب مورد جديد
+                    </Button>
                   </small>
                 ) : null}
               </dd>
@@ -174,14 +201,18 @@ export function RolesSection({ vendorStatus, driverStatus, hasProject, onChanged
                 ) : null}
                 {driverRemoved ? (
                   <small className="micro-role-note">
-                    صفحتك العامة مخفية وسجلاتك محفوظة — إعادة الدور خطوة لاحقة عند المالك
+                    صفحتك العامة السابقة مخفية وسجلاتك محفوظة — إعادة الدور طلب جديد يخضع لاعتماد المشرف من
+                    البداية ولا تستعيد سجلات الطلب السابق.
+                    <Button action="secondary" onClick={() => navigate("/driver")}>
+                      قدّم طلب سائق جديد
+                    </Button>
                   </small>
                 ) : null}
               </dd>
             </div>
           ) : null}
         </dl>
-      )}
+      ) : null}
       {confirming === "supplier-draft" ? (
         <div className="micro-confirm-box" role="alertdialog" aria-label="تأكيد إلغاء مسودة المورد">
           <p>إلغاء مسودة المورد فوري — تُحذف بيانات المسودة فقط (لم تُنشر يومًا).</p>

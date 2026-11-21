@@ -141,6 +141,7 @@ function mockServices() {
 }
 
 beforeEach(() => {
+  wouterMocks.navigate.mockReset();
   mockedUsePrototypeServices.mockReturnValue(
     mockServices() as unknown as ReturnType<typeof usePrototypeServices>,
   );
@@ -246,15 +247,52 @@ describe("Profile roles section (G01 — دورة الدور)", () => {
     ).toBeDefined();
   });
 
-  it("a REMOVED role shows the honest note with NO revive button", async () => {
+  it("a REMOVED role keeps the honest archived note and offers the NEW-application entry (no silent revival)", async () => {
     sessionMocks.session.vendor = { status: "removed", supplierProfileId: "sp3" };
     sessionMocks.session.driver = { status: "removed" };
     renderProfile();
     const section = await screen.findByTestId("account-roles");
     expect(section.textContent).toContain("مُزال بطلبك");
-    expect(section.textContent).toContain("إعادة الدور خطوة لاحقة عند المالك");
+    /* الملحق §10.1-1: إعادة الدور طلب جديد يبدأ من البداية ولا يستعيد شيئًا. */
+    expect(section.textContent).toContain("طلب جديد يبدأ من البداية");
+    expect(section.textContent).toContain("ولا يُستعاد شيء تلقائيًا");
     expect(screen.queryByRole("button", { name: "إزالة دور المورد" })).toBeNull();
     expect(screen.queryByRole("button", { name: "إزالة دور السائق" })).toBeNull();
+    /* مداخل إعادة التقديم الصريحة موجودة وتنقل إلى سطحي التقديم. */
+    expect(screen.getByRole("button", { name: "قدّم طلب مورد جديد" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "قدّم طلب سائق جديد" })).toBeDefined();
+  });
+
+  it("Q5: an account without a role gets add entry points FROM My Account that navigate to the application surfaces", async () => {
+    /* حساب له مشروع لكن بلا دور مورد ولا سائق — مدخلا الإضافة من «حسابي». */
+    renderProfile();
+    const section = await screen.findByTestId("account-roles");
+    const entryPoints = section.querySelector('[data-testid="roles-add-entry-points"]');
+    expect(entryPoints).not.toBeNull();
+    /* له مشروع فلا مدخل إنشاء مشروع، وله مدخلا المورد والسائق. */
+    expect(screen.queryByRole("button", { name: "أنشئ مشروعك (دور صاحب المشروع)" })).toBeNull();
+    const addVendor = screen.getByRole("button", { name: "أضف دور المورد" });
+    const addDriver = screen.getByRole("button", { name: "أضف دور السائق" });
+    expect(addVendor).toBeDefined();
+    expect(addDriver).toBeDefined();
+    fireEvent.click(addVendor);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/market/vendor");
+    fireEvent.click(addDriver);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/driver");
+  });
+
+  it("Q5: an account with NO project gets the explicit project-creation entry from My Account", async () => {
+    sessionMocks.session = {
+      authenticated: true,
+      identity: { email: "roles@example.test", displayName: "بلا مشروع" },
+      workspaces: [],
+      vendor: null,
+      driver: null,
+    };
+    renderProfile();
+    const createProject = await screen.findByRole("button", { name: "أنشئ مشروعك (دور صاحب المشروع)" });
+    fireEvent.click(createProject);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/setup");
   });
 
   it("the project-owner row never offers a delete button (the destructive boundary is undecided)", async () => {

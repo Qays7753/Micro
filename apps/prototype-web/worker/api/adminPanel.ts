@@ -169,8 +169,8 @@ export async function adminUserSearch(ctx: RouteContext, auth: AuthenticatedCont
     .prepare(
       "SELECT i.id, i.display_name, i.email, i.created_at, " +
         "(SELECT COUNT(*) FROM network_membership m WHERE m.identity_id = i.id AND m.role = 'admin' AND m.status = 'active') AS is_admin, " +
-        "(SELECT p.status FROM supplier_profile p WHERE p.identity_id = i.id ORDER BY p.created_at LIMIT 1) AS vendor_status, " +
-        "(SELECT d.status FROM driver_profile d WHERE d.identity_id = i.id LIMIT 1) AS driver_status, " +
+        "(SELECT p.status FROM supplier_profile p WHERE p.identity_id = i.id ORDER BY p.created_at DESC, p.id DESC LIMIT 1) AS vendor_status, " +
+        "(SELECT d.status FROM driver_profile d WHERE d.identity_id = i.id ORDER BY d.created_at DESC, d.id DESC LIMIT 1) AS driver_status, " +
         "(SELECT s.reason FROM identity_suspension s WHERE s.identity_id = i.id AND s.lifted_at IS NULL LIMIT 1) AS suspension_reason, " +
         "(SELECT p.work_copy_json FROM supplier_profile p WHERE p.identity_id = i.id ORDER BY p.created_at LIMIT 1) AS vendor_work, " +
         "(SELECT d.work_copy_json FROM driver_profile d WHERE d.identity_id = i.id LIMIT 1) AS driver_work " +
@@ -187,8 +187,8 @@ export async function adminUserSearch(ctx: RouteContext, auth: AuthenticatedCont
     .prepare(
       "SELECT i.id, i.display_name, i.email, i.created_at, 'phone' AS matched_by, " +
         "(SELECT COUNT(*) FROM network_membership m WHERE m.identity_id = i.id AND m.role = 'admin' AND m.status = 'active') AS is_admin, " +
-        "(SELECT p.status FROM supplier_profile p WHERE p.identity_id = i.id ORDER BY p.created_at LIMIT 1) AS vendor_status, " +
-        "(SELECT d.status FROM driver_profile d WHERE d.identity_id = i.id LIMIT 1) AS driver_status, " +
+        "(SELECT p.status FROM supplier_profile p WHERE p.identity_id = i.id ORDER BY p.created_at DESC, p.id DESC LIMIT 1) AS vendor_status, " +
+        "(SELECT d.status FROM driver_profile d WHERE d.identity_id = i.id ORDER BY d.created_at DESC, d.id DESC LIMIT 1) AS driver_status, " +
         "(SELECT s.reason FROM identity_suspension s WHERE s.identity_id = i.id AND s.lifted_at IS NULL LIMIT 1) AS suspension_reason " +
         "FROM network_identity i " +
         "WHERE EXISTS (SELECT 1 FROM supplier_profile p WHERE p.identity_id = i.id AND LOWER(p.work_copy_json) LIKE ?) " +

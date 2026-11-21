@@ -45,8 +45,13 @@ export interface VendorStatus {
 
 /** The identity's supplier profile row (vendors are per-profile, OD-12). */
 export async function vendorStatus(db: Db, identityId: string): Promise<VendorStatus | null> {
+  /* Owner supplement §10.1-1: the CURRENT application is the NEWEST row — a
+   * re-application after removal inserts a newer row; older removed rows are
+   * archived history, never the current role state. */
   const row = await db
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at LIMIT 1")
+    .prepare(
+      "SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(identityId)
     .first<Record<string, unknown>>();
   if (!row) return null;
@@ -71,8 +76,13 @@ const REQUIRED_EVIDENCE_CATEGORIES = ["identity", "license"] as const;
  * vehicle is registered]) not expired. Expiry blocks NEW work only.
  */
 export async function driverStatus(db: Db, identityId: string, now: number): Promise<DriverStatus | null> {
+  /* Owner supplement §10.1-1: the CURRENT application is the NEWEST row —
+   * older removed rows are archived history (their vehicles/evidence stay
+   * archived with them; old bookings keep the «مستخدم سابق» mask). */
   const profile = await db
-    .prepare("SELECT id, status, accepting_new FROM driver_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status, accepting_new FROM driver_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(identityId)
     .first<Record<string, unknown>>();
   if (!profile) return null;

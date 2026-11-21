@@ -118,22 +118,24 @@ export async function saveDriverProfile(ctx: RouteContext, auth: AuthenticatedCo
   });
   const now = nowMs();
   const existing = await db(ctx)
-    .prepare("SELECT id, status FROM driver_profile WHERE identity_id = ?")
+    .prepare(
+      "SELECT id, status FROM driver_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
-  if (existing) {
-    /* Post-Group 6 continuous completion (G01 — دورة الدور): دور سائق أُزيل
-     * لا يُستعاد بحفظ الملف — إعادة الإضافة بعد الإزالة دلالة استرداد غير
-     * محددة في قرارات المالك، فتُرفض بصمتٍ صادق. */
-    if (String(existing.status) === "removed") {
-      throw new HttpError(409, "conflict", { reason: "driver_role_removed" });
-    }
+  if (existing && String(existing.status) !== "removed") {
     await db(ctx)
       .prepare("UPDATE driver_profile SET work_copy_json = ?, updated_at = ? WHERE id = ?")
       .bind(work, now, String(existing.id))
       .run();
     return jsonResponse({ driverProfileId: String(existing.id) });
   }
+  /* Owner supplement §10.1-1 (2026-11-22): re-adding a removed role means a
+   * NEW application. The removed row (its vehicles/evidence and every
+   * «مستخدم سابق» mask on old records) stays as archived history; this fresh
+   * row starts the normal flow from the beginning (driver requires admin
+   * approval as with any first application) — nothing is restored. */
+  const reappliedAfterRemoval = existing !== null && String(existing.status) === "removed";
   const id = newId("drv", randomToken);
   await db(ctx)
     .prepare(
@@ -141,7 +143,21 @@ export async function saveDriverProfile(ctx: RouteContext, auth: AuthenticatedCo
     )
     .bind(id, auth.identityId, work, now, now)
     .run();
-  return jsonResponse({ driverProfileId: id }, 201);
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: reappliedAfterRemoval ? "driver_role_reapplied" : "driver_profile_draft",
+      objectType: "driver_profile",
+      objectId: id,
+      result: "success",
+      ...(reappliedAfterRemoval
+        ? { meta: { previousProfileId: String(existing!.id), previousStatus: "removed" } }
+        : {}),
+    },
+    now,
+  );
+  return jsonResponse({ driverProfileId: id, ...(reappliedAfterRemoval ? { reapplied: true } : {}) }, 201);
 }
 
 /** POST /api/driver/vehicle — register a vehicle with its ownership/permission proof. */
