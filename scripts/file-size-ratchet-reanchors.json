@@ -12409,6 +12409,158 @@
         "trigger": "post-group6-continuous-g01-readd-catchup",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-card-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/components/ask/AskDraftCard.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 588,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-5/§10.2-7-6) — the draft card enters the WATCH register with its second registered kind: the card splits into the per-kind typed components (the delivery-booking card as before + the new manage-financial-event card whose confirm CONSTRUCTS the record canonically through the domain's own createFinancialEvent and saves it through the EXISTING single-record connected write with the explicit workspace context — no new write path, no schema duplication; zero writes before the user's explicit completion and confirmation)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-worker-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/ask.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 541,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7) — the ask module enters the WATCH register with the governance layer: the revocable per-user consent (grant/revoke endpoints, audited atomically), the two daily caps (the 20-question cap and the separate 10,000-Neurons/day free-quota stop with no paid fallback — the same honest «المساعد غير متاح الآن»), the explicit active workspace validation scoping the owner facts to one workspace, and the provider-reported Neurons usage recording",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-migrations-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+      "from": {
+        "nbLoc": 561,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 611,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7-2) — the guarded schema upgrade 41→42 adds the ask-history store (the local TEXT-only Q&A history, deliberately OUTSIDE the influential snapshot like the form-drafts/local-security precedent — it never enters backup/export/import); no data migration, no existing record touched; the 21-day purge lives in the adapter",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-stores-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
+      "from": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 111,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7-2) — the stores registry gains the ask-history store constant with its dated design note (text-only, ephemeral, outside the snapshot; the guarded creator lives in the 41→42 upgrade)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-door-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 617,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7) — the door-surfaces guard data row for the network door's PC-3 dated additions (grantAskConsent/revokeAskConsent + the AskGovernance type + the dated note): a guard-data growth row exactly like the documented precedent (3aa9e046's guard-data rows); the guard itself verifies the surfaces match the registered baseline",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-readwrite-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "reason": "The readwrite guard's corpus list gains the three ask/ house files with the dated classification comment (the documented same-PR rule the guard itself instructs); guard data growth, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-textdensity-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1093,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "The text-density policy gains the dated AskMicro 50→61 cap raise with its provenance comment (the §10.2-7-mandated consent card, the honest daily caps line, and the local text-history line — every string imposed by the owner's own decision text); guard data growth within the existing SPLIT_CANDIDATE band, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-door-registration",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 617,
+        "band": "WATCH"
+      },
+      "reason": "The ask house's new DOOR registration (application/ask — 4 values + 1 type with the dated PC-3 note, exactly like the admin door precedent): the door census test moves 33 → 34 with this same-PR row; guard-data growth only, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

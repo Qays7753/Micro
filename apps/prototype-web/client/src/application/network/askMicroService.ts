@@ -17,17 +17,20 @@ export interface AskStatusContext {
   };
 }
 
-export interface AskStatus {
-  available: boolean;
-  configured: boolean;
-  reason?: string;
-  context?: AskStatusContext;
+/* Owner supplement §10.2-7 (2026-11-22): the honest governance state the
+ * server reports beside availability — the revocable consent and today's
+ * two caps (the 20-question daily cap and the separate 10,000-Neurons/day
+ * free-quota stop with no paid fallback). */
+export interface AskGovernance {
+  consent: "never" | "granted" | "revoked";
+  daily: { questionsUsed: number; questionCap: number; neuronsUsed: number; neuronsCap: number };
 }
 
 export interface AskStatus {
   available: boolean;
   configured: boolean;
   reason?: string;
+  governance?: AskGovernance;
   context?: AskStatusContext;
 }
 
@@ -51,7 +54,7 @@ export interface AskDraftField {
 }
 
 export interface AskDraftProposal {
-  kind: "delivery-booking";
+  kind: "delivery-booking" | "manage-financial-event";
   title: string;
   fields: AskDraftField[];
 }
@@ -68,6 +71,19 @@ export async function fetchAskStatus(signal?: AbortSignal): Promise<AskStatus> {
   return apiFetch<AskStatus>("/api/ask/status", { signal });
 }
 
-export async function askQuestion(question: string): Promise<AskAnswer> {
-  return apiFetch<AskAnswer>("/api/ask", { method: "POST", body: JSON.stringify({ question }) });
+export async function askQuestion(question: string, workspaceId?: string): Promise<AskAnswer> {
+  return apiFetch<AskAnswer>("/api/ask", {
+    method: "POST",
+    body: JSON.stringify({ question, ...(workspaceId ? { workspaceId } : {}) }),
+  });
+}
+
+/** §10.2-7-1: grant the per-user revocable Ask consent. */
+export async function grantAskConsent(): Promise<void> {
+  await apiFetch("/api/ask/consent", { method: "POST", body: JSON.stringify({}) });
+}
+
+/** §10.2-7-1: revoke the consent — immediate effect. */
+export async function revokeAskConsent(): Promise<void> {
+  await apiFetch("/api/ask/consent/revoke", { method: "POST", body: JSON.stringify({}) });
 }

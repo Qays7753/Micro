@@ -1447,7 +1447,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts": {
-      "nbLoc": 561,
+      "nbLoc": 611,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts": {
@@ -1459,7 +1459,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbStores.ts": {
-      "nbLoc": 68,
+      "nbLoc": 111,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts": {
@@ -1551,7 +1551,7 @@
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {
-      "nbLoc": 518,
+      "nbLoc": 617,
       "band": "WATCH"
     },
     "scripts/application-house-edges-census.json": {
@@ -1567,7 +1567,7 @@
       "band": "NORMAL"
     },
     "scripts/check-application-readwrite.mjs": {
-      "nbLoc": 343,
+      "nbLoc": 370,
       "band": "NORMAL"
     },
     "scripts/check-current-state-size.mjs": {
@@ -1771,7 +1771,7 @@
       "band": "WATCH"
     },
     "scripts/text_density_policy.py": {
-      "nbLoc": 989,
+      "nbLoc": 1093,
       "band": "SPLIT_CANDIDATE"
     },
     "scripts/theme-contrast-guard.py": {
@@ -2056,6 +2056,14 @@
     },
     "apps/prototype-web/worker/api/adminPanel.ts": {
       "nbLoc": 487,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/ask/AskDraftCard.tsx": {
+      "nbLoc": 588,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/ask.ts": {
+      "nbLoc": 541,
       "band": "WATCH"
     }
   }

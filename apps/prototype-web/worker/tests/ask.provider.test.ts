@@ -24,6 +24,7 @@ import {
   apiGet,
   apiPost,
   createWorkspace,
+  grantAskConsent,
   rawDb,
   signInAs,
   startWorker,
@@ -72,6 +73,7 @@ describe("§5.1 + أ-2: availability and the bounded authorized scope", () => {
 
   it("the provider receives ONLY the owner's own bounded facts — never another identity's data", async () => {
     const owner = await signInAs(worker, { sub: "askp-owner", email: "askp-owner@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     const ownerWorkspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع مالك السؤال");
     const driver = await createApprovedDriver(refs, "askp-driver2@example.test", "askp-driver2");
     await setupExecutionPair(
@@ -115,6 +117,7 @@ describe("§5.1 + أ-2: availability and the bounded authorized scope", () => {
 
   it("a driver's facts are driver-scoped only (his bookings/amounts/documents — أ-2)", async () => {
     const driver = await createApprovedDriver(refs, "askp-drv@example.test", "askp-drv");
+    await grantAskConsent(worker, driver.cookie);
     askMock.nextResult = { answerText: "لا مهام جارية الآن.", citedFactIds: ["driver.open_tasks"] };
     const response = await apiPost(worker, driver.cookie, "/api/ask", { question: "كم مهمة عندي؟" });
     expect(response.status).toBe(200);
@@ -131,6 +134,7 @@ describe("§5.1 + أ-2: availability and the bounded authorized scope", () => {
 
   it("a supplier's facts are listing/review scoped only (أ-2)", async () => {
     const vendor = await signInAs(worker, { sub: "askp-sup", email: "askp-sup@example.test" });
+    await grantAskConsent(worker, vendor.cookieHeader);
     const workspaceId = await createWorkspace(worker, vendor.cookieHeader, "مشروع مورد السؤال");
     await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد السؤال",
@@ -155,6 +159,7 @@ describe("§5.1 + أ-2: availability and the bounded authorized scope", () => {
 describe("§5.2: financial figures come from the trusted server results only", () => {
   it("a CITED server-computed figure passes and is rendered with its source", async () => {
     const owner = await signInAs(worker, { sub: "askp-fig", email: "askp-fig@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     const workspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع الرقم الموثق");
     const driver = await createApprovedDriver(refs, "askp-fig-drv@example.test", "askp-fig-drv");
     await setupExecutionPair(worker, owner.cookieHeader, driver.cookie, driver.driverProfileId, workspaceId);
@@ -173,6 +178,7 @@ describe("§5.2: financial figures come from the trusted server results only", (
 
   it("an INVENTED figure (not in any cited fact) fails the WHOLE answer closed to «لا أعرف»", async () => {
     const owner = await signInAs(worker, { sub: "askp-lie", email: "askp-lie@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع الرقم المخترع");
     askMock.nextResult = {
       answerText: "ربحك هذا الشهر 1570 دينارًا تقريبًا.",
@@ -187,6 +193,7 @@ describe("§5.2: financial figures come from the trusted server results only", (
 
   it("a citation of a fact OUTSIDE the provided scope is dropped (no answer from unauthorized data)", async () => {
     const owner = await signInAs(worker, { sub: "askp-foreign", email: "askp-foreign@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع الاستشهاد الأجنبي");
     askMock.nextResult = {
       answerText: "لديك إعلان منشور.",
@@ -205,6 +212,7 @@ describe("§5.2: financial figures come from the trusted server results only", (
 describe("§5.3: typed editable draft proposals — never a saved transaction", () => {
   it("a valid draft passes with unknown required values visibly blank and provider-invented values stripped", async () => {
     const owner = await signInAs(worker, { sub: "askp-draft", email: "askp-draft@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع المسودة");
     askMock.nextResult = {
       answerText: "أستطيع تجهيز مسودة حجز توصيل لك — أكمل التفاصيل بنفسك.",
@@ -213,6 +221,14 @@ describe("§5.3: typed editable draft proposals — never a saved transaction", 
         kind: "delivery-booking",
         title: "مسودة حجز توصيل",
         fields: [
+          {
+            name: "needType",
+            label: "نوع الطلب",
+            type: "enum",
+            required: true,
+            value: null,
+            options: ["deliver_to_customer", "fetch_ready_goods"],
+          },
           {
             name: "pickupGovernorate",
             label: "محافظة الاستلام",
@@ -230,22 +246,21 @@ describe("§5.3: typed editable draft proposals — never a saved transaction", 
             value: "الزرقاء",
           },
           {
-            name: "needType",
-            label: "نوع الطلب",
+            name: "pricingMode",
+            label: "نمط التسعير",
             type: "enum",
             required: true,
             value: null,
-            options: ["deliver_to_customer", "fetch_ready_goods"],
+            options: ["prepriced", "quote_request"],
           },
-          { name: "scheduleDate", label: "تاريخ التنفيذ", type: "date", required: true, value: null },
+          { name: "scheduleDate", label: "تاريخ التنفيذ", type: "date", required: false, value: null },
           {
             name: "offeredFareJod",
             label: "الأجر المعروض (دينار)",
             type: "decimal",
-            required: true,
+            required: false,
             value: null,
           },
-          { name: "notes", label: "ملاحظات", type: "text", required: false, value: null },
         ],
       },
     };
@@ -266,13 +281,14 @@ describe("§5.3: typed editable draft proposals — never a saved transaction", 
 
   it("an UNKNOWN draft kind is refused entirely (the closed registry)", async () => {
     const owner = await signInAs(worker, { sub: "askp-badkind", email: "askp-badkind@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع نوع مرفوض");
     askMock.nextResult = {
-      answerText: "جاهز لتسجيل مصروف.",
+      answerText: "جاهز لتسجيل حوالة.",
       citedFactIds: [],
       draft: {
-        kind: "manage-financial-event",
-        title: "مسودة مصروف",
+        kind: "wire-transfer",
+        title: "مسودة حوالة",
         fields: [{ name: "amount", label: "المبلغ", type: "decimal", required: true, value: null }],
       },
     };
@@ -286,6 +302,7 @@ describe("§5.3: typed editable draft proposals — never a saved transaction", 
 describe("§5.4/§5.5: no write before confirmation, none on failure — the ask surface never writes", () => {
   it("a successful ask writes NOTHING anywhere (every table count unchanged)", async () => {
     const owner = await signInAs(worker, { sub: "askp-nowrite", email: "askp-nowrite@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع بلا كتابة");
     askMock.nextResult = { answerText: "لا حجوزات هذا الأسبوع.", citedFactIds: ["owner.weekly_bookings"] };
     const db = await rawDb(worker);
@@ -316,6 +333,7 @@ describe("§5.4/§5.5: no write before confirmation, none on failure — the ask
 
   it("a failing provider (timeout/5xx) is an honest 502 — no fabricated answer, no write", async () => {
     const owner = await signInAs(worker, { sub: "askp-fail", email: "askp-fail@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع فشل المزود");
     askMock.failWithStatus = 503;
     const response = await apiPost(worker, owner.cookieHeader, "/api/ask", {
@@ -332,6 +350,7 @@ describe("§5.4/§5.5: no write before confirmation, none on failure — the ask
 
   it("an empty provider answer is the honest «لا أعرف» — never a fabricated one", async () => {
     const owner = await signInAs(worker, { sub: "askp-empty", email: "askp-empty@example.test" });
+    await grantAskConsent(worker, owner.cookieHeader);
     await createWorkspace(worker, owner.cookieHeader, "مشروع الجواب الفارغ");
     askMock.nextResult = { answerText: "", citedFactIds: [] };
     const response = await apiPost(worker, owner.cookieHeader, "/api/ask", { question: "سؤال بلا جواب" });

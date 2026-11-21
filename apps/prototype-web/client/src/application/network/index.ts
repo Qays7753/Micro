@@ -22,10 +22,11 @@ export {
   removePushSubscription,
 } from "./sessionService";
 export type { NetworkSession, NetworkWorkspace, DeviceSession } from "./sessionService";
-export { fetchAskStatus, askQuestion } from "./askMicroService";
+export { fetchAskStatus, askQuestion, grantAskConsent, revokeAskConsent } from "./askMicroService";
 export type {
   AskStatus,
   AskStatusContext,
+  AskGovernance,
   AskAnswer,
   AskDraftField,
   AskDraftProposal,

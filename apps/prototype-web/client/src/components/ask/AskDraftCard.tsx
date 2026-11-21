@@ -1,18 +1,30 @@
 /**
  * Post-Group 6 continuous completion (WS-251/DOC-041 — owner order 7593b9c4
- * §5.3/§5.4): بطاقة المسودة المقترحة من اسأل Micro — نموذج مطبوع قابل
- * للتحرير، القيم المجهولة تبقى فارغة والمستخدم يقررها، والمسودة ليست
- * معاملة محفوظة أبدًا. الكتابة الوحيدة الممكنة: تأكيد صريح من المستخدم
- * بعد إكمال الحقول عبر المسار الكنوني نفسه (إنشاء مسودة الحجز عبر خدمة
- * التوصيل القياسية وقبول الخادم)، ثم يُكمل الحجز ويرسَل من صفحته
- * الطبيعية — لا كتابة من إنتاج الاقتراح ذاته، ولا نجاح كاذب أبدًا.
+ * §5.3/§5.4 + supplement §10.2-5/§10.2-7-6, 2026-11-22): بطاقة المسودة
+ * المقترحة من اسأل Micro — نموذج مطبوع قابل للتحرير، القيم المجهولة تبقى
+ * فارغة والمستخدم يقررها، والمسودة ليست معاملة محفوظة أبدًا. الكتابة
+ * الوحيدة الممكنة: تأكيد صريح من المستخدم بعد إكمال الحقول عبر المسار
+ * الكنوني نفسه، ثم قبول الخادم — لا كتابة من إنتاج الاقتراح ذاته، ولا
+ * نجاح كاذب أبدًا.
+ *
+ * النوعان المسجلان (السجل المغلق — كل نوع بحقلّه المطبوعة الصارمة):
+ *  - delivery-booking: إنشاء مسودة حجز عبر خدمة التوصيل القياسية ثم
+ *    يُكمل الحجز ويرسَل من صفحته الطبيعية.
+ *  - manage-financial-event (الملحق §10.2-5): تسجيل حدث مالي عبر المسار
+ *    الكنوني نفسه — يُبنى السجل بدالة إنشاء المجال نفسها (بلا أي تكرار
+ *    للمخطط) ثم يُحفظ بالكتابة المتصلة أحادية السجل القائمة
+ *    (PUT /api/manage/records/financialEvents/:id) — لا مسار كتابة جديد
+ *    ولا تغيير للمعنى المالي؛ القيم السبع القابلة للمسودة هي الأنواع
+ *    حرة السياق، والأنواع المركبة المؤجلة موثقة في سياسة العامل.
  */
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { createDeliveryRequest, fetchDriverDirectory } from "@/application/delivery";
+import { askDraftAmountMinor, constructFinancialEventRecord } from "@/application/ask";
 import {
   ApiError,
   newIdempotencyKey,
+  saveManageRecord,
   type AskDraftProposal,
   type NetworkSession,
 } from "@/application/network";
@@ -61,6 +73,204 @@ function labelFor(list: readonly { value: string; label: string }[], value: stri
 }
 
 export function AskDraftCard({
+  draft,
+  session,
+  onDismissed,
+}: {
+  draft: AskDraftProposal;
+  session: NetworkSession;
+  onDismissed: () => void;
+}) {
+  /* §10.2-7-6: كل نوع ببطاقته المطبوعة — التوجيه مغلق على السجل المسجل. */
+  if (draft.kind === "manage-financial-event") {
+    return <ManageFinancialEventDraftCard draft={draft} session={session} onDismissed={onDismissed} />;
+  }
+  return <DeliveryBookingDraftCard draft={draft} session={session} onDismissed={onDismissed} />;
+}
+
+/* ── manage-financial-event (§10.2-5) ───────────────────────────────────── */
+
+const FINANCIAL_EVENT_TYPES = [
+  { value: "owner_investment_cash", label: "إيداع نقدي من المالك" },
+  { value: "owner_withdrawal_cash", label: "سحب نقدي للمالك" },
+  { value: "operating_expense_cash", label: "مصروف تشغيل نقدي" },
+  { value: "operating_expense_payable", label: "مصروف تشغيل بالأجل (التزام)" },
+  { value: "amanah_held_cash", label: "أمانة نقدية بحوزتك" },
+  { value: "amanah_released_cash", label: "رد أمانة نقدية" },
+  { value: "loss_non_cash", label: "خسارة غير نقدية (هدر/تلف)" },
+] as const;
+
+function ManageFinancialEventDraftCard({
+  draft,
+  session,
+  onDismissed,
+}: {
+  draft: AskDraftProposal;
+  session: NetworkSession;
+  onDismissed: () => void;
+}) {
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const field of draft.fields) {
+      initial[field.name] = field.value === null || field.value === undefined ? "" : String(field.value);
+    }
+    return initial;
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ id: string } | null>(null);
+
+  const field = (name: string) => draft.fields.find(entry => entry.name === name);
+  const value = (name: string) => values[name] ?? "";
+
+  /* المبلغ يُفحص بمحلل المال الكنوني نفسه (قروش صحيحة بلا تقريب عشري). */
+  const amountMinor = askDraftAmountMinor(value("amountJod"));
+  const requiredComplete =
+    value("eventType") !== "" &&
+    amountMinor !== null &&
+    amountMinor > 0 &&
+    value("occurredOn") !== "" &&
+    value("note").trim().length > 0;
+
+  async function confirm(): Promise<void> {
+    const workspaceId = session.workspaces?.[0]?.id;
+    if (!workspaceId) {
+      setError("لا يوجد مشروع نشط لهذا الحساب — أنشئ مشروعك أولًا.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      /* §10.2-5: المسار الكنوني نفسه — السجل يُبنى بدالة إنشاء المجال
+       * نفسها (كل حراس الشكل والقيم الكنونية)، ثم الكتابة المتصلة أحادية
+       * السجل القائمة هي الحفظ، والنجاح يظهر فقط بعد قبول الخادم. */
+      const record = constructFinancialEventRecord({
+        eventType: value("eventType"),
+        amountJodText: value("amountJod"),
+        occurredOn: value("occurredOn"),
+        note: value("note"),
+        counterparty: value("counterparty"),
+      });
+      const idempotencyKey = String(record.idempotencyKey);
+      const result = await saveManageRecord(
+        "financialEvents",
+        record.id,
+        { ...record },
+        null,
+        idempotencyKey,
+        undefined,
+        workspaceId,
+      );
+      setBusy(false);
+      setSaved({ id: result.id });
+    } catch (cause) {
+      setBusy(false);
+      /* فشل الخادم = لا كتابة ولا نجاح كاذب — أعد المحاولة أو عدّل. */
+      setError(
+        cause instanceof ApiError ? cause.message : "تعذر تسجيل الحدث الآن — لم يُحفظ شيء. أعد المحاولة.",
+      );
+    }
+  }
+
+  if (saved !== null) {
+    return (
+      <div className="micro-ask-draft" data-testid="ask-draft-saved">
+        <p role="status">سُجّل الحدث المالي بعد قبول الخادم — يظهر في سجل الأحداث المالية لمشروعك.</p>
+        <div className="micro-form-actions">
+          <Button action="quiet" onClick={onDismissed}>
+            إغلاق
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="micro-ask-draft" data-testid="ask-draft-card">
+      <p className="micro-overline">مسودة مقترحة — ليست محفوظة</p>
+      <h3>{draft.title}</h3>
+      <p className="micro-ask-draft-note">
+        أكمل الحقول بنفسك — القيم التي لم تذكرها في سؤالك بقيت فارغة عمدًا، والتأكيد يسجّل الحدث المالي عبر
+        المسار المالي المعتمد نفسه لمشروعك.
+      </p>
+      {field("eventType") ? (
+        <label className="micro-field">
+          <span>{field("eventType")!.label} (إلزامي)</span>
+          <select
+            value={value("eventType")}
+            onChange={event => setValues({ ...values, eventType: event.target.value })}
+          >
+            <option value="">— اختر النوع —</option>
+            {FINANCIAL_EVENT_TYPES.map(entry => (
+              <option key={entry.value} value={entry.value}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      {field("amountJod") ? (
+        <label className="micro-field">
+          <span>{field("amountJod")!.label} (إلزامي)</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*[.]?[0-9]{0,2}"
+            value={value("amountJod")}
+            onChange={event => setValues({ ...values, amountJod: event.target.value })}
+          />
+        </label>
+      ) : null}
+      {field("occurredOn") ? (
+        <label className="micro-field">
+          <span>{field("occurredOn")!.label} (إلزامي)</span>
+          <input
+            type="date"
+            value={value("occurredOn")}
+            onChange={event => setValues({ ...values, occurredOn: event.target.value })}
+          />
+        </label>
+      ) : null}
+      {field("note") ? (
+        <label className="micro-field">
+          <span>{field("note")!.label} (إلزامي)</span>
+          <input
+            type="text"
+            value={value("note")}
+            onChange={event => setValues({ ...values, note: event.target.value })}
+          />
+        </label>
+      ) : null}
+      {field("counterparty") ? (
+        <label className="micro-field">
+          <span>{field("counterparty")!.label}</span>
+          <input
+            type="text"
+            value={value("counterparty")}
+            onChange={event => setValues({ ...values, counterparty: event.target.value })}
+          />
+        </label>
+      ) : null}
+      {error ? (
+        <p className="micro-field-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="micro-form-actions">
+        <Button action="commit" disabled={busy || !requiredComplete} onClick={() => void confirm()}>
+          تسجيل الحدث عبر المسار المالي المعتمد
+        </Button>
+        <Button action="quiet" onClick={onDismissed}>
+          إلغاء (لا يُرسَل شيء)
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ── delivery-booking ───────────────────────────────────────────────────── */
+
+function DeliveryBookingDraftCard({
   draft,
   session,
   onDismissed,

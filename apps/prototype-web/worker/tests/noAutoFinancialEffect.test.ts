@@ -13,6 +13,7 @@ import {
   apiGet,
   apiPost,
   createWorkspace,
+  grantAskConsent,
   rawDb,
   signInAs,
   startWorker,
@@ -138,6 +139,7 @@ describe("G13: no automatic financial effect from Market/Delivery/Ask Micro", ()
   it("NO market or delivery or ask action ever creates or alters a manage_record", async () => {
     const owner = await signInAs(worker, { sub: "g13-owner", email: "g13-owner@example.test" });
     const ownerWorkspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع G13");
+    await grantAskConsent(worker, owner.cookieHeader);
     const driver = await createApprovedDriver(refs, "g13-driver@example.test", "g13-driver");
     const { vendorCookie, listingId } = await publishListing("a");
 
@@ -212,13 +214,17 @@ describe("G13: no automatic financial effect from Market/Delivery/Ask Micro", ()
         kind: "delivery-booking",
         title: "مسودة حجز توصيل",
         fields: [
+          /* §10.2-7-6 (2026-11-22): the strict per-kind schema requires the
+           * CANONICAL enum options — the provider cannot narrow the user's
+           * choices to a subset (anti-framing); the fixture now carries the
+           * full canonical sets. */
           {
             name: "needType",
             label: "نوع الطلب",
             type: "enum",
             required: true,
             value: null,
-            options: ["deliver_to_customer"],
+            options: ["deliver_to_customer", "fetch_ready_goods"],
           },
           {
             name: "pickupGovernorate",
@@ -240,7 +246,7 @@ describe("G13: no automatic financial effect from Market/Delivery/Ask Micro", ()
             type: "enum",
             required: true,
             value: null,
-            options: ["quote_request"],
+            options: ["prepriced", "quote_request"],
           },
         ],
       },

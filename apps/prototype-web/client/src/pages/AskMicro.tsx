@@ -17,6 +17,8 @@ import { useNetworkSession } from "@/app/useNetworkSession";
 import {
   fetchAskStatus,
   askQuestion,
+  grantAskConsent,
+  revokeAskConsent,
   type AskAnswer,
   type AskDraftProposal,
   type AskStatus,
@@ -25,8 +27,14 @@ import { ApiError } from "@/application/network";
 import { Button, EmptyState, Notice } from "@/components/primitives";
 import { AskDraftCard } from "@/components/ask/AskDraftCard";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { loadAskHistory, recordAskExchange, type AskHistoryEntry } from "@/application/ask";
 
 type AskMessage = { tone: "neutral" | "error" | "success"; text: string } | null;
+
+/* The history preview cap (the named-constant slice idiom — R4: a literal
+ * array slice reads as a business-date slice to the AST rule; the named
+ * constant states the intent: a UI preview limit, not a date cut). */
+const ASK_HISTORY_PREVIEW = 10;
 
 type AskResult = {
   answer: string;
@@ -44,6 +52,11 @@ export default function AskMicro() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<AskMessage>(null);
   const [result, setResult] = useState<AskResult>(null);
+  /* §10.2-7-1: the consent busy state (grant/revoke) — separate from asking. */
+  const [consentBusy, setConsentBusy] = useState(false);
+  /* §10.2-7-2: the local TEXT-only history (≤21 days, no raw audio anywhere).
+   * Purged on load — nothing older than the window is ever rendered. */
+  const [history, setHistory] = useState<AskHistoryEntry[]>([]);
 
   useEffect(() => {
     if (sessionLoading || !session.authenticated) return;
@@ -59,6 +72,12 @@ export default function AskMicro() {
         if (!active) return;
         setStatusState("error");
       });
+    /* §10.2-7-2: the local text history loads with its 21-day purge. */
+    loadAskHistory()
+      .then(loaded => {
+        if (active) setHistory(loaded);
+      })
+      .catch(() => undefined);
     return () => {
       active = false;
     };
@@ -111,7 +130,10 @@ export default function AskMicro() {
     setMessage(null);
     setResult(null);
     try {
-      const answer = await askQuestion(question.trim());
+      /* §10.2-7-5: the owner-mode question carries the EXPLICIT workspace
+       * context (his active project) — never a merged cross-project scope. */
+      const workspaceId = status?.context?.workspaces?.[0]?.id;
+      const answer = await askQuestion(question.trim(), workspaceId);
       /* §5: الإجابة تأتي مع مصادرها الموثقة فقط، والمسودة — إن وجدت — بطاقة
        * قابلة للتحرير لا معاملة محفوظة. */
       setResult({
@@ -120,6 +142,10 @@ export default function AskMicro() {
         draft: answer.draft ?? null,
       });
       setMessage({ tone: "success", text: "" });
+      /* §10.2-7-2: the served Q&A pair lands in the local text history
+       * (the purge rides the append — nothing beyond 21 days is kept). */
+      const stored = await recordAskExchange(question.trim(), answer.answer ?? answer.answerText ?? "");
+      if (stored !== null) setHistory(current => [stored, ...current].slice(0, 200));
     } catch (error) {
       if (error instanceof ApiError) {
         setMessage({ tone: "error", text: error.message });
@@ -133,6 +159,36 @@ export default function AskMicro() {
 
   const configured = status?.configured === true;
   const context = status?.context ?? null;
+  const governance = status?.governance ?? null;
+  const consentGranted = governance?.consent === "granted";
+  const refreshStatus = () => {
+    fetchAskStatus()
+      .then(result => {
+        setStatus(result);
+        setStatusState("ready");
+      })
+      .catch(() => setStatusState("error"));
+  };
+  const changeConsent = async (grant: boolean) => {
+    if (consentBusy) return;
+    setConsentBusy(true);
+    setMessage(null);
+    try {
+      if (grant) {
+        await grantAskConsent();
+      } else {
+        await revokeAskConsent();
+      }
+      refreshStatus();
+    } catch (error) {
+      setMessage({
+        tone: "error",
+        text: error instanceof ApiError ? error.message : "تعذر تحديث موافقتك الآن — أعد المحاولة.",
+      });
+    } finally {
+      setConsentBusy(false);
+    }
+  };
 
   return (
     <div className="micro-page-pad" data-testid="ask-surface">
@@ -196,6 +252,41 @@ export default function AskMicro() {
               </ul>
             </div>
           ) : null}
+          {/* §10.2-7-1: الموافقة القابلة للسحب — السؤال يتطلب موافقة ممنوحة،
+           * والسحب فوري المفعول من هذه البطاقة نفسها. */}
+          <div className="micro-ask-consent" data-testid="ask-consent">
+            <p className="micro-overline">موافقة المساعد</p>
+            {consentGranted ? (
+              <>
+                <p>
+                  موافقتك ممنوحة — يسافر سؤالك الحالي وملخص سياقك المصرح فقط إلى مزود الإجابات عند تجهيزه، بلا
+                  تاريخ محادثات كامل ولا اقتراحات من تلقاء نفسه.
+                </p>
+                <Button action="quiet" loading={consentBusy} onClick={() => void changeConsent(false)}>
+                  سحب الموافقة (فوري)
+                </Button>
+              </>
+            ) : (
+              <>
+                <p>
+                  السؤال يحتاج موافقتك أولًا: يسافر سؤالك الحالي وملخص سياقك المصرح فقط إلى مزود الإجابات عند
+                  تجهيزه — لا تاريخ محادثات كاملًا ولا اقتراحات من تلقاء نفسه، ويمكنك سحب الموافقة في أي وقت.
+                </p>
+                <Button action="commit" loading={consentBusy} onClick={() => void changeConsent(true)}>
+                  أوافق على سياسة المساعد
+                </Button>
+              </>
+            )}
+          </div>
+          {/* §10.2-7-3/4: الحدود اليومية الصادقة — حد الأسئلة وحصة الاستخدام
+           * المجانية المنفصلة (بلا مسار مدفوع إطلاقًا). */}
+          {governance ? (
+            <p className="micro-ask-caps" data-testid="ask-caps">
+              أسئلتك اليوم: {governance.daily.questionsUsed} من {governance.daily.questionCap} — حصة الاستخدام
+              المجانية: {governance.daily.neuronsUsed} من {governance.daily.neuronsCap} نيورون (بلا مسار
+              مدفوع).
+            </p>
+          ) : null}
           <form
             className="micro-ask-form"
             onSubmit={event => {
@@ -241,6 +332,21 @@ export default function AskMicro() {
           ) : null}
           {message && message.text ? (
             <Notice tone={message.tone === "error" ? "error" : "success"}>{message.text}</Notice>
+          ) : null}
+          {/* §10.2-7-2: السجل المحلي النصي — ٢١ يومًا كحد أقصى، بلا أي صوت
+           * خام في أي مكان؛ يبقى على هذا الجهاز ولا يسافر إلى الخادم. */}
+          {history.length > 0 ? (
+            <div className="micro-ask-history" data-testid="ask-history">
+              <p className="micro-overline">سجلك المحلي (نص فقط — آخر ٢١ يومًا)</p>
+              <ul>
+                {history.slice(0, ASK_HISTORY_PREVIEW).map(entry => (
+                  <li key={entry.id}>
+                    <strong>{entry.question}</strong>
+                    <span> — {entry.answer}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : null}
         </>
       ) : null}

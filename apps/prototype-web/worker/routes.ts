@@ -30,7 +30,7 @@ import {
   removeDriverRole,
   removeSupplierRole,
 } from "./api/accountRoles.ts";
-import { askQuestion, askStatus } from "./api/ask.ts";
+import { askConsentGrant, askConsentRevoke, askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
 import {
@@ -198,6 +198,10 @@ export function buildRouter(): ApiRouter {
   // idempotency command wrapper needed).
   router.get("api/ask/status", async ctx => askStatus(ctx.env.DB, ctx));
   router.post("api/ask", async ctx => askQuestion(ctx.env.DB, ctx));
+  // Owner supplement §10.2-7-1 (2026-11-22): the per-user revocable Ask
+  // consent — grant and immediate revoke, both audited atomically.
+  router.post("api/ask/consent", async ctx => askConsentGrant(ctx));
+  router.post("api/ask/consent/revoke", async ctx => askConsentRevoke(ctx));
   // Post-Group 6 continuous completion (final decision ب — دورة الدور Q5 /
   // G01): the account's OWN role lifecycle. Draft cancellation is immediate
   // (draft-only rows, never public); activated-role removal preserves every

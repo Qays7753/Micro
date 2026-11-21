@@ -105,6 +105,13 @@ export const READ_LIKE_CORPUS_BASELINE = [
    * أوامر خادمية مدققة عبر الباب نفسه. صنّف في نفس الـPR الذي أدخله (قاعدة الحارس). */
   "admin/adminPanelService.ts",
   "admin/index.ts",
+  /* الملحق §10.2 (DOC-041/WS-251 — أمر المالك 2026-11-22): بيت اسأل Micro
+   * الجديد — قراءة السجل المحلي النصي وبناء سجل الحدث المالي المقترح بدالة
+   * إنشاء المجال (بناء قيمة صِرفة — لا كتابة تخزين محلي ولا أي حفظ قبل تأكيد
+   * المستخدم الصريح عبر المسار الكنوني). صنّف في نفس الـPR الذي أدخله. */
+  "ask/askFinancialDraftService.ts",
+  "ask/askHistoryService.ts",
+  "ask/index.ts",
   "activity/activityLabels.ts",
   "activity/activityService.ts",
   "activity/index.ts",

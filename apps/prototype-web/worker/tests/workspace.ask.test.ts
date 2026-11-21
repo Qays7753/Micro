@@ -18,6 +18,7 @@ import {
   apiGet,
   apiPost,
   createWorkspace,
+  grantAskConsent,
   rawDb,
   signInAs,
   startWorker,
@@ -396,6 +397,7 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
     const owner = await signInAs(worker, { sub: "ask-q", email: "ask-q@example.test" });
     /* أ-2: الوضع يتطلب المشروع الصريح — أنشئه ثم اسأل. */
     await createWorkspace(worker, owner.cookieHeader, "مشروع سؤال بلا مزود");
+    await grantAskConsent(worker, owner.cookieHeader);
     const response = await apiPost(worker, owner.cookieHeader, "/api/ask", {
       question: "كم لديّ من طلبات قيد التأكيد؟",
     });
@@ -416,6 +418,7 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
   it("the ask boundary never writes product state (no new network events/audit rows)", async () => {
     const owner = await signInAs(worker, { sub: "ask-w", email: "ask-w@example.test" });
     await createWorkspace(worker, owner.cookieHeader, "مشروع حدود الكتابة");
+    await grantAskConsent(worker, owner.cookieHeader);
     const db = await rawDb(worker);
     const before = (await db.prepare("SELECT COUNT(*) AS n FROM delivery_event").first<{ n: number }>())?.n;
     await apiGet(worker, owner.cookieHeader, "/api/ask/status");

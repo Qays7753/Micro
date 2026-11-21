@@ -22,8 +22,33 @@
  */
 
 /** The closed draft-kind registry — the ONLY write-intent shapes Ask Micro
- * may propose. Adding a kind is an additive, owner-reviewed change. */
-export const ASK_DRAFT_KINDS = ["delivery-booking"] as const;
+ * may propose. Adding a kind is an additive, owner-reviewed change.
+ *
+ * Owner supplement §10.2-5 (2026-11-22): the manage-financial-event kind
+ * resolves the previously-documented financial-record draft deferral — Ask
+ * may now draft the canonical Manage financial input (the financial event
+ * record) through the EXISTING single-record connected write
+ * (PUT /api/manage/records/financialEvents/:id) without changing financial
+ * meaning or adding any new write path/schema.
+ *
+ * Documented deferrals (§10.2-5 — the compound/ambiguous financial flows a
+ * standalone draft cannot construct without inventing semantics):
+ *   - payable_settlement_cash: requires the linked obligation event
+ *     (relatedEventId) — a compound flow over an existing record.
+ *   - the asset event types (purchase/depreciation/disposal/writeoff): the
+ *     domain REQUIRES the assetContext (assetId + name) of an existing
+ *     asset record the draft cannot reference honestly.
+ *   - the loan event types (outgoing/repayment/received/received-repayment):
+ *     the domain REQUIRES the loanContext of an existing loan record.
+ *   - the deposit event types (retained revenue/owner): classified only from
+ *     the order surface (the depositContext.orderId) — a classified order
+ *     flow, never a standalone input.
+ *   - corrections/reversals and shared bills: guarded application-layer
+ *     workflows (guard/wallet-coverage/owner-part confirmation) a draft
+ *     cannot satisfy; they stay in their own editors.
+ * Every other financial input of Manage (the seven context-free event types)
+ * is draftable below. */
+export const ASK_DRAFT_KINDS = ["delivery-booking", "manage-financial-event"] as const;
 export type AskDraftKind = (typeof ASK_DRAFT_KINDS)[number];
 
 /** The closed field-type set of a draft card (typed, editable, no free JSON). */
@@ -44,6 +69,67 @@ export interface AskDraftProposal {
   title: string;
   fields: AskDraftField[];
 }
+
+/* ── The strict per-kind field schemas (owner supplement §10.2-7-6,
+ * 2026-11-22) — each draft kind carries EXACTLY its typed field set:
+ * every field must be in the kind's schema with the exact type (and the
+ * exact enum options where the field is an enum), every REQUIRED field
+ * must be present, and anything else fails the WHOLE draft closed (the
+ * card the user would confirm can never carry a field the canonical
+ * confirm path does not know). */
+export interface AskDraftFieldSchema {
+  type: AskDraftFieldType;
+  required: boolean;
+  options?: string[];
+}
+
+export const ASK_DRAFT_FIELD_SCHEMAS: Record<AskDraftKind, Record<string, AskDraftFieldSchema>> = {
+  "delivery-booking": {
+    needType: {
+      type: "enum",
+      required: true,
+      options: ["deliver_to_customer", "fetch_ready_goods"],
+    },
+    pickupGovernorate: { type: "governorate", required: true },
+    dropoffGovernorate: { type: "governorate", required: true },
+    loadClass: {
+      type: "enum",
+      required: false,
+      options: ["small", "medium", "large", "extra_large"],
+    },
+    weightBand: {
+      type: "enum",
+      required: false,
+      options: ["under_10kg", "10_to_50kg", "over_50kg"],
+    },
+    pieceCount: { type: "count", required: false },
+    pricingMode: { type: "enum", required: true, options: ["prepriced", "quote_request"] },
+    offeredFareJod: { type: "decimal", required: false },
+    scheduleDate: { type: "date", required: false },
+  },
+  "manage-financial-event": {
+    /* The canonical financial-event input fields (the domain's
+     * createFinancialEvent user-facing inputs — type, amount, date, note,
+     * counterparty); the record is CONSTRUCTED canonically at confirm time. */
+    eventType: {
+      type: "enum",
+      required: true,
+      options: [
+        "owner_investment_cash",
+        "owner_withdrawal_cash",
+        "operating_expense_cash",
+        "operating_expense_payable",
+        "amanah_held_cash",
+        "amanah_released_cash",
+        "loss_non_cash",
+      ],
+    },
+    amountJod: { type: "decimal", required: true },
+    occurredOn: { type: "date", required: true },
+    note: { type: "text", required: true },
+    counterparty: { type: "text", required: false },
+  },
+};
 
 /** One server-computed, per-role fact — the ONLY data the provider sees. */
 export interface AskContextFact {
@@ -141,10 +227,33 @@ export function sanitizeDraftProposal(draft: unknown, citedFacts: AskContextFact
   }
   if (typeof raw.title !== "string" || raw.title.trim().length === 0) return null;
   if (!Array.isArray(raw.fields) || raw.fields.length === 0 || raw.fields.length > 16) return null;
+  /* §10.2-7-6: the strict per-kind field set — the draft fails closed unless
+   * its fields are EXACTLY the kind's schema (every field known and correctly
+   * typed with the exact enum options, every required field present). */
+  const schema = ASK_DRAFT_FIELD_SCHEMAS[raw.kind as AskDraftKind];
+  const seen = new Set<string>();
+  for (const entry of raw.fields) {
+    if (!isDraftFieldShape(entry)) return null;
+    const fieldSchema = schema[entry.name];
+    if (fieldSchema === undefined) return null; // a field outside the kind's set
+    if (entry.type !== fieldSchema.type) return null; // wrong type
+    if (fieldSchema.type === "enum") {
+      if (entry.options === undefined || entry.options.length === 0) return null;
+      const expected = fieldSchema.options ?? [];
+      if (entry.options.length !== expected.length || entry.options.some(o => !expected.includes(o))) {
+        return null; // enum options must match the canonical set exactly
+      }
+    } else if (entry.options !== undefined) {
+      return null; // options belong to enum fields only
+    }
+    seen.add(entry.name);
+  }
+  for (const [name, fieldSchema] of Object.entries(schema)) {
+    if (fieldSchema.required && !seen.has(name)) return null; // a required field is missing
+  }
   const allowed = citedFactTexts(citedFacts);
   const fields: AskDraftField[] = [];
   for (const entry of raw.fields) {
-    if (!isDraftFieldShape(entry)) return null;
     // A prefilled value survives ONLY when its string form is backed by a
     // cited fact — anything else is a provider-invented value → dropped to
     // blank (the user decides it, §5.3).
@@ -152,9 +261,6 @@ export function sanitizeDraftProposal(draft: unknown, citedFacts: AskContextFact
       entry.value === undefined ? null : entry.value === null ? null : entry.value;
     if (value !== null && !allowed.includes(String(value))) {
       value = null;
-    }
-    if (entry.type === "enum" && (entry.options === undefined || entry.options.length === 0)) {
-      return null;
     }
     fields.push({ ...entry, value });
   }

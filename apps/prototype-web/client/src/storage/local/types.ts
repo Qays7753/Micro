@@ -91,7 +91,7 @@ import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
  * المعنى) و`command-receipts` (إيصالات الأوامر: استرداد نتيجة المعاملة المنسقة
  * متعددة المصادر) — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القاعدة
  * القديمة تفتح وتجدهما فارغين، وكل الأزواج الموروثة تُقبل كما كانت. */
-export const localSchemaVersion = 41;
+export const localSchemaVersion = 42;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";

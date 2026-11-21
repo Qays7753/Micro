@@ -56,7 +56,7 @@ export interface GoogleMock {
  * honest runtime state stays «not configured». */
 export interface AskProviderMock {
   /** Set what the mock answers on the next call (a provider-shaped result). */
-  nextResult: { answerText: string; citedFactIds?: string[]; draft?: unknown } | null;
+  nextResult: { answerText: string; citedFactIds?: string[]; draft?: unknown; neuronsUsed?: number } | null;
   /** When set, the mock fails with this HTTP status (provider failure path). */
   failWithStatus?: number;
   /** Every input the mock received (for scope assertions — §5.1). */
@@ -332,6 +332,18 @@ export async function apiGet(
   pathAndQuery: string,
 ): Promise<Response> {
   return worker.fetch(pathAndQuery, { headers: cookie ? { cookie } : {} });
+}
+
+/**
+ * Owner supplement §10.2-7-1 (2026-11-22): grant the per-user Ask consent
+ * through the real API so a question is allowed — every test that expects a
+ * served answer grants first (asking requires the revocable consent).
+ */
+export async function grantAskConsent(worker: WorkerInstance, cookie: string): Promise<void> {
+  const response = await apiPost(worker, cookie, "/api/ask/consent", {});
+  if (response.status !== 201) {
+    throw new Error(`ask consent grant failed: ${response.status}`);
+  }
 }
 
 /**
