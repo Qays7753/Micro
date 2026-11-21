@@ -46,6 +46,16 @@ async function requireOwnListing(ctx: RouteContext, auth: AuthenticatedContext, 
   if (String(row.identity_id) !== auth.identityId && !auth.isAdmin) {
     throw new HttpError(404, "not_found");
   }
+  /* Post-Group 6 continuous completion (G01 — دورة الدور): إعلانات دورٍ
+   * أُزيل لا تُعدَّل — الملف في 'removed' يرفض كل تحوّل إعلان بصمت
+   * (إعادة التفعيل دلالة استرداد غير محددة = قرار مالك). */
+  const profileStatus = await db(ctx)
+    .prepare("SELECT status FROM supplier_profile WHERE id = ?")
+    .bind(String(row.supplier_profile_id))
+    .first<Record<string, unknown>>();
+  if (profileStatus !== null && String(profileStatus.status) === "removed") {
+    throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
+  }
   return row;
 }
 
@@ -107,10 +117,13 @@ export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedC
   if (variants !== undefined) validateVariants(variants);
   const effectiveMin = effectiveMinQuantityMilli(quantity.minQuantityMilli, variants);
   const profile = await db(ctx)
-    .prepare("SELECT id FROM supplier_profile WHERE identity_id = ?")
+    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(409, "conflict", { reason: "vendor_profile_required" });
+  if (String(profile.status) === "removed") {
+    throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
+  }
   const now = nowMs();
   const id = newId("lst", randomToken);
   const workCopy = JSON.stringify({

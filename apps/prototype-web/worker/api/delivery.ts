@@ -443,12 +443,17 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
   const row = await loadRequest(ctx, ctx.params.id!);
   const requesterId = String(row.requester_identity_id);
   const driverProfileRow = await db(ctx)
-    .prepare("SELECT id, identity_id, public_copy_json FROM driver_profile WHERE id = ?")
+    .prepare("SELECT id, identity_id, status, public_copy_json FROM driver_profile WHERE id = ?")
     .bind(String(row.driver_profile_id))
     .first<Record<string, unknown>>();
   if (!driverProfileRow) throw new HttpError(404, "not_found");
   const isRequester = requesterId === auth.identityId;
   const isDriver = String(driverProfileRow.identity_id) === auth.identityId;
+  /* Post-Group 6 continuous completion (G01 — دورة الدور): سجلات الطرف
+   * الآخر لبائس مُزال دوره تبقى باسم «مستخدم سابق» — الإزالة لا تحذف
+   * السجل ولا تعيد كتابته، والاسم والهاتف يُحجبان عن الطرف الآخر فقط؛
+   * السائق المُزال نفسه يبقى يرى سجله. */
+  const driverRemoved = String(driverProfileRow.status) === "removed" && !isDriver;
   const now = nowMs();
   if (!isRequester && !isDriver && !auth.isAdmin) {
     // F-07 (contract 22 §4): a denied attempt to read a delivery record is
@@ -703,13 +708,16 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
     },
     driver: {
       id: String(driverProfileRow.id),
-      profile: driverProfileForViewer(
-        JSON.parse(String(driverProfileRow.public_copy_json ?? "{}")) as Record<string, unknown>,
-        /* PUBLIC-DRIVER-PROFILE + قرار المالك: الهاتف لطرف حجز مؤكد فقط —
-         * ليس للزائر ولا للمشرف (المشرف يرى بيانات المستلم/الاتصال في بلاغ
-         * أو نزاع مفتوح فقط — MD-02). */
-        (isRequester || isDriver) && String(row.status) === "confirmed",
-      ),
+      profile: driverRemoved
+        ? /* «مستخدم سابق» — لا اسم ولا هاتف لسائق أُزيل دوره (G01). */
+          { displayName: "مستخدم سابق", governorates: [], capacity: null }
+        : driverProfileForViewer(
+            JSON.parse(String(driverProfileRow.public_copy_json ?? "{}")) as Record<string, unknown>,
+            /* PUBLIC-DRIVER-PROFILE + قرار المالك: الهاتف لطرف حجز مؤكد فقط —
+             * ليس للزائر ولا للمشرف (المشرف يرى بيانات المستلم/الاتصال في بلاغ
+             * أو نزاع مفتوح فقط — MD-02). */
+            (isRequester || isDriver) && String(row.status) === "confirmed",
+          ),
     },
     viewerRole: isRequester ? "requester" : isDriver ? "driver" : "admin",
   });
@@ -720,7 +728,7 @@ export async function ownerOverview(ctx: RouteContext, auth: AuthenticatedContex
   const now = nowMs();
   const rows = await db(ctx)
     .prepare(
-      "SELECT r.id, r.status, r.response_deadline_at, r.pricing_mode, r.offered_fare_minor, r.collection_minor, r.payload_json, r.created_at, r.updated_at, p.public_copy_json AS driver_public_copy " +
+      "SELECT r.id, r.status, r.response_deadline_at, r.pricing_mode, r.offered_fare_minor, r.collection_minor, r.payload_json, r.created_at, r.updated_at, p.status AS driver_status, p.public_copy_json AS driver_public_copy " +
         "FROM delivery_request r LEFT JOIN driver_profile p ON p.id = r.driver_profile_id " +
         "WHERE r.requester_identity_id = ? ORDER BY r.updated_at DESC LIMIT 50",
     )
@@ -731,7 +739,11 @@ export async function ownerOverview(ctx: RouteContext, auth: AuthenticatedContex
      * (إن وجد) على بطاقة النظرة نفسها — الاسم من النسخة العامة المعتمدة
      * وحدها (نمط الكشوف اليومية نفسه)؛ لا بيانات خاصة للسائق في القوائم. */
     let driverName: string | null = null;
-    if (row.driver_public_copy !== null && row.driver_public_copy !== undefined) {
+    if (String(row.driver_status) === "removed") {
+      /* G01 (دورة الدور): سائق أُزيل دوره — سجلات صاحب الحجز تبقى باسم
+       * «مستخدم سابق» (الإزالة لا تحذف السجل ولا تعيد كتابته). */
+      driverName = "مستخدم سابق";
+    } else if (row.driver_public_copy !== null && row.driver_public_copy !== undefined) {
       try {
         const publicCopy = JSON.parse(String(row.driver_public_copy)) as { displayName?: unknown };
         if (typeof publicCopy.displayName === "string" && publicCopy.displayName.trim() !== "")

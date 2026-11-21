@@ -118,10 +118,16 @@ export async function saveDriverProfile(ctx: RouteContext, auth: AuthenticatedCo
   });
   const now = nowMs();
   const existing = await db(ctx)
-    .prepare("SELECT id FROM driver_profile WHERE identity_id = ?")
+    .prepare("SELECT id, status FROM driver_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (existing) {
+    /* Post-Group 6 continuous completion (G01 — دورة الدور): دور سائق أُزيل
+     * لا يُستعاد بحفظ الملف — إعادة الإضافة بعد الإزالة دلالة استرداد غير
+     * محددة في قرارات المالك، فتُرفض بصمتٍ صادق. */
+    if (String(existing.status) === "removed") {
+      throw new HttpError(409, "conflict", { reason: "driver_role_removed" });
+    }
     await db(ctx)
       .prepare("UPDATE driver_profile SET work_copy_json = ?, updated_at = ? WHERE id = ?")
       .bind(work, now, String(existing.id))

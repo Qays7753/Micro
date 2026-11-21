@@ -425,6 +425,12 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
       // to another workspace is a cross-context mutation — refused honestly.
       throw new HttpError(409, "conflict", { reason: "profile_workspace_mismatch" });
     }
+    /* Post-Group 6 continuous completion (G01 — دورة الدور): دور أُزيل لا
+     * يُستعاد بحفظ الملف — إعادة الإضافة بعد الإزالة دلالة استرداد غير
+     * محددة في قرارات المالك، فترفض بصمتٍ صادق لا أن تُخترع. */
+    if (String(existing.status) === "removed") {
+      throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
+    }
     const currentStatus = String(existing.status);
     // Auto-activation (final decision ب-قواعد): complete profile + accepted
     // terms → ACTIVE. A suspended profile stays suspended — only the admin

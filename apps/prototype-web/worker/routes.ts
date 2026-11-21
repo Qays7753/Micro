@@ -24,6 +24,12 @@ import { errorResponse, HttpError, jsonResponse } from "./http.ts";
 import { isGlobalModuleEnabled } from "./db/db.ts";
 import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
+import {
+  cancelDriverDraft,
+  cancelSupplierDraft,
+  removeDriverRole,
+  removeSupplierRole,
+} from "./api/accountRoles.ts";
 import { askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
@@ -184,6 +190,39 @@ export function buildRouter(): ApiRouter {
   // idempotency command wrapper needed).
   router.get("api/ask/status", async ctx => askStatus(ctx.env.DB, ctx));
   router.post("api/ask", async ctx => askQuestion(ctx.env.DB, ctx));
+  // Post-Group 6 continuous completion (final decision ب — دورة الدور Q5 /
+  // G01): the account's OWN role lifecycle. Draft cancellation is immediate
+  // (draft-only rows, never public); activated-role removal preserves every
+  // record — the supplier's listings are hidden+archived, and a driver with
+  // an ongoing booking is refused. Audited; never a financial/history delete.
+  router.post(
+    "api/account/roles/supplier/cancel-draft",
+    command(
+      "supplier-draft-cancel",
+      authedRoute((ctx, auth) => cancelSupplierDraft(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/account/roles/driver/cancel-draft",
+    command(
+      "driver-draft-cancel",
+      authedRoute((ctx, auth) => cancelDriverDraft(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/account/roles/supplier/remove",
+    command(
+      "supplier-role-remove",
+      authedRoute((ctx, auth) => removeSupplierRole(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/account/roles/driver/remove",
+    command(
+      "driver-role-remove",
+      authedRoute((ctx, auth) => removeDriverRole(ctx, auth)),
+    ),
+  );
   registerMarketRoutes(router);
   registerDeliveryRoutes(router);
   registerManageRoutes(router);
