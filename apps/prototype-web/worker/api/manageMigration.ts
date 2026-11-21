@@ -260,7 +260,27 @@ export async function applyMigration(ctx: RouteContext, auth: AuthenticatedConte
         auth.identityId,
       ),
   );
-  await db.batch(statements);
+  /* SRV-07 (Post-Group 6 Wave 4): القيد الفريد الجزئي uq_manage_migration_applied
+   * هو ضامن التفرّد داخل المعاملة نفسها — استيرادان متزامنان لبصمتين
+   * مختلفتين كانا يجتازان قراءتي الفحص قبل المعاملة ثم يرتكبان معًا
+   * (سجلان applied مخلوطان). اليوم: إيصال الفائز يرتكب، وإيصال الخاسر
+   * يخالف القيد داخل معاملته فتتراجع كل كتاباته (الحذف والإدراج معًا) —
+   * لا حالة مختلطة أبدًا؛ البصمة نفسها تبقى حتمية بمسار ON CONFLICT القائم. */
+  try {
+    await db.batch(statements);
+  } catch (error) {
+    if (error !== null && typeof error === "object" && (error as { code?: string }).code === "23505") {
+      const winner = await db
+        .prepare("SELECT export_fingerprint FROM manage_migration WHERE workspace_id = ? AND status = 'applied'")
+        .bind(owner.workspaceId)
+        .first<Record<string, unknown>>();
+      throw new HttpError(409, "conflict", {
+        reason: "migration_already_applied_rollback_first",
+        fingerprint: winner === null ? parsed.fingerprint : rowString(winner, "export_fingerprint"),
+      });
+    }
+    throw error;
+  }
   await audit(
     db,
     {

@@ -337,3 +337,55 @@ describe("manage migration (M5): apply, idempotent recovery, rollback", () => {
     expect(unknown.status).toBe(404);
   });
 });
+
+describe("manage migration SRV-07 (Post-Group 6 Wave 4): the concurrent-apply race", () => {
+  it("two CONCURRENT applies with two different fingerprints commit exactly ONE — the loser rolls back fully", async () => {
+    const linked = await seedLinkedOwner(worker, "srv07-owner@example.test", "ws_srv07");
+    /* بصرتان مختلفتان لمساحة العمل نفسها — كلا الطلبين يجتاز قراءتي الفحص
+     * قبل المعاملة (لا شيء مطبق بعد)؛ القيد الفريد الجزئي داخل المعاملة
+     * يحسم: فائز واحد يرتكب بكتاباته كاملة، والخاسر يتراجع بالكامل (حذفه
+     * وإدراجه معًا) — لا حالة مختلطة أبدًا. */
+    const firstData = {
+      orders: [
+        { id: "s1", orderName: "استيراد أول", depositMinor: 100 },
+        { id: "s2", orderName: "استيراد أول", depositMinor: 200 },
+      ],
+      profile: { activityName: "مشغل أول" },
+    };
+    const secondData = {
+      orders: [{ id: "t1", orderName: "استيراد ثانٍ", depositMinor: 300 }],
+      assets: [{ id: "x1", name: "أصل ثانٍ", openingMinor: 900 }],
+      profile: { activityName: "مشغل ثانٍ" },
+    };
+    const first = await syntheticEnvelope({ data: firstData });
+    const second = await syntheticEnvelope({ data: secondData });
+    const results = await Promise.all([
+      apply(worker, linked.cookieHeader, first, PROOF, "srv07-first"),
+      apply(worker, linked.cookieHeader, second, PROOF, "srv07-second"),
+    ]);
+    const statuses = results.map(response => response.status).sort();
+    expect(statuses).toEqual([200, 409]);
+    const loser = results.find(response => response.status === 409)!;
+    const loserBody = (await loser.json()) as { error: { details: { reason: string } } };
+    expect(loserBody.error.details.reason).toBe("migration_already_applied_rollback_first");
+    const db = await rawDb(worker);
+    const applied = await db
+      .prepare("SELECT COUNT(*) AS c FROM manage_migration WHERE workspace_id = ? AND status = 'applied'")
+      .bind(linked.workspaceId)
+      .first<{ c: number }>();
+    expect(Number(applied!.c)).toBe(1);
+    // The winner's records are EXACTLY its own — the loser's partial writes
+    // never survived (no mix, no leftovers).
+    const records = await db
+      .prepare("SELECT family, record_id FROM manage_record WHERE workspace_id = ? ORDER BY family, record_id")
+      .bind(linked.workspaceId)
+      .all<{ family: string; record_id: string }>();
+    const ids = records.results.map(row => `${row.family}/${row.record_id}`);
+    const winnerIsFirst = (await results[0]!.json()) as { totalRecords: number };
+    if (winnerIsFirst.totalRecords === 3) {
+      expect(ids).toEqual(["orders/s1", "orders/s2", "profile/__single__"]);
+    } else {
+      expect(ids).toEqual(["assets/x1", "orders/t1", "profile/__single__"]);
+    }
+  });
+});
