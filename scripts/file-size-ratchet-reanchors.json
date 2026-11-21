@@ -12561,6 +12561,44 @@
         "trigger": "post-group6-continuous-ask-governance",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-projlife-delivery-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 785,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.1-3) — the booking detail's requester block gains the deleted-project «مستخدم سابق» mask (the counterparty's view of a former project owner on a retained shared record — the same honest masking pattern the removed-driver lifecycle uses; the owner's own view keeps his name) and the detail SELECT carries workspace_id for the tombstone lookup",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-project-lifecycle",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-projlife-module-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/projectLifecycle.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 301,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.1-3) — the NEW project export-before-deletion module: the owner-only export (the full owner-accessible bundle — settings, every connected financial family, his bookings, file metadata — recorded + audited with a content digest) and the explicit export-first deletion (the confirmation token, the ongoing-booking honest block, the atomic tombstone + private-data deletion + membership removal + audit, the retained shared counterparty records with the declared backup-retention note); synthetic local tests only — no live data deletion",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-project-lifecycle",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

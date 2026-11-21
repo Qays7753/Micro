@@ -2043,7 +2043,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/worker/api/delivery.ts": {
-      "nbLoc": 582,
+      "nbLoc": 785,
       "band": "WATCH"
     },
     "apps/prototype-web/worker/api/deliveryChange.ts": {
@@ -2065,6 +2065,10 @@
     "apps/prototype-web/worker/api/ask.ts": {
       "nbLoc": 541,
       "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/projectLifecycle.ts": {
+      "nbLoc": 301,
+      "band": "NORMAL"
     }
   }
 }

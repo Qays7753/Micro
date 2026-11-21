@@ -385,7 +385,7 @@ export async function driverPublicProfile(ctx: RouteContext): Promise<Response> 
 async function loadRequest(ctx: RouteContext, requestId: string) {
   const row = await db(ctx)
     .prepare(
-      "SELECT id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, collection_content, " +
+      "SELECT id, workspace_id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, collection_content, " +
         "pricing_mode, offered_fare_minor, status, agreement_copy_json, agreement_version, response_deadline_at, quote_id, created_at, " +
         "load_class, piece_count, weight_band, scheduled_start_at, scheduled_end_at " +
         "FROM delivery_request WHERE id = ?",
@@ -454,6 +454,15 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
    * السجل ولا تعيد كتابته، والاسم والهاتف يُحجبان عن الطرف الآخر فقط؛
    * السائق المُزال نفسه يبقى يرى سجله. */
   const driverRemoved = String(driverProfileRow.status) === "removed" && !isDriver;
+  /* Owner supplement §10.1-3 (2026-11-22): مشروع مُحذف — سجلات الطرف الآخر
+   * (السائق) لصاحب مشروع مُحذف تبقى باسم «مستخدم سابق» تمامًا كنمط إزالة
+   * الدور؛ صاحب الحجز نفسه يبقى يرى اسمه في سجله، والحذف لا يمس السجل
+   * المشترك أبدًا. */
+  const workspaceRow = await db(ctx)
+    .prepare("SELECT deleted_at FROM workspace WHERE id = ?")
+    .bind(String(row.workspace_id))
+    .first<{ deleted_at: number | null }>();
+  const ownerProjectDeleted = workspaceRow !== null && workspaceRow.deleted_at !== null;
   const now = nowMs();
   if (!isRequester && !isDriver && !auth.isAdmin) {
     // F-07 (contract 22 §4): a denied attempt to read a delivery record is
@@ -704,7 +713,14 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
     })),
     requester: {
       id: String(requesterId),
-      displayName: String(requester?.display_name ?? ""),
+      displayName: isRequester
+        ? /* سجله هو يبقى باسمه (نمط G01 نفسه). */
+          String(requester?.display_name ?? "")
+        : ownerProjectDeleted
+          ? /* «مستخدم سابق» — مشروع مُحذف (الملحق §10.1-3)؛ لا اسم للطرف
+             * المقابل على سجل مشترك لصاحب مشروع مُحذف. */
+            "مستخدم سابق"
+          : String(requester?.display_name ?? ""),
     },
     driver: {
       id: String(driverProfileRow.id),

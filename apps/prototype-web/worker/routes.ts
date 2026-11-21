@@ -31,6 +31,7 @@ import {
   removeSupplierRole,
 } from "./api/accountRoles.ts";
 import { askConsentGrant, askConsentRevoke, askQuestion, askStatus } from "./api/ask.ts";
+import { deleteProject, exportProject } from "./api/projectLifecycle.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
 import {
@@ -202,6 +203,24 @@ export function buildRouter(): ApiRouter {
   // consent — grant and immediate revoke, both audited atomically.
   router.post("api/ask/consent", async ctx => askConsentGrant(ctx));
   router.post("api/ask/consent/revoke", async ctx => askConsentRevoke(ctx));
+  // Owner supplement §10.1-3 (2026-11-22): the project export-first deletion
+  // lifecycle — the export records the owner-accessible bundle; the deletion
+  // requires that export + the explicit confirmation token + no ongoing
+  // booking, and never touches the completed shared counterparty records.
+  router.get(
+    "api/account/projects/:id/export",
+    command(
+      "project-export",
+      authedRoute((ctx, auth) => exportProject(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/account/projects/:id/delete",
+    command(
+      "project-delete",
+      authedRoute((ctx, auth) => deleteProject(ctx, auth)),
+    ),
+  );
   // Post-Group 6 continuous completion (final decision ب — دورة الدور Q5 /
   // G01): the account's OWN role lifecycle. Draft cancellation is immediate
   // (draft-only rows, never public); activated-role removal preserves every
