@@ -11383,6 +11383,63 @@
         "trigger": "post-group6-w1-sessions-and-project-creation-door",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-surfaces-baseline-growth",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 132,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 W1/hardening: the surfaces baseline's provenance blocks for the three environments re-anchored from the directly measured local build + the proven environment-class derivation (the documented bf90754b pattern) — the baseline file itself grows within band.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-market-watch-formatting",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 416,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 PUBLIC-DRIVER-PROFILE follow-up formatting within the authorized WATCH band (the 413 register row was authorized earlier in this series; 416 is the prettier-formatted shape).",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-density-policy-growth",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1049,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 W1: the Profile density cap provenance entry (42→47 — sessions/project-creation mandated labels) grows the policy data file within its band.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }
