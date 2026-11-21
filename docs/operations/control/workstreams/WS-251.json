@@ -1,7 +1,7 @@
 {
  "id": "WS-251",
  "title": "ما بعد المجموعة ٦ — معالجة فجوات القرارات النهائية 2026-11-21 والنتائج الأمنية المفتوحة القابلة للتنفيذ (أمر المالك POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e)",
- "status": "IN_PROGRESS",
+ "status": "REVIEW_REQUIRED",
  "items": [
   "DOC-041"
  ],
@@ -50,7 +50,7 @@
  "pr": null,
  "started_at": "2026-11-21",
  "updated_at": "2026-11-21",
- "next_action": "التسليم عند بوابة مراجعة المالك: W0+W1+الدفعة الأمنية+PUBLIC-DRIVER-PROFILE (الالتزامات a7bf1e8a…a38540ac) والتقرير العربي مسلَّمة والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP.",
+ "next_action": "التسليم عند بوابة مراجعة المالك: الموجات W0..W5 كاملة (W2 السوق a414e92b، W3 الخصوصية ca6e99ac، W3 المنتجية f7d28835 + حراسها 3aa9e046، W4 الوصلات 58aa13fe، W4-SRV07 1d838706، W5 التحصين eefd798f/926e45d6/b8eb5b79) والتقريران العربيان (نقطة الفحص + الختامي المؤرخ) مسلَّمة والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP.",
  "notes": [
   "Hard boundaries from the owner order bd242b3e: read-only owner-decision branch docs/micro-final-decisions-20261121 (PR #385 open — do not edit/retarget/approve/merge); the 2026-11-21 final decisions supersede earlier D1–D8 and EX-D19..D23 where they conflict; no Ask Micro AI provider wiring; no spending/paid providers; no Cloudflare/Neon/R2/OAuth writes; no live DB/migration application/real-data transfer/backup/deployment; repository migration files + ephemeral/local PostgreSQL tests with synthetic data are permitted; no structural refactoring/bulk moves/module reorganization/file splitting/new generic architecture layer (the Post-Group 6 scan/owner-review gate stays in force — structural proposals are DEFER); no dark mode; no global token/color redesign; every pushed commit starts with [CF-Pages-Skip] so no Cloudflare Pages preview is created; preserve the untracked Post-Group 6 scan report untouched.",
   "The claim continues the WS-250 branch series at the owner's bd242b3e order after WS-250's M1–M6 implementation closed at its owner-review gate (DOC-040 stays IN_REVIEW with its evidence intact).",
@@ -58,7 +58,9 @@
  ],
  "evidence": [
   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
-  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md"
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-REPORT-2026-11-21.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMAINING-WAVES-REPORT-2026-11-21.md"
  ],
  "status_history": [
   {
@@ -72,6 +74,12 @@
    "changed_at": "2026-11-21",
    "actor": "zai-implementation-writer",
    "reason": "W0 (الخط القاعدي والتتبع) منجزة في هذا الالتزام نفسه (توثيق/تحكم فقط — صفر كود): الفحص المسبق الحي (الفروع/PR #385/Actions/Control) وتوثيق حفظ تقرير المسح غير المتتبَّع وبصمته وEX-D24 في DECISIONS.md (تسجيل حاكمية قرارات المالك النهائية 2026-11-21 فوق D1–D8/EX-D19..D23 عند التعارض) ومصالحة G01–G14 والنتائج الأمنية الثلاثين المسجلة في بطاقة البند DOC-041؛ يليها W1 (الهوية/السياق/Admin/الجلسات) بترتيب الموجات المرخص."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-21",
+   "actor": "zai-implementation-writer",
+   "reason": "التسليم الختامي عند بوابة مراجعة المالك: الموجات W0..W5 كاملة (W2 a414e92b/39414309، W3 ca6e99ac/f7d28835/3aa9e046، W4 58aa13fe/1d838706، W5 eefd798f/926e45d6/b8eb5b79 + تصحيحا البوابة b3ef9b67/f9c13d74) والتقريران العربيان (نقطة الفحص + الختامي POST-GROUP6-REMAINING-WAVES-REPORT-2026-11-21.md) مسلَّمان والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP."
   }
  ],
  "migration_baseline": false
