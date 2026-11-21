@@ -166,7 +166,7 @@ describe("AdminPanel (G02 — Q129)", () => {
     await waitFor(() => expect(screen.getByTestId("admin-ops-counts")).toBeDefined());
   });
 
-  it("user search renders the honest role/suspension state and the suspend flow requires a written reason", async () => {
+  it("AdminUserSearch renders the honest role/suspension state and the suspend flow requires a written reason", async () => {
     serviceMocks.searchAdminUsers.mockResolvedValue([
       {
         identityId: "idn-9",
@@ -206,7 +206,7 @@ describe("AdminPanel (G02 — Q129)", () => {
     expect(await screen.findByText(/أُوقفت هوية سائق مخالف/)).toBeDefined();
   });
 
-  it("the administrative cancel requires a booking id AND a written reason before the command runs", async () => {
+  it("AdminCancelBooking requires a booking id AND a written reason before the command runs", async () => {
     render(<AdminPanel />);
     await screen.findByTestId("admin-ops-counts");
     fireEvent.click(screen.getByRole("button", { name: "ألغِ حجزًا جاريًا بقرار إداري" }));

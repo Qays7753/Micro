@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "1d838706b820a5a205420e34e02265eac2dcb1aa",
+  "head": "549afd5b1ae067c6e0d68f12a3f6cf009c691641",
   "pages": {
-    "total": 73,
+    "total": 76,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -443,6 +443,7 @@
           "ArabicRtlContent.w44.dom.test.tsx",
           "pages/Delivery.wave3.dom.test.tsx",
           "pages/Profile.manageOnline.dom.test.tsx",
+          "pages/Profile.roles.dom.test.tsx",
           "pages/Profile.ui.test.tsx"
         ]
       },
@@ -553,10 +554,31 @@
           "FinancePoliciesWallet.w42.dom.test.tsx",
           "G2.dom.test.tsx"
         ]
+      },
+      "pages/admin/AdminCancelBooking.tsx": {
+        "kind": "named-reference",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/admin/AdminPanel.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/admin/AdminUserSearch.tsx": {
+        "kind": "named-reference",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
       }
     },
     "withoutDirectEvidence": [],
-    "withoutDirectRendering": []
+    "withoutDirectRendering": [
+      "pages/admin/AdminCancelBooking.tsx",
+      "pages/admin/AdminUserSearch.tsx"
+    ]
   },
   "contracts": {
     "total": 49,

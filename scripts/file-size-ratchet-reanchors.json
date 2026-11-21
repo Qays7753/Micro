@@ -12295,6 +12295,25 @@
         "trigger": "post-group6-continuous-gate-fix",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-testmap-01",
+      "date": "2026-11-22",
+      "path": "scripts/generate-test-map.mjs",
+      "from": {
+        "nbLoc": 291,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4/§7 — the final gate's test step failed the test-map drift pin because the two admin sub-surfaces had no direct-import tests) — the two /admin sections (AdminUserSearch/AdminCancelBooking) are pinned in PINNED_WITHOUT_DIRECT_RENDERING with a dated decision note per the ratchet's own documented RV3-NF-7/D-15 protocol (Q129's single separate admin unit; both flows tested through AdminPanel.dom.test.tsx whose test titles now name each section — real name mentions, no padding); test-map.json regenerated (76 pages)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

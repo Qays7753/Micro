@@ -42,7 +42,7 @@ function app(rel) {
 }
 
 const DOOR_OK = 'export { a } from "./a.js";\nexport type { T } from "./a.js";\n';
-const DOOR_A = 'export const a = 1;\nexport type T = { x: number };\n';
+const DOOR_A = "export const a = 1;\nexport type T = { x: number };\n";
 
 function baselineWith(doors, rootFiles = []) {
   return JSON.stringify({ version: 1, doors, rootFiles }, null, 1);
@@ -52,7 +52,7 @@ function fixtureRoot(doorContent = DOOR_OK) {
   const root = makeTempDir();
   write(root, app("house/a.ts"), DOOR_A);
   write(root, app("house/index.ts"), doorContent);
-  write(root, app("resultCodes.ts"), 'export const X = 1;\n');
+  write(root, app("resultCodes.ts"), "export const X = 1;\n");
   write(
     root,
     "scripts/application-door-surfaces-baseline.json",
@@ -62,16 +62,21 @@ function fixtureRoot(doorContent = DOOR_OK) {
 }
 
 describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () => {
-  it("live repo: all 29 doors + the root file match the registered baseline", () => {
+  it("live repo: all 33 doors + the root file match the registered baseline", () => {
     /* S10 (UNIT-030 — أمر b56967d8/DOC-019، نفس-الـPR): بيت أدوات التخطيط
      * النقي بابه المسجل planning/index.ts (29 ← 30)؛ الأسطح (قيمًا وأنواعًا)
      * مثبتة بالأساس المحدث نفسه-الـPR.
      * S15 (DOC-024 / UNIT-040 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): باب
      * المشاركة share/index.ts تقاعد مع عائلته (إلغاء 040 بلا بديل) —
-     * 30 ← 29؛ الأسطح أُعيد إرساؤها في نفس الشريحة. */
+     * 30 ← 29؛ الأسطح أُعيد إرساؤها في نفس الشريحة.
+     * الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G02،
+     * نفس-الـPR 2026-11-22): باب لوحة المشرف الجديد application/admin/index.ts
+     * سُجل بسطحه المثبت في الأساس عند الالتزام الأصلي لكن عدّ هذا الفحص لم
+     * يُحدَّث معه — 32 ← 33 تصحيحًا لما فات (كشفته البوابة الختامية 44939731892
+     * عند فحص الأبواب)؛ بلا أي تغيير في الحارس أو الأساس. */
     const result = checkApplicationDoorSurfaces(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.doors).toBe(32);
+    expect(result.stats.doors).toBe(33);
     expect(result.stats.rootFiles).toBe(1);
     expect(result.violations).toEqual([]);
   });
@@ -121,8 +126,8 @@ describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () =
 
   it("a new production root file is an unregistered failure (tests excluded)", () => {
     const root = fixtureRoot();
-    write(root, app("quickAccess.ts"), 'export const q = 1;\n');
-    write(root, app("scratch.test.ts"), 'export const t = 1;\n');
+    write(root, app("quickAccess.ts"), "export const q = 1;\n");
+    write(root, app("scratch.test.ts"), "export const t = 1;\n");
     const result = checkApplicationDoorSurfaces(root);
     expect(result.ok).toBe(false);
     expect(result.violations).toEqual([{ rule: "root-file-unregistered", key: "quickAccess.ts" }]);
@@ -146,7 +151,10 @@ describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () =
     const root = fixtureRoot('export * as ns from "./a.js";\n');
     const result = checkApplicationDoorSurfaces(root);
     expect(result.ok).toBe(false);
-    expect(result.violations).toContainEqual({ rule: "wildcard-export-in-door", key: "house: export * as ns" });
+    expect(result.violations).toContainEqual({
+      rule: "wildcard-export-in-door",
+      key: "house: export * as ns",
+    });
   });
 
   it("a baseline row whose door left the tree fails (same-PR hygiene)", () => {
