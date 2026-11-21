@@ -7,7 +7,15 @@
  * category, and contact channel stay in review.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
@@ -59,13 +67,17 @@ beforeAll(async () => {
   vendorCookie = (await signInAs(worker, { sub: "du-vendor", email: "du-vendor@example.test" })).cookieHeader;
   otherVendorCookie = (await signInAs(worker, { sub: "du-other", email: "du-other@example.test" }))
     .cookieHeader;
+  const duVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع التحديث المباشر");
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد التحديث المباشر",
     contactPhone: "+962790000002",
     governorate: "إربد",
+    workspaceId: duVendorWorkspaceId,
   });
   const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {});
+  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
+    workspaceId: duVendorWorkspaceId,
+  });
   await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
     action: "approve",
   });

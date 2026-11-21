@@ -431,8 +431,11 @@ describe("manage foundation (M2): the requireManageOwner gate (unit, over the re
     const context = await requireManageOwner(db, owner.identityId);
     expect(context.workspaceId).toBe("ws_m2_pass");
 
-    // A second workspace the owner belongs to but does NOT own the manage
-    // link of: the gate still returns only their own linked workspace.
+    // Post-Group 6 W1 (EX-D24 — migration 0007): a SECOND active owner
+    // membership for the same identity is structurally refused now (one
+    // project per account), so the pre-W1 "second owner seat" seed is a
+    // granted SUPPLIER seat instead — non-owner memberships must never
+    // confuse the gate either.
     await db
       .prepare(
         "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES ('ws_m2_other', 'أخرى', ?, 1, 1, 1, 1)",
@@ -446,7 +449,7 @@ describe("manage foundation (M2): the requireManageOwner gate (unit, over the re
       .first<{ id: string }>();
     await db
       .prepare(
-        "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_by_identity_id, granted_at) VALUES ('ws_m2_other', ?, 'owner', 'active', ?, 1)",
+        "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_by_identity_id, granted_at) VALUES ('ws_m2_other', ?, 'supplier', 'active', ?, 1)",
       )
       .bind(owner.identityId, owner.identityId)
       .run();

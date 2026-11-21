@@ -6,11 +6,20 @@
  * review-based renewal (OD-11); cross-vendor isolation; guest boundaries.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
 let vendorCookie: string;
+let vendorWorkspaceId: string;
 let otherVendorCookie: string;
 let plainUserCookie: string;
 
@@ -42,6 +51,7 @@ async function createVendorListing(listingTitle: string): Promise<ListingRefs> {
     displayName: "مورد الاختبار",
     contactPhone: "+962790000001",
     governorate: "عمان",
+    workspaceId: vendorWorkspaceId,
   });
   const profile = (await profileResponse.json()) as { profile: { id: string } };
   const mediaResponse = await worker.fetch("/api/media?purpose=market_listing_media", {
@@ -73,6 +83,9 @@ beforeAll(async () => {
   adminCookie = (await signInAs(worker, { sub: "mk-admin", email: "mk-admin@example.test" })).cookieHeader;
   await becomeAdmin(adminCookie, "mk-admin@example.test");
   vendorCookie = (await signInAs(worker, { sub: "mk-vendor", email: "mk-vendor@example.test" })).cookieHeader;
+  // W1 (EX-D24): the vendor's project is created explicitly — no implicit
+  // workspace creation on the first business action anymore.
+  vendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع المورد");
   otherVendorCookie = (await signInAs(worker, { sub: "mk-other", email: "mk-other@example.test" }))
     .cookieHeader;
   plainUserCookie = (await signInAs(worker, { sub: "mk-user", email: "mk-user@example.test" })).cookieHeader;
@@ -293,6 +306,7 @@ describe("market: cross-vendor isolation and admin boundaries", () => {
       displayName: "مورد القيم",
       contactPhone: "+962790000002",
       governorate: "إربد",
+      workspaceId: vendorWorkspaceId,
     });
     const bad = await apiPost(worker, vendorCookie, "/api/market/vendor/listings", {
       title: "قيمة سعرية خاطئة تمامًا",

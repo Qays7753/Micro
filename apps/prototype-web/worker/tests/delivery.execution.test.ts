@@ -7,11 +7,20 @@
  * (OD17), and driver evidence stays private across roles/accounts.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, type WorkerRefs, setupExecutionPair } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
 let ownerCookie: string;
+let exOwnerWorkspaceId: string;
 let driverCookie: string;
 let adminCookie: string;
 let otherDriverCookie: string;
@@ -33,6 +42,7 @@ beforeAll(async () => {
     .bind(adminIdentity!.id)
     .run();
   ownerCookie = (await signInAs(worker, { sub: "ex-owner", email: "ex-owner@example.test" })).cookieHeader;
+  exOwnerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع تنفيذ الحجز");
   const refs: WorkerRefs = { worker, adminCookie };
   const driver = await createApprovedDriver(refs, "ex-driver@example.test", "ex-driver-sub");
   driverCookie = driver.cookie;
@@ -47,7 +57,13 @@ afterAll(async () => {
 });
 
 async function confirmedRequest(): Promise<string> {
-  const requestId = await setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+  const requestId = await setupExecutionPair(
+    worker,
+    ownerCookie,
+    driverCookie,
+    driverProfileId,
+    exOwnerWorkspaceId,
+  );
   return requestId;
 }
 

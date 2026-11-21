@@ -161,8 +161,16 @@ interface MigrationReceipt {
 /** POST /api/manage/migrate/apply — idempotent, transactional, double-proof. */
 export async function applyMigration(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const owner = await requireManageOwnerAudited(db, auth, "manage.migrate.apply");
-  const body = (await ctx.request.json()) as { envelope?: unknown; proofSecret?: unknown };
+  const preBody = (await ctx.request
+    .clone()
+    .json()
+    .catch(() => ({}))) as { workspaceId?: unknown };
+  const contextId =
+    typeof preBody.workspaceId === "string" && preBody.workspaceId.length > 0
+      ? preBody.workspaceId
+      : undefined;
+  const owner = await requireManageOwnerAudited(db, auth, "manage.migrate.apply", contextId);
+  const body = preBody as { envelope?: unknown; proofSecret?: unknown };
   if (typeof body.proofSecret !== "string" || body.proofSecret.length === 0) {
     throw new HttpError(400, "bad_request", { field: "proofSecret" });
   }
@@ -277,8 +285,18 @@ export async function applyMigration(ctx: RouteContext, auth: AuthenticatedConte
 }
 
 /** GET /api/manage/migrate/status — the workspace's migration ledger. */
-export async function migrationStatus(db: Db, auth: AuthenticatedContext): Promise<Response> {
-  const owner = await requireManageOwnerAudited(db, auth, "manage.read.migration");
+export async function migrationStatus(
+  db: Db,
+  auth: AuthenticatedContext,
+  request: Request,
+): Promise<Response> {
+  const contextParam = new URL(request.url).searchParams.get("workspaceId");
+  const owner = await requireManageOwnerAudited(
+    db,
+    auth,
+    "manage.read.migration",
+    contextParam === null || contextParam.length === 0 ? undefined : contextParam,
+  );
   const rows = await db
     .prepare(
       "SELECT export_fingerprint, status, total_records, content_checksum, applied_at, rolled_back_at FROM manage_migration WHERE workspace_id = ? ORDER BY applied_at DESC",
@@ -299,8 +317,16 @@ export async function migrationStatus(db: Db, auth: AuthenticatedContext): Promi
 /** POST /api/manage/migrate/rollback — full rollback; the local export stays the recovery source. */
 export async function rollbackMigration(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const owner = await requireManageOwnerAudited(db, auth, "manage.migrate.rollback");
-  const body = (await ctx.request.json()) as { fingerprint?: unknown };
+  const preBody = (await ctx.request
+    .clone()
+    .json()
+    .catch(() => ({}))) as { workspaceId?: unknown };
+  const contextId =
+    typeof preBody.workspaceId === "string" && preBody.workspaceId.length > 0
+      ? preBody.workspaceId
+      : undefined;
+  const owner = await requireManageOwnerAudited(db, auth, "manage.migrate.rollback", contextId);
+  const body = preBody as { fingerprint?: unknown };
   if (typeof body.fingerprint !== "string" || body.fingerprint.length !== 64) {
     throw new HttpError(400, "bad_request", { field: "fingerprint" });
   }

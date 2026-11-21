@@ -9,12 +9,21 @@
  * project owner (the contract's actor), not the driver.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, type WorkerRefs, setupExecutionPair } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
 let ownerCookie: string;
+let cnOwnerWorkspaceId: string;
 let driverCookie: string;
 let otherDriverCookie: string;
 let plainUserCookie: string;
@@ -35,6 +44,7 @@ beforeAll(async () => {
     .bind(adminIdentity!.id)
     .run();
   ownerCookie = (await signInAs(worker, { sub: "cn-owner", email: "cn-owner@example.test" })).cookieHeader;
+  cnOwnerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع موافقة المستلم");
   const refs: WorkerRefs = { worker, adminCookie };
   const driver = await createApprovedDriver(refs, "cn-driver@example.test", "cn-driver-sub");
   driverCookie = driver.cookie;
@@ -49,7 +59,13 @@ afterAll(async () => {
 });
 
 async function atUndeliverable(): Promise<string> {
-  const requestId = await setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+  const requestId = await setupExecutionPair(
+    worker,
+    ownerCookie,
+    driverCookie,
+    driverProfileId,
+    cnOwnerWorkspaceId,
+  );
   await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "start" });
   await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "arrive" });
   await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
@@ -308,7 +324,13 @@ describe("delivery mutual consent (OD10 — §17-4 closure)", () => {
     });
     expect(badKind.status).toBe(400);
     // Proposing from a non-undeliverable state is refused.
-    const freshId = await setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+    const freshId = await setupExecutionPair(
+      worker,
+      ownerCookie,
+      driverCookie,
+      driverProfileId,
+      cnOwnerWorkspaceId,
+    );
     const wrongState = await apiPost(
       worker,
       driverCookie,
@@ -346,7 +368,13 @@ describe("delivery mutual consent (OD10 — §17-4 closure)", () => {
 
 describe("requester instructions out of awaiting_instructions (contract 21 §3.2-3 actor)", () => {
   async function atAwaitingInstructions(): Promise<string> {
-    const requestId = await setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+    const requestId = await setupExecutionPair(
+      worker,
+      ownerCookie,
+      driverCookie,
+      driverProfileId,
+      cnOwnerWorkspaceId,
+    );
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "start" });
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "arrive" });
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {

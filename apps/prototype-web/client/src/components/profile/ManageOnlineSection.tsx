@@ -60,11 +60,14 @@ export function ManageOnlineSection() {
   }, [loadState]);
 
   const linked = state?.workspaces.some(w => w.linkStatus === "linked") ?? false;
+  /* W1 (EX-D24/AUTHZ-05): السياق النشط الصريح — يرسل مع كل استدعاء لاحق
+   * ويتحقق منه الخادم (مشروع واحد لكل حساب بنيويًا). */
+  const activeWorkspaceId = state?.workspaces[0]?.id;
 
   const loadFamilies = useCallback(async () => {
     setFamiliesLoading(true);
     try {
-      const families = await fetchManageFamilies();
+      const families = await fetchManageFamilies(activeWorkspaceId);
       setFamiliesText(
         families.totalRecords === 0
           ? "الخادم لا يحمل بيانات مهاجرة بعد — نسختك المحلية على هذا الجهاز هي مصدر العمل."
@@ -75,7 +78,7 @@ export function ManageOnlineSection() {
     } finally {
       setFamiliesLoading(false);
     }
-  }, []);
+  }, [activeWorkspaceId]);
 
   useEffect(() => {
     if (linked) void loadFamilies();
@@ -84,7 +87,7 @@ export function ManageOnlineSection() {
   useEffect(() => {
     if (!linked) return;
     let active = true;
-    fetchManageMode()
+    fetchManageMode(activeWorkspaceId)
       .then(mode => {
         if (active) setOnlineOnly(mode.onlineOnly);
       })
@@ -94,13 +97,13 @@ export function ManageOnlineSection() {
     return () => {
       active = false;
     };
-  }, [linked]);
+  }, [linked, activeWorkspaceId]);
 
   async function beginLink(): Promise<void> {
     setActionError(null);
     setPhase({ step: "starting" });
     try {
-      const pending = await startManageLink(proof);
+      const pending = await startManageLink(proof, activeWorkspaceId);
       setPhase({ step: "pending", pending });
     } catch (error) {
       setPhase({ step: "idle" });

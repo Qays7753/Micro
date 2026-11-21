@@ -32,7 +32,6 @@ const FAMILY_PATTERN = /^[a-z][a-z0-9-]{1,63}$/;
 
 export async function saveManageRecord(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const owner: ManageOwnerContext = await requireManageOwnerAudited(db, auth, "manage.write.record");
   const family = ctx.params.family;
   const id = ctx.params.id;
   if (typeof family !== "string" || !FAMILY_PATTERN.test(family)) {
@@ -41,7 +40,22 @@ export async function saveManageRecord(ctx: RouteContext, auth: AuthenticatedCon
   if (typeof id !== "string" || id.length === 0 || id.length > RECORD_ID_MAX) {
     throw new HttpError(400, "bad_request", { field: "id" });
   }
-  const body = (await ctx.request.json()) as { data?: unknown; expectedUpdatedAt?: unknown };
+  const body = (await ctx.request.json()) as {
+    data?: unknown;
+    expectedUpdatedAt?: unknown;
+    workspaceId?: unknown;
+  };
+  // W1 (EX-D24 / AUTHZ-05): the explicit active context travels with the
+  // write and is verified by the gate (undefined falls back to the
+  // structurally-unique owner workspace — migration 0007).
+  const contextId =
+    typeof body.workspaceId === "string" && body.workspaceId.length > 0 ? body.workspaceId : undefined;
+  const owner: ManageOwnerContext = await requireManageOwnerAudited(
+    db,
+    auth,
+    "manage.write.record",
+    contextId,
+  );
   if (body.data === null || typeof body.data !== "object" || Array.isArray(body.data)) {
     throw new HttpError(400, "bad_request", { field: "data", reason: "record_must_be_object" });
   }

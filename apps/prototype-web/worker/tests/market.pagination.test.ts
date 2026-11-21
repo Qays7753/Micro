@@ -6,7 +6,15 @@
  * page regardless of cursor.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
@@ -61,13 +69,17 @@ beforeAll(async () => {
   otherVendorCookie = (await signInAs(worker, { sub: "pg-other", email: "pg-other@example.test" }))
     .cookieHeader;
   // Vendor profile first (the publication gate needs an approved file).
+  const pgVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع مورد الترقيم");
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد الترقيم",
     contactPhone: "+962790000001",
     governorate: "عمان",
+    workspaceId: pgVendorWorkspaceId,
   });
   const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {});
+  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
+    workspaceId: pgVendorWorkspaceId,
+  });
   await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
     action: "approve",
   });

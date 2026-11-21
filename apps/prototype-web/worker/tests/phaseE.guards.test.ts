@@ -11,7 +11,15 @@
  *          an honest state while entry points/reads stay available.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, setupExecutionPair, type WorkerRefs } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
@@ -93,12 +101,16 @@ afterEach(async () => {
 describe("F-25: global module kill-switch — business actions fail closed, entries stay", () => {
   it("market disabled → vendor actions 503 module_globally_disabled with an honest message; public reads unaffected; re-enable restores", async () => {
     const vendor = await signInAs(worker, { sub: "pe-v1", email: "pe-v1@example.test" });
+    const peV1Workspace = await createWorkspace(worker, vendor.cookieHeader, "مشروع القاطع");
     const profile = {
       displayName: "مورد القاطع",
       contactPhone: "+962790000101",
       governorate: "عمان",
     };
-    const first = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", profile);
+    const first = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
+      ...profile,
+      workspaceId: peV1Workspace,
+    });
     expect(first.status).toBe(201);
     // Only the admin may flip the switch; only honest values are accepted.
     expect((await putSetting(vendor.cookieHeader, "market.enabled", "disabled")).status).toBe(403);
@@ -106,6 +118,7 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     expect((await putSetting(adminCookie, "market.enabled", "disabled")).status).toBe(200);
     const blocked = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       ...profile,
+      workspaceId: peV1Workspace,
       contactPhone: "+962790000102",
     });
     expect(blocked.status).toBe(503);
@@ -121,6 +134,7 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     expect((await putSetting(adminCookie, "market.enabled", "enabled")).status).toBe(200);
     const restored = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       ...profile,
+      workspaceId: peV1Workspace,
       contactPhone: "+962790000103",
     });
     expect(restored.status).toBe(200);
@@ -132,20 +146,17 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "pe-driver-k@example.test", "pe-driver-k");
     const owner = await signInAs(worker, { sub: "pe-ok1", email: "pe-ok1@example.test" });
-    const first = await apiPost(
-      worker,
-      owner.cookieHeader,
-      "/api/delivery/requests",
-      BOOKING_PAYLOAD(driver.driverProfileId),
-    );
+    const peOk1Workspace = await createWorkspace(worker, owner.cookieHeader, "مشروع حجز القاطع");
+    const first = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
+      ...BOOKING_PAYLOAD(driver.driverProfileId),
+      workspaceId: peOk1Workspace,
+    });
     expect(first.status).toBe(201);
     expect((await putSetting(adminCookie, "delivery.enabled", "disabled")).status).toBe(200);
-    const blocked = await apiPost(
-      worker,
-      owner.cookieHeader,
-      "/api/delivery/requests",
-      BOOKING_PAYLOAD(driver.driverProfileId),
-    );
+    const blocked = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
+      ...BOOKING_PAYLOAD(driver.driverProfileId),
+      workspaceId: peOk1Workspace,
+    });
     expect(blocked.status).toBe(503);
     const body = (await blocked.json()) as { error: { code: string } };
     expect(body.error.code).toBe("module_globally_disabled");
@@ -155,6 +166,7 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
 
   it("Phase F (reviews 3+5): the kill-switch covers NON-ENTRY business writes too — listing submission and booking submission — while bookmarks, reports, and admin review stay available", async () => {
     const vendor = await signInAs(worker, { sub: "pe-v9", email: "pe-v9@example.test" });
+    const peV9Workspace = await createWorkspace(worker, vendor.cookieHeader, "مشروع التغطية");
     // Publish ONE listing through the honest gate while market is enabled —
     // bookmarks may only ever touch PUBLISHED data (OD-04/OD-09), so the
     // keep-available assertions need a genuinely published listing.
@@ -162,12 +174,17 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
       displayName: "مورد التغطية",
       contactPhone: "+962790000130",
       governorate: "عمان",
+      workspaceId: peV9Workspace,
     });
     expect(profileSaved.status).toBe(201);
     const { profile } = (await profileSaved.json()) as { profile: { id: string } };
-    expect((await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile/submit", {})).status).toBe(
-      200,
-    );
+    expect(
+      (
+        await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile/submit", {
+          workspaceId: peV9Workspace,
+        })
+      ).status,
+    ).toBe(200);
     expect(
       (await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.id}`, { action: "approve" }))
         .status,
@@ -242,12 +259,11 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "pe-driver-cov@example.test", "pe-driver-cov");
     const owner = await signInAs(worker, { sub: "pe-oc", email: "pe-oc@example.test" });
-    const draft = await apiPost(
-      worker,
-      owner.cookieHeader,
-      "/api/delivery/requests",
-      BOOKING_PAYLOAD(driver.driverProfileId),
-    );
+    const peOcWorkspace = await createWorkspace(worker, owner.cookieHeader, "مشروع الحجز غير المدخلي");
+    const draft = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
+      ...BOOKING_PAYLOAD(driver.driverProfileId),
+      workspaceId: peOcWorkspace,
+    });
     expect(draft.status).toBe(201);
     expect((await putSetting(adminCookie, "delivery.enabled", "disabled")).status).toBe(200);
     const submitDraftBlocked = await apiPost(
@@ -268,17 +284,38 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
 });
 
 describe("F-08: a multi-hat admin cannot review their own records", () => {
-  it("the admin's own vendor profile is refused (self_review_forbidden) and stays pending; another admin decides", async () => {
-    // The ADMIN identity creates and submits their own vendor profile.
-    const own = await apiPost(worker, adminCookie, "/api/market/vendor/profile", {
+  it("W1/G02: the admin account cannot hold a vendor profile at all; a seeded own-record review is still refused; another admin decides", async () => {
+    // Post-Group 6 W1 (EX-D24 — final decision ب-المشرف): the administration
+    // account holds no business roles — creating a vendor profile through the
+    // API is an honest 403, so the multi-hat case is unreachable by design.
+    const refused = await apiPost(worker, adminCookie, "/api/market/vendor/profile", {
       displayName: "الأدمن المورد",
       contactPhone: "+962790000110",
       governorate: "عمان",
+      workspaceId: "ws_any",
     });
-    expect(own.status).toBe(201);
-    expect((await apiPost(worker, adminCookie, "/api/market/vendor/profile/submit", {})).status).toBe(200);
+    expect(refused.status).toBe(403);
+    expect(((await refused.json()) as { error: { code: string } }).error.code).toBe(
+      "admin_identity_forbidden",
+    );
+    // The self-review guard itself stays enforced for any seeded/legacy
+    // record owned by the reviewer: seed the profile directly (the API path
+    // above is refused), submitted, then the review attempt must refuse.
     const db = await rawDb(worker);
     const adminId = await identityIdOf("pe-admin@example.test");
+    const seededWorkspace = "ws_admin_seeded";
+    await db
+      .prepare(
+        "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES (?, ?, ?, 1, 1, 1, 1)",
+      )
+      .bind(seededWorkspace, "مساحة مزروعة", adminId)
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO supplier_profile (id, identity_id, workspace_id, work_copy_json, status, created_at, updated_at) VALUES ('sp_admin_seeded', ?, ?, '{}', 'submitted', 1, 1)",
+      )
+      .bind(adminId, seededWorkspace)
+      .run();
     const profileRow = await db
       .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
       .bind(adminId)
@@ -590,11 +627,13 @@ describe("F-07: delivery scoped-read and denied-read audit (contract 22 §4)", (
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "pe-d1@example.test", "pe-d1");
     const owner = await signInAs(worker, { sub: "pe-o2", email: "pe-o2@example.test" });
+    const peO2Workspace = await createWorkspace(worker, owner.cookieHeader, "مشروع قراءة مرفوضة");
     const requestId = await setupExecutionPair(
       worker,
       owner.cookieHeader,
       driver.cookie,
       driver.driverProfileId,
+      peO2Workspace,
     );
     const stranger = await signInAs(worker, { sub: "pe-s1", email: "pe-s1@example.test" });
     const denied = await apiGet(worker, stranger.cookieHeader, `/api/delivery/requests/${requestId}`);
@@ -625,6 +664,7 @@ describe("F-07: delivery scoped-read and denied-read audit (contract 22 §4)", (
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "pe-d2@example.test", "pe-d2");
     const owner = await signInAs(worker, { sub: "pe-o3", email: "pe-o3@example.test" });
+    const peO3Workspace = await createWorkspace(worker, owner.cookieHeader, "مشروع إفصاح مسموع");
     // Owner/legal gate decision recorded through the allowlisted setting.
     expect((await putSetting(adminCookie, "disclosure.recipient", "allowed_after_acceptance")).status).toBe(
       200,
@@ -634,6 +674,7 @@ describe("F-07: delivery scoped-read and denied-read audit (contract 22 §4)", (
       owner.cookieHeader,
       driver.cookie,
       driver.driverProfileId,
+      peO3Workspace,
     );
     const view = await apiGet(worker, driver.cookie, `/api/delivery/requests/${requestId}`);
     expect(view.status).toBe(200);

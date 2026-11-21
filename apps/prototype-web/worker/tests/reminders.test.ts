@@ -8,7 +8,15 @@
  * export runs the same processor, and no reminder ever transitions state.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, type WorkerRefs, setupExecutionPair } from "./delivery.helpers.ts";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -16,6 +24,7 @@ const DAY = 24 * 60 * 60 * 1000;
 let worker: WorkerInstance;
 let adminCookie: string;
 let ownerCookie: string;
+let rmOwnerWorkspaceId: string;
 let vendorCookie: string;
 let plainUserCookie: string;
 let driverProfileId: string;
@@ -36,19 +45,24 @@ beforeAll(async () => {
     .bind(adminIdentity!.id)
     .run();
   ownerCookie = (await signInAs(worker, { sub: "rm-owner", email: "rm-owner@example.test" })).cookieHeader;
+  rmOwnerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع تذكيرات المالك");
   const refs: WorkerRefs = { worker, adminCookie };
   const driver = await createApprovedDriver(refs, "rm-driver@example.test", "rm-driver-sub");
   driverCookie = driver.cookie;
   driverProfileId = driver.driverProfileId;
   vendorCookie = (await signInAs(worker, { sub: "rm-vendor", email: "rm-vendor@example.test" })).cookieHeader;
+  const rmVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع مورد التذكيرات");
   plainUserCookie = (await signInAs(worker, { sub: "rm-user", email: "rm-user@example.test" })).cookieHeader;
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد التذكيرات",
     contactPhone: "+962790000003",
     governorate: "عمان",
+    workspaceId: rmVendorWorkspaceId,
   });
   const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {});
+  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
+    workspaceId: rmVendorWorkspaceId,
+  });
   await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
     action: "approve",
   });
@@ -143,7 +157,13 @@ describe("reminders due-processing (contract 19 §9 — §17-6 closure)", () => 
   }, 120_000);
 
   it("24-hour requester-confirmation reminder, once, without closing anything", async () => {
-    const requestId = await setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+    const requestId = await setupExecutionPair(
+      worker,
+      ownerCookie,
+      driverCookie,
+      driverProfileId,
+      rmOwnerWorkspaceId,
+    );
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "start" });
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "arrive" });
     await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {

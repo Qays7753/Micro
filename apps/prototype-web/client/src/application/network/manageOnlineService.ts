@@ -40,8 +40,12 @@ export interface ManageFamilies {
   totalRecords: number;
 }
 
-export async function fetchManageFamilies(signal?: AbortSignal): Promise<ManageFamilies> {
-  return apiFetch<ManageFamilies>("/api/manage/families", { signal });
+export async function fetchManageFamilies(
+  workspaceId?: string,
+  signal?: AbortSignal,
+): Promise<ManageFamilies> {
+  const query = workspaceId === undefined ? "" : `?workspaceId=${encodeURIComponent(workspaceId)}`;
+  return apiFetch<ManageFamilies>(`/api/manage/families${query}`, { signal });
 }
 
 export interface ManageRecordView {
@@ -58,12 +62,13 @@ export interface ManageFamilyRecords {
 
 export async function fetchManageFamilyRecords(
   family: string,
-  options: { limit?: number; cursor?: string } = {},
+  options: { limit?: number; cursor?: string; workspaceId?: string } = {},
   signal?: AbortSignal,
 ): Promise<ManageFamilyRecords> {
   const params = new URLSearchParams();
   if (options.limit !== undefined) params.set("limit", String(options.limit));
   if (options.cursor !== undefined) params.set("cursor", options.cursor);
+  if (options.workspaceId !== undefined) params.set("workspaceId", options.workspaceId);
   const query = params.toString();
   return apiFetch<ManageFamilyRecords>(
     `/api/manage/records/${encodeURIComponent(family)}${query ? `?${query}` : ""}`,
@@ -81,10 +86,13 @@ export interface ManageLinkStartResult {
   expiresAt: number;
 }
 
-export async function startManageLink(proofSecret: string): Promise<ManageLinkStartResult> {
+export async function startManageLink(
+  proofSecret: string,
+  workspaceId?: string,
+): Promise<ManageLinkStartResult> {
   return apiFetch<ManageLinkStartResult>(
     "/api/manage/link/start",
-    { method: "POST", body: JSON.stringify({ proofSecret }) },
+    { method: "POST", body: JSON.stringify({ proofSecret, workspaceId }) },
     { idempotencyKey: newIdempotencyKey() },
   );
 }
@@ -126,12 +134,13 @@ export async function saveManageRecord(
   expectedUpdatedAt: number | null,
   idempotencyKey: string,
   signal?: AbortSignal,
+  workspaceId?: string,
 ): Promise<ManageRecordSaveResult> {
   return apiFetch<ManageRecordSaveResult>(
     `/api/manage/records/${encodeURIComponent(family)}/${encodeURIComponent(id)}`,
     {
       method: "PUT",
-      body: JSON.stringify({ data, expectedUpdatedAt }),
+      body: JSON.stringify({ data, expectedUpdatedAt, workspaceId }),
     },
     { idempotencyKey, signal },
   );
@@ -159,10 +168,11 @@ export async function applyManageMigration(
   proofSecret: string,
   idempotencyKey: string,
   signal?: AbortSignal,
+  workspaceId?: string,
 ): Promise<ManageMigrationReceipt> {
   return apiFetch<ManageMigrationReceipt>(
     "/api/manage/migrate/apply",
-    { method: "POST", body: JSON.stringify({ envelope, proofSecret }) },
+    { method: "POST", body: JSON.stringify({ envelope, proofSecret, workspaceId }) },
     { idempotencyKey, signal },
   );
 }
@@ -176,23 +186,31 @@ export interface ManageMigrationEntry {
   rolledBackAt: number | null;
 }
 
-export async function fetchManageMigrationStatus(signal?: AbortSignal): Promise<{
+export async function fetchManageMigrationStatus(
+  workspaceId?: string,
+  signal?: AbortSignal,
+): Promise<{
   workspaceId: string;
   migrations: ManageMigrationEntry[];
 }> {
-  return apiFetch<{ workspaceId: string; migrations: ManageMigrationEntry[] }>("/api/manage/migrate/status", {
-    signal,
-  });
+  const query = workspaceId === undefined ? "" : `?workspaceId=${encodeURIComponent(workspaceId)}`;
+  return apiFetch<{ workspaceId: string; migrations: ManageMigrationEntry[] }>(
+    `/api/manage/migrate/status${query}`,
+    {
+      signal,
+    },
+  );
 }
 
 export async function rollbackManageMigration(
   fingerprint: string,
   idempotencyKey: string,
   signal?: AbortSignal,
+  workspaceId?: string,
 ): Promise<{ rolledBack: boolean; fingerprint: string }> {
   return apiFetch<{ rolledBack: boolean; fingerprint: string }>(
     "/api/manage/migrate/rollback",
-    { method: "POST", body: JSON.stringify({ fingerprint }) },
+    { method: "POST", body: JSON.stringify({ fingerprint, workspaceId }) },
     { idempotencyKey, signal },
   );
 }
@@ -216,7 +234,11 @@ export function generateManageProofSecret(): string {
 /** وضع القطع المحروس (EX-D23 M6): يقرأه المالك المربوط وحده؛ معطل افتراضيًا
  * ولا مسار يبدله — تفعيله قرار مشغل مباشر بعد بوابة المالك النهائية. */
 export async function fetchManageMode(
+  workspaceId?: string,
   signal?: AbortSignal,
 ): Promise<{ workspaceId: string; onlineOnly: boolean }> {
-  return apiFetch<{ workspaceId: string; onlineOnly: boolean }>("/api/manage/mode", { signal });
+  const query = workspaceId === undefined ? "" : `?workspaceId=${encodeURIComponent(workspaceId)}`;
+  return apiFetch<{ workspaceId: string; onlineOnly: boolean }>(`/api/manage/mode${query}`, {
+    signal,
+  });
 }

@@ -5,9 +5,19 @@
  * static+API dispatcher.
  */
 
-import { authenticate, googleCallback, googleStart, health, sessionInfo, signOut } from "./api/auth.ts";
+import {
+  authenticate,
+  deviceSessions,
+  googleCallback,
+  googleStart,
+  health,
+  sessionInfo,
+  signOut,
+  signOutAll,
+} from "./api/auth.ts";
 import { readMedia, removeMedia, uploadMedia } from "./api/media.ts";
 import { listMyNotifications, markNotificationsRead, putAdminSetting } from "./api/system.ts";
+import { createWorkspace } from "./api/workspace.ts";
 import type { AuthenticatedContext } from "./auth/session.ts";
 import { command } from "./commands.ts";
 import { errorResponse, HttpError } from "./http.ts";
@@ -73,6 +83,24 @@ export function buildRouter(): ApiRouter {
   router.post(
     "api/auth/signout",
     command("signout", async ctx => signOut(ctx.env.DB, ctx)),
+  );
+  // Post-Group 6 W1 (final decision أ-7 / EX-D24 — G06): the account's device
+  // sessions and the server-side "sign out all devices". The list is a
+  // metadata-only read; signout-all is a consequential audited command.
+  router.get("api/auth/sessions", async ctx => deviceSessions(ctx.env.DB, ctx.request));
+  router.post(
+    "api/auth/signout-all",
+    command("signout-all", async ctx => signOutAll(ctx.env.DB, ctx)),
+  );
+  // Post-Group 6 W1 (final decision أ-3/أ-4 / EX-D24 — G01/AUTHZ-05): the
+  // ONE explicit project-creation request (one project per owner account,
+  // one owner per project — no invitations, no implicit creation anywhere).
+  router.post(
+    "api/workspaces",
+    command(
+      "workspace-create",
+      authedRoute((ctx, auth) => createWorkspace(ctx, auth)),
+    ),
   );
   router.post(
     "api/media",

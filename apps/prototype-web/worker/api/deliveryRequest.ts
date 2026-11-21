@@ -18,7 +18,7 @@ import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { buildAgreementCopy, loadRequest, notifyDriver, recordEvent } from "./deliveryShared.ts";
-import { ensurePersonalWorkspace } from "../authorization.ts";
+import { isAdminIdentity, requireWorkspaceContext } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 function db(ctx: RouteContext): Db {
@@ -36,6 +36,12 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
     nowMs(),
   );
   const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
+  const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId : null;
+  if (workspaceId === null || workspaceId.length === 0) {
+    // Post-Group 6 W1 (EX-D24 / AUTHZ-05 / G01): explicit active context — no
+    // implicit workspace creation, no first-workspace selection.
+    throw new HttpError(400, "workspace_context_required", { reason: "explicit_active_context" });
+  }
   const driverProfileId = typeof body.driverProfileId === "string" ? body.driverProfileId : null;
   const needType =
     body.needType === "deliver_to_customer" || body.needType === "fetch_ready_goods" ? body.needType : null;
@@ -73,10 +79,12 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
         : "product";
   const id = newId("dlv", randomToken);
   const now = nowMs();
-  const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, now, randomToken);
-  if (!workspace.deliveryEnabled) {
-    throw new HttpError(403, "workspace_capability_disabled", { reason: "module_delivery_disabled" });
+  if (await isAdminIdentity(db(ctx), auth.identityId)) {
+    throw new HttpError(403, "admin_identity_forbidden", {
+      reason: "admin_account_holds_no_business_roles",
+    });
   }
+  const workspace = await requireWorkspaceContext(db(ctx), auth.identityId, workspaceId, "delivery");
   await db(ctx)
     .prepare(
       "INSERT INTO delivery_request (id, requester_identity_id, workspace_id, driver_profile_id, need_type, payload_json, collection_minor, " +

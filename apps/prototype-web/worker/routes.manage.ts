@@ -15,6 +15,12 @@ import { command } from "./commands.ts";
 import { authedRoute } from "./routes.ts";
 import type { ApiRouter } from "./router.ts";
 
+/* Post-Group 6 W1 (EX-D24 / AUTHZ-05): every manage surface accepts the
+ * caller's explicit active context (workspaceId — query param on reads,
+ * body field on writes) and verifies it server-side; when absent the
+ * resolution relies on migration 0007's structural one-owner-workspace
+ * guarantee. The connected client always sends its context. */
+
 export function registerManageRoutes(router: ApiRouter): void {
   router.get(
     "api/manage/state",
@@ -43,11 +49,11 @@ export function registerManageRoutes(router: ApiRouter): void {
   );
   router.get(
     "api/manage/mode",
-    authedRoute((ctx, auth) => manageMode(ctx.env.DB, auth)),
+    authedRoute((ctx, auth) => manageMode(ctx.env.DB, auth, ctx.request)),
   );
   router.get(
     "api/manage/families",
-    authedRoute((ctx, auth) => listFamilies(ctx.env.DB, auth)),
+    authedRoute((ctx, auth) => listFamilies(ctx.env.DB, auth, ctx.request)),
   );
   router.get(
     "api/manage/records/:family",
@@ -66,7 +72,7 @@ export function registerManageRoutes(router: ApiRouter): void {
   );
   router.get(
     "api/manage/migrate/status",
-    authedRoute((ctx, auth) => migrationStatus(ctx.env.DB, auth)),
+    authedRoute((ctx, auth) => migrationStatus(ctx.env.DB, auth, ctx.request)),
   );
   router.post(
     "api/manage/migrate/apply",

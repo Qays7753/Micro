@@ -174,6 +174,13 @@ export default function DeliveryBookingEditor() {
        * لا مسودة ثانية من كل محاولة إرسال فاشلة. */
       let requestId = createdRequestIdRef.current;
       if (requestId === null) {
+        /* W1 (EX-D24/AUTHZ-05): السياق النشط الصريح — مشروع واحد لكل حساب
+         * ولا إنشاء ضمنيًا؛ غيابه رسالة صادقة لا إعادة توجيه صامتة. */
+        const activeWorkspaceId = session.workspaces?.[0]?.id;
+        if (!activeWorkspaceId) {
+          setMessage("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
+          return false;
+        }
         const created = await createDeliveryRequest({
           driverProfileId: form.driverProfileId,
           needType: form.needType,
@@ -181,6 +188,7 @@ export default function DeliveryBookingEditor() {
           offeredFareMinor: fareMinor,
           collectionMinor,
           collectionContent: collectionMinor === undefined ? undefined : "product",
+          workspaceId: activeWorkspaceId,
           payload: {
             pickup: { governorate: form.pickupGovernorate, area: form.pickupArea },
             dropoff: {

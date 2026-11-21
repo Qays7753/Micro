@@ -17,6 +17,8 @@ import { resolveReturnPath, withReturnTo } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { ManageOnlineSection } from "@/components/profile/ManageOnlineSection";
+import { CreateProjectCard } from "@/components/profile/CreateProjectCard";
+import { DeviceSessionsSection } from "@/components/profile/DeviceSessionsSection";
 
 import { Button } from "@/components/primitives";
 type ProfileState =
@@ -267,10 +269,16 @@ export default function Profile() {
                 <p className="micro-profile-workspaces">
                   مساحات عملك المتصلة: {session.workspaces.map(w => w.displayName).join("، ")}
                 </p>
-              ) : null}
+              ) : (
+                /* W1 (EX-D24 — قرار أ-3/أ-4): لا مشروع بعد — الإنشاء صريح
+                 * بضغطة واحدة، مشروع واحد لكل حساب. */
+                <CreateProjectCard onCreated={() => void refresh()} />
+              )}
               {/* EX-D23 (M3): الحالة الصادقة ومسار الربط المزدوج وقراءات الخادم —
                   أصغر حد تطبيقي متوافق فوق جسر EX-D22 القائم. */}
               <ManageOnlineSection />
+              {/* W1 (EX-D24 — قرار أ-7/G06): جلسات الأجهزة وإبطالها الخادمي. */}
+              <DeviceSessionsSection onSignedOut={() => void refresh()} />
             </>
           ) : (
             <>

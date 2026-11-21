@@ -20,7 +20,7 @@ import {
 import { LISTING_FRESHNESS_HIDE_MS, LISTING_FRESHNESS_REMINDER_MS } from "../env.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
-import { ensurePersonalWorkspace, vendorStatus } from "../authorization.ts";
+import { isAdminIdentity, requireWorkspaceContext, vendorStatus } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 function db(ctx: RouteContext): Db {
@@ -269,14 +269,24 @@ export async function vendorOverview(ctx: RouteContext, auth: AuthenticatedConte
   });
 }
 
-/** POST /api/market/vendor/profile — create or replace the work copy. */
+/** POST /api/market/vendor/profile — create or replace the work copy.
+ *
+ * Post-Group 6 W1 (EX-D24 / AUTHZ-05 / G01): the caller names the ACTIVE
+ * project context explicitly (workspaceId) and the server verifies the
+ * membership + market capability for THAT workspace — no implicit creation,
+ * no first-workspace selection. The admin account is refused (it holds no
+ * business roles — final decision ب-المشرف). */
 export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const body = (await readJsonBody(ctx.request)) as {
     displayName?: string;
     contactPhone?: string;
     governorate?: string;
     minDealValue?: string;
+    workspaceId?: string;
   };
+  if (typeof body.workspaceId !== "string" || body.workspaceId.length === 0) {
+    throw new HttpError(400, "workspace_context_required", { reason: "explicit_active_context" });
+  }
   const displayName =
     typeof body.displayName === "string" && body.displayName.trim().length >= 2
       ? body.displayName.trim()
@@ -292,6 +302,12 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
       : null;
   if (!displayName || !phone || !governorate) throw new HttpError(400, "bad_request", { field: "profile" });
   const now = nowMs();
+  if (await isAdminIdentity(db(ctx), auth.identityId)) {
+    throw new HttpError(403, "admin_identity_forbidden", {
+      reason: "admin_account_holds_no_business_roles",
+    });
+  }
+  const workspace = await requireWorkspaceContext(db(ctx), auth.identityId, body.workspaceId, "market");
   const workCopy = JSON.stringify({
     displayName,
     contactPhone: phone,
@@ -299,14 +315,15 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
     minDealValue: body.minDealValue ?? null,
   });
   const existing = await db(ctx)
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
+    .prepare("SELECT id, status, workspace_id FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
-  const workspace = await ensurePersonalWorkspace(db(ctx), auth.identityId, nowMs(), randomToken);
-  if (!workspace.marketEnabled) {
-    throw new HttpError(403, "workspace_capability_disabled", { reason: "module_market_disabled" });
-  }
   if (existing) {
+    if (String(existing.workspace_id) !== workspace.workspaceId) {
+      // The supplier profile is bound to its project at first save; moving it
+      // to another workspace is a cross-context mutation — refused honestly.
+      throw new HttpError(409, "conflict", { reason: "profile_workspace_mismatch" });
+    }
     await db(ctx)
       .prepare("UPDATE supplier_profile SET work_copy_json = ?, updated_at = ? WHERE id = ?")
       .bind(workCopy, now, String(existing.id))
@@ -334,14 +351,25 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
   return jsonResponse({ profile: { id, status: "draft" } }, 201);
 }
 
-/** POST /api/market/vendor/profile/submit — submit the profile for review. */
+/** POST /api/market/vendor/profile/submit — submit the profile for review.
+ *
+ * W1: same explicit-context rule — the request names the project the profile
+ * belongs to and the server verifies the caller's membership in it. */
 export async function submitVendorProfile(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const body = (await readJsonBody(ctx.request)) as { workspaceId?: string };
+  if (typeof body.workspaceId !== "string" || body.workspaceId.length === 0) {
+    throw new HttpError(400, "workspace_context_required", { reason: "explicit_active_context" });
+  }
   const now = nowMs();
   const profile = await db(ctx)
-    .prepare("SELECT id, status FROM supplier_profile WHERE identity_id = ?")
+    .prepare("SELECT id, status, workspace_id FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
     .first<Record<string, unknown>>();
   if (!profile) throw new HttpError(404, "not_found");
+  if (String(profile.workspace_id) !== body.workspaceId) {
+    throw new HttpError(403, "workspace_forbidden", { reason: "not_a_member_of_workspace" });
+  }
+  await requireWorkspaceContext(db(ctx), auth.identityId, body.workspaceId, "market");
   const status = String(profile.status);
   if (status !== "draft" && status !== "changes_requested") {
     throw new HttpError(409, "conflict", { reason: `profile_status_${status}` });

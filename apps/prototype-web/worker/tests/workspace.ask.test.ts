@@ -1,10 +1,12 @@
 /**
- * Workspace layer (EX-D19) + Ask Micro boundary (EX-D21) — Phase B coverage.
+ * Workspace layer (EX-D19, reconciled with the owner final decisions
+ * 2026-11-21 / EX-D24 in Post-Group 6 W1) + Ask Micro boundary (EX-D21).
  *
- * Workspace: personal workspace auto-creation on first business action (no
- * module choice at registration), capability flags fail closed, membership
- * list in the session payload, cross-workspace denial stays enforced, and a
- * multi-workspace identity sees exactly its own contexts.
+ * Workspace: registration creates NO project; the single project is created
+ * by one explicit request, business actions require the explicit active
+ * context (verified server-side — no first-workspace selection), capability
+ * flags fail closed, the membership list in the session payload stays
+ * server-derived, and cross-workspace denial stays enforced.
  *
  * Ask Micro: the entry context is available to every signed-in role including
  * the driver, the permitted-record summary is scoped to the caller's own
@@ -12,7 +14,15 @@
  * fabricated answers), and no financial/operational write ever happens.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, type WorkerRefs } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
@@ -37,12 +47,22 @@ afterEach(async () => {
 });
 
 describe("workspace: personal workspace and capability enforcement", () => {
-  it("first vendor action auto-creates ONE personal workspace (no module choice at registration)", async () => {
+  it("W1: registration creates no project; the explicit request creates the ONE project (EX-D24)", async () => {
     const vendor = await signInAs(worker, { sub: "ws-v1", email: "ws-v1@example.test" });
+    // No project yet — a business action without an explicit context is an
+    // honest 400 and creates NOTHING (no implicit workspace anymore).
+    const refused = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
+      displayName: "مورد المساحة",
+      contactPhone: "+962790000001",
+      governorate: "عمان",
+    });
+    expect(refused.status).toBe(400);
+    const workspaceId = await createWorkspace(worker, vendor.cookieHeader, "مشروع المورد");
     const save = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد المساحة",
       contactPhone: "+962790000001",
       governorate: "عمان",
+      workspaceId,
     });
     expect(save.status).toBe(201);
     const db = await rawDb(worker);
@@ -72,10 +92,12 @@ describe("workspace: personal workspace and capability enforcement", () => {
 
   it("the session payload lists the active workspace memberships (server-derived)", async () => {
     const vendor = await signInAs(worker, { sub: "ws-v2", email: "ws-v2@example.test" });
+    const wsV2 = await createWorkspace(worker, vendor.cookieHeader, "مشروع الجلسة");
     await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد الجلسة",
       contactPhone: "+962790000002",
       governorate: "عمان",
+      workspaceId: wsV2,
     });
     const session = (await (await apiGet(worker, vendor.cookieHeader, "/api/auth/session")).json()) as {
       authenticated: boolean;
@@ -90,10 +112,12 @@ describe("workspace: personal workspace and capability enforcement", () => {
 
   it("a disabled market capability fails closed for vendor actions (EX-D19: business actions only — entry points stay)", async () => {
     const vendor = await signInAs(worker, { sub: "ws-v3", email: "ws-v3@example.test" });
+    const wsV3 = await createWorkspace(worker, vendor.cookieHeader, "مشروع معطل");
     await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد معطل",
       contactPhone: "+962790000003",
       governorate: "عمان",
+      workspaceId: wsV3,
     });
     const db = await rawDb(worker);
     await db.prepare("UPDATE workspace SET market_enabled = 0").run();
@@ -101,6 +125,7 @@ describe("workspace: personal workspace and capability enforcement", () => {
       displayName: "مورد معطل",
       contactPhone: "+962790000004",
       governorate: "عمان",
+      workspaceId: wsV3,
     });
     expect(second.status).toBe(403);
     const body = (await second.json()) as { error: { code: string } };
@@ -111,11 +136,13 @@ describe("workspace: personal workspace and capability enforcement", () => {
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "ws-driver-1@example.test", "ws-driver-1");
     const owner = await signInAs(worker, { sub: "ws-o1", email: "ws-o1@example.test" });
+    const wsO1 = await createWorkspace(worker, owner.cookieHeader, "مشروع الحجز");
     const first = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
       driverProfileId: driver.driverProfileId,
       needType: "deliver_to_customer",
       pricingMode: "prepriced",
       offeredFareMinor: "300",
+      workspaceId: wsO1,
       payload: {
         pickup: {
           governorate: "عمان",
@@ -141,6 +168,7 @@ describe("workspace: personal workspace and capability enforcement", () => {
       needType: "deliver_to_customer",
       pricingMode: "prepriced",
       offeredFareMinor: "300",
+      workspaceId: wsO1,
       payload: {
         pickup: {
           governorate: "عمان",
@@ -166,15 +194,19 @@ describe("workspace: personal workspace and capability enforcement", () => {
   it("records of another workspace are never visible to a non-member (cross-workspace denial)", async () => {
     const vendorA = await signInAs(worker, { sub: "ws-a", email: "ws-a@example.test" });
     const vendorB = await signInAs(worker, { sub: "ws-b", email: "ws-b@example.test" });
+    const wsA = await createWorkspace(worker, vendorA.cookieHeader, "مشروع أ");
+    const wsB = await createWorkspace(worker, vendorB.cookieHeader, "مشروع ب");
     await apiPost(worker, vendorA.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد أ",
       contactPhone: "+962790000005",
       governorate: "عمان",
+      workspaceId: wsA,
     });
     await apiPost(worker, vendorB.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد ب",
       contactPhone: "+962790000006",
       governorate: "عمان",
+      workspaceId: wsB,
     });
     const db = await rawDb(worker);
     const identityA = await identityIdOf(db, "ws-a@example.test");
@@ -203,10 +235,12 @@ describe("workspace: personal workspace and capability enforcement", () => {
 
   it("a multi-workspace identity sees exactly its memberships in context (no privilege merge)", async () => {
     const user = await signInAs(worker, { sub: "ws-multi", email: "ws-multi@example.test" });
+    const wsMulti = await createWorkspace(worker, user.cookieHeader, "مشروع متعدد");
     await apiPost(worker, user.cookieHeader, "/api/market/vendor/profile", {
       displayName: "متعدد المساحات",
       contactPhone: "+962790000007",
       governorate: "عمان",
+      workspaceId: wsMulti,
     });
     const db = await rawDb(worker);
     const identity = await identityIdOf(db, "ws-multi@example.test");
@@ -298,10 +332,12 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
 
   it("a SUPPLIER (vendor) gets the entry with vendor-scoped context — their own listings only (Phase E)", async () => {
     const vendor = await signInAs(worker, { sub: "ask-supplier", email: "ask-supplier@example.test" });
+    const wsSupplier = await createWorkspace(worker, vendor.cookieHeader, "مشروع مورد السياق");
     await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد السياق",
       contactPhone: "+962790000020",
       governorate: "عمان",
+      workspaceId: wsSupplier,
     });
     const response = await apiGet(worker, vendor.cookieHeader, "/api/ask/status");
     expect(response.status).toBe(200);

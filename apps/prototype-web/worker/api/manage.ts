@@ -108,8 +108,16 @@ export async function manageState(db: Db, auth: AuthenticatedContext): Promise<R
  */
 export async function linkStart(db: Db, ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   await ensureManageSchema(db);
-  const body = (await ctx.request.json()) as Record<string, unknown>;
+  const body = (await ctx.request
+    .clone()
+    .json()
+    .catch(() => ({}))) as Record<string, unknown>;
   const proofSecret = asString(body.proofSecret, "proofSecret", { min: PROOF_MIN, max: PROOF_MAX });
+  // W1 (EX-D24 / AUTHZ-05): the caller may name the project being linked;
+  // a named workspace that is not the caller's own owner membership is an
+  // honest 403 (cross-account link attempts never fall back silently).
+  const namedContext =
+    typeof body.workspaceId === "string" && body.workspaceId.length > 0 ? body.workspaceId : null;
   const now = Date.now();
 
   const rows = await db
@@ -125,9 +133,19 @@ export async function linkStart(db: Db, ctx: RouteContext, auth: AuthenticatedCo
   if (rows.results.length === 0) {
     throw new HttpError(403, "workspace_missing", { reason: "no_active_owner_workspace" });
   }
+  if (namedContext !== null) {
+    const named = rows.results.find(row => String(row.workspace_id) === namedContext);
+    if (named === undefined) {
+      throw new HttpError(403, "workspace_forbidden", { reason: "not_a_member_of_workspace" });
+    }
+  }
   // Fail closed on the capability first: linking is part of the manage
   // surface, so the operator's enable step precedes any link attempt.
-  const enabledRows = rows.results.filter(row => Number(row.manage_enabled) === 1);
+  const enabledRows = rows.results.filter(
+    row =>
+      Number(row.manage_enabled) === 1 &&
+      (namedContext === null || String(row.workspace_id) === namedContext),
+  );
   if (enabledRows.length === 0) {
     throw new HttpError(403, "manage_capability_disabled", { reason: "manage_not_enabled_for_workspace" });
   }

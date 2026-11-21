@@ -137,6 +137,8 @@ export async function createDeliveryRequest(input: {
   collectionMinor?: string;
   collectionContent?: "product" | "product_and_fare";
   payload: Record<string, unknown>;
+  /** W1 (EX-D24/AUTHZ-05): السياق النشط الصريح — يتحقق منه الخادم. */
+  workspaceId: string;
 }): Promise<{ request: { id: string } }> {
   return apiFetch(
     "/api/delivery/requests",

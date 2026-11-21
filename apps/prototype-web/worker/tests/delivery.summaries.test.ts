@@ -7,12 +7,21 @@
  * الحجز لا يراه (فحوص سالبة).
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
 let ownerCookie: string;
+let ownerWorkspaceId: string;
 let driverCookie: string;
 let otherDriverCookie: string;
 let driverProfileId: string;
@@ -38,6 +47,7 @@ async function createSubmittedRequest(): Promise<string> {
     needType: "deliver_to_customer",
     pricingMode: "prepriced",
     offeredFareMinor: "300",
+    workspaceId: ownerWorkspaceId,
     payload: {
       pickup: {
         governorate: "عمان",
@@ -81,6 +91,7 @@ beforeAll(async () => {
   adminCookie = (await signInAs(worker, { sub: "sum-admin", email: "sum-admin@example.test" })).cookieHeader;
   await grantAdmin("sum-admin@example.test");
   ownerCookie = (await signInAs(worker, { sub: "sum-owner", email: "sum-owner@example.test" })).cookieHeader;
+  ownerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع ملخصات المالك");
   const driver = await createApprovedDriver(
     { worker, adminCookie },
     "sum-driver@example.test",

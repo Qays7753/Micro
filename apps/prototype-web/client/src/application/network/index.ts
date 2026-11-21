@@ -11,10 +11,24 @@
 
 export { ApiError, apiFetch, apiUpload, apiDownload, newIdempotencyKey } from "./apiClient";
 export type { ApiCallOptions, ApiErrorShape } from "./apiClient";
-export { fetchSession, signOut, startGoogleSignIn } from "./sessionService";
-export type { NetworkSession, NetworkWorkspace } from "./sessionService";
+export {
+  fetchSession,
+  signOut,
+  startGoogleSignIn,
+  fetchDeviceSessions,
+  signOutAllDevices,
+  createWorkspace,
+} from "./sessionService";
+export type { NetworkSession, NetworkWorkspace, DeviceSession } from "./sessionService";
 export { fetchAskStatus, askQuestion } from "./askMicroService";
 export type { AskStatus, AskStatusContext, AskAnswer } from "./askMicroService";
+
+/*
+ * توسيع مقصود مؤرخ (Post-Group 6 W1 — 2026-11-21 / EX-D24): جلسات
+ * الأجهزة وإبطالها الخادمي (قرار أ-7) وإنشاء المشروع الواحد الصريح
+ * (قرار أ-3/أ-4) — نفس باب API نفس الأصل بلا أي كتابة محلية، والسياق
+ * النشط (workspaceId) يرسل صريحًا مع كل طلب عمل والخادم يتحقق منه.
+ */
 
 /*
  * توسيع مقصود مؤرخ (EX-D23 — M3 2026-11-14): خدمة Manage المتصلة (حالة

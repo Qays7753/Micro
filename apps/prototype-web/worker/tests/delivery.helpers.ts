@@ -85,12 +85,14 @@ export async function setupExecutionPair(
   ownerCookie: string,
   driverCookie: string,
   driverProfileId: string,
+  ownerWorkspaceId?: string,
 ): Promise<string> {
   const created = await apiPost(worker, ownerCookie, "/api/delivery/requests", {
     driverProfileId,
     needType: "deliver_to_customer",
     pricingMode: "prepriced",
     offeredFareMinor: "300",
+    ...(ownerWorkspaceId === undefined ? {} : { workspaceId: ownerWorkspaceId }),
     payload: {
       pickup: {
         governorate: "عمان",

@@ -285,6 +285,24 @@ export async function apiGet(
   return worker.fetch(pathAndQuery, { headers: cookie ? { cookie } : {} });
 }
 
+/**
+ * Post-Group 6 W1 (EX-D24): create the caller's single project explicitly
+ * through the real API — the honest test posture for every business flow
+ * (no implicit workspace creation exists anymore).
+ */
+export async function createWorkspace(
+  worker: WorkerInstance,
+  cookie: string,
+  displayName = "مشروع الاختبار",
+): Promise<string> {
+  const response = await apiPost(worker, cookie, "/api/workspaces", { displayName });
+  if (response.status !== 201) {
+    throw new Error(`workspace creation failed: ${response.status} ${await response.text()}`);
+  }
+  const body = (await response.json()) as { workspace: { id: string } };
+  return body.workspace.id;
+}
+
 /** Direct database access for seeding/inspecting state (bypasses the API). */
 export async function rawDb(worker: WorkerInstance): Promise<Db> {
   void worker;

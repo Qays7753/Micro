@@ -35,6 +35,22 @@ const sessionMocks = vi.hoisted(() => ({
     authenticated: true as boolean,
     identity: { email: "owner@example.test", displayName: "المالك" } as
       { email: string; displayName: string } | undefined,
+    /* W1: المشروع الواحد الصريح موجود — لا بطاقة إنشاء، والسياق متاح. */
+    workspaces: [
+      {
+        id: "ws_dom_test",
+        displayName: "مشروع الاختبار",
+        role: "owner",
+        capabilities: { market: true, delivery: true },
+      },
+    ] as
+      | {
+          id: string;
+          displayName: string;
+          role: string;
+          capabilities: { market: boolean; delivery: boolean };
+        }[]
+      | undefined,
   },
   loading: false,
   failed: false,
@@ -55,6 +71,8 @@ const serviceMocks = vi.hoisted(() => ({
   startManageLink: vi.fn(),
   confirmManageLink: vi.fn(),
   unlinkManage: vi.fn(),
+  fetchDeviceSessions: vi.fn(),
+  signOutAllDevices: vi.fn(),
 }));
 
 vi.mock("@/application/network", async importOriginal => {
@@ -67,6 +85,8 @@ vi.mock("@/application/network", async importOriginal => {
     startManageLink: serviceMocks.startManageLink,
     confirmManageLink: serviceMocks.confirmManageLink,
     unlinkManage: serviceMocks.unlinkManage,
+    fetchDeviceSessions: serviceMocks.fetchDeviceSessions,
+    signOutAllDevices: serviceMocks.signOutAllDevices,
   };
 });
 
@@ -131,8 +151,21 @@ beforeEach(() => {
   sessionMocks.session = {
     authenticated: true,
     identity: { email: "owner@example.test", displayName: "المالك" },
+    workspaces: [
+      {
+        id: "ws_dom_test",
+        displayName: "مشروع الاختبار",
+        role: "owner",
+        capabilities: { market: true, delivery: true },
+      },
+    ],
   };
   serviceMocks.fetchManageOnlineState.mockReset();
+  serviceMocks.fetchDeviceSessions.mockReset();
+  serviceMocks.signOutAllDevices.mockReset();
+  serviceMocks.fetchDeviceSessions.mockResolvedValue([
+    { id: "s1", createdAt: Date.now(), expiresAt: Date.now() + 1000, current: true },
+  ]);
   serviceMocks.fetchManageFamilies.mockReset();
   serviceMocks.startManageLink.mockReset();
   serviceMocks.confirmManageLink.mockReset();
@@ -210,7 +243,7 @@ describe("Profile manage-online section (M3): truthful states", () => {
     fireEvent.change(input, { target: { value: "a".repeat(40) } });
     fireEvent.click(screen.getByRole("button", { name: "ابدأ الربط" }));
     expect(await screen.findByTestId("manage-link-pending")).toBeDefined();
-    expect(serviceMocks.startManageLink).toHaveBeenCalledWith("a".repeat(40));
+    expect(serviceMocks.startManageLink).toHaveBeenCalledWith("a".repeat(40), "ws-1");
     fireEvent.click(screen.getByRole("button", { name: "أكّد الربط" }));
     await waitFor(() => {
       expect(serviceMocks.confirmManageLink).toHaveBeenCalledWith("nonce-value-123456");

@@ -80,6 +80,55 @@ export async function revokeSession(db: Db, token: string | undefined, now: numb
     .run();
 }
 
+/** A device session as shown to its owner (never the token, only metadata). */
+export interface DeviceSessionView {
+  sessionId: string;
+  createdAt: number;
+  expiresAt: number;
+  current: boolean;
+}
+
+/**
+ * Post-Group 6 W1 (final decision أ-7 / EX-D24 — G06): the identity's active
+ * device sessions (multi-device is allowed; the page shows them all). The
+ * caller's own token hash marks the current session. Revoked/expired rows
+ * are never listed — they are not sessions anymore.
+ */
+export async function listActiveSessions(
+  db: Db,
+  identityId: string,
+  currentToken: string | undefined,
+  now: number,
+): Promise<DeviceSessionView[]> {
+  const currentHash = currentToken === undefined ? null : await sha256Hex(currentToken);
+  const rows = await db
+    .prepare(
+      "SELECT id, token_hash, created_at, expires_at FROM network_session " +
+        "WHERE identity_id = ? AND revoked_at IS NULL AND expires_at > ? ORDER BY created_at DESC",
+    )
+    .bind(identityId, now)
+    .all<Record<string, unknown>>();
+  return rows.results.map(row => ({
+    sessionId: String(row.id),
+    createdAt: Number(row.created_at),
+    expiresAt: Number(row.expires_at),
+    current: currentHash !== null && String(row.token_hash) === currentHash,
+  }));
+}
+
+/**
+ * Server-side "sign out all devices" (final decision أ-7 / G06): revoke every
+ * active session of the identity, including the current one — the button is
+ * an honest full sign-out. Returns the number of revoked sessions.
+ */
+export async function revokeAllSessions(db: Db, identityId: string, now: number): Promise<number> {
+  const result = await db
+    .prepare("UPDATE network_session SET revoked_at = ? WHERE identity_id = ? AND revoked_at IS NULL")
+    .bind(now, identityId)
+    .run();
+  return Number(result.meta.changes ?? 0);
+}
+
 /** Upsert the identity after a validated Google sign-in; returns its id. */
 export async function upsertIdentity(
   db: Db,
@@ -115,6 +164,14 @@ export async function upsertIdentity(
  * BOOTSTRAP_OWNER_EMAIL (a Cloudflare var set by the owner) matches the
  * signed-in email. No self-granting endpoint; no email hard-coded in source.
  * Returns true when the membership was granted.
+ *
+ * Post-Group 6 W1 (final decision ب-المشرف / EX-D24 — G02): the admin account
+ * is a SEPARATE Google account that carries no project/supplier/driver role —
+ * an identity that already holds a business role is refused (the grant goes
+ * to the dedicated administration account only). The refusal is auditable
+ * through the returned reason; two-step verification on that Google account
+ * remains an operator-side gate the worker cannot observe (documented in the
+ * report — never claimed as verified here).
  */
 export async function bootstrapFirstAdmin(
   db: Db,
@@ -122,13 +179,19 @@ export async function bootstrapFirstAdmin(
   email: string,
   configuredBootstrapEmail: string | undefined,
   now: number,
-): Promise<boolean> {
-  if (!configuredBootstrapEmail) return false;
-  if (email !== configuredBootstrapEmail.trim().toLowerCase()) return false;
+): Promise<{ granted: boolean; reason?: "email_mismatch" | "admin_exists" | "business_role_present" }> {
+  if (!configuredBootstrapEmail) return { granted: false, reason: "email_mismatch" };
+  if (email !== configuredBootstrapEmail.trim().toLowerCase())
+    return { granted: false, reason: "email_mismatch" };
   const adminCount = await db
     .prepare("SELECT COUNT(*) AS n FROM network_membership WHERE role = 'admin' AND status = 'active'")
     .first<Record<string, unknown>>();
-  if (Number(adminCount?.n ?? 0) > 0) return false;
+  if (Number(adminCount?.n ?? 0) > 0) return { granted: false, reason: "admin_exists" };
+  const businessRole = await db
+    .prepare("SELECT 1 AS ok FROM workspace_member WHERE identity_id = ? AND status = 'active' LIMIT 1")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  if (businessRole !== null) return { granted: false, reason: "business_role_present" };
   await db
     .prepare(
       "INSERT INTO network_membership (identity_id, role, status, granted_by, granted_at) VALUES (?, 'admin', 'active', 'bootstrap', ?) " +
@@ -136,5 +199,5 @@ export async function bootstrapFirstAdmin(
     )
     .bind(identityId, now)
     .run();
-  return true;
+  return { granted: true };
 }

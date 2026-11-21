@@ -325,7 +325,16 @@ export default function MarketVendorWorkspace() {
                   action="save"
                   onClick={() =>
                     void run(async () => {
-                      await upsertVendorProfile({ displayName, contactPhone: phone, governorate });
+                      const activeWorkspaceId = session.workspaces?.[0]?.id;
+                      if (!activeWorkspaceId) {
+                        throw new Error("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
+                      }
+                      await upsertVendorProfile({
+                        displayName,
+                        contactPhone: phone,
+                        governorate,
+                        workspaceId: activeWorkspaceId,
+                      });
                     }, "حُفظ ملف المورد كمسودة.")
                   }
                 >
@@ -333,7 +342,15 @@ export default function MarketVendorWorkspace() {
                 </Button>
                 <Button
                   action="commit"
-                  onClick={() => void run(submitVendorProfile, "أُرسل الملف للمراجعة — ليس اعتمادًا.")}
+                  onClick={() =>
+                    void run(async () => {
+                      const activeWorkspaceId = session.workspaces?.[0]?.id;
+                      if (!activeWorkspaceId) {
+                        throw new Error("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
+                      }
+                      await submitVendorProfile(activeWorkspaceId);
+                    }, "أُرسل الملف للمراجعة — ليس اعتمادًا.")
+                  }
                 >
                   إرسال الملف للمراجعة
                 </Button>

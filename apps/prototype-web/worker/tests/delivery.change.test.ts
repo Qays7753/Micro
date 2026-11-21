@@ -6,12 +6,21 @@
  * his own proposal; the row columns stay coherent with the amended copy.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver, type WorkerRefs, setupExecutionPair } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
 let ownerCookie: string;
+let chOwnerWorkspaceId: string;
 let driverCookie: string;
 let driverProfileId: string;
 let plainUserCookie: string;
@@ -31,6 +40,7 @@ beforeAll(async () => {
     .bind(adminIdentity!.id)
     .run();
   ownerCookie = (await signInAs(worker, { sub: "ch-owner", email: "ch-owner@example.test" })).cookieHeader;
+  chOwnerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع تغيير الاتفاق");
   const refs: WorkerRefs = { worker, adminCookie };
   const driver = await createApprovedDriver(refs, "ch-driver@example.test", "ch-driver-sub");
   driverCookie = driver.cookie;
@@ -43,7 +53,7 @@ afterAll(async () => {
 });
 
 async function confirmedBooking(): Promise<string> {
-  return setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId);
+  return setupExecutionPair(worker, ownerCookie, driverCookie, driverProfileId, chOwnerWorkspaceId);
 }
 
 interface ChangeProposalRow {
@@ -305,6 +315,7 @@ describe("material change proposals (OD11 — §17-8 closure)", () => {
       needType: "deliver_to_customer",
       pricingMode: "prepriced",
       offeredFareMinor: "300",
+      workspaceId: chOwnerWorkspaceId,
       payload: {
         pickup: { governorate: "عمان", area: "أ", name: "x", phone: "+962795555001", address: "y" },
         dropoff: { governorate: "الزرقاء", area: "ب", name: "z", phone: "+962795555002", address: "w" },

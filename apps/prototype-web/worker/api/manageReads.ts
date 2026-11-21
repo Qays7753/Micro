@@ -21,14 +21,22 @@ const MAX_PAGE = 500;
 /**
  * The gate with denied-read auditing (contract 22 §4 / F-07): every refusal
  * is recorded without any record content — actor, action, result only.
+ *
+ * Post-Group 6 W1 (EX-D24 / AUTHZ-05): workspaceId is the caller's EXPLICIT
+ * active context — when present it is verified against the caller's own
+ * membership (a cross-account/cross-project context is an honest 403, never
+ * a silent fall-back); when absent the resolution relies on migration 0007's
+ * structural guarantee of at most ONE active owner membership per identity
+ * (the connected client always sends its explicit context).
  */
 export async function requireManageOwnerAudited(
   db: Db,
   auth: AuthenticatedContext,
   action: string,
+  workspaceId?: string,
 ): Promise<ManageOwnerContext> {
   try {
-    return await requireManageOwner(db, auth.identityId);
+    return await requireManageOwner(db, auth.identityId, workspaceId);
   } catch (error) {
     if (error instanceof HttpError) {
       await audit(
@@ -55,9 +63,15 @@ function familyOf(raw: unknown): string {
   return raw;
 }
 
+/** The caller's explicit active context (W1): `?workspaceId=` on reads. */
+function contextParam(request: Request): string | undefined {
+  const value = new URL(request.url).searchParams.get("workspaceId");
+  return value === null || value.length === 0 ? undefined : value;
+}
+
 /** GET /api/manage/families — what the server holds for the linked owner. */
-export async function listFamilies(db: Db, auth: AuthenticatedContext): Promise<Response> {
-  const owner = await requireManageOwnerAudited(db, auth, "manage.read.families");
+export async function listFamilies(db: Db, auth: AuthenticatedContext, request: Request): Promise<Response> {
+  const owner = await requireManageOwnerAudited(db, auth, "manage.read.families", contextParam(request));
   const rows = await db
     .prepare(
       "SELECT family, COUNT(*) AS n FROM manage_record WHERE workspace_id = ? GROUP BY family ORDER BY family",
@@ -75,7 +89,7 @@ export async function listFamilies(db: Db, auth: AuthenticatedContext): Promise<
 /** GET /api/manage/records/:family — one family's records, keyset-paginated. */
 export async function listFamilyRecords(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const owner = await requireManageOwnerAudited(db, auth, "manage.read.records");
+  const owner = await requireManageOwnerAudited(db, auth, "manage.read.records", contextParam(ctx.request));
   const family = familyOf(ctx.params.family);
   const limitParam = Number(ctx.url.searchParams.get("limit") ?? DEFAULT_PAGE);
   const limit =
@@ -111,7 +125,7 @@ export async function listFamilyRecords(ctx: RouteContext, auth: AuthenticatedCo
 /** GET /api/manage/records/:family/:id — a single record, 404 when absent. */
 export async function getRecord(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const owner = await requireManageOwnerAudited(db, auth, "manage.read.record");
+  const owner = await requireManageOwnerAudited(db, auth, "manage.read.record", contextParam(ctx.request));
   const family = familyOf(ctx.params.family);
   const id = ctx.params.id;
   if (typeof id !== "string" || id.length === 0 || id.length > RECORD_ID_MAX) {
@@ -138,8 +152,8 @@ export async function getRecord(ctx: RouteContext, auth: AuthenticatedContext): 
 /** GET /api/manage/mode — the guarded online-only cutover state (M6).
  * Read-only by design: the flag flips ONLY through the operator's direct
  * database action after the owner's cutover gate — never through any API. */
-export async function manageMode(db: Db, auth: AuthenticatedContext): Promise<Response> {
-  const owner = await requireManageOwnerAudited(db, auth, "manage.read.mode");
+export async function manageMode(db: Db, auth: AuthenticatedContext, request: Request): Promise<Response> {
+  const owner = await requireManageOwnerAudited(db, auth, "manage.read.mode", contextParam(request));
   const row = await db
     .prepare("SELECT manage_online_only FROM workspace WHERE id = ?")
     .bind(owner.workspaceId)

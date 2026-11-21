@@ -16,7 +16,9 @@ import {
 import {
   bootstrapFirstAdmin,
   createSession,
+  listActiveSessions,
   resolveSession,
+  revokeAllSessions,
   revokeSession,
   upsertIdentity,
 } from "../auth/session.ts";
@@ -208,12 +210,29 @@ export async function googleCallback(
     env.BOOTSTRAP_OWNER_EMAIL,
     now,
   );
+  if (bootstrapped.reason === "business_role_present") {
+    // G02 (final decision ب-المشرف): the administration account is separate —
+    // a business identity never becomes the admin, and the attempt is
+    // audited so the operator can see the misconfiguration attempt.
+    await audit(
+      db,
+      {
+        actorIdentityId: identityId,
+        action: "signin_bootstrap_admin_refused",
+        objectType: "network_membership",
+        objectId: identityId,
+        result: "denied",
+        meta: { reason: "business_role_present" },
+      },
+      now,
+    );
+  }
   const { token, expiresAt } = await createSession(db, identityId, now);
   await audit(
     db,
     {
       actorIdentityId: identityId,
-      action: bootstrapped ? "signin_bootstrap_admin" : "signin",
+      action: bootstrapped.granted ? "signin_bootstrap_admin" : "signin",
       objectType: "network_identity",
       objectId: identityId,
       result: "success",
@@ -258,6 +277,54 @@ export async function signOut(db: Db, ctx: RouteContext): Promise<Response> {
 /** Resolve the authenticated context for API handlers (or null for guest). */
 export async function authenticate(db: Db, request: Request) {
   return resolveSession(db, cookieToken(request), nowMs());
+}
+
+/**
+ * GET /api/auth/sessions — the caller's active device sessions (final
+ * decision أ-7 / EX-D24 — G06): multi-device is allowed and the account page
+ * shows every live session; only metadata is returned, never tokens.
+ */
+export async function deviceSessions(db: Db, request: Request): Promise<Response> {
+  const auth = await resolveSession(db, cookieToken(request), nowMs());
+  if (!auth) return errorResponse("unauthorized", 401);
+  const sessions = await listActiveSessions(db, auth.identityId, cookieToken(request), nowMs());
+  return jsonResponse({
+    sessions: sessions.map(session => ({
+      id: session.sessionId,
+      createdAt: session.createdAt,
+      expiresAt: session.expiresAt,
+      current: session.current,
+    })),
+  });
+}
+
+/**
+ * POST /api/auth/signout-all — server-side "sign out all devices" (final
+ * decision أ-7 / G06): revokes EVERY active session of the identity,
+ * including the current one, clears the cookie, and audits the action.
+ * A revoked token can never authenticate again (resolveSession filters
+ * revoked rows) — tested directly in auth.workspace.test.ts.
+ */
+export async function signOutAll(db: Db, ctx: RouteContext): Promise<Response> {
+  const auth = await resolveSession(db, cookieToken(ctx.request), nowMs());
+  if (!auth) return errorResponse("unauthorized", 401);
+  const revoked = await revokeAllSessions(db, auth.identityId, nowMs());
+  await audit(
+    db,
+    {
+      actorIdentityId: auth.identityId,
+      action: "signout_all_devices",
+      objectType: "network_session",
+      objectId: auth.identityId,
+      result: "success",
+      meta: { revoked },
+    },
+    nowMs(),
+  );
+  return new Response(JSON.stringify({ ok: true, revoked }), {
+    status: 200,
+    headers: { "content-type": "application/json; charset=utf-8", "set-cookie": clearedSessionCookie() },
+  });
 }
 
 export async function sessionTokenHash(token: string): Promise<string> {

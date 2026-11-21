@@ -46,8 +46,9 @@ export async function askStatus(db: Db, ctx: RouteContext): Promise<Response> {
     principal: { displayName: auth.displayName, email: auth.email },
     roles: {
       // Any authenticated Micro account may act as project owner (OD18 /
-      // contract 18) — the owner context is the account itself, with its
-      // workspace ensured on first business action.
+      // contract 18) — the owner context is the account itself. The single
+      // project is created explicitly (W1 / EX-D24); a workspace-less
+      // account sees an honest empty context, never a fabricated one.
       owner: true,
       vendor: vendor !== null,
       driver: driver !== null,

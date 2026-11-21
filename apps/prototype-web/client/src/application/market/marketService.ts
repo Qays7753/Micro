@@ -119,6 +119,8 @@ export async function upsertVendorProfile(input: {
   displayName: string;
   contactPhone: string;
   governorate: string;
+  /** W1 (EX-D24/AUTHZ-05): السياق النشط الصريح — يتحقق منه الخادم. */
+  workspaceId: string;
 }): Promise<void> {
   await apiFetch(
     "/api/market/vendor/profile",
@@ -127,10 +129,10 @@ export async function upsertVendorProfile(input: {
   );
 }
 
-export async function submitVendorProfile(): Promise<void> {
+export async function submitVendorProfile(workspaceId: string): Promise<void> {
   await apiFetch(
     "/api/market/vendor/profile/submit",
-    { method: "POST", body: "{}" },
+    { method: "POST", body: JSON.stringify({ workspaceId }) },
     { idempotencyKey: newIdempotencyKey() },
   );
 }

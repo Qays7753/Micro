@@ -6,11 +6,20 @@
  * terms at confirmation (OD11).
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiGet, apiPost, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
+import {
+  apiGet,
+  apiPost,
+  createWorkspace,
+  rawDb,
+  signInAs,
+  startWorker,
+  type WorkerInstance,
+} from "./harness.ts";
 import { createApprovedDriver } from "./delivery.helpers.ts";
 
 let worker: WorkerInstance;
 let ownerCookie: string;
+let ownerWorkspaceId: string;
 let driverCookie: string;
 let adminCookie: string;
 let strangerCookie: string;
@@ -53,6 +62,7 @@ async function createRequest(mode: "prepriced" | "quote_request"): Promise<Reque
     needType: "deliver_to_customer",
     pricingMode: mode,
     offeredFareMinor: mode === "prepriced" ? "300" : undefined,
+    workspaceId: ownerWorkspaceId,
     payload: {
       pickup: {
         governorate: "عمان",
@@ -82,6 +92,7 @@ beforeAll(async () => {
   adminCookie = (await signInAs(worker, { sub: "dlv-admin", email: "dlv-admin@example.test" })).cookieHeader;
   await grantAdmin("dlv-admin@example.test");
   ownerCookie = (await signInAs(worker, { sub: "dlv-owner", email: "dlv-owner@example.test" })).cookieHeader;
+  ownerWorkspaceId = await createWorkspace(worker, ownerCookie, "مشروع حجوزات المالك");
   strangerCookie = (await signInAs(worker, { sub: "dlv-stranger", email: "dlv-stranger@example.test" }))
     .cookieHeader;
   const driver = await createApprovedDriver(

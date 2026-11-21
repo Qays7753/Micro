@@ -2033,6 +2033,10 @@
     "apps/prototype-web/client/src/pages/MarketListingEditor.tsx": {
       "nbLoc": 493,
       "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/market.ts": {
+      "nbLoc": 413,
+      "band": "WATCH"
     }
   }
 }

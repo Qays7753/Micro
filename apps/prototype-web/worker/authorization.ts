@@ -139,9 +139,14 @@ function toWorkspaceContext(row: Record<string, unknown>): WorkspaceContext {
 }
 
 /**
- * All active workspace memberships of an identity (a person may belong to
- * several workspaces with different roles — contract 18 §2). Server-derived
+ * All active workspace memberships of an identity (display only — the shell
+ * renders them so the user can send an explicit context). Server-derived
  * only; the client may render them but never asserts them.
+ *
+ * Post-Group 6 W1 (owner final decision أ-3/أ-4 / EX-D24): an identity can
+ * hold at most ONE active owner membership (migration 0007's partial unique
+ * index), so this list is the identity's single project plus — never, by
+ * decision — any granted team memberships (no invitation surface exists).
  */
 export async function listWorkspaceMemberships(db: Db, identityId: string): Promise<WorkspaceContext[]> {
   const rows = await db
@@ -155,49 +160,102 @@ export async function listWorkspaceMemberships(db: Db, identityId: string): Prom
   return rows.results.map(toWorkspaceContext);
 }
 
+/** Does the identity hold the server-granted platform-admin membership? */
+export async function isAdminIdentity(db: Db, identityId: string): Promise<boolean> {
+  const row = await db
+    .prepare(
+      "SELECT 1 AS ok FROM network_membership WHERE identity_id = ? AND role = 'admin' AND status = 'active' LIMIT 1",
+    )
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  return row !== null;
+}
+
 /**
- * Ensure the identity has a personal business workspace (auto-created on
- * first business action — EX-D19: no module choice at registration; default
- * capabilities both enabled). Returns the active membership context.
- * Idempotent and safe under races: the membership upsert conflicts-nothing.
+ * Does the identity hold ANY business role (project membership, supplier
+ * profile, driver profile)? The final decision (ب-المشرف) keeps the admin on
+ * a SEPARATE Google account that carries none of these — both directions are
+ * enforced (bootstrap refuses business identities; business paths refuse
+ * admin identities).
  */
-export async function ensurePersonalWorkspace(
+export async function identityHoldsBusinessRole(db: Db, identityId: string): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT 1 AS ok FROM workspace_member WHERE identity_id = ? AND status = 'active' LIMIT 1")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  if (row !== null) return true;
+  const supplier = await db
+    .prepare("SELECT 1 AS ok FROM supplier_profile WHERE identity_id = ? LIMIT 1")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  if (supplier !== null) return true;
+  const driver = await db
+    .prepare("SELECT 1 AS ok FROM driver_profile WHERE identity_id = ? LIMIT 1")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  return driver !== null;
+}
+
+/**
+ * EXPLICIT personal project creation (final decision أ-3 / EX-D24 — replaces
+ * the pre-W1 auto-creation on first business action): registration creates
+ * no role and no project; the project is created by one explicit request,
+ * one project per owner account, one owner per project. Refuses:
+ *  - 403 admin_identity_forbidden — the admin account holds no business roles;
+ *  - 409 one_project_per_account — an active owned workspace already exists
+ *    (application check first, then the migration-0007 partial unique index
+ *    makes a race degrade to the same honest 409, never a silent second
+ *    project).
+ * Idempotence is NOT provided on purpose: a retried creation must surface
+ * the existing project (the caller lists memberships), not create another.
+ */
+export async function createPersonalWorkspace(
   db: Db,
   identityId: string,
+  displayName: string,
   now: number,
   randomToken: (byteLength?: number) => string,
 ): Promise<WorkspaceContext> {
+  if (await isAdminIdentity(db, identityId)) {
+    throw new HttpError(403, "admin_identity_forbidden", {
+      reason: "admin_account_holds_no_business_roles",
+    });
+  }
   const existing = await db
     .prepare(
-      "SELECT m.workspace_id, m.role, w.display_name, w.market_enabled, w.delivery_enabled " +
-        "FROM workspace_member m JOIN workspace w ON w.id = m.workspace_id " +
-        "WHERE m.identity_id = ? AND m.status = 'active' ORDER BY w.created_at LIMIT 1",
+      "SELECT m.workspace_id FROM workspace_member m " +
+        "WHERE m.identity_id = ? AND m.role = 'owner' AND m.status = 'active' LIMIT 1",
     )
     .bind(identityId)
     .first<Record<string, unknown>>();
-  if (existing) return toWorkspaceContext(existing);
-  const identityRow = await db
-    .prepare("SELECT display_name, email FROM network_identity WHERE id = ?")
-    .bind(identityId)
-    .first<Record<string, unknown>>();
-  const displayName =
-    identityRow === null
-      ? "مساحة عمل شخصية"
-      : String(identityRow.display_name || identityRow.email || "مساحة عمل شخصية");
+  if (existing !== null) {
+    throw new HttpError(409, "one_project_per_account", {
+      reason: "active_owned_workspace_exists",
+      workspaceId: String(existing.workspace_id),
+    });
+  }
   const workspaceId = `ws_${randomToken(16)}`;
-  await db
-    .prepare(
-      "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES (?, ?, ?, 1, 1, ?, ?)",
-    )
-    .bind(workspaceId, displayName, identityId, now, now)
-    .run();
-  await db
-    .prepare(
-      "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_by_identity_id, granted_at) " +
-        "VALUES (?, ?, 'owner', 'active', ?, ?) ON CONFLICT DO NOTHING",
-    )
-    .bind(workspaceId, identityId, identityId, now)
-    .run();
+  try {
+    await db
+      .prepare(
+        "INSERT INTO workspace (id, display_name, created_by_identity_id, market_enabled, delivery_enabled, created_at, updated_at) VALUES (?, ?, ?, 1, 1, ?, ?)",
+      )
+      .bind(workspaceId, displayName, identityId, now, now)
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO workspace_member (workspace_id, identity_id, role, status, granted_by_identity_id, granted_at) " +
+          "VALUES (?, ?, 'owner', 'active', ?, ?)",
+      )
+      .bind(workspaceId, identityId, identityId, now)
+      .run();
+  } catch {
+    // The partial unique index (migration 0007) fired under a race — the
+    // honest conflict, never a second project.
+    throw new HttpError(409, "one_project_per_account", {
+      reason: "active_owned_workspace_exists",
+    });
+  }
   return {
     workspaceId,
     displayName,
@@ -208,36 +266,50 @@ export async function ensurePersonalWorkspace(
 }
 
 /**
- * Resolve the identity's active business workspace for a module. Fails
- * closed with an honest error when there is no active membership or the
- * workspace capability is disabled (EX-D19: capability limits business
- * actions/data — it never hides the shared product entry points, so the
- * client shows an honest setup/permission state instead of this throwing
- * for UI purposes; the API itself must refuse the action).
- *
- * NOTE (Phase F, final review 1): this helper is the DESIGNATED future
- * enforcement point for per-workspace capability gating across ALL business
- * writes once multi-workspace grant flows exist — its "any enabled
- * membership" semantics are the contract-18 §2 target. The CURRENT recorded
- * enforcement scope (Phase B §37-2) is the two entry actions that ensure a
- * personal workspace first (vendor profile save / booking creation), where
- * this helper cannot be used because it would refuse the auto-creation of
- * the first workspace. Do not delete it; wire it when grants arrive.
+ * EXPLICIT workspace context (final decision ب-قواعد / EX-D24 — AUTHZ-05):
+ * every business request names its active workspace and the server verifies
+ * the caller's active membership, role and module capability for THAT
+ * workspace. No implicit "first enabled membership" selection remains
+ * anywhere (the pre-W1 requireModuleWorkspace auto-selection was removed
+ * with the auto-creation it served).
+ * Fails closed with honest codes:
+ *  - 403 workspace_missing — the identity has no active membership at all;
+ *  - 403 workspace_forbidden — the caller is not an active member of the
+ *    NAMED workspace (cross-account/cross-context use is refused, not
+ *    silently redirected to the caller's own workspace);
+ *  - 403 workspace_capability_disabled — membership is fine but the module
+ *    capability is off for that workspace.
  */
-export async function requireModuleWorkspace(
+export async function requireWorkspaceContext(
   db: Db,
   identityId: string,
+  workspaceId: string,
   module: "market" | "delivery",
 ): Promise<WorkspaceContext> {
-  const memberships = await listWorkspaceMemberships(db, identityId);
-  const enabled = memberships.filter(m => (module === "market" ? m.marketEnabled : m.deliveryEnabled));
-  if (enabled.length === 0) {
-    if (memberships.length === 0) {
+  const row = await db
+    .prepare(
+      "SELECT m.workspace_id, m.role, w.display_name, w.market_enabled, w.delivery_enabled, m.status " +
+        "FROM workspace_member m JOIN workspace w ON w.id = m.workspace_id " +
+        "WHERE m.identity_id = ? AND m.workspace_id = ? LIMIT 1",
+    )
+    .bind(identityId, workspaceId)
+    .first<Record<string, unknown>>();
+  if (row === null || String(row.status) !== "active") {
+    const anyMembership = await db
+      .prepare("SELECT 1 AS ok FROM workspace_member WHERE identity_id = ? AND status = 'active' LIMIT 1")
+      .bind(identityId)
+      .first<Record<string, unknown>>();
+    if (anyMembership === null) {
       throw new HttpError(403, "workspace_missing", { reason: "no_active_workspace" });
     }
+    throw new HttpError(403, "workspace_forbidden", { reason: "not_a_member_of_workspace" });
+  }
+  const context = toWorkspaceContext(row);
+  const enabled = module === "market" ? context.marketEnabled : context.deliveryEnabled;
+  if (!enabled) {
     throw new HttpError(403, "workspace_capability_disabled", { reason: `module_${module}_disabled` });
   }
-  return enabled[0];
+  return context;
 }
 
 /* ───────────── Manage Online (EX-D23, contract 18 §10) ───────────── */
@@ -250,8 +322,8 @@ export interface ManageOwnerContext {
 /**
  * THE Manage owner gate (EX-D23 / decision card §3-د / scenarios MO-06+MO-07):
  * the only doorway to connected Manage surfaces. Resolves everything from the
- * database at request time — session identity + active workspace membership +
- * the manage capability + the VERIFIED owner-identity link (migration-gate
+ * database at request time — session identity + workspace membership + the
+ * manage capability + the VERIFIED owner-identity link (migration-gate
  * §2-b). Fails closed with honest codes:
  *  - 403 manage_capability_disabled — the operator has not enabled the
  *    capability for the caller's workspace(s) yet (the default posture);
@@ -260,8 +332,21 @@ export interface ManageOwnerContext {
  *    email address — is refused: email matching is never consulted, MO-03).
  * The platform-admin flag is deliberately NOT consulted here: an admin is
  * refused exactly like any other non-owner role (contract 18 §10-4).
+ *
+ * Post-Group 6 W1 (EX-D24 / AUTHZ-05 — explicit active context): when the
+ * caller NAMES a workspace (workspaceId), that exact workspace is verified —
+ * a mismatched/cross-account context is an honest 403
+ * `workspace_forbidden`, never a silent fall-back to the caller's own
+ * project. When absent, resolution relies on migration 0007's structural
+ * guarantee that an identity holds AT MOST ONE active owner membership, so
+ * there is no "first workspace" selection left to get wrong; the connected
+ * client always sends its explicit context.
  */
-export async function requireManageOwner(db: Db, identityId: string): Promise<ManageOwnerContext> {
+export async function requireManageOwner(
+  db: Db,
+  identityId: string,
+  workspaceId?: string,
+): Promise<ManageOwnerContext> {
   const rows = await db
     .prepare(
       "SELECT m.workspace_id, w.display_name, w.manage_enabled, " +
@@ -272,6 +357,26 @@ export async function requireManageOwner(db: Db, identityId: string): Promise<Ma
     .bind(identityId)
     .all<Record<string, unknown>>();
   const memberships = rows.results;
+  if (workspaceId !== undefined) {
+    const named = memberships.find(row => String(row.workspace_id) === workspaceId);
+    if (named === undefined) {
+      const anyMembership = await db
+        .prepare("SELECT 1 AS ok FROM workspace_member WHERE identity_id = ? AND status = 'active' LIMIT 1")
+        .bind(identityId)
+        .first<Record<string, unknown>>();
+      if (anyMembership === null) {
+        throw new HttpError(403, "workspace_missing", { reason: "no_active_workspace" });
+      }
+      throw new HttpError(403, "workspace_forbidden", { reason: "not_a_member_of_workspace" });
+    }
+    if (Number(named.manage_enabled) !== 1) {
+      throw new HttpError(403, "manage_capability_disabled", { reason: "manage_not_enabled_for_workspace" });
+    }
+    if (named.own_link === null || String(named.own_link) !== "linked") {
+      throw new HttpError(403, "manage_not_linked", { reason: "no_verified_manage_owner_link" });
+    }
+    return { workspaceId: String(named.workspace_id), displayName: String(named.display_name) };
+  }
   if (memberships.length === 0) {
     // Distinguish an identity with no workspace at all from a member who is
     // simply not the manage owner (supplier/driver/second owner) — both are
