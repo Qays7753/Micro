@@ -83,7 +83,20 @@ export async function driverPublicProfile(ctx: RouteContext): Promise<Response> 
     .first<Record<string, unknown>>();
   if (!row || String(row.status) !== "approved") throw new HttpError(404, "not_found");
   const profile = JSON.parse(String(row.public_copy_json ?? "{}")) as Record<string, unknown>;
-  return jsonResponse({ driver: { id: String(row.id), ...profile } });
+  /* PUBLIC-DRIVER-PROFILE (Post-Group 6 — أمر المالك bd242b3e): قائمة
+   * سماح صريحة وحدها — الاسم والمحافظات وسعة الحمولة المعلنة (Q75)؛ رقم
+   * الهاتف لا يظهر أبدًا في النسخة العامة (يظهر لطرف حجز مؤكد فقط عبر
+   * عرض الطلب)، وأي حقل مستقبلي يبقى خاصًا ما لم يُضف هنا بقرار. */
+  return jsonResponse({
+    driver: {
+      id: String(row.id),
+      displayName: typeof profile.displayName === "string" ? profile.displayName : "",
+      governorates: Array.isArray(profile.serviceAreas)
+        ? (profile.serviceAreas as unknown[]).filter((area): area is string => typeof area === "string")
+        : [],
+      capacity: profile.capacity ?? null,
+    },
+  });
 }
 
 async function loadRequest(ctx: RouteContext, requestId: string) {
@@ -97,6 +110,26 @@ async function loadRequest(ctx: RouteContext, requestId: string) {
     .first<Record<string, unknown>>();
   if (!row) throw new HttpError(404, "not_found");
   return row;
+}
+
+/** PUBLIC-DRIVER-PROFILE: the driver profile allowlist for viewers — phone
+ * included ONLY for a confirmed-booking party, never on the public page and
+ * never for the admin viewer (an open case is the admin's path). */
+function driverProfileForViewer(
+  profile: Record<string, unknown>,
+  includeContactOfConfirmedParty: boolean,
+): Record<string, unknown> {
+  const view: Record<string, unknown> = {
+    displayName: typeof profile.displayName === "string" ? profile.displayName : "",
+    governorates: Array.isArray(profile.serviceAreas)
+      ? (profile.serviceAreas as unknown[]).filter((area): area is string => typeof area === "string")
+      : [],
+    capacity: profile.capacity ?? null,
+  };
+  if (includeContactOfConfirmedParty && typeof profile.phone === "string") {
+    view.phone = profile.phone;
+  }
+  return view;
 }
 
 /** The disclosure view: what the OTHER party may see (contract 21 §4). */
@@ -301,7 +334,13 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
     },
     driver: {
       id: String(driverProfileRow.id),
-      profile: JSON.parse(String(driverProfileRow.public_copy_json ?? "{}")),
+      profile: driverProfileForViewer(
+        JSON.parse(String(driverProfileRow.public_copy_json ?? "{}")) as Record<string, unknown>,
+        /* PUBLIC-DRIVER-PROFILE + قرار المالك: الهاتف لطرف حجز مؤكد فقط —
+         * ليس للزائر ولا للمشرف (المشرف يرى بيانات المستلم/الاتصال في بلاغ
+         * أو نزاع مفتوح فقط — MD-02). */
+        (isRequester || isDriver) && String(row.status) === "confirmed",
+      ),
     },
     viewerRole: isRequester ? "requester" : isDriver ? "driver" : "admin",
   });

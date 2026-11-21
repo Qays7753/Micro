@@ -271,6 +271,39 @@ describe("API-01 — the public quantity-check path is rate-limited", () => {
   });
 });
 
+describe("PUBLIC-DRIVER-PROFILE — the public page is an allowlist; the phone never leaks", () => {
+  it("the public profile returns ONLY the allowlisted fields (no phone/terms/ceilings)", async () => {
+    // The AUTHZ-02 test left this profile 'submitted'; re-approve it directly
+    // (the DTO allowlist is what this test exercises, not the review flow).
+    const db = await rawDb(worker);
+    await db
+      .prepare("UPDATE driver_profile SET status = 'approved' WHERE id = ?")
+      .bind(adminDriverRefs.driverProfileId)
+      .run();
+    const response = await apiGet(worker, null, `/api/delivery/drivers/${adminDriverRefs.driverProfileId}`);
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      driver: Record<string, unknown>;
+    };
+    expect(body.driver.displayName).toBeDefined();
+    expect(body.driver.governorates).toBeDefined();
+    expect(body.driver.phone).toBeUndefined();
+    expect(body.driver.terms).toBeUndefined();
+    expect(body.driver.ceilings).toBeUndefined();
+  });
+
+  it("the directory entries carry no contact fields either", async () => {
+    const response = await apiGet(worker, null, "/api/delivery/drivers");
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { drivers: Record<string, unknown>[] };
+    expect(body.drivers.length).toBeGreaterThan(0);
+    for (const entry of body.drivers) {
+      expect(entry.phone).toBeUndefined();
+      expect(entry.terms).toBeUndefined();
+    }
+  });
+});
+
 describe("WEB-01 — frame protections on every response class", () => {
   it("API responses carry X-Frame-Options: DENY", async () => {
     const response = await apiGet(worker, null, "/api/health");
