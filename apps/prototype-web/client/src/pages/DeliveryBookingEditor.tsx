@@ -8,6 +8,7 @@ import { useLocation, useSearch } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { useNetworkSession } from "@/app/useNetworkSession";
+import { newIdempotencyKey } from "@/application/network";
 import {
   createDeliveryRequest,
   fetchDriverDirectory,
@@ -34,6 +35,21 @@ const GOVERNORATES = [
   "معان",
 ];
 
+/* Wave 3 (Q75 — القرار النهائي): فئات الحمل الأربع وشرائح الوزن الثلاث —
+ * القيم الحرفية نفسها التي يتحقق منها الخادم. */
+const LOAD_CLASS_OPTIONS = [
+  { value: "small", label: "صغير — يُحمل باليد" },
+  { value: "medium", label: "متوسط — صندوق سيارة" },
+  { value: "large", label: "كبير — بكب" },
+  { value: "extra_large", label: "كبير جدًا — فان" },
+] as const;
+
+const WEIGHT_BAND_OPTIONS = [
+  { value: "under_10kg", label: "أقل من 10 كغ" },
+  { value: "10_to_50kg", label: "من 10 إلى 50 كغ" },
+  { value: "over_50kg", label: "أكثر من 50 كغ" },
+] as const;
+
 export default function DeliveryBookingEditor() {
   const [location, navigate] = useLocation();
   const searchString = useSearch();
@@ -56,8 +72,12 @@ export default function DeliveryBookingEditor() {
   /* Stage C (S13/R4-13): معرّف المسودة المنشأة يُحفظ — إعادة المحاولة بعد
    * فشل الإرسال تُرسل المسودة نفسها لا تنشئ مسودة ثانية. */
   const createdRequestIdRef = useRef<string | null>(null);
+  /* SRV-03 (Post-Group 6 Wave 3): مفتاح ثابت لهذه العملية المنطقية (إنشاء
+   * هذا الحجز) يُولّد مرة ويُعاد استعماله عند كل إعادة محاولة — لا مفتاح
+   * جديد لكل محاولة (الخادم يحجز المفتاح ذريًّا ويرفض التكرار المتزامن). */
+  const createIdempotencyKeyRef = useRef<string | null>(null);
   const [form, setForm] = useState({
-    needType: "deliver_to_customer" as "deliver_to_customer" | "fetch_ready_goods",
+    needType: "deliver_to_customer" as "deliver_to_customer" | "fetch_ready_goods" | "period_booking",
     driverProfileId: "",
     pricingMode: "prepriced" as "prepriced" | "quote_request",
     fareJod: "",
@@ -74,18 +94,33 @@ export default function DeliveryBookingEditor() {
     pickupWindow: "",
     dropoffWindow: "",
     date: "",
+    /* Wave 3 (Q75/Q100/MD-01): فئة الحمل وشريحة الوزن ونافذة الفترة وملاحظاتها
+     * وموافقة كشف بيانات المستلم. */
+    loadClass: "small" as (typeof LOAD_CLASS_OPTIONS)[number]["value"],
+    weightBand: "under_10kg" as (typeof WEIGHT_BAND_OPTIONS)[number]["value"],
+    periodStart: "",
+    periodEnd: "",
+    periodNotes: "",
+    recipientDataConsent: false,
   });
 
   const load = useCallback(async () => {
     setDirectoryError(false);
     try {
-      const directory = await fetchDriverDirectory();
+      /* Wave 3 (Q73/Q93): الدليل مع المسار — يُرتّب من يغطي المحافظتين أولًا
+       * مع علامة «يغطي مسارك»؛ الباقون يتبعون بلا رفض (السائق يقرر). */
+      const directory = await fetchDriverDirectory({
+        pickupGovernorate: form.pickupGovernorate,
+        dropoffGovernorate: form.dropoffGovernorate,
+      });
       setDrivers(directory.drivers);
     } catch {
       setDrivers(null);
       setDirectoryError(true);
     }
-  }, []);
+    // The route depends on the two governorates only — a change to either
+    // reloads the ordered directory.
+  }, [form.pickupGovernorate, form.dropoffGovernorate]);
 
   useEffect(() => {
     void load();
@@ -119,6 +154,12 @@ export default function DeliveryBookingEditor() {
     form.pickupWindow,
     form.dropoffWindow,
     form.date,
+    form.loadClass,
+    form.weightBand,
+    form.periodStart,
+    form.periodEnd,
+    form.periodNotes,
+    form.recipientDataConsent,
   ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => submit() });
 
@@ -176,6 +217,29 @@ export default function DeliveryBookingEditor() {
       const collectionMinor = /^\d+(\.\d{1,2})?$/.test(collectionText)
         ? `${Math.round(Number(collectionText) * 100)}`
         : undefined;
+      /* Wave 3 (Q100): نافذة الفترة إلزامية لنوع «حجز لفترة» — بداية ونهاية
+       * (وقت محلي يُحوّل إلى طابع خادمي؛ الخادم يتحقق ويحسم بساعته). */
+      let scheduledStartAt: number | undefined;
+      let scheduledEndAt: number | undefined;
+      if (form.needType === "period_booking") {
+        const start = new Date(form.periodStart).getTime();
+        const end = new Date(form.periodEnd).getTime();
+        if (
+          !Number.isFinite(start) ||
+          !Number.isFinite(end) ||
+          form.periodStart === "" ||
+          form.periodEnd === ""
+        ) {
+          setMessage("أدخل بداية الفترة ونهايتها للحجز بالفترة.");
+          return false;
+        }
+        if (end <= start) {
+          setMessage("نهاية الفترة يجب أن تكون بعد بدايتها.");
+          return false;
+        }
+        scheduledStartAt = start;
+        scheduledEndAt = end;
+      }
       /* Stage C (S13/R4-13): المسودة المُنشأة تُرسل نفسها عند إعادة المحاولة —
        * لا مسودة ثانية من كل محاولة إرسال فاشلة. */
       let requestId = createdRequestIdRef.current;
@@ -187,6 +251,11 @@ export default function DeliveryBookingEditor() {
           setMessage("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
           return false;
         }
+        /* SRV-03: المفتاح يولّد مرة لهذا الحجز ويُثبّت — إعادة المحاولة بعد
+         * فشل الشبكة تعيد استعمال المفتاح نفسه فلا يُنشأ حجز مكرر أبدًا. */
+        if (createIdempotencyKeyRef.current === null) {
+          createIdempotencyKeyRef.current = newIdempotencyKey();
+        }
         const created = await createDeliveryRequest({
           driverProfileId: form.driverProfileId,
           needType: form.needType,
@@ -195,6 +264,19 @@ export default function DeliveryBookingEditor() {
           collectionMinor,
           collectionContent: collectionMinor === undefined ? undefined : "product",
           workspaceId: activeWorkspaceId,
+          ...(form.needType === "period_booking"
+            ? {
+                scheduledStartAt,
+                scheduledEndAt,
+                periodNotes: form.periodNotes.trim() === "" ? undefined : form.periodNotes.trim(),
+              }
+            : {
+                loadClass: form.loadClass,
+                weightBand: form.weightBand,
+                pieceCount: Number(normalizeAsciiDigits(form.parcels)) || 1,
+              }),
+          recipientDataConsent: form.recipientDataConsent === true ? true : undefined,
+          idempotencyKey: createIdempotencyKeyRef.current,
           payload: {
             pickup: { governorate: form.pickupGovernorate, area: form.pickupArea },
             dropoff: {
@@ -257,6 +339,9 @@ export default function DeliveryBookingEditor() {
         >
           <option value="deliver_to_customer">توصيل للزبون</option>
           <option value="fetch_ready_goods">إحضار أغراض جاهزة</option>
+          {/* Wave 3 (Q100 — القرار النهائي): النوع الثالث «حجز لفترة» —
+           * بداية ونهاية وسعر متفق عليه وملاحظات. */}
+          <option value="period_booking">حجز لفترة (بداية ونهاية)</option>
         </select>
       </Field>
       <div className="micro-editor-grid">
@@ -310,40 +395,106 @@ export default function DeliveryBookingEditor() {
           onChange={event => update({ recipientAddress: event.target.value })}
         />
       </Field>
-      <div className="micro-editor-grid">
-        <Field label="عدد الطرود">
-          <input
-            value={form.parcels}
-            onChange={event => update({ parcels: event.target.value })}
-            inputMode="numeric"
-          />
-        </Field>
-        <Field label="وصف الحمولة">
-          <input
-            value={form.loadDescription}
-            onChange={event => update({ loadDescription: event.target.value })}
-          />
-        </Field>
-      </div>
-      <div className="micro-editor-grid">
-        <Field label="التاريخ">
-          <input type="date" value={form.date} onChange={event => update({ date: event.target.value })} />
-        </Field>
-        <Field label="نافذة الاستلام">
-          <input
-            value={form.pickupWindow}
-            onChange={event => update({ pickupWindow: event.target.value })}
-            placeholder="10:00-12:00"
-          />
-        </Field>
-        <Field label="نافذة التسليم">
-          <input
-            value={form.dropoffWindow}
-            onChange={event => update({ dropoffWindow: event.target.value })}
-            placeholder="14:00-16:00"
-          />
-        </Field>
-      </div>
+      {form.needType === "period_booking" ? (
+        <>
+          {/* Wave 3 (Q100): نافذة الفترة إلزامية — بداية ونهاية وسعر متفق
+           * عليه وملاحظات؛ الخادم يتحقق ويفحص التداخل ضمن سعة السائق. */}
+          <div className="micro-editor-grid">
+            <Field label="بداية الفترة">
+              <input
+                type="datetime-local"
+                value={form.periodStart}
+                onChange={event => update({ periodStart: event.target.value })}
+                data-testid="period-start"
+              />
+            </Field>
+            <Field label="نهاية الفترة">
+              <input
+                type="datetime-local"
+                value={form.periodEnd}
+                onChange={event => update({ periodEnd: event.target.value })}
+                data-testid="period-end"
+              />
+            </Field>
+          </div>
+          <Field label="ملاحظات الفترة (اختياري)">
+            <input
+              value={form.periodNotes}
+              onChange={event => update({ periodNotes: event.target.value })}
+              placeholder="مثال: يوم كامل لتوصيلات السوق"
+            />
+          </Field>
+        </>
+      ) : (
+        <div className="micro-editor-grid">
+          <Field label="التاريخ">
+            <input type="date" value={form.date} onChange={event => update({ date: event.target.value })} />
+          </Field>
+          <Field label="نافذة الاستلام">
+            <input
+              value={form.pickupWindow}
+              onChange={event => update({ pickupWindow: event.target.value })}
+              placeholder="10:00-12:00"
+            />
+          </Field>
+          <Field label="نافذة التسليم">
+            <input
+              value={form.dropoffWindow}
+              onChange={event => update({ dropoffWindow: event.target.value })}
+              placeholder="14:00-16:00"
+            />
+          </Field>
+        </div>
+      )}
+      {form.needType !== "period_booking" ? (
+        <>
+          {/* Wave 3 (Q75 — القرار النهائي): فئة الحمل وعدد القطع وشرائح
+           * الوزن — حقول إلزامية يتحقق منها الخادم (د-7/Q97). */}
+          <div className="micro-editor-grid">
+            <Field label="فئة الحمل">
+              <select
+                value={form.loadClass}
+                onChange={event => update({ loadClass: event.target.value as typeof form.loadClass })}
+                data-testid="load-class"
+              >
+                {LOAD_CLASS_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="الوزن التقريبي">
+              <select
+                value={form.weightBand}
+                onChange={event => update({ weightBand: event.target.value as typeof form.weightBand })}
+                data-testid="weight-band"
+              >
+                {WEIGHT_BAND_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="micro-editor-grid">
+            <Field label="عدد القطع">
+              <input
+                value={form.parcels}
+                onChange={event => update({ parcels: event.target.value })}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="وصف الحمولة">
+              <input
+                value={form.loadDescription}
+                onChange={event => update({ loadDescription: event.target.value })}
+              />
+            </Field>
+          </div>
+        </>
+      ) : null}
 
       <h2>اختيار السائق المعروف</h2>
       {directoryError ? (
@@ -389,6 +540,11 @@ export default function DeliveryBookingEditor() {
                     ? ` · ${driver.averageStars ?? "—"}★ (${driver.ratingsCount})`
                     : " · جديد — دون تقييمات"}
                   {driver.eligibleForNewWork && driver.acceptingNew ? "" : " · لا يستقبل جديدًا حاليًا"}
+                  {/* Wave 3 (Q73): علامة التغطية — السائق الذي يغطي المسار
+                   * يتصدر القائمة بعلامة «يغطي مسارك». */}
+                  {driver.coversRoute === true ? (
+                    <strong data-testid={`covers-route-${driver.driverProfileId}`}> · يغطي مسارك</strong>
+                  ) : null}
                 </span>
               </label>
             </li>
@@ -422,9 +578,35 @@ export default function DeliveryBookingEditor() {
           inputMode="decimal"
         />
       </Field>
+      {/* Wave 3 (MD-01 — القرار النهائي د-1 + Q115/Q238): موافقة مدى الحجز
+       * على كشف بيانات المستلم للسائق المعيّن بعد تأكيد الحجز — اختيار
+       * صريح قابل للسحب لاحقًا؛ بلاه يبقى السائق على المناطق والموعد فقط. */}
+      <label className="micro-consent-check" data-testid="recipient-consent">
+        <input
+          type="checkbox"
+          checked={form.recipientDataConsent}
+          onChange={event => update({ recipientDataConsent: event.target.checked })}
+        />
+        <span>
+          أوافق على إظهار بيانات المستلم (الاسم والهاتف والعنوان) للسائق المعيّن بعد تأكيد الحجز — يمكنني سحب
+          الموافقة لاحقًا من صفحة الحجز.
+        </span>
+      </label>
+      {/* Wave 3 (Q73): تنبيه صادق عند اختيار سائق خارج تغطية المسار —
+       * الحجز مسموح والسائق يقرر؛ لا رفض خادمي. */}
+      {(() => {
+        const selected = drivers?.find(driver => driver.driverProfileId === form.driverProfileId);
+        if (selected === undefined || selected === null || selected.coversRoute !== false) return null;
+        return (
+          <Notice tone="info" data-testid="outside-coverage-notice">
+            السائق المختار خارج تغطية هذا المسار — الحجز مسموح مع هذا التنبيه، والسائق يقرر قبوله بعد رؤية
+            المسار والحمولة.
+          </Notice>
+        );
+      })()}
       <Notice tone="info">
-        معاينة الإفصاح: سيرى السائق المناطق والموعد والحمولة والأجرة — بيانات المستلم التفصيلية محجوبة حتى
-        قرار الإفصاح الموثق.
+        معاينة الإفصاح: سيرى السائق المناطق والموعد والحمولة والأجرة — بيانات المستلم التفصيلية لا تظهر للسائق
+        إلا بموافقتك الصريحة أعلاه، ويمكن سحبها في أي وقت.
       </Notice>
       <div className="micro-form-actions">
         <Button action="commit" loading={busy} onClick={() => void submit()}>

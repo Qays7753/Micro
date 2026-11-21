@@ -255,7 +255,10 @@ export async function signInAs(
   return { cookieHeader: `micro_session=${token}`, identityEmail: profile.email };
 }
 
-/** Authenticated JSON POST with the API/CSRF headers. */
+/** Authenticated JSON POST with the API/CSRF headers. Every command POST
+ * carries a fresh Idempotency-Key — the same posture as the real network
+ * client (apiFetch callers), which never issues a command POST without one
+ * (SRV-03: booking creation REQUIRES the key server-side). */
 export async function apiPost(
   worker: WorkerInstance,
   cookie: string | null,
@@ -270,6 +273,7 @@ export async function apiPost(
       origin: worker.origin,
       "x-micro-api": "1",
       ...(cookie ? { cookie } : {}),
+      "idempotency-key": `test-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`,
       ...extraHeaders,
     },
     body: JSON.stringify(body),

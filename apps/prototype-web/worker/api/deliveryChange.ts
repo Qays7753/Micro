@@ -275,8 +275,10 @@ export async function decideChange(ctx: RouteContext, auth: AuthenticatedContext
     const agreement = JSON.parse(String(row.agreement_copy_json ?? "{}")) as Record<string, unknown>;
     const applied = applyChangesToAgreement(agreement, stored, vehicleRow, now, String(proposal.id));
     newVersion = Number(applied.agreement.version);
-    // Row columns stay coherent with the amended agreement (existing views
-    // read them); the agreement copy itself is the versioned record.
+    /* SRV-05 (Post-Group 6 Wave 3): حسم المقترح وتطبيق أثره معاملة واحدة —
+     * الحسم أولًا (CAS على pending مع شرط بقاء الحجز مؤكدًا)، ثم الأثر في
+     * المعاملة نفسها مشروطًا بالحسم المُتمّ؛ سباق قبولين متزامنين يتحلل
+     * إلى فائز واحد و409 صادق، ولا يبقى أثر مطبّق بلا حسم ولا حسم بلا أثر. */
     const sets: string[] = [
       "agreement_copy_json = ?",
       "agreement_version = ?",
@@ -301,30 +303,50 @@ export async function decideChange(ctx: RouteContext, auth: AuthenticatedContext
       sets.push("collection_content = ?");
       values.push(stored.collectionContent);
     }
-    values.push(String(row.id));
-    await db(ctx)
-      .prepare(`UPDATE delivery_request SET ${sets.join(", ")} WHERE id = ?`)
-      .bind(...values)
+    const noteTextAccept = typeof body.note === "string" ? body.note.slice(0, 500) : null;
+    const results = await db(ctx).batch([
+      db(ctx)
+        .prepare(
+          "UPDATE delivery_change_proposal SET status = 'accepted', decided_by_identity_id = ?, decided_at = ?, decision_note = ?, resulting_agreement_version = ?, updated_at = ? " +
+            "WHERE id = ? AND status = 'pending' " +
+            "AND EXISTS (SELECT 1 FROM delivery_request r WHERE r.id = ? AND r.status = 'confirmed')",
+        )
+        .bind(auth.identityId, now, noteTextAccept, newVersion, now, String(proposal.id), String(row.id)),
+      db(ctx)
+        .prepare(
+          `UPDATE delivery_request r SET ${sets.join(", ")} WHERE r.id = ? AND r.status = 'confirmed' ` +
+            "AND EXISTS (SELECT 1 FROM delivery_change_proposal p WHERE p.id = ? AND p.status = 'accepted')",
+        )
+        .bind(...values, String(row.id), String(proposal.id)),
+    ]);
+    if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
+      // The proposal was decided concurrently OR the booking left `confirmed`
+      // — re-read for the honest reason; nothing was applied either way.
+      const after = await db(ctx)
+        .prepare("SELECT status FROM delivery_change_proposal WHERE id = ?")
+        .bind(String(proposal.id))
+        .first<{ status: string }>();
+      if (after !== null && after.status !== "pending") {
+        throw new HttpError(409, "conflict", { reason: `proposal_already_${after.status}` });
+      }
+      throw new HttpError(409, "conflict", { reason: "booking_no_longer_confirmed" });
+    }
+    if (Number(results[1]?.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "booking_no_longer_confirmed" });
+    }
+  } else {
+    const noteText = typeof body.note === "string" ? body.note.slice(0, 500) : null;
+    const moved = await db(ctx)
+      .prepare(
+        "UPDATE delivery_change_proposal SET status = ?, decided_by_identity_id = ?, decided_at = ?, decision_note = ?, resulting_agreement_version = ?, updated_at = ? WHERE id = ? AND status = 'pending'",
+      )
+      .bind("rejected", auth.identityId, now, noteText, null, now, String(proposal.id))
       .run();
+    if (Number(moved.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "proposal_already_decided" });
+    }
   }
   const noteText = typeof body.note === "string" ? body.note.slice(0, 500) : null;
-  const moved = await db(ctx)
-    .prepare(
-      "UPDATE delivery_change_proposal SET status = ?, decided_by_identity_id = ?, decided_at = ?, decision_note = ?, resulting_agreement_version = ?, updated_at = ? WHERE id = ? AND status = 'pending'",
-    )
-    .bind(
-      accept ? "accepted" : "rejected",
-      auth.identityId,
-      now,
-      noteText,
-      newVersion,
-      now,
-      String(proposal.id),
-    )
-    .run();
-  if (Number(moved.meta?.changes ?? 0) !== 1) {
-    throw new HttpError(409, "conflict", { reason: "proposal_already_decided" });
-  }
   await recordEvent(
     ctx,
     String(row.id),

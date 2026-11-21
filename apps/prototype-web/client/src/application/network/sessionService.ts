@@ -65,6 +65,28 @@ export async function signOutAllDevices(): Promise<number> {
 }
 
 /**
+ * Wave 3 (G09 د-6 — القرار النهائي): تسجيل اشتراك هذا الجهاز في تنبيهات
+ * Web Push أفضل الجهد — إرسال محاولة لا ضمان وصول؛ يسجَّل الاشتراك بعد
+ * منح إذن المتصفح، ولا يُدّعى وصول أبدًا.
+ */
+export async function registerPushSubscription(subscription: {
+  endpoint: string;
+  keys: Record<string, unknown>;
+}): Promise<void> {
+  await apiFetch("/api/auth/push-subscriptions", {
+    method: "POST",
+    body: JSON.stringify(subscription),
+  });
+}
+
+/** إلغاء اشتراك هذا الجهاز في تنبيهات Push (G09 — مسار صادق). */
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  await apiFetch(`/api/auth/push-subscriptions?endpoint=${encodeURIComponent(endpoint)}`, {
+    method: "DELETE",
+  });
+}
+
+/**
  * W1 (قرار المالك النهائي أ-3/أ-4 / EX-D24 — G01): إنشاء المشروع الواحد
  * بضغطة صريحة — مشروع واحد لكل حساب وصاحب واحد لكل مشروع؛ إنشاء ثانٍ
  * يرفضه الخادم (409) ولا يُنشأ شيء تلقائيًا عند أي فعل عمل.

@@ -60,6 +60,9 @@ async function createRequest(mode: "prepriced" | "quote_request"): Promise<Reque
   const response = await apiPost(worker, ownerCookie, "/api/delivery/requests", {
     driverProfileId,
     needType: "deliver_to_customer",
+    loadClass: "small",
+    weightBand: "under_10kg",
+    pieceCount: 2,
     pricingMode: mode,
     offeredFareMinor: mode === "prepriced" ? "300" : undefined,
     workspaceId: ownerWorkspaceId,

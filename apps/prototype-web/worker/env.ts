@@ -70,6 +70,12 @@ export interface Env {
   BOOTSTRAP_OWNER_EMAIL?: string;
   /** Optional service binding used for Google token exchange (tests/ops). */
   GOOGLE?: OutboundFetcher;
+  /** Web Push VAPID private key (Cloudflare secret storage only). ABSENT in
+   * every current environment: the push provider is explicitly NOT configured
+   * (G09 best-effort semantics — no provider write, no real keys, and push
+   * delivery is never claimed). An operator configuring it later is a setup
+   * step outside this repository's authorization. */
+  PUSH_VAPID_PRIVATE_KEY?: string;
 }
 
 export const DB_BINDING_NAME = "DB";

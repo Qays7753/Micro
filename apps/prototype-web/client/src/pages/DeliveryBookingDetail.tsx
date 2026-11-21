@@ -19,6 +19,8 @@ import {
   proposeDeliveryChange,
   rateDeliveryBooking,
   recordDeliveryInstructions,
+  reportNoShow,
+  revokeRecipientConsent,
   withdrawDeliveryChange,
   type BookingDetail,
 } from "@/application/delivery";
@@ -238,6 +240,65 @@ export default function DeliveryBookingDetail() {
                 : "30 دقيقة"}
               ؛ لا تحويل تلقائي لسائق آخر بعد انتهائها.
             </Notice>
+          ) : null}
+
+          {/* Wave 3 (G09 د-6 — القرار النهائي): عند انتهاء المهلة يُبلّغ
+           * صاحب الحجز ويظهر له زر «احجز سائقًا آخر» — لا تحويل تلقائي
+           * أبدًا؛ الاستبدال فعل صريح من صاحب الحجز. */}
+          {request.status === "response_expired" || request.status === "driver_declined" ? (
+            <div data-testid="book-another-driver" className="micro-form-actions">
+              <Button action="secondary" onClick={() => navigate("/delivery/booking/new")}>
+                احجز سائقًا آخر
+              </Button>
+            </div>
+          ) : null}
+
+          {/* Wave 3 (Q268): صاحب الحجز يعرف أن للسائق حجوزات أخرى متداخلة
+           * في نفس الفترة — علم واحد بلا أي تفاصيل (قرار المالك النهائي). */}
+          {request.driverHasOtherBookingsInPeriod === true ? (
+            <Notice tone="info" data-testid="driver-other-bookings">
+              السائق عنده حجوزات أخرى في نفس الفترة — كل حجز مستقل بسجله ومبلغه.
+            </Notice>
+          ) : null}
+
+          {/* Wave 3 (MD-01): سحب موافقة كشف بيانات المستلم — فوري من صفحة
+           * الحجز؛ الوصول يقف عند القراءة التالية. */}
+          {request.recipientConsentActive === true ? (
+            <div className="micro-form-actions">
+              <Button
+                action="quiet"
+                onClick={() =>
+                  void act(
+                    () => revokeRecipientConsent(request.id),
+                    "سُحبت موافقة كشف بيانات المستلم — لن يراها السائق بعد الآن.",
+                  )
+                }
+              >
+                اسحب موافقة إظهار بيانات المستلم للسائق
+              </Button>
+            </div>
+          ) : null}
+
+          {/* Wave 3 (Q242 د-4): «لم يحضر» — يفتح بعد 30 دقيقة من الموعد بساعة
+           * الخادم؛ الخادم يرفض قبلها برسالة صادقة، وثلاث حالات خلال شهر
+           * ترفع علم المراجعة اليدوية. */}
+          {request.status === "confirmed" &&
+          request.scheduledStartAt != null &&
+          (data.execution === null ||
+            ["not_started", "heading_to_pickup", "arrived_at_source"].includes(data.execution.execution)) ? (
+            <div className="micro-form-actions">
+              <Button
+                action="quiet"
+                onClick={() =>
+                  void act(
+                    () => reportNoShow(request.id),
+                    "سُجّل بلاغ «لم يحضر» — تُراجع الحالات المتكررة يدويًا.",
+                  )
+                }
+              >
+                لم يحضر السائق
+              </Button>
+            </div>
           ) : null}
 
           {request.status === "awaiting_requester_decision" && data.quote ? (

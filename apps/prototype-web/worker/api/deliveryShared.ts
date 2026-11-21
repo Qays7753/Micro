@@ -143,6 +143,53 @@ export async function requireDriverProfile(ctx: RouteContext, auth: Authenticate
   return status.driverProfileId;
 }
 
+/* ── Q268 (Post-Group 6 Wave 3 — القرار النهائي): فحص السعة والتداخل الذري ──
+ *
+ * حجوزات منفصلة متداخلة زمنيًا لأكثر من صاحب مشروع، ضمن سعة قصوى يحددها
+ * السائق (max_concurrent_bookings؛ غير المحدَّدة = ١). الفحص والتأكيد
+ * انتقال واحد داخل معاملة: قفل استشاري على صف السائق يمنع سباق تأكيدين
+ * متزامنين لنفس السائق، والشرط نفسه داخل UPDATE يعدّ الحجوزات المؤكدة
+ * المتداخلة ويمنع التجاوز. حجز بلا نافذة زمنية (القديم أو من نوع لا
+ * يشترطها) لا يدخل الحساب ولا يُحسب عليه. صاحب الحجز يرى وجود حجوزات
+ * أخرى فقط — بلا أي تفاصيل (يُحسب في requestDetail). */
+
+export const CAPACITY_OVERLAP_SQL =
+  "(" +
+  "SELECT COALESCE(d.max_concurrent_bookings, 1) FROM driver_profile d WHERE d.id = r.driver_profile_id" +
+  ") > (" +
+  "SELECT COUNT(*) FROM delivery_request o WHERE o.driver_profile_id = r.driver_profile_id AND o.status = 'confirmed'" +
+  " AND o.id <> r.id AND o.scheduled_start_at IS NOT NULL AND o.scheduled_end_at IS NOT NULL" +
+  " AND o.scheduled_start_at < r.scheduled_end_at AND r.scheduled_start_at < o.scheduled_end_at" +
+  ")";
+
+/** Advisory-lock a driver's confirmation lane inside the caller's batch
+ * transaction — serializes concurrent confirms for the same driver. */
+export function driverCapacityLockStatement(
+  db: Db,
+  driverProfileId: string,
+): import("../db/db.ts").DbPreparedStatement {
+  return db.prepare("SELECT pg_advisory_xact_lock(hashtextextended(?::text, 0))").bind(driverProfileId);
+}
+
+/** Does the driver hold any OTHER confirmed booking overlapping [start, end]? */
+export async function driverHasOverlappingConfirmed(
+  db: Db,
+  driverProfileId: string,
+  requestId: string,
+  start: number,
+  end: number,
+): Promise<boolean> {
+  const row = await db
+    .prepare(
+      "SELECT COUNT(*) AS overlapping FROM delivery_request o WHERE o.driver_profile_id = ? AND o.status = 'confirmed'" +
+        " AND o.id <> ? AND o.scheduled_start_at IS NOT NULL AND o.scheduled_end_at IS NOT NULL" +
+        " AND o.scheduled_start_at < ? AND ? < o.scheduled_end_at",
+    )
+    .bind(driverProfileId, requestId, end, start)
+    .first<{ overlapping: number }>();
+  return Number(row?.overlapping ?? 0) > 0;
+}
+
 /** Money-axis projection for a statement's fixed items (OD13, contract 21
  * §3.2-6): advances only the confirmed pair bookings listed in the statement,
  * and never re-opens an already-decided axis (§3.2-7 — re-open needs a

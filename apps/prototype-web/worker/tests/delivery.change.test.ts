@@ -313,6 +313,9 @@ describe("material change proposals (OD11 — §17-8 closure)", () => {
     const fresh = await apiPost(worker, ownerCookie, "/api/delivery/requests", {
       driverProfileId,
       needType: "deliver_to_customer",
+      loadClass: "small",
+      weightBand: "under_10kg",
+      pieceCount: 2,
       pricingMode: "prepriced",
       offeredFareMinor: "300",
       workspaceId: chOwnerWorkspaceId,

@@ -8,22 +8,44 @@ import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
 import {
+  loadClassFromInput,
   parseMinorAmount,
   transitionContact,
   transitionRequest,
+  validateBookingWindow,
+  weightBandFromInput,
   type RequestStatus,
 } from "../domain/delivery.ts";
 import { DRIVER_RESPONSE_WINDOW_MS } from "../env.ts";
 import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
-import { buildAgreementCopy, loadRequest, notifyDriver, recordEvent } from "./deliveryShared.ts";
+import {
+  buildAgreementCopy,
+  CAPACITY_OVERLAP_SQL,
+  driverCapacityLockStatement,
+  loadRequest,
+  notifyDriver,
+  recordEvent,
+} from "./deliveryShared.ts";
 import { isAdminIdentity, requireWorkspaceContext } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
 }
+
+/** MD-01 (Post-Group 6 Wave 3): the recipient-data consent policy version
+ * the requester accepts at booking time. Scoped per booking, per owner, per
+ * field set — recorded at creation and verified at every read. */
+export const RECIPIENT_CONSENT_POLICY_VERSION = "2026-11-21";
+const RECIPIENT_CONSENT_FIELDS = [
+  "pickup.name",
+  "pickup.address",
+  "dropoff.name",
+  "dropoff.phone",
+  "dropoff.address",
+];
 
 /** POST /api/delivery/requests — create a DRAFT directed request (OD03). */
 export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
@@ -44,7 +66,11 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
   }
   const driverProfileId = typeof body.driverProfileId === "string" ? body.driverProfileId : null;
   const needType =
-    body.needType === "deliver_to_customer" || body.needType === "fetch_ready_goods" ? body.needType : null;
+    body.needType === "deliver_to_customer" ||
+    body.needType === "fetch_ready_goods" ||
+    body.needType === "period_booking"
+      ? body.needType
+      : null;
   if (!driverProfileId || !needType) throw new HttpError(400, "bad_request", { field: "request" });
   const driverRow = await db(ctx)
     .prepare("SELECT id, status, identity_id FROM driver_profile WHERE id = ?")
@@ -77,6 +103,46 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
       : body.collectionContent === "product_and_fare"
         ? "product_and_fare"
         : "product";
+  /* Wave 3 (Q75 — أحجام الحمولة): فئة الحمل وعدد القطع وشريحة الوزن حقول
+   * إلزامية يتحقق منها الخادم لنوعي البضاعة؛ الحجز بالفترة (Q100) لا
+   * يشترطها (لا بضاعة تُنقل بذاتها) ويشترط بدلها نافذة البداية/النهاية. */
+  let loadClass: string | null = null;
+  let weightBand: string | null = null;
+  let pieceCount: number | null = null;
+  if (needType !== "period_booking") {
+    loadClass = loadClassFromInput(body.loadClass);
+    weightBand = weightBandFromInput(body.weightBand);
+    if (
+      typeof body.pieceCount !== "number" ||
+      !Number.isInteger(body.pieceCount) ||
+      body.pieceCount < 1 ||
+      body.pieceCount > 200
+    ) {
+      throw new HttpError(400, "bad_request", { field: "pieceCount" });
+    }
+    pieceCount = body.pieceCount;
+  }
+  /* Wave 3 (Q100/Q268): نافذة الحجز الزمنية — إلزامية للحجز بالفترة،
+   * اختيارية للنوعين الآخرين (تُستخدم لفحص التداخل والسعة عند وجودها). */
+  let scheduledStartAt: number | null = null;
+  let scheduledEndAt: number | null = null;
+  if (body.scheduledStartAt !== undefined && body.scheduledEndAt !== undefined) {
+    const window = validateBookingWindow(body.scheduledStartAt, body.scheduledEndAt);
+    scheduledStartAt = window.start;
+    scheduledEndAt = window.end;
+  } else if (needType === "period_booking") {
+    throw new HttpError(400, "bad_request", {
+      field: "scheduledWindow",
+      reason: "period_booking_requires_window",
+    });
+  }
+  /* Wave 3 (Q100): «حجز لفترة» — سعر متفق عليه من الطرفين وملاحظات؛ السعر
+   * يمر بالمسار القائم (prepriced مع أجرة معروضة) والملاحظة داخل الحمولة. */
+  if (needType === "period_booking") {
+    if (typeof body.periodNotes === "string" && body.periodNotes.length > 500) {
+      throw new HttpError(400, "bad_request", { field: "periodNotes", reason: "too_long" });
+    }
+  }
   const id = newId("dlv", randomToken);
   const now = nowMs();
   if (await isAdminIdentity(db(ctx), auth.identityId)) {
@@ -88,7 +154,7 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
   await db(ctx)
     .prepare(
       "INSERT INTO delivery_request (id, requester_identity_id, workspace_id, driver_profile_id, need_type, payload_json, collection_minor, " +
-        "collection_content, pricing_mode, offered_fare_minor, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)",
+        "collection_content, pricing_mode, offered_fare_minor, load_class, piece_count, weight_band, scheduled_start_at, scheduled_end_at, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)",
     )
     .bind(
       id,
@@ -96,15 +162,53 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
       workspace.workspaceId,
       driverProfileId,
       needType,
-      JSON.stringify(payload),
+      JSON.stringify(
+        needType === "period_booking" && typeof body.periodNotes === "string"
+          ? { ...payload, periodNotes: body.periodNotes }
+          : payload,
+      ),
       collectionMinor,
       collectionContent,
       pricingMode,
       offeredFareMinor,
+      loadClass,
+      pieceCount,
+      weightBand,
+      scheduledStartAt,
+      scheduledEndAt,
       now,
       now,
     )
     .run();
+  /* MD-01 (Post-Group 6 Wave 3): موافقة مدى الحجز على كشف بيانات المستلم
+   * للسائق المعيّن — تُسجّل بخطوة الإنشاء بإصدار السياسة وحقولها، وتُتحقق
+   * عند كل قراءة؛ بلا موافقة يبقى السائق على القائمة المنقّحة. */
+  if (body.recipientDataConsent === true) {
+    await db(ctx)
+      .prepare(
+        "INSERT INTO recipient_data_consent (request_id, granted_by_identity_id, fields_json, policy_version, granted_at) VALUES (?, ?, ?, ?, ?)",
+      )
+      .bind(
+        id,
+        auth.identityId,
+        JSON.stringify(RECIPIENT_CONSENT_FIELDS),
+        RECIPIENT_CONSENT_POLICY_VERSION,
+        now,
+      )
+      .run();
+    await audit(
+      db(ctx),
+      {
+        actorIdentityId: auth.identityId,
+        action: "recipient_consent_granted",
+        objectType: "delivery_request",
+        objectId: id,
+        result: "success",
+        meta: { policyVersion: RECIPIENT_CONSENT_POLICY_VERSION },
+      },
+      now,
+    );
+  }
   await audit(
     db(ctx),
     {
@@ -123,6 +227,47 @@ async function loadOwnRequest(ctx: RouteContext, auth: AuthenticatedContext, req
   const row = await loadRequest(ctx, requestId);
   if (String(row.requester_identity_id) !== auth.identityId) throw new HttpError(404, "not_found");
   return row;
+}
+
+/** POST /api/delivery/requests/:id/recipient-consent/revoke — MD-01 (Post-Group
+ * 6 Wave 3): صاحب الحجز وحده يسحب موافقة كشف بيانات المستلم؛ الوصول يقف
+ * فورًا (تُتحقق الموافقة غير المسحوبة عند كل قراءة). */
+export async function revokeRecipientConsent(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+): Promise<Response> {
+  const row = await loadOwnRequest(ctx, auth, ctx.params.id!);
+  const now = nowMs();
+  const moved = await db(ctx)
+    .prepare(
+      "UPDATE recipient_data_consent SET revoked_at = ? WHERE request_id = ? AND granted_by_identity_id = ? AND revoked_at IS NULL",
+    )
+    .bind(now, String(row.id), auth.identityId)
+    .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "no_active_recipient_consent" });
+  }
+  await recordEvent(
+    ctx,
+    String(row.id),
+    "request",
+    "recipient_consent_revoked",
+    "granted",
+    "revoked",
+    auth.identityId,
+  );
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: "recipient_consent_revoked",
+      objectType: "delivery_request",
+      objectId: String(row.id),
+      result: "success",
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
 }
 
 /** POST /api/delivery/requests/:id/submit — send the directed request (30-min window). */
@@ -230,7 +375,9 @@ export async function decideQuote(
   return jsonResponse({ ok: true, status: next });
 }
 
-/** Confirmation writes the frozen agreement copy (OD11) atomically. */
+/** Confirmation writes the frozen agreement copy (OD11) atomically — with the
+ * Q268 atomic capacity/overlap check riding the same conditional statement
+ * under the driver's advisory lock (see deliveryShared.ts). */
 async function confirmBooking(ctx: RouteContext, row: Record<string, unknown>, now: number): Promise<void> {
   const quoteRow = row.quote_id
     ? await db(ctx)
@@ -257,19 +404,36 @@ async function confirmBooking(ctx: RouteContext, row: Record<string, unknown>, n
     requesterName: String(requester?.display_name ?? ""),
     confirmedAt: now,
   });
-  await db(ctx)
-    .prepare(
-      "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ? AND status = 'awaiting_requester_decision'",
-    )
-    .bind(agreementCopy, now, String(row.id))
-    .run();
-  await db(ctx)
-    .prepare(
-      "INSERT INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
-        "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ?::text IS NULL THEN 'none' ELSE 'agreed' END, ?) ON CONFLICT DO NOTHING",
-    )
-    .bind(String(row.id), row.collection_minor, now)
-    .run();
+  /* Q268 (Post-Group 6 Wave 3): قفل استشاري + UPDATE شرطي واحد يفحص السعة
+   * والتداخل ذريًّا — سباق قبولي اقتباس متزامنين لنفس السائق يتحلل إلى
+   * نجاح واحد و409 صادق (السعة ممتلئة أو تغيّرت الحالة). */
+  const results = await db(ctx).batch([
+    driverCapacityLockStatement(db(ctx), String(row.driver_profile_id)),
+    db(ctx)
+      .prepare(
+        "UPDATE delivery_request r SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? " +
+          "WHERE r.id = ? AND r.status = 'awaiting_requester_decision' AND (r.scheduled_start_at IS NULL OR r.scheduled_end_at IS NULL OR " +
+          CAPACITY_OVERLAP_SQL +
+          ")",
+      )
+      .bind(agreementCopy, now, String(row.id)),
+    db(ctx)
+      .prepare(
+        "INSERT INTO delivery_execution (request_id, execution_status, confirmation_status, contact_status, goods_location, money_status, updated_at) " +
+          "VALUES (?, 'not_started', 'none', 'not_attempted', 'at_source', CASE WHEN ?::text IS NULL THEN 'none' ELSE 'agreed' END, ?) ON CONFLICT DO NOTHING",
+      )
+      .bind(String(row.id), row.collection_minor, now),
+  ]);
+  if (Number(results[1]?.meta?.changes ?? 0) !== 1) {
+    const current = await db(ctx)
+      .prepare("SELECT status FROM delivery_request WHERE id = ?")
+      .bind(String(row.id))
+      .first<{ status: string }>();
+    if (current !== null && current.status === "awaiting_requester_decision") {
+      throw new HttpError(409, "conflict", { reason: "driver_capacity_full" });
+    }
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
 }
 
 /** POST /api/delivery/requests/:id/cancel — after confirmation, per saved terms. */

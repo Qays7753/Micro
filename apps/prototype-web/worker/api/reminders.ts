@@ -32,6 +32,7 @@ export interface ReminderRunSummary {
   expiryNotices: number;
   confirmationReminders: number;
   evidenceReminders: number;
+  responseExpiryNotices: number;
   processedAt: number;
 }
 
@@ -43,6 +44,7 @@ export async function processDueReminders(db: Db, now: number): Promise<Reminder
     expiryNotices: 0,
     confirmationReminders: 0,
     evidenceReminders: 0,
+    responseExpiryNotices: 0,
     processedAt: now,
   };
 
@@ -140,6 +142,34 @@ export async function processDueReminders(db: Db, now: number): Promise<Reminder
       now,
     );
     summary.evidenceReminders += 1;
+  }
+
+  // (4) G09 (القرار النهائي د-6 — Post-Group 6 Wave 3): مهلة الرد المنتهية
+  // تُبلّغ صاحب الحجز مرة واحدة — كل المهل على ساعة الخادم (الحالة تُحسب
+  // قراءةً في effectiveRequestStatus؛ هذا التنبيه فقط، لا تغيير حالة).
+  // الحجز يبقى قابلًا للاستبدال بزر «احجز سائقًا آخر» في الواجهة؛ قبول
+  // متأخر بعد المهلة مرفوض 410 من آلة الحالات نفسها (لا عودة صامتة).
+  const expiredWindows = await db
+    .prepare(
+      "SELECT id, requester_identity_id, response_deadline_at FROM delivery_request " +
+        "WHERE status IN ('awaiting_driver_response', 'awaiting_requester_decision') " +
+        "AND response_deadline_at IS NOT NULL AND response_deadline_at <= ?",
+    )
+    .bind(now)
+    .all<{ id: string; requester_identity_id: string; response_deadline_at: number }>();
+  for (const expired of expiredWindows.results) {
+    await notify(
+      db,
+      {
+        identityId: String(expired.requester_identity_id),
+        type: "response_window_expired",
+        targetPath: `/delivery/booking/${String(expired.id)}`,
+        payload: { requestId: String(expired.id) },
+        idempotencyKey: `response-expired:${expired.id}:${Number(expired.response_deadline_at)}`,
+      },
+      now,
+    );
+    summary.responseExpiryNotices += 1;
   }
 
   return summary;

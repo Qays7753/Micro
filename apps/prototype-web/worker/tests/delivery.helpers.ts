@@ -79,19 +79,30 @@ export async function createApprovedDriver(
   return { cookie, driverProfileId: profile.driverProfileId };
 }
 
-/** Create + submit + accept a prepriced directed request (confirmed booking). */
+/** Create + submit + accept a prepriced directed request (confirmed booking).
+ * MD-04 (Wave 3): an optional agreed collection amount rides the booking so
+ * the statement-derivation flows have an eligible booking. */
 export async function setupExecutionPair(
   worker: WorkerInstance,
   ownerCookie: string,
   driverCookie: string,
   driverProfileId: string,
   ownerWorkspaceId?: string,
+  options: { collectionMinor?: string } = {},
 ): Promise<string> {
   const created = await apiPost(worker, ownerCookie, "/api/delivery/requests", {
     driverProfileId,
     needType: "deliver_to_customer",
+    loadClass: "small",
+    weightBand: "under_10kg",
+    pieceCount: 2,
+    /* MD-01 (Post-Group 6 Wave 3): موافقة مدى الحجز — هذا المساعد يبني الحجز
+     * القياسي المفوّض بالإفصاح؛ الاختبارات التي تتحقق من المنع بلا موافقة
+     * تنشئ حجزها بنفسها بلا هذا الحقل. */
+    recipientDataConsent: true,
     pricingMode: "prepriced",
     offeredFareMinor: "300",
+    ...(options.collectionMinor === undefined ? {} : { collectionMinor: options.collectionMinor }),
     ...(ownerWorkspaceId === undefined ? {} : { workspaceId: ownerWorkspaceId }),
     payload: {
       pickup: {

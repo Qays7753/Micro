@@ -15,6 +15,10 @@ export interface DriverDirectoryEntryDto {
   eligibleForNewWork: boolean;
   averageStars: number | null;
   ratingsCount: number;
+  /* Wave 3 (Q73/Q93 — القرار النهائي): null = لا مسار مرسل؛ true = يغطي
+   * مسارك (يظهر أولًا مع العلامة)؛ false = خارج التغطية — الحجز مسموح
+   * والسائق يقرر. */
+  coversRoute: boolean | null;
 }
 
 /* R1-17 (أمر المالك 2026-11-14): ملخص القرار على بطاقات القوائم —
@@ -41,6 +45,16 @@ export interface BookingDetail {
     id: string;
     status: string;
     pricingMode: string;
+    needType: string;
+    /* Wave 3 (Q75/Q100/Q268): خصائص الحمل والنافذة، وعلم وجود حجوزات أخرى
+     * متداخلة للسائق (بلا تفاصيل أبدًا)، وحالة موافقة كشف بيانات المستلم. */
+    loadClass: string | null;
+    weightBand: string | null;
+    pieceCount: number | null;
+    scheduledStartAt: number | null;
+    scheduledEndAt: number | null;
+    driverHasOtherBookingsInPeriod: boolean;
+    recipientConsentActive: boolean | null;
     offeredFareMinor: string | null;
     collectionMinor: string | null;
     collectionContent: string | null;
@@ -114,8 +128,15 @@ export interface DriverRequestSummary extends BookingSummaryFields {
   updatedAt: number;
 }
 
-export async function fetchDriverDirectory(): Promise<{ drivers: DriverDirectoryEntryDto[] }> {
-  return apiFetch("/api/delivery/drivers");
+export async function fetchDriverDirectory(route?: {
+  pickupGovernorate: string;
+  dropoffGovernorate: string;
+}): Promise<{ drivers: DriverDirectoryEntryDto[] }> {
+  const query =
+    route === undefined
+      ? ""
+      : `?pickupGovernorate=${encodeURIComponent(route.pickupGovernorate)}&dropoffGovernorate=${encodeURIComponent(route.dropoffGovernorate)}`;
+  return apiFetch(`/api/delivery/drivers${query}`);
 }
 
 export async function fetchOwnerOverview(): Promise<{
@@ -131,7 +152,7 @@ export async function fetchBookingDetail(id: string): Promise<BookingDetail> {
 
 export async function createDeliveryRequest(input: {
   driverProfileId: string;
-  needType: "deliver_to_customer" | "fetch_ready_goods";
+  needType: "deliver_to_customer" | "fetch_ready_goods" | "period_booking";
   pricingMode: "prepriced" | "quote_request";
   offeredFareMinor?: string;
   collectionMinor?: string;
@@ -139,11 +160,25 @@ export async function createDeliveryRequest(input: {
   payload: Record<string, unknown>;
   /** W1 (EX-D24/AUTHZ-05): السياق النشط الصريح — يتحقق منه الخادم. */
   workspaceId: string;
+  /* Wave 3 (Q75/Q100/Q268 — القرار النهائي): خصائص الحمل الإلزامية، ونافذة
+   * الحجز (إلزامية للحجز بالفترة)، وملاحظات الفترة، وموافقة كشف بيانات
+   * المستلم (MD-01 — اختيارية وقابلة للسحب لاحقًا). */
+  loadClass?: "small" | "medium" | "large" | "extra_large";
+  weightBand?: "under_10kg" | "10_to_50kg" | "over_50kg";
+  pieceCount?: number;
+  scheduledStartAt?: number;
+  scheduledEndAt?: number;
+  periodNotes?: string;
+  recipientDataConsent?: boolean;
+  /** SRV-03 (Post-Group 6 Wave 3): مفتاح ثابت للعملية المنطقية نفسه يُعاد
+   * استعماله عند كل إعادة محاولة — لا مفتاح جديد لكل محاولة. */
+  idempotencyKey?: string;
 }): Promise<{ request: { id: string } }> {
+  const { idempotencyKey, ...body } = input;
   return apiFetch(
     "/api/delivery/requests",
-    { method: "POST", body: JSON.stringify(input) },
-    { idempotencyKey: newIdempotencyKey() },
+    { method: "POST", body: JSON.stringify(body) },
+    { idempotencyKey: idempotencyKey ?? newIdempotencyKey() },
   );
 }
 
@@ -248,9 +283,10 @@ export async function fetchDriverStatements(): Promise<{ statements: DriverState
 
 export async function submitDriverStatement(input: {
   requesterIdentityId: string;
-  items: { requestId: string; description: string; amountMinor: string }[];
   supplementOf?: string;
 }): Promise<void> {
+  /* MD-04 (Post-Group 6 Wave 3): العناصر والإجمالي يُشتقان خادميًّا من
+   * الحجوزات المؤهلة — لا وصف ولا مبلغ من العميل أبدًا. */
   await apiFetch(
     "/api/driver/statements",
     { method: "POST", body: JSON.stringify(input) },
@@ -452,5 +488,37 @@ export async function driverDeclare(id: string, kind: string, reason?: string): 
     `/api/driver/requests/${encodeURIComponent(id)}/declare`,
     { method: "POST", body: JSON.stringify({ kind, reason }) },
     { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/* ── Post-Group 6 Wave 3 (القرار النهائي د-3/د-4 + MD-01) ── */
+
+/** Q106: إلغاء السائق قبل الاستلام بسبب مكتوب — تنبيه فوري لصاحب الحجز.
+ * (مفتاح جديد لكل محاولة: السبب مدخل مستخدم — محاولة مصححة ليست إعادة
+ * إرسال للمحاولة نفسها.) */
+export async function driverCancelBeforePickup(id: string, reason: string): Promise<void> {
+  await apiFetch(
+    `/api/driver/requests/${encodeURIComponent(id)}/cancel`,
+    { method: "POST", body: JSON.stringify({ reason }) },
+    { idempotencyKey: newIdempotencyKey() },
+  );
+}
+
+/** Q242: «لم يحضر» بعد 30 دقيقة من الموعد بساعة الخادم — ثلاث حالات خلال
+ * شهرًا ترفع علم المراجعة اليدوية. */
+export async function reportNoShow(id: string): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(id)}/no-show`,
+    { method: "POST", body: "{}" },
+    { idempotencyKey: `no-show:${id}` },
+  );
+}
+
+/** MD-01: سحب موافقة كشف بيانات المستلم — صاحب الحجز وحده، فوري. */
+export async function revokeRecipientConsent(id: string): Promise<void> {
+  await apiFetch(
+    `/api/delivery/requests/${encodeURIComponent(id)}/recipient-consent/revoke`,
+    { method: "POST", body: "{}" },
+    { idempotencyKey: `recipient-consent-revoke:${id}` },
   );
 }

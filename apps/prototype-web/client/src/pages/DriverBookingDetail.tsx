@@ -13,6 +13,7 @@ import {
   declareCollection,
   decideDeliveryChange,
   driverAcceptRequest,
+  driverCancelBeforePickup,
   driverDeclare,
   driverDeclineRequest,
   driverSubmitQuote,
@@ -109,11 +110,11 @@ export default function DriverBookingDetail() {
   const [quoteJod, setQuoteJod] = useState("");
   const [quoteScope, setQuoteScope] = useState("");
   const [failureReason, setFailureReason] = useState("");
-  /* Stage C (S13/R4-17): مبلغ التصريح بالتحصيل وقيمة بند الكشف حقلتان
-   * مستقلتان — كانا يتشاركان حالة واحدة فتُمسح إحداهما بمسح الأخرى. */
+  /* Stage C (S13/R4-17): مبلغ التصريح بالتحصيل حقل مستقل. MD-04 (Wave 3):
+   * بند الكشف صار خادمي الاشتقاق — لا حقل وصف ولا مبلغ يدويًّا بعد اليوم. */
   const [collectionJod, setCollectionJod] = useState("");
-  const [statementAmountJod, setStatementAmountJod] = useState("");
-  const [statementDescription, setStatementDescription] = useState("");
+  /* Wave 3 (Q106): سبب إلغاء السائق قبل الاستلام — مكتوب وإلزامي. */
+  const [cancelReason, setCancelReason] = useState("");
   /* OD10: نموذج اقتراح الموافقة (retry/holding/return) — لا يعلنها السائق
    * وحده أبدًا؛ تقترح وتقبل صراحة من الطرف الآخر. */
   const [consentKind, setConsentKind] = useState<"retry" | "holding" | "return">("retry");
@@ -365,6 +366,38 @@ export default function DriverBookingDetail() {
                 }
               >
                 ارفض الطلب
+              </Button>
+            </section>
+          ) : null}
+
+          {/* Wave 3 (Q106 د-3 — القرار النهائي): إلغاء السائق قبل الاستلام
+           * بسبب مكتوب مع تنبيه فوري لصاحب الحجز؛ بعد الاستلام لا إلغاء من
+           * السائق — البلاغ أو الدعم أو الإلغاء الإداري فقط. */}
+          {request.status === "confirmed" &&
+          (data.execution === null ||
+            ["not_started", "heading_to_pickup", "arrived_at_source"].includes(data.execution.execution)) ? (
+            <section className="micro-driver-cancel" data-testid="driver-cancel-before-pickup">
+              <h2>إلغاء قبل الاستلام</h2>
+              <Field label="سبب الإلغاء (مكتوب — يُرسل لصاحب الحجز فورًا)">
+                <input
+                  value={cancelReason}
+                  onChange={event => setCancelReason(event.target.value)}
+                  placeholder="مثال: تعطل المركبة قبل الاستلام"
+                />
+              </Field>
+              <Button
+                action="outline"
+                disabled={pendingAction}
+                onClick={() =>
+                  void act(async () => {
+                    const reason = cancelReason.trim();
+                    if (reason.length < 5) throw new Error("اكتب سببًا واضحًا (٥ أحرف على الأقل).");
+                    await driverCancelBeforePickup(request.id, reason);
+                    setCancelReason("");
+                  }, "أُلغي الحجز بسبب مكتوب وأُبلغ صاحب الحجز فورًا.")
+                }
+              >
+                ألغِ الحجز قبل الاستلام
               </Button>
             </section>
           ) : null}
@@ -774,56 +807,25 @@ export default function DriverBookingDetail() {
               {request.collectionMinor !== null &&
               ["agreed", "collection_declared"].includes(execution.money) ? (
                 <div className="micro-statement-item">
-                  <h3>أرسل بند كشف اليوم لهذا الحجز (تأكيد كامل فقط — لا تسوية جزئية)</h3>
-                  <Field label="وصف البند" controlId="statement-description">
-                    <input
-                      id="statement-description"
-                      value={statementDescription}
-                      onChange={event => setStatementDescription(event.target.value)}
-                      /* F-11 (Phase F — review 2): المبلغ داخل placeholder لا
-                       * يمكن عزله بـ bdi — المثال بلا رقم. Stage C (S13/R2-18):
-                       * صياغة المثال بلا تكرار. */
-                      placeholder="مثال: تحصيل مبلغ هذا الحجز من المستلم"
-                    />
-                  </Field>
-                  <Field label="قيمة البند (د.أ)" controlId="statement-amount">
-                    <input
-                      id="statement-amount"
-                      value={statementAmountJod}
-                      onChange={event => setStatementAmountJod(event.target.value)}
-                      inputMode="decimal"
-                      dir="ltr"
-                      lang="en"
-                    />
-                  </Field>
+                  {/* MD-04 (Post-Group 6 Wave 3): بنود الكشف وإجماله تُشتق
+                   * خادميًّا من حجوزات هذا المشروع المؤكدة المُسلّمة — لا وصف
+                   * ولا مبلغ يدويًّا؛ الزر يرسل كشف اليوم كاملًا لهذا المشروع. */}
+                  <h3>أرسل كشف اليوم لهذا المشروع (تأكيد كامل فقط — لا تسوية جزئية)</h3>
+                  <Notice tone="neutral">
+                    يُبنى الكشف تلقائيًّا من حجوزاتك المؤكدة المُسلّمة لهذا المشروع والتي لم تدخل كشفًا بعد —
+                    لا تُدخل وصفًا ولا مبلغًا يدويًّا، والتأكيد الكامل من صاحب المشروع.
+                  </Notice>
                   <Button
                     action="save"
                     disabled={pendingAction}
                     onClick={() =>
-                      void act(async () => {
-                        const text = normalizeAsciiDigits(statementAmountJod.trim());
-                        const minor = /^\d+(\.\d{1,2})?$/.test(text)
-                          ? `${Math.round(Number(text) * 100)}`
-                          : null;
-                        if (minor === null) throw new Error("أدخل قيمة صحيحة بخانتين عشريتين.");
-                        if (statementDescription.trim().length === 0)
-                          throw new Error("اكتب وصفًا قصيرًا للبند.");
-                        await submitDriverStatement({
-                          requesterIdentityId,
-                          items: [
-                            {
-                              requestId: request.id,
-                              description: statementDescription.trim(),
-                              amountMinor: minor,
-                            },
-                          ],
-                        });
-                        setStatementDescription("");
-                        setStatementAmountJod("");
-                      }, "أُرسل بند الكشف — ينتظر تأكيد المشروع كاملًا.")
+                      void act(
+                        () => submitDriverStatement({ requesterIdentityId }),
+                        "أُرسل كشف اليوم — ينتظر تأكيد المشروع كاملًا.",
+                      )
                     }
                   >
-                    أرسل بند الكشف
+                    أرسل كشف اليوم
                   </Button>
                 </div>
               ) : null}

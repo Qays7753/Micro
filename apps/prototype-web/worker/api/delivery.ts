@@ -19,13 +19,19 @@ import { dailyBucket, enforceGuestReadLimit, enforceRate, rateLimits } from "../
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { getDisclosureSettings, newId, type Db } from "../db/db.ts";
-import { effectiveRequestStatus, type RequestStatus } from "../domain/delivery.ts";
+import {
+  effectiveRequestStatus,
+  NO_SHOW_GRACE_MS,
+  NO_SHOW_REVIEW_THRESHOLD,
+  NO_SHOW_REVIEW_WINDOW_MS,
+  type RequestStatus,
+} from "../domain/delivery.ts";
 import { DRIVER_RESPONSE_WINDOW_MS } from "../env.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import { driverStatus } from "../authorization.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
-import { bookingPayloadSummary } from "./deliveryShared.ts";
+import { bookingPayloadSummary, driverHasOverlappingConfirmed, recordEvent } from "./deliveryShared.ts";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
@@ -108,6 +114,101 @@ export async function reportDeliveryCase(ctx: RouteContext, auth: AuthenticatedC
   return jsonResponse({ ok: true, caseId: Number(filed?.id ?? 0) }, 201);
 }
 
+/** POST /api/delivery/requests/:id/no-show — Q242 (القرار النهائي د-4):
+ * «لم يحضر» بعد 30 دقيقة من الموعد — ساعة الخادم تحسم. صاحب الحجز وحده
+ * يبلّغ، على حجز مؤكد لم تُلتقط بضاعته بعد؛ ثلاث حالات خلال 30 يومًا
+ * ترفع علم المراجعة اليدوية وتُبلغ حسابات الإدارة (قرار المالك). */
+export async function reportNoShow(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const now = nowMs();
+  const row = await db(ctx)
+    .prepare(
+      "SELECT id, requester_identity_id, driver_profile_id, status, scheduled_start_at FROM delivery_request WHERE id = ?",
+    )
+    .bind(ctx.params.id!)
+    .first<Record<string, unknown>>();
+  if (!row || String(row.requester_identity_id) !== auth.identityId) throw new HttpError(404, "not_found");
+  if (String(row.status) !== "confirmed") {
+    throw new HttpError(409, "conflict", { reason: "no_show_requires_confirmed_booking" });
+  }
+  const scheduledStart = row.scheduled_start_at === null ? null : Number(row.scheduled_start_at);
+  if (scheduledStart === null) {
+    throw new HttpError(409, "conflict", { reason: "no_show_requires_scheduled_window" });
+  }
+  if (now < scheduledStart + NO_SHOW_GRACE_MS) {
+    throw new HttpError(409, "conflict", { reason: "no_show_window_not_open_yet" });
+  }
+  const execution = await db(ctx)
+    .prepare("SELECT execution_status FROM delivery_execution WHERE request_id = ?")
+    .bind(String(row.id))
+    .first<{ execution_status: string }>();
+  if (
+    execution !== null &&
+    !["not_started", "heading_to_pickup", "arrived_at_source"].includes(execution.execution_status)
+  ) {
+    throw new HttpError(409, "conflict", { reason: "no_show_only_before_pickup" });
+  }
+  const id = newId("nsw", randomToken);
+  try {
+    await db(ctx)
+      .prepare(
+        "INSERT INTO no_show_report (id, request_id, reporter_identity_id, driver_profile_id, scheduled_start_at, reported_at) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .bind(id, String(row.id), auth.identityId, String(row.driver_profile_id), scheduledStart, now)
+      .run();
+  } catch (error) {
+    if (error !== null && typeof error === "object" && (error as { code?: string }).code === "23505") {
+      throw new HttpError(409, "conflict", { reason: "no_show_already_reported" });
+    }
+    throw error;
+  }
+  await recordEvent(
+    ctx,
+    String(row.id),
+    "request",
+    "no_show_reported",
+    "confirmed",
+    "confirmed",
+    auth.identityId,
+  );
+  /* Q242: ثلاث حالات خلال 30 يومًا تعني مراجعة يدوية — تُبلغ حسابات الإدارة
+   * النشطة وتُدقّق؛ لا تعليق تلقائيًّا للسائق (القرار للمراجعة اليدوية). */
+  const recent = await db(ctx)
+    .prepare("SELECT COUNT(*) AS reports FROM no_show_report WHERE driver_profile_id = ? AND reported_at > ?")
+    .bind(String(row.driver_profile_id), now - NO_SHOW_REVIEW_WINDOW_MS)
+    .first<{ reports: number }>();
+  if (Number(recent?.reports ?? 0) >= NO_SHOW_REVIEW_THRESHOLD) {
+    const admins = await db(ctx)
+      .prepare("SELECT identity_id FROM network_membership WHERE role = 'admin' AND status = 'active'")
+      .all<{ identity_id: string }>();
+    for (const admin of admins.results) {
+      await notify(
+        db(ctx),
+        {
+          identityId: String(admin.identity_id),
+          type: "manual_review_required",
+          targetPath: "/admin",
+          payload: { driverProfileId: String(row.driver_profile_id), reason: "no_show_threshold" },
+          idempotencyKey: `no-show-review:${row.driver_profile_id}:${now}`,
+        },
+        now,
+      ).catch(() => undefined);
+    }
+    await audit(
+      db(ctx),
+      {
+        actorIdentityId: auth.identityId,
+        action: "no_show_review_threshold",
+        objectType: "driver_profile",
+        objectId: String(row.driver_profile_id),
+        result: "success",
+        meta: { reports: Number(recent?.reports ?? 0) },
+      },
+      now,
+    );
+  }
+  return jsonResponse({ ok: true }, 201);
+}
+
 /** GET /api/delivery/cases — the admin's case list (open first). */
 export async function listDeliveryCases(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
@@ -180,12 +281,29 @@ export interface DriverDirectoryEntry {
   eligibleForNewWork: boolean;
   averageStars: number | null;
   ratingsCount: number;
+  /* Q73/Q93 (Wave 3): null = لم يُرسل مسار (لا ادعاء)؛ true/false = يغطي
+   * المسار أو خارجه — الخارج مسموح والسائق يقرر. */
+  coversRoute: boolean | null;
 }
 
-/** GET /api/delivery/drivers — the approved public driver directory (OD03). */
+/** GET /api/delivery/drivers — the approved public driver directory (OD03).
+ * Wave 3 (Q73/Q93 — القرار النهائي): القائمة تعرض كل السائقين المعتمدين؛
+ * مع محافظتي المسار (pickupGovernorate/dropoffGovernorate) يُرتّب من يغطي
+ * المسار أولًا مع علامة «يغطي مسارك»، ثم الباقون — الحجز خارج التغطية
+ * مسموح والسائق يقرر، فلا رفض خادمي ولا إخفاء (سلوك صادق). */
 export async function driverDirectory(ctx: RouteContext): Promise<Response> {
   const now = nowMs();
   await enforceGuestReadLimit(ctx.env.DB, ctx.request, now);
+  const routePickup =
+    typeof ctx.url.searchParams.get("pickupGovernorate") === "string" &&
+    ctx.url.searchParams.get("pickupGovernorate") !== ""
+      ? ctx.url.searchParams.get("pickupGovernorate")
+      : null;
+  const routeDropoff =
+    typeof ctx.url.searchParams.get("dropoffGovernorate") === "string" &&
+    ctx.url.searchParams.get("dropoffGovernorate") !== ""
+      ? ctx.url.searchParams.get("dropoffGovernorate")
+      : null;
   const rows = await db(ctx)
     .prepare(
       "SELECT p.id, p.public_copy_json, p.accepting_new, " +
@@ -200,23 +318,40 @@ export async function driverDirectory(ctx: RouteContext): Promise<Response> {
     )
     .bind(now)
     .all<Record<string, unknown>>();
-  const drivers: DriverDirectoryEntry[] = rows.results.map(row => {
-    const profile = JSON.parse(String(row.public_copy_json ?? "{}")) as {
-      displayName?: string;
-      serviceAreas?: string[];
-    };
-    const vehicles = Number(row.vehicles);
-    const validEvidence = Number(row.valid_evidence);
-    return {
-      driverProfileId: String(row.id),
-      displayName: profile.displayName ?? "",
-      governorates: profile.serviceAreas ?? [],
-      acceptingNew: Number(row.accepting_new) === 1,
-      eligibleForNewWork: vehicles > 0 && validEvidence >= 2,
-      averageStars: row.avg_stars === null ? null : Number(row.avg_stars),
-      ratingsCount: Number(row.ratings),
-    };
-  });
+  const routeKnown = routePickup !== null && routeDropoff !== null;
+  const drivers: DriverDirectoryEntry[] = rows.results
+    .map(row => {
+      const profile = JSON.parse(String(row.public_copy_json ?? "{}")) as {
+        displayName?: string;
+        serviceAreas?: string[];
+      };
+      const vehicles = Number(row.vehicles);
+      const validEvidence = Number(row.valid_evidence);
+      const serviceAreas = Array.isArray(profile.serviceAreas)
+        ? (profile.serviceAreas as unknown[]).filter((area): area is string => typeof area === "string")
+        : [];
+      return {
+        driverProfileId: String(row.id),
+        displayName: profile.displayName ?? "",
+        governorates: serviceAreas,
+        acceptingNew: Number(row.accepting_new) === 1,
+        eligibleForNewWork: vehicles > 0 && validEvidence >= 2,
+        averageStars: row.avg_stars === null ? null : Number(row.avg_stars),
+        ratingsCount: Number(row.ratings),
+        /* Q73: علامة التغطية — null حين لا يُرسل مسار (لا ادعاء)، true فقط حين
+         * تغطي مناطق السائق المعلنة المحافظتين معًا. */
+        coversRoute: routeKnown
+          ? serviceAreas.includes(routePickup!) && serviceAreas.includes(routeDropoff!)
+          : null,
+      };
+    })
+    .sort((a, b) => {
+      if (!routeKnown) return 0;
+      const aCover = a.coversRoute === true ? 1 : 0;
+      const bCover = b.coversRoute === true ? 1 : 0;
+      if (aCover !== bCover) return bCover - aCover;
+      return a.displayName.localeCompare(b.displayName, "ar");
+    });
   return jsonResponse({ drivers });
 }
 
@@ -251,7 +386,8 @@ async function loadRequest(ctx: RouteContext, requestId: string) {
   const row = await db(ctx)
     .prepare(
       "SELECT id, requester_identity_id, driver_profile_id, need_type, payload_json, collection_minor, collection_content, " +
-        "pricing_mode, offered_fare_minor, status, agreement_copy_json, agreement_version, response_deadline_at, quote_id, created_at " +
+        "pricing_mode, offered_fare_minor, status, agreement_copy_json, agreement_version, response_deadline_at, quote_id, created_at, " +
+        "load_class, piece_count, weight_band, scheduled_start_at, scheduled_end_at " +
         "FROM delivery_request WHERE id = ?",
     )
     .bind(requestId)
@@ -357,13 +493,41 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
       ? null
       : Number(execution.confirmation_requested_at);
   const terminated = ["cancelled", "withdrawn"].includes(String(row.status));
+  /* MD-01 (Post-Group 6 Wave 3): الموافقة على كشف بيانات المستلم موافقة
+   * مدى الحجز — تُمنح عند الإنشاء بإصدار السياسة وتُسحب بطلب صاحب الحجز؛
+   * تُتحقق هنا عند كل قراءة. بلا موافقة نشطة يبقى السائق على القائمة
+   * المنقّحة حتى لو سمح الإعداد العام — الإعداد العام وحده لم يعد يكفي. */
+  const recipientConsent =
+    isDriver || isRequester
+      ? await db(ctx)
+          .prepare("SELECT revoked_at FROM recipient_data_consent WHERE request_id = ?")
+          .bind(String(row.id))
+          .first<{ revoked_at: number | null }>()
+      : null;
+  const recipientConsentActive = recipientConsent !== null && recipientConsent.revoked_at === null;
   const driverRecipientAccess =
     isDriver &&
     !terminated &&
+    recipientConsentActive &&
     disclosure.recipient_details_to_driver === "allowed_after_acceptance" &&
     status === "confirmed" &&
     (executionConfirmationRequestedAt === null ||
       now < executionConfirmationRequestedAt + RECIPIENT_ACCESS_CUTOFF_MS);
+  /* Q268 (Wave 3): صاحب الحجز يرى وجود حجوزات أخرى متداخلة للسائق —
+   * علم واحد بلا أي تفاصيل (لا كشف تفاصيل حجوزات الآخرين أبدًا). */
+  const windowStart = row.scheduled_start_at === null ? null : Number(row.scheduled_start_at);
+  const windowEnd = row.scheduled_end_at === null ? null : Number(row.scheduled_end_at);
+  const driverHasOtherBookingsInPeriod =
+    isRequester &&
+    windowStart !== null &&
+    windowEnd !== null &&
+    (await driverHasOverlappingConfirmed(
+      db(ctx),
+      String(row.driver_profile_id),
+      String(row.id),
+      windowStart,
+      windowEnd,
+    ));
   const openCase = auth.isAdmin
     ? await db(ctx)
         .prepare(
@@ -440,6 +604,17 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
       id: String(row.id),
       status,
       pricingMode: String(row.pricing_mode),
+      needType: String(row.need_type),
+      /* Wave 3 (Q75/Q100/Q268): خصائص الحمل والنافذة الزمنية — تظهر للطرفين
+       * (خصائص الحمل ضمن قائمة السماح التعاقدية §4)؛ العلم المتداخل لصاحب
+       * الحجز وحده وبلا تفاصيل. */
+      loadClass: row.load_class === null ? null : String(row.load_class),
+      weightBand: row.weight_band === null ? null : String(row.weight_band),
+      pieceCount: row.piece_count === null ? null : Number(row.piece_count),
+      scheduledStartAt: row.scheduled_start_at === null ? null : Number(row.scheduled_start_at),
+      scheduledEndAt: row.scheduled_end_at === null ? null : Number(row.scheduled_end_at),
+      driverHasOtherBookingsInPeriod,
+      recipientConsentActive: isRequester ? recipientConsentActive : null,
       offeredFareMinor: row.offered_fare_minor === null ? null : String(row.offered_fare_minor),
       collectionMinor: row.collection_minor === null ? null : String(row.collection_minor),
       collectionContent: row.collection_content === null ? null : String(row.collection_content),

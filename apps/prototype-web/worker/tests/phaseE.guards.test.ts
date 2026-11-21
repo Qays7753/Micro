@@ -67,6 +67,9 @@ async function identityIdOf(email: string): Promise<string> {
 const BOOKING_PAYLOAD = (driverProfileId: string) => ({
   driverProfileId,
   needType: "deliver_to_customer",
+  loadClass: "small",
+  weightBand: "under_10kg",
+  pieceCount: 2,
   pricingMode: "prepriced",
   offeredFareMinor: "300",
   payload: {

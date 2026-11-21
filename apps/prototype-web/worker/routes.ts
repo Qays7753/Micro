@@ -20,13 +20,14 @@ import { listMyNotifications, markNotificationsRead, putAdminSetting } from "./a
 import { createWorkspace } from "./api/workspace.ts";
 import type { AuthenticatedContext } from "./auth/session.ts";
 import { command } from "./commands.ts";
-import { errorResponse, HttpError } from "./http.ts";
+import { errorResponse, HttpError, jsonResponse } from "./http.ts";
 import { isGlobalModuleEnabled } from "./db/db.ts";
 import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
 import { askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
+import { registerPushSubscription, removePushSubscription } from "./webPush.ts";
 
 /** Resolve the session then run the handler with it (uniform auth guard). */
 export function withAuth(
@@ -91,6 +92,41 @@ export function buildRouter(): ApiRouter {
   router.post(
     "api/auth/signout-all",
     command("signout-all", async ctx => signOutAll(ctx.env.DB, ctx)),
+  );
+  // Post-Group 6 Wave 3 (G09 د-6 — القرار النهائي): Web Push أفضل جهد —
+  // تسجيل اشتراك الجهاز وإلغاؤه فقط؛ لا مزود مهيأ ولا ضمان وصول أبدًا
+  // (الإشعار داخل التطبيق والساعة الخادمية هما الأساس — worker/webPush.ts).
+  router.post(
+    "api/auth/push-subscriptions",
+    command(
+      "push-subscription-register",
+      authedRoute(async (ctx, auth) => {
+        const body = (await ctx.request
+          .clone()
+          .json()
+          .catch(() => ({}))) as {
+          endpoint?: unknown;
+          keys?: unknown;
+        };
+        await registerPushSubscription(ctx.env.DB, auth.identityId, body);
+        return jsonResponse({ ok: true }, 201);
+      }),
+    ),
+  );
+  router.delete(
+    "api/auth/push-subscriptions",
+    command(
+      "push-subscription-remove",
+      authedRoute(async (ctx, auth) => {
+        const url = new URL(ctx.request.url);
+        const endpoint = url.searchParams.get("endpoint") ?? "";
+        if (!/^https:\/\/.+/.test(endpoint)) {
+          return errorResponse("bad_request", 400);
+        }
+        await removePushSubscription(ctx.env.DB, auth.identityId, endpoint);
+        return jsonResponse({ ok: true });
+      }),
+    ),
   );
   // Post-Group 6 W1 (final decision أ-3/أ-4 / EX-D24 — G01/AUTHZ-05): the
   // ONE explicit project-creation request (one project per owner account,

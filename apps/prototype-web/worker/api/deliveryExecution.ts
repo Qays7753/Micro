@@ -32,6 +32,8 @@ import {
   advanceMoneyAxisForItems,
   bookingPayloadSummary,
   buildAgreementCopy,
+  CAPACITY_OVERLAP_SQL,
+  driverCapacityLockStatement,
   recordEvent,
   requireDriverProfile,
 } from "./deliveryShared.ts";
@@ -106,13 +108,21 @@ export async function driverAcceptRequest(ctx: RouteContext, auth: Authenticated
   );
   const requesterIdentity = String(row.requester_identity_id);
   const agreement = await buildAgreementCopy(ctx.env.DB, row, null, now);
+  /* Q268 (Post-Group 6 Wave 3): التأكيد داخل معاملة واحدة — قفل استشاري
+   * على مسار السائق ثم UPDATE شرطي يفحص السعة والتداخل ذريًّا؛ سباق
+   * تأكيدين متزامنين لنفس السائق يتحلل إلى نجاح واحد و409 صادق. */
   const results = await db(ctx).batch([
+    driverCapacityLockStatement(db(ctx), String(row.driver_profile_id)),
     db(ctx)
       .prepare(
         // Conditional update: a concurrent requester withdrawal wins and this
         // acceptance becomes a 409 instead of overwriting it (spec §8 — one
-        // server-decided outcome for simultaneous actions).
-        "UPDATE delivery_request SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? WHERE id = ? AND status = 'awaiting_driver_response'",
+        // server-decided outcome for simultaneous actions) — AND the atomic
+        // capacity/overlap check (Q268) rides the same single statement.
+        "UPDATE delivery_request r SET status = 'confirmed', agreement_copy_json = ?, response_deadline_at = NULL, updated_at = ? " +
+          "WHERE r.id = ? AND r.status = 'awaiting_driver_response' AND (r.scheduled_start_at IS NULL OR r.scheduled_end_at IS NULL OR " +
+          CAPACITY_OVERLAP_SQL +
+          ")",
       )
       .bind(agreement, now, String(row.id)),
     db(ctx)
@@ -122,7 +132,16 @@ export async function driverAcceptRequest(ctx: RouteContext, auth: Authenticated
       )
       .bind(String(row.id), row.collection_minor, now),
   ]);
-  if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
+  if (Number(results[1]?.meta?.changes ?? 0) !== 1) {
+    // Distinguish the honest cause: a still-awaiting request means the
+    // capacity/overlap check refused it (Q268); anything else is a state race.
+    const current = await db(ctx)
+      .prepare("SELECT status FROM delivery_request WHERE id = ?")
+      .bind(String(row.id))
+      .first<{ status: string }>();
+    if (current !== null && current.status === "awaiting_driver_response") {
+      throw new HttpError(409, "conflict", { reason: "driver_capacity_full" });
+    }
     throw new HttpError(409, "conflict", { reason: "request_state_changed" });
   }
   await recordEvent(
@@ -148,7 +167,11 @@ export async function driverAcceptRequest(ctx: RouteContext, auth: Authenticated
   return jsonResponse({ ok: true, status: "confirmed" });
 }
 
-/** POST /api/driver/requests/:id/decline (no fallback, no broadcast — OD03/OD07). */
+/** POST /api/driver/requests/:id/decline (no fallback, no broadcast — OD03/OD07).
+ * MD-03 (Post-Group 6 Wave 3): the decline is a compare-and-set — the expected
+ * status is part of the UPDATE and the affected-row count decides; a lost
+ * race is an honest 409, never a blind overwrite. Q215 (القرار النهائي):
+ * رفض السائق للحجز يُنبه صاحب الحجز فورًا. */
 export async function driverDeclineRequest(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const row = await requireAssignedRequest(ctx, auth, ctx.params.id!);
   const next = transitionRequest(
@@ -156,10 +179,14 @@ export async function driverDeclineRequest(ctx: RouteContext, auth: Authenticate
     "driver_decline",
     nowMs(),
   );
-  await db(ctx)
-    .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ?")
-    .bind(next, nowMs(), String(row.id))
+  const now = nowMs();
+  const moved = await db(ctx)
+    .prepare("UPDATE delivery_request SET status = ?, updated_at = ? WHERE id = ? AND status = ?")
+    .bind(next, now, String(row.id), String(row.status))
     .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
   await recordEvent(
     ctx,
     String(row.id),
@@ -169,7 +196,83 @@ export async function driverDeclineRequest(ctx: RouteContext, auth: Authenticate
     next,
     auth.identityId,
   );
+  /* Q215 (د-4 — القرار النهائي): تنبيه فوري لصاحب الحجز عند الرفض. */
+  await notify(
+    db(ctx),
+    {
+      identityId: String(row.requester_identity_id),
+      type: "booking_outcome",
+      targetPath: `/delivery/booking/${String(row.id)}`,
+      payload: { requestId: String(row.id), outcome: "declined" },
+      idempotencyKey: `declined:${row.id}`,
+    },
+    now,
+  ).catch(() => undefined);
   return jsonResponse({ ok: true, status: next });
+}
+
+/** POST /api/driver/requests/:id/cancel — Q106 (القرار النهائي د-3): إلغاء
+ * السائق قبل الاستلام بسبب مكتوب، مع تنبيه فوري لصاحب الحجز. مسموح فقط
+ * قبل التقاط البضاعة (not_started/heading_to_pickup/arrived_at_source)؛
+ * بعد الاستلام لا إلغاء من السائق — البلاغ أو الدعم أو الإلغاء الإداري
+ * فقط (قرار المالك النهائي). */
+export async function driverCancelBeforePickup(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+): Promise<Response> {
+  const row = await requireAssignedRequest(ctx, auth, ctx.params.id!);
+  const body = (await readJsonBody(ctx.request)) as { reason?: unknown };
+  if (typeof body.reason !== "string" || body.reason.trim().length < 5 || body.reason.length > 500) {
+    throw new HttpError(400, "bad_request", { field: "reason", reason: "written_reason_required" });
+  }
+  const now = nowMs();
+  transitionRequest(
+    { status: String(row.status) as RequestStatus, responseDeadlineAt: null, quoteValidUntil: null },
+    "driver_cancel_before_pickup",
+    now,
+  );
+  const execution = await db(ctx)
+    .prepare("SELECT execution_status FROM delivery_execution WHERE request_id = ?")
+    .bind(String(row.id))
+    .first<{ execution_status: string }>();
+  const beforePickup =
+    execution === null ||
+    ["not_started", "heading_to_pickup", "arrived_at_source"].includes(execution.execution_status);
+  if (!beforePickup) {
+    throw new HttpError(409, "conflict", { reason: "driver_cancel_only_before_pickup" });
+  }
+  const moved = await db(ctx)
+    .prepare(
+      "UPDATE delivery_request SET status = 'cancelled', updated_at = ? WHERE id = ? AND status = 'confirmed'",
+    )
+    .bind(now, String(row.id))
+    .run();
+  if (Number(moved.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "request_state_changed" });
+  }
+  await recordEvent(
+    ctx,
+    String(row.id),
+    "request",
+    "cancelled_by_driver",
+    "confirmed",
+    "cancelled",
+    auth.identityId,
+    body.reason,
+  );
+  /* Q106: تنبيه فوري لصاحب الحجز بسبب الإلغاء. */
+  await notify(
+    db(ctx),
+    {
+      identityId: String(row.requester_identity_id),
+      type: "booking_outcome",
+      targetPath: `/delivery/booking/${String(row.id)}`,
+      payload: { requestId: String(row.id), outcome: "driver_cancelled" },
+      idempotencyKey: `driver-cancelled:${row.id}`,
+    },
+    now,
+  ).catch(() => undefined);
+  return jsonResponse({ ok: true, status: "cancelled" });
 }
 
 /** POST /api/driver/requests/:id/quote — the ONE final quote (OD05). */
@@ -393,22 +496,22 @@ function transitionContactSafe(current: ExecutionState["contact"], event: string
   throw new HttpError(409, "conflict", { reason: `contact_event_invalid_for_${current}` });
 }
 
-/** POST /api/driver/statements — submit the daily statement (full-only, OD13). */
+/** POST /api/driver/statements — submit the daily statement (full-only, OD13).
+ * MD-04 (Post-Group 6 Wave 3): the statement's ITEMS AND TOTAL are DERIVED
+ * SERVER-SIDE from the pair's eligible confirmed bookings (delivered +
+ * declared collection, money axis not yet stated) — client-supplied amounts
+ * are never trusted. MD-05: exactly one awaiting statement per pair/day is
+ * enforced by a partial UNIQUE index; a concurrent duplicate insert fails
+ * honestly with 409, never a silent second pending row. */
 export async function submitDailyStatement(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const driverProfileId = await requireDriverProfile(ctx, auth);
   const body = (await readJsonBody(ctx.request)) as {
     requesterIdentityId?: string;
-    items?: unknown;
     supplementOf?: string;
   };
   const requesterIdentityId = typeof body.requesterIdentityId === "string" ? body.requesterIdentityId : null;
-  if (!requesterIdentityId || !Array.isArray(body.items) || body.items.length === 0) {
-    throw new HttpError(400, "bad_request", { field: "statement" });
-  }
-  // D1 caps bound parameters per statement (~100): keep items well inside it
-  // and answer honestly instead of a late 500.
-  if (body.items.length > 50) {
-    throw new HttpError(400, "bad_request", { field: "items", reason: "statement_too_many_items" });
+  if (!requesterIdentityId) {
+    throw new HttpError(400, "bad_request", { field: "requesterIdentityId" });
   }
   const statementLimits = await rateLimits(db(ctx));
   await enforceRate(
@@ -418,24 +521,12 @@ export async function submitDailyStatement(ctx: RouteContext, auth: Authenticate
     24 * 60 * 60 * 1000,
     nowMs(),
   );
-  const items = (body.items as Record<string, unknown>[]).map((item, index) => ({
-    requestId: typeof item.requestId === "string" ? item.requestId : `item-${index}`,
-    description: typeof item.description === "string" ? item.description : "",
-    amountMinor: parseMinorAmount(item.amountMinor, `items.${index}.amountMinor`),
-  }));
-  const total = statementTotal(items as StatementItem[]);
   const statementDate = ammanDateString(nowMs());
-  const pending = await db(ctx)
-    .prepare(
-      "SELECT id FROM daily_statement WHERE driver_profile_id = ? AND requester_identity_id = ? AND statement_date = ? AND status = 'awaiting_confirmation'",
-    )
-    .bind(driverProfileId, requesterIdentityId, statementDate)
-    .first();
-  if (pending) throw new HttpError(409, "conflict", { reason: "one_awaiting_statement_per_pair_day" });
   const supplementOf = typeof body.supplementOf === "string" ? body.supplementOf : null;
   if (supplementOf !== null) {
     // Contract 21 §3.2-6: a supplement follows a CONFIRMED statement of the
-    // same pair and day, carrying only new items.
+    // same pair and day, carrying only new items. Validated BEFORE derivation
+    // so a bad parent is named specifically, not as an empty eligible set.
     const parent = await db(ctx)
       .prepare(
         "SELECT driver_profile_id, requester_identity_id, statement_date, status FROM daily_statement WHERE id = ?",
@@ -461,24 +552,58 @@ export async function submitDailyStatement(ctx: RouteContext, auth: Authenticate
     .bind(driverProfileId, requesterIdentityId)
     .first();
   if (!pairRequest) throw new HttpError(409, "conflict", { reason: "no_booking_relationship" });
+  /* MD-04: العناصر والإجمالي يُشتقان من الحجوزات المؤهلة نفسها — الحجوزات
+   * المؤكدة لهذا الزوج التي أُعلن تسليمها وعندها تحصيل مُعلن ولم تدخل
+   * كشفًا بعد (محور المال agreed/collection_declared). لا يُقبل أي مبلغ
+   * من العميل. */
+  const eligible = await db(ctx)
+    .prepare(
+      "SELECT r.id, r.collection_minor FROM delivery_request r " +
+        "JOIN delivery_execution e ON e.request_id = r.id " +
+        "WHERE r.driver_profile_id = ? AND r.requester_identity_id = ? AND r.status = 'confirmed' " +
+        "AND e.execution_status = 'delivered_declared' AND r.collection_minor IS NOT NULL " +
+        "AND e.money_status IN ('agreed', 'collection_declared') ORDER BY r.updated_at",
+    )
+    .bind(driverProfileId, requesterIdentityId)
+    .all<{ id: string; collection_minor: string }>();
+  const items: StatementItem[] = eligible.results.map(row => ({
+    requestId: String(row.id),
+    description: "تحصيل نقدي لحجز مؤكد",
+    amountMinor: String(row.collection_minor),
+  }));
+  if (items.length === 0) {
+    throw new HttpError(409, "conflict", { reason: "no_eligible_bookings" });
+  }
+  const total = statementTotal(items);
   const id = newId("stmt", randomToken);
   const now = nowMs();
-  await db(ctx)
-    .prepare(
-      "INSERT INTO daily_statement (id, driver_profile_id, requester_identity_id, statement_date, items_json, total_minor, status, supplement_of, created_at) " +
-        "VALUES (?, ?, ?, ?, ?, ?, 'awaiting_confirmation', ?, ?)",
-    )
-    .bind(
-      id,
-      driverProfileId,
-      requesterIdentityId,
-      statementDate,
-      JSON.stringify(items),
-      total,
-      supplementOf,
-      now,
-    )
-    .run();
+  /* MD-05: الإدراج وتقديم محور المال معاملة واحدة؛ القيد الفريد الجزئي
+   * (uq_statement_pending_pair_day) يمنع كشفين معلقين متزامنين للزوج/
+   * اليوم — خرقه يُعرض 409 صادقًا لا صفًّا ثانيًا صامتًا. */
+  try {
+    await db(ctx).batch([
+      db(ctx)
+        .prepare(
+          "INSERT INTO daily_statement (id, driver_profile_id, requester_identity_id, statement_date, items_json, total_minor, status, supplement_of, created_at) " +
+            "VALUES (?, ?, ?, ?, ?, ?, 'awaiting_confirmation', ?, ?)",
+        )
+        .bind(
+          id,
+          driverProfileId,
+          requesterIdentityId,
+          statementDate,
+          JSON.stringify(items),
+          total,
+          supplementOf,
+          now,
+        ),
+    ]);
+  } catch (error) {
+    if (error !== null && typeof error === "object" && (error as { code?: string }).code === "23505") {
+      throw new HttpError(409, "conflict", { reason: "one_awaiting_statement_per_pair_day" });
+    }
+    throw error;
+  }
   // OD13/contract 21 §3.2-6: submission advances the money axis of exactly the
   // bookings fixed in this statement's items (items are immutable afterwards).
   await advanceMoneyAxisForItems(

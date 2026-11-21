@@ -191,25 +191,47 @@ describe("delivery: execution and confirmation axes (OD14/OD16)", () => {
   });
 });
 
-describe("delivery: statements confirm in full or record a difference (OD13)", () => {
+describe("delivery: statements confirm in full or record a difference (OD13 + MD-04/MD-05)", () => {
   it("one awaiting statement per pair/day; full confirmation; supplements carry only new items", async () => {
-    const requestId = await confirmedRequest();
-    const ownerDetail = (await (
-      await apiGet(worker, ownerCookie, `/api/delivery/requests/${requestId}`)
-    ).json()) as {
-      request: { agreementCopy: unknown };
-    };
-    void ownerDetail;
+    /* MD-04 (Post-Group 6 Wave 3): العناصر والإجمالي تُشتق خادميًّا — الحجز
+     * المؤكد المُسلّم ذو التحصيل المتفق عليه وحده يدخل الكشف؛ لا يُقبل
+     * وصف ولا مبلغ من العميل. */
+    const requestId = await setupExecutionPair(
+      worker,
+      ownerCookie,
+      driverCookie,
+      driverProfileId,
+      exOwnerWorkspaceId,
+      { collectionMinor: "7500" },
+    );
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "start" });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "arrive" });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "pickup_declared",
+    });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "transit_started",
+    });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "collection_declared",
+      amountMinor: "7500",
+    });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "delivery_declared",
+    });
     const db = await rawDb(worker);
     const ownerIdentity = await db
       .prepare("SELECT id FROM network_identity WHERE email = ?")
       .bind("ex-owner@example.test")
       .first<{ id: string }>();
+    // The server derives the items; a client-supplied amount is ignored.
     const submit = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: ownerIdentity!.id,
-      items: [{ requestId, description: "تحصيل يوم الاثنين", amountMinor: "7500" }],
+      items: [{ requestId, description: "مبلغ مزعوم من العميل", amountMinor: "100" }],
     });
     expect(submit.status).toBe(201);
+    const submitBody = (await submit.json()) as { statement: { totalMinor: string } };
+    expect(submitBody.statement.totalMinor).toBe("7500");
     // Submission advances the money axis of exactly the statement's items
     // (OD13 §3.2-6).
     const moneyAfterSubmit = (await (
@@ -240,7 +262,6 @@ describe("delivery: statements confirm in full or record a difference (OD13)", (
     const badParent = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: ownerIdentity!.id,
       supplementOf: "stmt-does-not-exist",
-      items: [{ requestId, description: "بند بمرجع أصل غير موجود", amountMinor: "100" }],
     });
     expect(badParent.status).toBe(409);
     const badParentBody = (await badParent.json()) as { error: { details: { reason: string } } };
@@ -253,18 +274,17 @@ describe("delivery: statements confirm in full or record a difference (OD13)", (
       .first<{ id: string }>();
     const noRelationship = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: plainIdentity!.id,
-      items: [{ requestId, description: "كشف بلا علاقة حجز", amountMinor: "100" }],
     });
     expect(noRelationship.status).toBe(409);
     const noRelationshipBody = (await noRelationship.json()) as { error: { details: { reason: string } } };
     expect(noRelationshipBody.error.details.reason).toBe("no_booking_relationship");
-    // A supplement after confirmation carries only the new items.
-    const supplementResponse = await apiPost(worker, driverCookie, "/api/driver/statements", {
+    // With every eligible booking already stated, an honest empty rejection.
+    const nothingLeft = await apiPost(worker, driverCookie, "/api/driver/statements", {
       requesterIdentityId: ownerIdentity!.id,
-      supplementOf: awaiting!.id,
-      items: [{ requestId, description: "بند إضافي لاحق", amountMinor: "500" }],
     });
-    expect(supplementResponse.status).toBe(201);
+    expect(nothingLeft.status).toBe(409);
+    const nothingLeftBody = (await nothingLeft.json()) as { error: { details: { reason: string } } };
+    expect(nothingLeftBody.error.details.reason).toBe("no_eligible_bookings");
     const difference = await apiPost(
       worker,
       ownerCookie,
@@ -272,6 +292,32 @@ describe("delivery: statements confirm in full or record a difference (OD13)", (
       { decision: "full" },
     );
     expect(difference.status).toBe(409); // already decided — never partial rewrites
+  });
+
+  it("MD-04: a delivered booking without an agreed collection never enters a statement", async () => {
+    const requestId = await confirmedRequest();
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "start" });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, { kind: "arrive" });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "pickup_declared",
+    });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "transit_started",
+    });
+    await apiPost(worker, driverCookie, `/api/driver/requests/${requestId}/declare`, {
+      kind: "delivery_declared",
+    });
+    const db = await rawDb(worker);
+    const ownerIdentity = await db
+      .prepare("SELECT id FROM network_identity WHERE email = ?")
+      .bind("ex-owner@example.test")
+      .first<{ id: string }>();
+    const submit = await apiPost(worker, driverCookie, "/api/driver/statements", {
+      requesterIdentityId: ownerIdentity!.id,
+    });
+    expect(submit.status).toBe(409);
+    const body = (await submit.json()) as { error: { details: { reason: string } } };
+    expect(body.error.details.reason).toBe("no_eligible_bookings");
   });
 });
 

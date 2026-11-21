@@ -172,6 +172,7 @@ export async function decideConsent(ctx: RouteContext, auth: AuthenticatedContex
   const kind = String(proposal.kind) as ConsentKind;
   const now = nowMs();
   const accept = body.decision === "accept";
+  const note = typeof body.note === "string" ? body.note.slice(0, 500) : null;
   let appliedExecution: string | null = null;
   if (accept) {
     const state = await loadExecutionState(ctx, String(row.id));
@@ -183,12 +184,40 @@ export async function decideConsent(ctx: RouteContext, auth: AuthenticatedContex
     }
     appliedExecution = transitionExecution(state, CONSENT_KIND_EVENT[kind]);
     const goods = goodsAfterExecution(appliedExecution as ExecutionState["execution"], state.goods);
-    await db(ctx)
-      .prepare(
-        "UPDATE delivery_execution SET execution_status = ?, goods_location = ?, updated_at = ? WHERE request_id = ?",
-      )
-      .bind(appliedExecution, goods, now, String(row.id))
-      .run();
+    /* SRV-05 (Post-Group 6 Wave 3): حسم المقترح وتطبيق انتقال التنفيذ معاملة
+     * واحدة — الحسم أولًا (CAS على pending مع شرط بقاء الحالة التنفيذية
+     * المتوقعة)، ثم الانتقال في المعاملة نفسها مشروطًا بالحسم المُتمّ؛
+     * قبولان متزامنان يتحللان إلى فائز واحد و409 صادق، ولا يبقى انتقال
+     * بلا حسم ولا حسم بلا انتقال. */
+    const results = await db(ctx).batch([
+      db(ctx)
+        .prepare(
+          "UPDATE delivery_consent_proposal SET status = 'accepted', decided_by_identity_id = ?, decided_at = ?, decision_note = ?, applied_execution = ?, updated_at = ? " +
+            "WHERE id = ? AND status = 'pending' " +
+            "AND EXISTS (SELECT 1 FROM delivery_execution e WHERE e.request_id = ? AND e.execution_status = 'undeliverable_declared')",
+        )
+        .bind(auth.identityId, now, note, appliedExecution, now, String(proposal.id), String(row.id)),
+      db(ctx)
+        .prepare(
+          "UPDATE delivery_execution e SET execution_status = ?, goods_location = ?, updated_at = ? WHERE e.request_id = ? " +
+            "AND e.execution_status = 'undeliverable_declared' " +
+            "AND EXISTS (SELECT 1 FROM delivery_consent_proposal p WHERE p.id = ? AND p.status = 'accepted')",
+        )
+        .bind(appliedExecution, goods, now, String(row.id), String(proposal.id)),
+    ]);
+    if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
+      const after = await db(ctx)
+        .prepare("SELECT status FROM delivery_consent_proposal WHERE id = ?")
+        .bind(String(proposal.id))
+        .first<{ status: string }>();
+      if (after !== null && after.status !== "pending") {
+        throw new HttpError(409, "conflict", { reason: `proposal_already_${after.status}` });
+      }
+      throw new HttpError(409, "conflict", { reason: "proposal_stale_execution_state" });
+    }
+    if (Number(results[1]?.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "proposal_stale_execution_state" });
+    }
     await recordEvent(
       ctx,
       String(row.id),
@@ -199,25 +228,17 @@ export async function decideConsent(ctx: RouteContext, auth: AuthenticatedContex
       auth.identityId,
       `proposal:${String(proposal.id)}`,
     );
-  }
-  const note = typeof body.note === "string" ? body.note.slice(0, 500) : null;
-  // Atomic decide: exactly one pending→decided transition wins.
-  const moved = await db(ctx)
-    .prepare(
-      "UPDATE delivery_consent_proposal SET status = ?, decided_by_identity_id = ?, decided_at = ?, decision_note = ?, applied_execution = ?, updated_at = ? WHERE id = ? AND status = 'pending'",
-    )
-    .bind(
-      accept ? "accepted" : "rejected",
-      auth.identityId,
-      now,
-      note,
-      appliedExecution,
-      now,
-      String(proposal.id),
-    )
-    .run();
-  if (Number(moved.meta?.changes ?? 0) !== 1) {
-    throw new HttpError(409, "conflict", { reason: "proposal_already_decided" });
+  } else {
+    // Atomic decide: exactly one pending→decided transition wins.
+    const moved = await db(ctx)
+      .prepare(
+        "UPDATE delivery_consent_proposal SET status = ?, decided_by_identity_id = ?, decided_at = ?, decision_note = ?, applied_execution = ?, updated_at = ? WHERE id = ? AND status = 'pending'",
+      )
+      .bind("rejected", auth.identityId, now, note, null, now, String(proposal.id))
+      .run();
+    if (Number(moved.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "proposal_already_decided" });
+    }
   }
   await recordEvent(
     ctx,

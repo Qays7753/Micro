@@ -8,6 +8,7 @@ import {
   listDeliveryCases,
   ownerOverview,
   reportDeliveryCase,
+  reportNoShow,
   requestDetail,
 } from "./api/delivery.ts";
 import {
@@ -17,12 +18,14 @@ import {
   decideOutcome,
   decideQuote,
   rateRequest,
+  revokeRecipientConsent,
   submitRequest,
   toggleSavedDriver,
   withdrawRequest,
 } from "./api/deliveryRequest.ts";
 import {
   driverAcceptRequest,
+  driverCancelBeforePickup,
   driverDeclineRequest,
   driverDeclare,
   driverRequests,
@@ -99,6 +102,10 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     command(
       "delivery-request-create",
       moduleGated("delivery", (ctx, auth) => createRequestDraft(ctx, auth)),
+      /* SRV-03 (Post-Group 6 Wave 3): إنشاء الحجز عملية حساسة — المفتاح
+       * إلزامي ويُحجز ذريًّا قبل التنفيذ (لا تكرار حجز عند إعادة المحاولة
+       * المتزامنة أبدًا). */
+      { requireIdempotencyKey: true },
     ),
   );
   router.post(
@@ -134,6 +141,23 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     command(
       "delivery-request-cancel",
       moduleGated("delivery", (ctx, auth) => cancelRequest(ctx, auth)),
+    ),
+  );
+  /* Wave 3 (Q242 د-4): «لم يحضر» بعد 30 دقيقة من الموعد بساعة الخادم —
+   * ثلاث حالات خلال شهر ترفع علم المراجعة اليدوية. */
+  router.post(
+    "api/delivery/requests/:id/no-show",
+    command(
+      "delivery-no-show-report",
+      moduleGated("delivery", (ctx, auth) => reportNoShow(ctx, auth)),
+    ),
+  );
+  /* Wave 3 (MD-01): سحب موافقة كشف بيانات المستلم — صاحب الحجز وحده. */
+  router.post(
+    "api/delivery/requests/:id/recipient-consent/revoke",
+    command(
+      "delivery-recipient-consent-revoke",
+      moduleGated("delivery", (ctx, auth) => revokeRecipientConsent(ctx, auth)),
     ),
   );
   router.post(
@@ -238,6 +262,15 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
     command(
       "driver-request-decline",
       moduleGated("delivery", (ctx, auth) => driverDeclineRequest(ctx, auth)),
+    ),
+  );
+  /* Wave 3 (Q106 د-3): إلغاء السائق قبل الاستلام بسبب مكتوب مع تنبيه فوري
+   * لصاحب الحجز؛ بعد الاستلام لا إلغاء من السائق (البلاغ/الدعم/الإداري فقط). */
+  router.post(
+    "api/driver/requests/:id/cancel",
+    command(
+      "driver-request-cancel-before-pickup",
+      moduleGated("delivery", (ctx, auth) => driverCancelBeforePickup(ctx, auth)),
     ),
   );
   router.post(

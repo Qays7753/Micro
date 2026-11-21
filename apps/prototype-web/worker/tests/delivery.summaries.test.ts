@@ -45,6 +45,9 @@ async function createSubmittedRequest(): Promise<string> {
   const response = await apiPost(worker, ownerCookie, "/api/delivery/requests", {
     driverProfileId,
     needType: "deliver_to_customer",
+    loadClass: "small",
+    weightBand: "under_10kg",
+    pieceCount: 2,
     pricingMode: "prepriced",
     offeredFareMinor: "300",
     workspaceId: ownerWorkspaceId,

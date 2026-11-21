@@ -45,6 +45,11 @@ export const DELIVERY_NOTIFICATION_TYPES = [
   "objection_recorded",
   "report_replied",
   "status_changed",
+  /* Post-Group 6 Wave 3 (G09 د-6 / Q242): مهلة الرد المنتهية تُبلّغ صاحب
+   * الحجز (لا ضمان وصول Push — الإشعار داخل التطبيق هو الأساس)، وبلاغ
+   * «لم يحضر» المتكرر يرفع علم المراجعة اليدوية لحسابات الإدارة. */
+  "response_window_expired",
+  "manual_review_required",
 ] as const;
 
 /** Contract 19 §9 notification types (market model). */

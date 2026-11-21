@@ -52,6 +52,68 @@ export interface RequestState {
   quoteValidUntil: number | null;
 }
 
+/* ── Wave 3 (Q75 — القرار النهائي 2026-11-21): أحجام الحمولة وشرائح الوزن ── */
+
+/** The four load classes exactly as the owner's final decision defines them:
+ * صغير يُحمل باليد، متوسط صندوق سيارة، كبير بكب، كبير جدًا فان. */
+export const LOAD_CLASSES = ["small", "medium", "large", "extra_large"] as const;
+export type LoadClass = (typeof LOAD_CLASSES)[number];
+
+export const LOAD_CLASS_LABELS: Record<LoadClass, string> = {
+  small: "صغير — يُحمل باليد",
+  medium: "متوسط — صندوق سيارة",
+  large: "كبير — بكب",
+  extra_large: "كبير جدًا — فان",
+};
+
+/** The three approximate weight bands (Q75): أقل من 10 كغ / 10 إلى 50 / أكثر من 50. */
+export const WEIGHT_BANDS = ["under_10kg", "10_to_50kg", "over_50kg"] as const;
+export type WeightBand = (typeof WEIGHT_BANDS)[number];
+
+export function loadClassFromInput(value: unknown): LoadClass {
+  if (typeof value === "string" && (LOAD_CLASSES as readonly string[]).includes(value)) {
+    return value as LoadClass;
+  }
+  throw new HttpError(400, "bad_request", { field: "loadClass" });
+}
+
+export function weightBandFromInput(value: unknown): WeightBand {
+  if (typeof value === "string" && (WEIGHT_BANDS as readonly string[]).includes(value)) {
+    return value as WeightBand;
+  }
+  throw new HttpError(400, "bad_request", { field: "weightBand" });
+}
+
+/** Q268: a booking time window — epoch ms on the SERVER clock; end must be
+ * strictly after start, and the span is capped at 30 days (an honest
+ * engineering bound, not an owner decision). */
+export const MAX_BOOKING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+export function validateBookingWindow(start: unknown, end: unknown): { start: number; end: number } {
+  if (
+    typeof start !== "number" ||
+    !Number.isInteger(start) ||
+    typeof end !== "number" ||
+    !Number.isInteger(end)
+  ) {
+    throw new HttpError(400, "bad_request", { field: "scheduledWindow" });
+  }
+  if (end <= start)
+    throw new HttpError(400, "bad_request", { field: "scheduledWindow", reason: "end_before_start" });
+  if (end - start > MAX_BOOKING_WINDOW_MS) {
+    throw new HttpError(400, "bad_request", { field: "scheduledWindow", reason: "window_too_long" });
+  }
+  return { start, end };
+}
+
+/** Q242: «لم يحضر» opens 30 minutes after the scheduled start — the server
+ * clock decides. Engineering operational value (documented in env.ts). */
+export const NO_SHOW_GRACE_MS = 30 * 60 * 1000;
+
+/** Q242: three no-show reports within 30 days trigger the manual-review flag. */
+export const NO_SHOW_REVIEW_THRESHOLD = 3;
+export const NO_SHOW_REVIEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
 /** Legal request-axis transitions (contract 21 §3.2-2). */
 const REQUEST_TRANSITIONS: Record<string, Record<string, RequestStatus>> = {
   draft: { submit: "awaiting_driver_response" },
@@ -68,7 +130,12 @@ const REQUEST_TRANSITIONS: Record<string, Record<string, RequestStatus>> = {
     // (contract 21 §3.2-2: استبدال العرض قبل قبوله يبطل نسخته القديمة).
     driver_replace_quote: "awaiting_requester_decision",
   },
-  confirmed: { requester_cancel: "cancelled" },
+  confirmed: {
+    requester_cancel: "cancelled",
+    /* Wave 3 (Q106 — القرار النهائي): إلغاء السائق قبل الاستلام بسبب مكتوب —
+     * نفس الحالة النهائية لإلغاء صاحب الحجز، والسبب إلزامي في المسار. */
+    driver_cancel_before_pickup: "cancelled",
+  },
 };
 
 export function transitionRequest(state: RequestState, event: string, now: number): RequestStatus {

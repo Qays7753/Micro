@@ -140,6 +140,9 @@ describe("workspace: personal workspace and capability enforcement", () => {
     const first = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
       driverProfileId: driver.driverProfileId,
       needType: "deliver_to_customer",
+      loadClass: "small",
+      weightBand: "under_10kg",
+      pieceCount: 2,
       pricingMode: "prepriced",
       offeredFareMinor: "300",
       workspaceId: wsO1,
@@ -166,6 +169,9 @@ describe("workspace: personal workspace and capability enforcement", () => {
     const create = await apiPost(worker, owner.cookieHeader, "/api/delivery/requests", {
       driverProfileId: driver.driverProfileId,
       needType: "deliver_to_customer",
+      loadClass: "small",
+      weightBand: "under_10kg",
+      pieceCount: 2,
       pricingMode: "prepriced",
       offeredFareMinor: "300",
       workspaceId: wsO1,

@@ -19,6 +19,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { ManageOnlineSection } from "@/components/profile/ManageOnlineSection";
 import { CreateProjectCard } from "@/components/profile/CreateProjectCard";
 import { DeviceSessionsSection } from "@/components/profile/DeviceSessionsSection";
+import { PushNotificationsSection } from "@/components/profile/PushNotificationsSection";
 
 import { Button } from "@/components/primitives";
 type ProfileState =
@@ -279,6 +280,9 @@ export default function Profile() {
               <ManageOnlineSection />
               {/* W1 (EX-D24 — قرار أ-7/G06): جلسات الأجهزة وإبطالها الخادمي. */}
               <DeviceSessionsSection onSignedOut={() => void refresh()} />
+              {/* Wave 3 (قرار د-6/G09): تنبيهات Web Push أفضل جهد — تسجيل
+               * الجهاز وشرح الآيفون وحالات الرفض، بلا ادعاء وصول أبدًا. */}
+              <PushNotificationsSection />
             </>
           ) : (
             <>

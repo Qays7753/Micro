@@ -168,7 +168,10 @@ describe("delivery booking editor (OD03/OD05 + disclosure preview)", () => {
     expect(picker.textContent).toContain("أبو محمد");
     expect(picker.textContent).toContain("4.5★");
     expect(screen.getByText(/معاينة الإفصاح/)).toBeTruthy();
-    expect(screen.getByText(/محجوبة حتى قرار الإفصاح/)).toBeTruthy();
+    /* MD-01 (Wave 3): الإفصاح صار بموافقة صريحة قابلة للسحب — لا «قرار
+     * إفصاح» عامًّا بعد اليوم. */
+    expect(screen.getByText(/إلا بموافقتك الصريحة/)).toBeTruthy();
+    expect(screen.getByTestId("recipient-consent")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /بث|نشر الطلب/ })).toBeNull();
   });
 });

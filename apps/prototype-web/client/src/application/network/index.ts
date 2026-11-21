@@ -18,6 +18,8 @@ export {
   fetchDeviceSessions,
   signOutAllDevices,
   createWorkspace,
+  registerPushSubscription,
+  removePushSubscription,
 } from "./sessionService";
 export type { NetworkSession, NetworkWorkspace, DeviceSession } from "./sessionService";
 export { fetchAskStatus, askQuestion } from "./askMicroService";
