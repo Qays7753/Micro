@@ -3,8 +3,8 @@
  * المراجعة والإرسال. معاينة الإفصاح تظهر ما سيراه السائق (مناطق لا عناوين
  * حتى قرار الإفصاح)، ومبلغ التحصيل اختياري يراه السائق قبل القبول (OD13).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useSearch } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { useNetworkSession } from "@/app/useNetworkSession";
@@ -36,6 +36,12 @@ const GOVERNORATES = [
 
 export default function DeliveryBookingEditor() {
   const [location, navigate] = useLocation();
+  const searchString = useSearch();
+  /* الموجة 4 (G08): سياق الرابط ?context=order:<id> — تلميح عرض فقط. */
+  const orderContext = useMemo(() => {
+    const matchContext = /[?&]context=order:([^&]+)/.exec(searchString);
+    return matchContext === null ? null : decodeURIComponent(matchContext[1]!);
+  }, [searchString]);
   /* معامل معجمي موثق (عقد ٢٦ §3 + EXE-016): سائق مختار مسبقًا من دليل
    * السائقين — يُستهلك مرة واحدة عند الفتح ثم يُنسخ من الرابط. */
   const preselectedDriver = new URLSearchParams(location.split("?")[1] ?? "").get("driver");
@@ -234,6 +240,13 @@ export default function DeliveryBookingEditor() {
         <h1>حجز توصيل</h1>
         <p>ثلاث مجموعات: المهمة والموعد، اختيار السائق، المراجعة والإرسال.</p>
       </div>
+      {/* الموجة 4 (G08 — Q168/Q176): الرابط السياقي من الطلب — تلميح صادق عن
+       * مصدر التنقل فقط؛ لا نسخ بيانات الطلب إلى الحجز ولا أي أثر مالي. */}
+      {orderContext !== null ? (
+        <Notice tone="neutral" data-testid="booking-order-context">
+          فتحت هذا الحجز من طلبك «{orderContext}» — الحجز مستقل ماليًا ولا يُنشئ أي قيد في دفتر المشروع.
+        </Notice>
+      ) : null}
       {message ? <Notice tone="error">{message}</Notice> : null}
 
       <h2>المهمة والموعد</h2>

@@ -11630,6 +11630,101 @@
         "trigger": "post-group6-wave3-delivery-privacy",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 422,
+        "band": "WATCH"
+      },
+      "reason": "Wave 4 (G08/Q168/Q176): the honest order-context hint line when the booking is opened from an order (?context=order:) — a display hint only, no data copy, no financial effect.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/InventoryMaterials.tsx",
+      "from": {
+        "nbLoc": 842,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 863,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Wave 4 (G08/Q175): the «ابحث في السوق» contextual link on the open-shortage chip — a search navigation only, no purchase, no financial effect (in-market purchase stays deferred by the owner decision).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 4 (G08/Q175): the browse initializes the search from the contextual ?search= link (the inventory shortage → market journey) on top of the Wave 2 filters.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-04",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "from": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1838,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Wave 4 (G08/Q168/Q176): the «اطلب توصيلًا لهذا الطلب» contextual button in the delivery-terms panel — navigation with the order context only; no record copy, no automatic financial effect.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-05",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 583,
+        "band": "WATCH"
+      },
+      "reason": "Wave 4: prettier-formatted shape of the Wave 3 privacy slice (582 -> 583 nbLOC within the WATCH band).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

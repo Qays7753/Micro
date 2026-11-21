@@ -6,7 +6,7 @@
  * (د-1) ولا سلة ولا شراء ولا أي أثر مالي (OD-13).
  */
 import { useCallback, useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Search, SlidersHorizontal, Store } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import {
@@ -51,6 +51,9 @@ function microToJod(micro: string | null): string | null {
 
 export default function Market() {
   const [, navigate] = useLocation();
+  /* الموجة 4 (G08 — Q175): الرابط السياقي من نقص المخزون يفتح السوق بمادة
+   * البحث جاهزة (?search=) — قيمة عرض أولى فقط، والفلاتر بعدها بيد المستخدم. */
+  const searchString = useSearch();
   const { session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
   const [meta, setMeta] = useState<MarketMeta | null>(null);
   const [listings, setListings] = useState<PublicListingSummary[]>([]);
@@ -58,7 +61,10 @@ export default function Market() {
   const [hasMore, setHasMore] = useState(false);
   const [moreState, setMoreState] = useState<"idle" | "loading" | "error">("idle");
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => {
+    const matchSearch = /[?&]search=([^&]+)/.exec(searchString);
+    return matchSearch === null ? "" : decodeURIComponent(matchSearch[1]!.replace(/\+/g, " "));
+  });
   const [category, setCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
   const [governorate, setGovernorate] = useState("");

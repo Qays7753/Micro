@@ -403,7 +403,27 @@ export default function InventoryMaterials() {
                   </small>
                   <div className="micro-material-knowledge">
                     {openShortages.length > 0 ? (
-                      <StatusChip state="incomplete">نقص مفتوح: {openShortages.length}</StatusChip>
+                      <>
+                        <StatusChip state="incomplete">نقص مفتوح: {openShortages.length}</StatusChip>
+                        {/* الموجة 4 (G08 — Q175): زر «ابحث في السوق» من نقص
+                            المخزون — بحث سياقي بالمادة، بلا شراء ولا أي أثر
+                            مالي (الشراء داخل السوق مؤجل بقرار المالك). */}
+                        <button
+                          className="micro-text-action"
+                          type="button"
+                          data-testid={`search-market-link-${material.name}`}
+                          onClick={() =>
+                            navigate(
+                              withReturnTo(
+                                `/market?search=${encodeURIComponent(material.name)}`,
+                                "/inventory",
+                              ),
+                            )
+                          }
+                        >
+                          ابحث في السوق عن «{material.name}»
+                        </button>
+                      </>
                     ) : null}
                     {unconfirmed ? <StatusChip state="unconfirmed">غير محدد بعد</StatusChip> : null}
                     {material.costKnowledge === "unknown" ? (

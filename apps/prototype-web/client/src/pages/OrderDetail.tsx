@@ -1654,6 +1654,20 @@ export default function OrderDetail() {
               (بعده الباب الموثق الوحيد هو عكس التسليم). */}
           <section className="micro-form-card" aria-label="النقل والتوصيل" data-testid="delivery-terms-panel">
             <h2 className="micro-section-title">النقل والتوصيل</h2>
+            {/* الموجة 4 (G08 — Q168/Q176): زر «اطلب توصيلًا» سياقي من الطلب إلى
+                حجز التوصيل — تنقّل يحمل سياق الطلب فقط، بلا نسخ سجلات ولا أي
+                أثر مالي تلقائي (لا ينشئ الحجز قيدًا في Manage أبدًا). */}
+            <Button
+              action="outline"
+              onClick={() =>
+                navigate(
+                  withReturnTo(`/delivery/booking/new?context=order:${stored.id}`, `/orders/${stored.id}`),
+                )
+              }
+              data-testid="order-request-delivery"
+            >
+              اطلب توصيلًا لهذا الطلب
+            </Button>
             {order.deliveryTerms ? (
               <p className="micro-muted-copy">
                 {`مسؤولية الكلفة: ${DELIVERY_RESPONSIBILITY_AR[order.deliveryTerms.responsibility]}`}
