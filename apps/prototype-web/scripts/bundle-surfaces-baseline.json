@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "f7d28835",
+        "head": "926e45d6",
         "date": "2026-11-21",
-        "method": "Post-Group 6 W3 product (WS-251/DOC-041 — owner order ab08ec74): local re-anchor from the directly measured build — the Wave 3 booking-editor fields (load classes/period window/consent), the delivery detail surfaces (other-bookings notice, revoke, no-show, book-another), the driver cancel section, the server-derived statement call, and the Profile push section; ceilings untouched (entry 606,384/148,187 PASS under 650,000/155,300)."
+        "method": "Post-Group 6 W5 hardening on top of W3 (WS-251/DOC-041 — owner order ab08ec74): local re-anchor from the directly measured build — the Wave 5 client additions (import depth/count gates, the honest export label, the dependency overrides) grow the lazy surfaces slightly; ceilings untouched (entry 606,384/148,180 PASS under 650,000/155,300)."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -32,12 +32,12 @@
       "measurements": {
         "initialRawTotal": 224824,
         "initialGzipNormTotal": 70761,
-        "lazyRawTotal": 1652327,
-        "lazyGzipNormTotal": 500719,
-        "precacheBytesTotal": 3108337,
+        "lazyRawTotal": 1653890,
+        "lazyGzipNormTotal": 501292,
+        "precacheBytesTotal": 3109900,
         "swRuntimeRawTotal": 28724,
         "entryRawBytes": 606384,
-        "entryGzipNormBytes": 148187,
+        "entryGzipNormBytes": 148180,
         "lazyJsCount": 146,
         "initialJsCount": 2,
         "dynamicRootsCount": 99,
