@@ -11782,6 +11782,234 @@
         "trigger": "post-group6-wave5-safe-hardening",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-621",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryChange.ts",
+      "from": {
+        "nbLoc": 408,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the atomic same-transaction proposal resolution + agreement effect (SRV-05) — the file enters WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-622",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/routes.delivery.ts",
+      "from": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — registering the no-show, consent-revoke, and driver-cancel routes plus the required-key option on booking creation (SRV-03) — the file enters WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-623",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 474,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — coversRoute, period-booking and load-field DTOs and inputs, the server-derived statement call (MD-04), no-show/consent-revoke/driver-cancel functions, and the stable create key option",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-624",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 777,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the other-bookings notice, the consent revoke button, the no-show report button, and the explicit «احجز سائقًا آخر» button on expired/declined bookings",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-625",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 602,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the load-class/weight-band selects, the period-booking type with its mandatory start/end window, the recipient-consent checkbox, the route-aware ordered directory with the coverage badge and outside-coverage notice, and the stable create idempotency key",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-626",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 846,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the written-reason cancel-before-pickup section and the server-derived daily-statement submission replacing the manual item form; the WATCH→SPLIT_CANDIDATE crossing is reanchored with this dated entry",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-627",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 390,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — mounting the best-effort push-notifications section (G09)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-628",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 757,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — route-ordered directory with the honest coverage badge (Q73/Q93), the no-show report endpoint with the manual-review threshold (Q242), the scoped recipient-consent read gate (MD-01), and the other-bookings flag (Q268)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-629",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 489,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 618,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the advisory-lock capacity-gated acceptance (Q268), the CAS decline with the requester notice (MD-03/Q215), the driver cancel-before-pickup endpoint (Q106), and the server-derived statement with the unique-violation mapping (MD-04/MD-05)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-630",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 600,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the load-field/window/period validation at creation (Q75/Q97/Q100), the scoped recipient-consent capture (MD-01), the capacity-gated quote confirmation (Q268), and the consent revoke endpoint",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-guards-631",
+      "date": "2026-11-21",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 577,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the dated PC-3 re-anchor rows for the Wave 3 door-surface additions (delivery +3 functions, network +2 push functions)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-guards-632",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1075,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the dated ceiling raises for the Wave 3 final-decision labels (DeliveryBookingDetail 145→147, DeliveryBookingEditor 60→70, Profile 47→50)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-guards",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "a38540ac",
+        "head": "f7d28835",
         "date": "2026-11-21",
-        "method": "Post-Group 6 W1+hardening (WS-251/DOC-041 — owner order bd242b3e): local re-anchor from the directly measured build at the candidate head — explicit-context/sessions client services + Profile sections (CreateProjectCard/DeviceSessionsSection) + guard list; ceilings untouched (entry 606,261/148,159 PASS under 650,000/155,300)."
+        "method": "Post-Group 6 W3 product (WS-251/DOC-041 — owner order ab08ec74): local re-anchor from the directly measured build — the Wave 3 booking-editor fields (load classes/period window/consent), the delivery detail surfaces (other-bookings notice, revoke, no-show, book-another), the driver cancel section, the server-derived statement call, and the Profile push section; ceilings untouched (entry 606,384/148,187 PASS under 650,000/155,300)."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -30,14 +30,14 @@
         "identityMode": "null-fallback"
       },
       "measurements": {
-        "initialRawTotal": 224654,
-        "initialGzipNormTotal": 70693,
-        "lazyRawTotal": 1628681,
-        "lazyGzipNormTotal": 493566,
-        "precacheBytesTotal": 3084398,
+        "initialRawTotal": 224824,
+        "initialGzipNormTotal": 70761,
+        "lazyRawTotal": 1652327,
+        "lazyGzipNormTotal": 500719,
+        "precacheBytesTotal": 3108337,
         "swRuntimeRawTotal": 28724,
-        "entryRawBytes": 606261,
-        "entryGzipNormBytes": 148159,
+        "entryRawBytes": 606384,
+        "entryGzipNormBytes": 148187,
         "lazyJsCount": 146,
         "initialJsCount": 2,
         "dynamicRootsCount": 99,

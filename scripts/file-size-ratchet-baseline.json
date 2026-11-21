@@ -2045,6 +2045,14 @@
     "apps/prototype-web/worker/api/delivery.ts": {
       "nbLoc": 582,
       "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/deliveryChange.ts": {
+      "nbLoc": 408,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/routes.delivery.ts": {
+      "nbLoc": 418,
+      "band": "WATCH"
     }
   }
 }
