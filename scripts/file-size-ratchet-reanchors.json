@@ -12314,6 +12314,25 @@
         "trigger": "post-group6-continuous-gate-fix",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-routetemplate-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4 G02 — the third gate run's routeTemplateSync pin caught the /admin route collapsing to /unknown in diagnostics) — the ROUTE_GROUPS table gains the admin section (a single flat route, no sub-paths) with the dated header note; the safe route-template contract stays exact (unknown routes still fully masked)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

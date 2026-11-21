@@ -383,8 +383,17 @@ describe("manage migration SRV-07 (Post-Group 6 Wave 4): the concurrent-apply ra
       .bind(linked.workspaceId)
       .all<{ family: string; record_id: string }>();
     const ids = records.results.map(row => `${row.family}/${row.record_id}`);
-    const winnerIsFirst = (await results[0]!.json()) as { totalRecords: number };
-    if (winnerIsFirst.totalRecords === 3) {
+    /* إصلاح سباقين كامنين في الفحص نفسه (كشفتهما بوابة 44940826190 وإعادة
+     * التشغيل المحلي): (أ) القراءة كانت من results[0] على افتراض أن الأول هو
+     * الرابح دائمًا — تحت الحمل فاز الثاني أحيانًا فكان results[0] هو الخاسر
+     * 409 الذي استُهلك جسمه أعلاه فينهار الفحص بBody already been read؛
+     * (ب) التمييز كان بtotalRecords === 3 وهي 3 للحزمتين كلتيهما فكان الشرط
+     * صادقًا دائمًا والفحص يفشل كلما فازت الحزمة الثانية (مسار مشروع تمامًا).
+     * الرابح هو الـ200 دائمًا ويُميَّز بfamilyCounts الحاسمة (الأولى orders=2،
+     * والثانية orders=1+assets=1) — الإثبات صحيح أياً كان من ركّب أولًا. */
+    const winner = results.find(response => response.status === 200)!;
+    const winnerBody = (await winner.json()) as { familyCounts: Record<string, number> };
+    if (winnerBody.familyCounts.orders === 2) {
       expect(ids).toEqual(["orders/s1", "orders/s2", "profile/__single__"]);
     } else {
       expect(ids).toEqual(["assets/x1", "orders/t1", "profile/__single__"]);
