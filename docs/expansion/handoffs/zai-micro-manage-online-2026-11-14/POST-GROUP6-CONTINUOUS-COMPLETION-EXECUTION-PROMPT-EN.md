@@ -1,6 +1,6 @@
 # Z AI — Micro Remaining Software Completion — Execution Prompt
 
-**Status:** Owner-authorized continuous execution for remaining, explicitly specified software work (2026-11-21). This is the controlling successor for the next Z AI run. Earlier prompts and reports are historical evidence and must not be overwritten.
+**Status:** Owner-authorized continuous execution for remaining, explicitly specified software work (2026-11-21; owner-confirmed supplement appended 2026-11-22 — see §10, which is part of this same controlling prompt and overrides only conflicting older product clauses). This is the controlling successor for the next Z AI run. Earlier prompts and reports are historical evidence and must not be overwritten.
 
 **Repository:** `Qays7753/Micro`
 **Only write branch:** `zai/micro-manage-online-20261114`
@@ -116,3 +116,46 @@ The report must include:
 - the preserved scan report and its history incident without re-publishing it; all PR/merge/main/provider/database/deployment/real-data operations not performed; and the exact next owner/operator action.
 
 Use `VERIFIED`, `INFERRED`, `UNVERIFIED`, `NOT_EXECUTED`, `DEFERRED`, and `BLOCKER` precisely. Keep DOC-041 at the valid review state and WS-251 at its valid owner-review state after execution; do not mark either accepted or verified on the owner’s behalf. Stop after the final code/documentation handoff on the existing branch. No owner acceptance, PR, merge, `main` change, deployment, live provider write, real-data activity, or cleanup is included. `NO_CLEANUP`.
+
+## 10. Owner-confirmed supplement — 2026-11-22 (continuous-completion continuation past the review gate)
+
+The owner reviewed the 2026-11-22 delivery at its review gate and confirmed the following decisions in the owner's own message dated 2026-11-22. This section is appended **in place** to this same controlling prompt (no competing prompt is created); all other instructions and historical reports above stay untouched and authoritative. This supplement overrides **only** conflicting older product clauses (for example, the G01/G02 deferrals and the closed one-kind draft registry that the decisions below now resolve); every process boundary of §1–§9 (branch, push safeguards, structural gate, forbidden actions, verification cadence, reporting) continues unchanged.
+
+### 10.1 Owner decisions — role lifecycle and account data (G01/G02)
+
+1. **Re-adding a removed role means a new application.** Preserve the previous profile/history as archived; do not restore approval or permissions automatically. The archived row (and its archived listings/evidence/vehicles and any «مستخدم سابق» masking on old records) stays exactly as it is; a fresh application row starts the normal flow from the beginning (supplier auto-activation on completed profile + accepted terms as with any new application; driver requires admin approval as with any new application).
+2. **Audited Admin action to lift identity suspension**, with reason, Admin identity, and timestamp recorded. Lifting restores access only through roles that remain active and approved; it never restores removed roles and never changes bookings. (Suspension keeps its existing semantics: it fully blocks the identity, never auto-cancels an active booking, and grants no access exception — the other party/Admin handles active bookings through approved workflows.)
+3. **Project export before explicit deletion confirmation.** Implement the export first: only data the owner owns or may access, including financial records, files, and settings. After the export is ready and the user explicitly confirms, delete private project data and unshared drafts; retain only completed shared records needed by counterparties with the owner masked as «مستخدم سابق», plus the minimal required audit/security/legal records. Backups follow the existing declared retention policy (repository-declared only; no live backup job). **Do not delete live user data in this task** — synthetic fixtures in disposable local tests only. An ongoing booking blocks the deletion honestly (same protection the owner set for role removal: never auto-cancel; finish or resolve first).
+4. **Suspension fully blocks the identity.** No auto-cancel of an active booking, no access exception for the suspended user; the other party/Admin handles it through approved workflows (already the implemented semantics — keep and cover with regression tests).
+
+### 10.2 Owner decisions — Ask Micro (supplements §5)
+
+5. **Ask may draft every financial input path that Manage already supports canonically**, only where it can use that existing path without changing financial meaning or adding a new write path/schema. Do not guess values; require user review, confirmation, and server acceptance. Defer only unsupported, ambiguous, or compound flows (document each deferral). Financial analysis remains read-only and uses trusted app/server results, not model arithmetic or external market data.
+6. **The selected AI stack is Workers AI / GLM-4.7-Flash / standard Whisper — but do not connect, call, or evaluate any provider now.** The honest runtime state stays «not configured». Do not send full chat history automatically (only the current question and the bounded fact set travel to the provider port) and make no proactive suggestions (Ask answers only what the user asks).
+7. **Ask governance rules** (each needs a focused regression test):
+   - revocable per-user consent (asking requires a granted consent the user can revoke at any time; revocation is immediate);
+   - local text history for at most 21 days and no raw audio stored anywhere;
+   - a 20-question daily cap per user (the final decision أ-2 «حد 20 سؤالًا يوميًا لكل مستخدم كبداية»); when it is exhausted the honest «المساعد غير متاح الآن» message shows and nothing else breaks;
+   - a separate 10,000-Neurons/day free-quota stop with **no paid fallback** (there is no paid path at all; when the free quota ends the same honest unavailable message shows);
+   - explicit active role/workspace validation on the ask path;
+   - strict per-type draft fields and values (each draft kind carries exactly its typed field set; anything else fails closed);
+   - truthful failure/workspace copy (no stale or false context text anywhere on the Ask surface).
+
+### 10.3 Source-review gap fixes — focused regression tests (each tied to the governing decision)
+
+8. Role-add entry points from My Account («الإضافة من «حسابي» في أي وقت» — Q5), including re-application entry after a removed role (per 10.1-1).
+9. Actionable Admin queues with ages for **every** queue type, including driver evidence and vehicles («كل الطوابير مع عمر كل عنصر» — Q129).
+10. Atomic state/event/audit/required in-app notification handling for the consequential admin/account actions (state change, event, audit, and any required in-app notification commit together or not at all).
+11. Driver eligibility recheck when submitting an existing draft booking (the driver must still be approved at submit time — an honest refusal, never a silently stale submission).
+
+### 10.4 Security register and scan continuity
+
+12. Consult the source-pinned security report and account for all 30 findings individually with evidence tied to the final SHA; green CI alone closes none (§6 stays binding; the corrected 12+17=29 fixed-verified + 1 open reconciliation continues).
+13. Keep `MNG-LOCAL-03` open in the security register and owner-deferred for remediation (the owner explicitly defers it again here).
+14. The post-Group-6 structural gate stays: no structural refactoring or file moves before the owner's acceptance of the 2026-11-21 scan; preserve the scan report untracked/unpublished and make its location available to the owner (§2 stays binding).
+
+### 10.5 Execution boundaries for this continuation
+
+15. Use only the existing branch and its current push safeguards (§7 unchanged: fast-forward only, `[CF-Pages-Skip]` prefix, no `main`, no PR changes, no merge, no deployment, no live Cloudflare/Neon/AI calls, no real data, no actual live data deletion, no cleanup).
+16. Reuse exact-SHA test evidence when the relevant code/test tree is unchanged; run focused checks after each change and the required final non-deploying gate **once** on the final code candidate.
+17. Send brief Arabic milestone updates that never pause work. Finish with a new dated Arabic report (separate file; the 2026-11-22 report name is taken — use a distinct name such as `POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22-PHASE2.md`): the final SHA, actual tests/results, security statuses, deferred items, and actions not performed.

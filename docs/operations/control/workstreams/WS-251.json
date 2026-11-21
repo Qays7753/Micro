@@ -1,12 +1,12 @@
 {
  "id": "WS-251",
  "title": "ما بعد المجموعة ٦ — معالجة فجوات القرارات النهائية 2026-11-21 والنتائج الأمنية المفتوحة القابلة للتنفيذ (أمر المالك POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e)",
- "status": "REVIEW_REQUIRED",
+ "status": "IN_PROGRESS",
  "items": [
   "DOC-041"
  ],
  "branch": "zai/micro-manage-online-20261114",
- "base_sha": "7593b9c449128602ee62c5a054314275acc27e3e",
+ "base_sha": "e4ad90518c304ee09571e14c68186add2c40bcc9",
  "areas": [
   "docs/expansion/DECISIONS.md",
   "docs/contracts/04-limited-sync-contract.md",
@@ -50,7 +50,7 @@
  "pr": null,
  "started_at": "2026-11-21",
  "updated_at": "2026-11-22",
- "next_action": "تنفيذ موجات الاستكمال المستمر من رأس الأمر 7593b9c4 على الفرع نفسه (البند DOC-041 في IN_PROGRESS)، مع بوابة ci.yml غير الناشرة على مرشح الكود النهائي وتقرير ختامي مؤرخ، ثم التسليم عند بوابة مراجعة المالك (REVIEW_REQUIRED — لا PR ولا دمج ولا main ولا تنظيف).",
+ "next_action": "تنفيذ موجات المرحلة الثانية من رأس الملحق e4ad9051 على الفرع نفسه (البند DOC-041 في IN_PROGRESS)، مع بوابة ci.yml غير الناشرة على مرشح الكود النهائي وتقرير ختامي مؤرخ جديد، ثم التسليم عند بوابة مراجعة المالك.",
  "notes": [
   "Hard boundaries from the owner order bd242b3e: read-only owner-decision branch docs/micro-final-decisions-20261121 (PR #385 open — do not edit/retarget/approve/merge); the 2026-11-21 final decisions supersede earlier D1–D8 and EX-D19..D23 where they conflict; no Ask Micro AI provider wiring; no spending/paid providers; no Cloudflare/Neon/R2/OAuth writes; no live DB/migration application/real-data transfer/backup/deployment; repository migration files + ephemeral/local PostgreSQL tests with synthetic data are permitted; no structural refactoring/bulk moves/module reorganization/file splitting/new generic architecture layer (the Post-Group 6 scan/owner-review gate stays in force — structural proposals are DEFER); no dark mode; no global token/color redesign; every pushed commit starts with [CF-Pages-Skip] so no Cloudflare Pages preview is created; preserve the untracked Post-Group 6 scan report untouched.",
   "The claim continues the WS-250 branch series at the owner's bd242b3e order after WS-250's M1–M6 implementation closed at its owner-review gate (DOC-040 stays IN_REVIEW with its evidence intact).",
@@ -101,6 +101,18 @@
    "changed_at": "2026-11-22",
    "actor": "zai-implementation-writer",
    "reason": "التسليم الختامي للاستكمال المستمر عند بوابة مراجعة المالك: G01/G02/G03/G13 كاملة بإصلاحات البوابة الأربعة (549afd5b وf689854e و81d2abfc وe8d9c1c8) والتقرير العربي الختامي POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22.md مسلَّم والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-claim-2026-11-22-phase2",
+   "reason": "ملحق المالك المؤكد 2026-11-22 (القسم 10 من أمر الاستكمال المستمر نفسه عند رأس التسليم e4ad9051) يعيد فتح المطالبة لمرحلة ثانية: قرارات دورة الدور والحساب (إعادة الإضافة كطلب جديد، رفع الإيقاف المدقق، التصدير قبل الحذف المؤكد)، وتوسيع مسودات Ask المالية الكنونية وحوكمتها الكاملة، وإصلاحات فجوات مراجعة المصدر المحددة — نقل الأساس إلى رأس الملحق. لا قبول لأي عمل سابق."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "تنفيذ المرحلة الثانية تحت البند DOC-041 المفتوح: موجات صغيرة مستقلة غير هيكلية مع اختبارات انحدار مركزة، وبوابة ci.yml غير الناشرة على مرشح الكود النهائي مرة واحدة، وتقرير ختامي مؤرخ جديد، ثم العودة إلى بوابة مراجعة المالك."
   }
  ],
  "migration_baseline": false
