@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "b4893588710eef0e5977af272d0f5f97a3fa46a0",
+  "head": "1d838706b820a5a205420e34e02265eac2dcb1aa",
   "pages": {
     "total": 73,
     "map": {
@@ -130,13 +130,15 @@
       "pages/DeliveryBookingDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "pages/Delivery.wave3.dom.test.tsx",
           "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DeliveryBookingEditor.tsx": {
         "kind": "direct",
         "evidence": [
-          "pages/Delivery.journeys.dom.test.tsx"
+          "pages/Delivery.journeys.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx"
         ]
       },
       "pages/DeliveryDrivers.tsx": {
@@ -180,6 +182,7 @@
         "kind": "direct",
         "evidence": [
           "pages/Delivery.journeys.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx",
           "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
@@ -344,6 +347,7 @@
         "evidence": [
           "Clean001.surfaceAudit.test.tsx",
           "Nav001.dom.test.tsx",
+          "pages/Market.contextualLink.dom.test.tsx",
           "pages/Market.journeys.dom.test.tsx"
         ]
       },
@@ -437,6 +441,7 @@
         "kind": "direct",
         "evidence": [
           "ArabicRtlContent.w44.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx",
           "pages/Profile.manageOnline.dom.test.tsx",
           "pages/Profile.ui.test.tsx"
         ]

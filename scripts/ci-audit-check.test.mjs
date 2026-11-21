@@ -17,7 +17,12 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { evaluateAuditReport, loadRegister, extractAdvisories, DEFAULT_REGISTER_PATH } from "./ci-audit-check.mjs";
+import {
+  evaluateAuditReport,
+  loadRegister,
+  extractAdvisories,
+  DEFAULT_REGISTER_PATH,
+} from "./ci-audit-check.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url).replace("ci-audit-check.test.mjs", "ci-audit-check.mjs");
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,7 +46,7 @@ function runChecker(args) {
 
 const BRACES_REPORT = {
   advisories: {
-    "1240992": {
+    1240992: {
       id: 1240992,
       github_advisory_id: "GHSA-vfj7-8cjw-p6xm",
       module_name: "braces",
@@ -119,6 +124,57 @@ describe("ci-audit-check — register semantics (pure evaluation)", () => {
   });
 });
 
+/* CI-001 (Post-Group 6 Wave 5 / DOC-041): تحذير أدنى من high غير مسجل
+ * يُحلّل من التقرير الكامل ويحجب — لا يُتجاهل بصمت أبدًا؛ التسجيل الموثق
+ * وحده مسار القبول. */
+describe("ci-audit-check — CI-001: sub-high unregistered advisories block", () => {
+  it("a moderate advisory with no register entry BLOCKS (audit-level low semantics)", () => {
+    const report = {
+      advisories: {
+        1: {
+          id: 1,
+          github_advisory_id: "GHSA-test-moderate",
+          module_name: "some-dev-tool",
+          severity: "moderate",
+          title: "moderate DoS in a build tool",
+          vulnerable_versions: "<2.0.0",
+          findings: [{ version: "1.0.0", paths: [".>buildtool>some-dev-tool"] }],
+        },
+      },
+      metadata: { vulnerabilities: { info: 0, low: 0, moderate: 1, high: 0, critical: 0, total: 1 } },
+    };
+    const verdict = evaluateAuditReport(report, { exceptions: [] });
+    expect(verdict.exitCode).toBe(1);
+    expect(verdict.blocked).toHaveLength(1);
+    expect(verdict.blocked[0].reason).toBe("no exception record");
+  });
+
+  it("a low-severity unregistered advisory BLOCKS the same way (never silently ignored)", () => {
+    const report = {
+      advisories: {
+        2: {
+          id: 2,
+          github_advisory_id: "GHSA-test-low",
+          module_name: "another-dev-tool",
+          severity: "low",
+          title: "low severity issue",
+          vulnerable_versions: "<1.0.0",
+          findings: [{ version: "0.9.0", paths: [".>x>another-dev-tool"] }],
+        },
+      },
+      metadata: { vulnerabilities: { info: 0, low: 1, moderate: 0, high: 0, critical: 0, total: 1 } },
+    };
+    const verdict = evaluateAuditReport(report, { exceptions: [] });
+    expect(verdict.exitCode).toBe(1);
+    expect(verdict.blocked[0].advisory.severity).toBe("low");
+  });
+
+  it("the checker's default audit level is low (the full report feeds the register gate)", async () => {
+    const source = fs.readFileSync(SCRIPT_PATH, "utf8");
+    expect(source).toContain('readFlag("--audit-level") ?? "low"');
+  });
+});
+
 describe("ci-audit-check — CLI (offline via --report-file/--register)", () => {
   it("exits 1 and blocks fail-closed if the remediated braces advisory ever re-matches the live register (reopen behavior)", () => {
     const report = writeTemp("report.json", BRACES_REPORT);
@@ -128,7 +184,9 @@ describe("ci-audit-check — CLI (offline via --report-file/--register)", () => 
     // بعد الدمج (PR #317) صار صف braces ‏REMEDIATED_BY_ELIMINATION: لو عاد
     // المكتشف حيًا يومًا فالفاحص يعامله كحالة غير معروفة فيحجب — الإغلاق
     // المغلق فشلًا لسلوك إعادة الفتح الموثق في السجل نفسه.
-    expect(result.stdout).toContain("unknown exception status 'REMEDIATED_BY_ELIMINATION' — treated as blocking");
+    expect(result.stdout).toContain(
+      "unknown exception status 'REMEDIATED_BY_ELIMINATION' — treated as blocking",
+    );
     expect(result.stdout).toContain("1 blocking finding(s)");
   });
 

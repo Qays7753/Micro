@@ -71,6 +71,31 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # SEC-GIT-001 (Post-Group 6 Wave 5 / DOC-041، 2026-11-21): فحص أسرار
+      # المدى الجديد لكل دفعة — السر الذي دُفع ثم أُزيل في التزام لاحق لا
+      # يراه فحص الشجرة الحية أبدًا؛ هذا الفحص يسحب كل التزامات المدى
+      # الجديد ويفحص محتوى ملفاته بأنماط حارس الأسرار الحي نفسها،
+      # بمخرجات منقّحة (نمط/ملف/سطر/التزام — لا نص مطابق أبدًا).
+      # المدى: push = before..sha (وعند إنشاء فرع: main...HEAD)؛
+      # pull_request = قاعدة الدمج...HEAD؛ dispatch = main...HEAD.
+      - name: Scan the pushed range for secrets (SEC-GIT-001)
+        run: |
+          set -eu
+          BEFORE=""
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            case "$BEFORE" in
+              ""|0000000000000000000000000000000000000000) BEFORE="origin/main" ;;
+            esac
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.event.pull_request.base.ref }}"
+            BEFORE="origin/${{ github.event.pull_request.base.ref }}"
+          else
+            BEFORE="origin/main"
+          fi
+          echo "scanning range: $BEFORE..HEAD"
+          node scripts/check-secrets-range.mjs "$BEFORE" HEAD
+
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:

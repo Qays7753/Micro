@@ -43,7 +43,14 @@ import { isDate, isRecord, normalizeImportedCategoryLabel } from "./transferFami
 /* S17 (DOC-026 / UNIT-044 — SDF-048): بوابة حدود الموارد تسبق قراءة المحتوى
  * وتحليله — الملف الأكبر من حد التحقق الآمن يُرفض برسالة محددة قبل أي
  * كتابة وقبل JSON.parse نفسه. */
-import { IMPORT_SIZE_LIMIT_MESSAGE, isWithinImportSizeLimit } from "./transferResourceLimits";
+import {
+  IMPORT_COUNT_LIMIT_MESSAGE,
+  IMPORT_DEPTH_LIMIT_MESSAGE,
+  IMPORT_SIZE_LIMIT_MESSAGE,
+  importFamilyCountVerdict,
+  isWithinImportDepth,
+  isWithinImportSizeLimit,
+} from "./transferResourceLimits";
 import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./transferEnvelope";
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
 import { verifyTransferArrayFamilies } from "./transferArrayFamilyRoles";
@@ -242,6 +249,12 @@ export class LocalTransferService {
       return fail("إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    /* MNG-LOCAL-06 (Post-Group 6 Wave 5 / DOC-041): حدود العمق والعدد بعد
+     * التحليل وقبل الترحيل/التحقق — تعشيش عميق يُنهك المكدس العودي، وعائلة
+     * منتفخة تُنهك الذاكرة؛ الرفض قبل أي كتابة. */
+    if (!isWithinImportDepth(candidate)) return fail(IMPORT_DEPTH_LIMIT_MESSAGE);
+    const countVerdict = importFamilyCountVerdict(candidate.data);
+    if (!countVerdict.ok) return fail(IMPORT_COUNT_LIMIT_MESSAGE);
     /* R2 (M-03/D2، 2026-10-08): خط التحقق كله (بصمة/ترحيل/تحقق/عدادات)
      * محروس برمي مهيكل — أي رمي غير متوقع (مدقق على ملف مصنوع، فائض حسابي
      * في حصة المشروع المشتركة) يعود رفضًا صادقًا بقالب validation_error

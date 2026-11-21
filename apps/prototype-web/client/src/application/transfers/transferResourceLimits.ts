@@ -42,3 +42,75 @@ export function isWithinImportFileBytes(sizeInBytes: number): boolean {
 export function isWithinImportSizeLimit(text: string): boolean {
   return text.length <= MAX_IMPORT_FILE_UNITS;
 }
+
+/* MNG-LOCAL-06 (Post-Group 6 Wave 5 / DOC-041، 2026-11-21): حدود العمق
+ * والعدد فوق حد الحجم — ملف بحجم مسموح يمكنه تغليف تعشيش شديد العمق
+ * يُنهك مكدس التحقق/الترحيل العودي، أو عائلة بعدد سجلات ضخم يُنهك الذاكرة
+ * قبل أي كتابة. القياس المرجعي الموثق: أعمق تعشيش صادق في ملفات التصدير
+ * الذهبية ≈ ٨ مستويات، وأكبر عائلة ≈ بضع مئات سجلات — السقفان وقائيان
+ * بأضعاف ذلك، والرفض صادق قبل أي كتابة. القيد المعلن (استمرار بوابة D03):
+ * القياس على جهاز هاتف فعلي ما يزال بوابة DEVICE خارجية؛ السقفان مشتقان
+ * من القياس الكنوني للذهبي مع هامش أضعاف، لا رقمًا اعتباطيًّا. */
+
+/** أقصى عمق تعشيش مسموح في ملف الاستعادة (المستويات المتداخلة). */
+export const MAX_IMPORT_JSON_DEPTH = 64;
+
+/** أقصى عدد سجلات مسموح لعائلة مصفوفة واحدة في ملف الاستعادة. */
+export const MAX_IMPORT_FAMILY_RECORDS = 20_000;
+
+/** أقصى إجمالي سجلات مسموح في ملف الاستعادة (كل العائلات). */
+export const MAX_IMPORT_TOTAL_RECORDS = 50_000;
+
+export const IMPORT_DEPTH_LIMIT_MESSAGE =
+  "تعشيش الملف أعمق من أي ملف نسخة Micro صادق — رُفض قبل أي كتابة ولم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح.";
+
+export const IMPORT_COUNT_LIMIT_MESSAGE =
+  "عدد سجلات الملف أكبر من حد التحقق الآمن في هذا التطبيق — رُفض قبل أي كتابة ولم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح.";
+
+/** عمق أعمق تعشيش في قيمة JSON محللة (تكراري بمكدس صريح لا recursion). */
+export function measureJsonDepth(value: unknown): number {
+  if (value === null || typeof value !== "object") return 0;
+  let maxDepth = 1;
+  const stack: { node: unknown; depth: number }[] = [{ node: value, depth: 1 }];
+  while (stack.length > 0) {
+    const { node, depth } = stack.pop()!;
+    if (depth > maxDepth) maxDepth = depth;
+    if (node === null || typeof node !== "object") continue;
+    if (Array.isArray(node)) {
+      for (const child of node) {
+        if (child !== null && typeof child === "object") stack.push({ node: child, depth: depth + 1 });
+      }
+    } else {
+      for (const child of Object.values(node as Record<string, unknown>)) {
+        if (child !== null && typeof child === "object") stack.push({ node: child, depth: depth + 1 });
+      }
+    }
+  }
+  return maxDepth;
+}
+
+/** هل تعشيش القيمة داخل حد التحقق الآمن؟ */
+export function isWithinImportDepth(value: unknown): boolean {
+  return measureJsonDepth(value) <= MAX_IMPORT_JSON_DEPTH;
+}
+
+/** حدود العد لملف مظروف كامل: تُعاد خرائط العائلة→العدد والإجمالي، أو سبب الرفض. */
+export function importFamilyCountVerdict(
+  data: Record<string, unknown>,
+): { ok: true } | { ok: false; reason: "family" | "total"; family?: string } {
+  let total = 0;
+  for (const [family, value] of Object.entries(data)) {
+    if (Array.isArray(value)) {
+      if (value.length > MAX_IMPORT_FAMILY_RECORDS) {
+        return { ok: false, reason: "family", family };
+      }
+      total += value.length;
+    } else {
+      total += 1;
+    }
+  }
+  if (total > MAX_IMPORT_TOTAL_RECORDS) {
+    return { ok: false, reason: "total" };
+  }
+  return { ok: true };
+}

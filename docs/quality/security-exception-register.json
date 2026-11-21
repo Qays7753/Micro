@@ -148,7 +148,7 @@
       ],
       "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit OWNER_ACCEPTED notice when matched. If the advisory disappears from the live report, the checker emits a stale-entry warning and the entry must be removed in the same lockfile-update PR. Reopen immediately on any patched release that becomes resolvable, a dependency-chain change, a new advisory affecting the chain, or movement of the affected operation onto untrusted input.",
       "owner": "Micro owner — explicitly accepted the bounded OWNER_ACCEPTED exception on 2026-10-31 (S10 execution order section 1); acceptance is limited to GHSA-g3hv-75wg-m249 and the documented development-only chains.",
-      "status": "OWNER_ACCEPTED",
+      "status": "REMEDIATED_BY_OVERRIDE",
       "accepted_at": "2026-10-31",
       "review_date": "2027-01-29 (90-day periodic review)",
       "reopening_trigger": "Immediately upon a patched minimatch release becoming resolvable through any direct dependency, a dependency-chain change, a new advisory affecting this chain, or any change that makes the affected operation consume untrusted input; review also occurs on the 90-day date.",
@@ -163,6 +163,12 @@
         "observed_on_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
         "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/41151475202",
         "result_record": "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md"
+      },
+      "remediation": {
+        "date": "2026-11-21",
+        "method": "pnpm override in the root package.json: minimatch@>=7.0.0 <11.0.1 -> 11.0.1 (Post-Group 6 Wave 5 / DEP-002, owner order ab08ec74 / WS-251/DOC-041 — the order's Wave 5 explicitly includes dependency remediation and supersedes the earlier S10 no-override posture for this bounded, tested range override).",
+        "evidence": "pnpm-lock.yaml resolves minimatch@11.0.1 for the previously vulnerable >=7 chains (the eslint-chain minimatch@3.1.5 instances were never in the advisory range and stay untouched); pnpm audit --json --audit-level low on the remediated lockfile reports ZERO advisories; the full local verification chain green (eslint 0/0, tsc clean, app build + budget + surfaces PASS, worker suite green).",
+        "verified_by": "Z AI — Post-Group 6 Wave 5 execution (DOC-041)"
       }
     },
     {
@@ -197,7 +203,7 @@
       ],
       "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit OWNER_ACCEPTED notice when matched. If the advisory disappears from the live report, the checker emits a stale-entry warning and the entry must be removed in the same lockfile-update PR. Reopen immediately on any patched release that becomes resolvable, a dependency-chain change, a new advisory affecting the chain, or movement of the affected operation onto untrusted input.",
       "owner": "Micro owner — explicitly accepted the bounded OWNER_ACCEPTED exception on 2026-10-31 (S10 execution order section 1); acceptance is limited to GHSA-3g3m-2fjr-6pw4 and the documented development-only chain.",
-      "status": "OWNER_ACCEPTED",
+      "status": "REMEDIATED_BY_OVERRIDE",
       "accepted_at": "2026-10-31",
       "review_date": "2027-01-29 (90-day periodic review)",
       "reopening_trigger": "Immediately upon a patched glob release becoming resolvable through any direct dependency, a dependency-chain change, a new advisory affecting this chain, or any change that makes the affected operation consume untrusted input; review also occurs on the 90-day date.",
@@ -212,6 +218,12 @@
         "observed_on_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
         "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/41151475202",
         "result_record": "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md"
+      },
+      "remediation": {
+        "date": "2026-11-21",
+        "method": "pnpm override in the root package.json: glob@>=9.0.0 <=14.0.1 -> 14.0.2 (Post-Group 6 Wave 5 / DEP-001, owner order ab08ec74 / WS-251/DOC-041 — the order's Wave 5 explicitly includes dependency remediation and supersedes the earlier S10 no-override posture for this bounded, tested range override).",
+        "evidence": "pnpm-lock.yaml resolves glob@14.0.2 for the workbox-build chain; pnpm audit --json --audit-level low on the remediated lockfile reports ZERO advisories; the PWA build (vite + workbox over glob 14) builds clean with the budget and surfaces guards PASS.",
+        "verified_by": "Z AI — Post-Group 6 Wave 5 execution (DOC-041)"
       }
     },
     {

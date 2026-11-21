@@ -12010,6 +12010,82 @@
         "trigger": "post-group6-wave3-guards",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-633",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 444,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-05 typed validation class and the MNG-LOCAL-06 depth gate — the file crosses into WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-634",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 550,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-05 safe import messages and the MNG-LOCAL-06 depth/count gates after parsing, before any migration or write",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-635",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "from": {
+        "nbLoc": 704,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 981,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-04 honest export-fingerprint labeling in the export completion notice",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-636",
+      "date": "2026-11-21",
+      "path": "scripts/ci-audit-check.mjs",
+      "from": {
+        "nbLoc": 214,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 244,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — CI-001: the default audit level low + the dated decision header (the full report feeds the register gate; unregistered findings of ANY severity block)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }
