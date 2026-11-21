@@ -12200,6 +12200,63 @@
         "trigger": "post-group6-continuous-g01-roles",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 313,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion G02 (Q129) — the lazy route registration for the /admin panel (the separate admin unit) with its dated comment",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-02",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion G02 (Q129) — the contextual navigation label for the /admin panel route («لوحة الإشراف»)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-03",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 598,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion (G01+G02, same PR) — the dated PC-3 surface changes: the network door +4 values/+2 types for the account role-lifecycle commands and the NEW admin door registered with its exact surface (the Q129 separate unit)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

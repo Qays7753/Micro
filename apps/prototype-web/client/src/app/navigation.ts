@@ -64,6 +64,9 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/delivery/review")) return "مراجعة التوصيل";
   if (pathname.startsWith("/delivery")) return "التوصيل";
   if (pathname.startsWith("/driver")) return "Micro — السائق";
+  /* Post-Group 6 continuous completion (G02 — Q129): لوحة المشرف — مسار
+   * وتخطيط خاصان لوحدة منفصلة. */
+  if (pathname.startsWith("/admin")) return "لوحة الإشراف";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

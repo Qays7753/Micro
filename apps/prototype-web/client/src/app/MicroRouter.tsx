@@ -70,6 +70,10 @@ const DeliveryReviewQueue = lazy(() => import("@/pages/DeliveryReviewQueue"));
 const DriverPortal = lazy(() => import("@/pages/DriverPortal"));
 /* EX-D21 (Phase B): مدخل Ask Micro الشامل — عمق موحد للسياقين. */
 const AskMicro = lazy(() => import("@/pages/AskMicro"));
+/* Post-Group 6 continuous completion (G02 — Q129): لوحة المشرف — وحدة
+ * منفصلة بمسار وتخطيط خاصين (pages/admin + application/admin) يسهل فصلها
+ * لاحقًا؛ محمية من الخادم (كل مساراتها admin-only). */
+const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"));
 const DriverBookingDetail = lazy(() => import("@/pages/DriverBookingDetail"));
 const MarketListingDetail = lazy(() => import("@/pages/MarketListingDetail"));
 const MarketVendorWorkspace = lazy(() => import("@/pages/MarketVendorWorkspace"));
@@ -236,6 +240,9 @@ export function MicroRouter() {
             <Route path="/driver" component={DriverPortal} />
             <Route path="/driver/booking/:id" component={DriverBookingDetail} />
             <Route path="/ask" component={AskMicro} />
+            {/* G02 (Q129): لوحة المشرف — مسار خاص بوحدة منفصلة، محمي خادميًا؛
+                غير المشرف يرى رفضًا صادقًا داخلها لا إخفاء تنقل فقط. */}
+            <Route path="/admin" component={AdminPanel} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
                 والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}
             <Route path="/tools/calculator" component={CostCalculator} />

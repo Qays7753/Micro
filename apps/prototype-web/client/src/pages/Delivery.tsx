@@ -125,9 +125,15 @@ export default function Delivery() {
             سائقوني والبحث عن سائق
           </Button>
           {session.isAdmin ? (
-            <Button action="quiet" onClick={() => navigate("/delivery/review")}>
-              طابور مراجعة التوصيل
-            </Button>
+            <>
+              <Button action="quiet" onClick={() => navigate("/delivery/review")}>
+                طابور مراجعة التوصيل
+              </Button>
+              {/* G02 (Q129): مدخل لوحة المشرف — وحدة منفصلة بمسار خاص. */}
+              <Button action="quiet" onClick={() => navigate("/admin")}>
+                لوحة الإشراف
+              </Button>
+            </>
           ) : null}
         </div>
       )}
