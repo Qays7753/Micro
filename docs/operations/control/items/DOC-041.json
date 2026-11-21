@@ -1,0 +1,116 @@
+{
+ "id": "DOC-041",
+ "title": "مهمة المالك 2026-11-21 (ما بعد المجموعة ٦): مصالحة الكود الحي مع القرارات النهائية وتنفيذ الفجوات الكودية الآمنة وإصلاحات الأمن القابلة للتطبيق وتحسين الرحلات المتأثرة — بالموجات المرخصة W1..W5 على فرع Manage Online",
+ "type": "FEATURE",
+ "status": "IN_PROGRESS",
+ "priority": "P1",
+ "stage": "post-group6-remediation-20261121",
+ "summary": "تنفيذ أمر المالك المؤرخ 2026-11-21 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e) على الفرع zai/micro-manage-online-20261114 من رأس الأمر نفسه، بعد اكتمال M1–M6 عند بوابة المراجعة (لا يعاد تنفيذها ولا يوسم DOC-040 مقبولًا). الحاكم: قرارات المالك النهائية 2026-11-21 (فرع docs/micro-final-decisions-20261121 — قراءة فقط؛ PR #385 مفتوح ولا يُمس) تتقدم على D1–D8 وEX-D19..D23 عند التعارض؛ سجل الفجوات الحاكم للنطاق هو gap-analysis.md (مجموعات G01–G14 + سجل النتائج الأمنية الثلاثين في §4). الموجات: W1 الهوية/الأدوار/Admin/الجلسات/السياق الصريح (G01/G02/G06 + AUTHZ-04/05 وما يتصل)؛ W2 Market والبيانات العامة والخصوصية والإشراف (G04 + ملحقاته الأمنية)؛ W3 Delivery وخصوصية المستلم والمعاملات والتنبيهات (G05/G07/G09/G10 + AUTHZ-01/02 وMD-01..05 وSRV-02/03/05/06)؛ W4 حدود Manage والوصلات السياقية (G08 + MNG-LOCAL-01/02 وSRV-07)؛ W5 تحصين الأمن المتبقي وأدلة UX والبوابة النهائية (DEP-001/002 وCI-001/002 وSEC-GIT-001 وWEB-01/02 وAPI-01 وAUTH-03 وMNG-LOCAL-03..06 وPUBLIC-DRIVER-PROFILE + مصالحة مصفوفة UX لصفحاتها الـ73 ومكوناتها الـ71). الحدود الصلبة: لا مزود ولا إنفاق ولا بيانات حقيقية ولا Ask Micro provider ولا هيكلة/إعادة تنظيم (المسح/بوابة المالك قائمتان — ما يتطلب عملًا هيكليًا يصنف DEFER) ولا وضع داكن؛ كل التزام دفع يبدأ بـ[CF-Pages-Skip]؛ ترحيلات مستودعية واختبارات PostgreSQL محلية/مؤقتة ببيانات اصطناعية مسموحة؛ تقرير عربي واحد جديد عند التسليم ثم التوقف عند بوابة المالك — لا PR ولا دمج ولا main ولا تنظيف.",
+ "source": {
+  "report": "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
+  "discovered_at_sha": "bd242b3e7b856c01a4a307c5ceb77b91758daa63",
+  "evidence": [
+   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
+   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md"
+  ]
+ },
+ "acceptance": [
+  "W0: الفحص المسبق الحي موثق (رأس الفرع bd242b3e محليًا وبعيدًا، main=16c90e48=merge-base، PR #385 مفتوح برأس b04ba6ef ولا يُمس، آخر تشغيل CI على الفرع 43620704296 نجاح)؛ تقرير المسح غير المتتبَّع محفوظ بلا مساس مع بصمة SHA-256 مسجلة؛ مصادرة G01–G14 والنتائج الثلاثين كلها مسجلة بحالتها الحية وأول إجراء غير مكتمل لكل منها (سجل الفجوات §4 هو المرآة المتاحة لملف التدقيق المصدر غير المتوفر في سياق Z AI — قيد مصرح به)؛ لا يبدأ كود قبل وضوح المطالبة والفجوات.",
+  "W1 (G01/G02/G06 + AUTHZ-04/05): إنشاء المشروع صريح بضغطة واحدة لكل حساب (لا إنشاء تلقائي عند أول فعل عمل)، قيد خادمي واحد-لكل-حساب، سياق Workspace صريح مرسل ومتحقق خادميًا في كل طلب عمل (لا اختيار أول عضوية)، فصل حساب Admin (منح خادمي من بريد مهيأ فقط، يُمنع من أدوار مشروع/مورد/سائق ويُمنع حاملها من إنشاء مشروع)، سجل جلسات متعدد الأجهزة وزر إبطال الكل خادميًا، رفض الطلبات غير المصرح بها مباشرة عبر API لا إخفاء التنقل فقط؛ اختبارات موجبة وسالبة عبر ضيف/مالك/مورد/سائق/Admin/عبور حساب وسياق. تحقق MFA التشغيلي لحساب Google للإدارة يبقى بوابـة مشغل موثقة (غير قابل للإثبات من العامل — يوسم UNVERIFIED ولا يدّعى).",
+  "W2 (G04): متغيرات المنتج حتى 20 خيارًا بسعر وأقل كمية وتوفر لكل خيار مع تحقق خادمي؛ تصنيف رئيسي/فرعي وفلاتر نوع المورد/المحافظة/التوصيل أو الاستلام/أقل كمية؛ شاشة إدارة تصنيفات للمشرف؛ عدادات تشغيلية دقيقة؛ دورة حياة المورد (تفعيل بإكمال الملف وقبول الشروط بلا مراجعة ملف) مفصولة حرفيًا عن مراجعة كل إعلان قبل النشر مع وسم أول إعلان لاتصال التحقق؛ إظهار رقم المورد للمسجل عبر زر مع حد يومي خادمي وتدقيق؛ مدخل بلاغ ودعم؛ DTO عام allowlist؛ لا شارات ثقة غامضة ولا جمع وثائق اختيارية (قرارات §1 المفتوحة لا تُحسم افتراضًا).",
+  "W3 (G05/G07/G09/G10): أحجام الحمولة الأربع وعدد القطع وشرائح الوزن؛ ترتيب السائقين بتغطية المسار مع علامة «يغطي مسارك» وسماح خارج التغطية بتنبيه (سلوك خادمي صادق)؛ حجز الفترة؛ حجوزات متداخلة منفصلة ضمن سعة السائق بفحص ذري؛ موافقة الأطراف وكشف أدنى الحقول؛ قاعدة 48 ساعة للسائق ووقف فوري عند الإلغاء ووصول المالك دائمًا وAdmin لبلاغ/نزاع مفتوح فقط؛ حذف قاعدة البيانات بعد سنة ونسخ خلال 30 يومًا كسياسات مستودعية مختبرة اصطناعيًا فقط (لا تنفيذ حي)؛ Web Push أفضل-جهد بلا وعد وصول ومهل على ساعة الخادم ورفض/عدم حضور/إلغاء بتنبيهات؛ مفاتيح idempotency ثابتة إلزامية للعمليات الحساسة مع حجز ذري ومعاملة واحدة؛ اختبارات تزامن PostgreSQL حقيقية مركزة.",
+  "W4 (G08 + MNG-LOCAL-01/02 + SRV-07): زرا «اطلب توصيلًا» من الطلب و«ابحث في السوق» من نقص المخزون كوصلات سياق بلا نسخ سجلات ولا أثر مالي؛ إحكام حارس online-only ليغطي كل مسارات الكتابة المالية (saveFinancialEvent/saveExpenseBudget وغيرها) وأن الوضع المجهول/الفاشل لا يرجع بصمت إلى كتابة محلية؛ أمان الترحيل المتزامن الاصطناعي؛ 41/34 والـ29 زوجًا والمخازن واللقطات والتصدير/الاستعادة محفوظة حرفيًا؛ لا ترحيل حي ولا تغيير تهيئة Workspace فعلية.",
+  "W5: كل نتيجة أمنية لم تُغلق في W1..W4 تراجع (DEP-001/002 بتحديث مستهلك متوافق وإعادة audit، CI-001 تحليل JSON دائم، CI-002 تثبيت digest، SEC-GIT-001 فحص مدى جديد، WEB-01 frame-ancestors، WEB-02 escaping، API-01 rate limit، AUTH-03 تطبيع مسار العودة، MNG-LOCAL-03..06 حدود/رسائل/أصالة محلية) بإصلاحات دنيا مختبرة مباشرة لا تغير صيغًا محمية ولا سياسة تشفير ولا معنى ماليًا ولا إعدادات مزود؛ مصالحة مصفوفة UX كاملة بلا ادعاء 100% بلا فحص فعلي؛ الأدلة قبل/بعد للرحلات الحرجة المعدلة عند توفر الأدوات؛ بوابة كاملة واحدة على المرشح النهائي (تشغيل CI واحد موثق أو pnpm check مرة)؛ لا تُغلق نتيجة إلا بدليل كود واختبار مباشر على الالتزام النهائي.",
+  "الكل: كل نتيجة من الثلاثين تحمل حالة واحدة حية بالضبط (open/fixed-verified/deferred-by-owner/not-applicable) بدليل أو بقيد مصرح؛ نتائج المزود/البيئة تبقى open/UNVERIFIED/BLOCKER مع خطوة المشغل الدقيقة؛ القرارات الأربعة المفتوحة (شارة المورد، الوثائق الاختيارية، أهلية إظهار الرقم، معيار عدّ «10 موردين») لا تُحسم افتراضًا — تطبق القاعدة الحرفية المسجلة فقط ويسجل المعتمد عليها BLOCKER؛ التقرير العربي النهائي POST-GROUP6-REPORT-2026-11-21.md عند مجلد التسليم يتضمن كل الأدلة والفروق VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER وحدود الرجوع؛ التوقف عند بوابة المالك بعدها."
+ ],
+ "areas": [
+  "docs/expansion/DECISIONS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/auth/",
+  "apps/prototype-web/worker/api/",
+  "apps/prototype-web/worker/commands.ts",
+  "apps/prototype-web/worker/idempotency.ts",
+  "apps/prototype-web/worker/ratelimit.ts",
+  "apps/prototype-web/worker/http.ts",
+  "apps/prototype-web/worker/routes.ts",
+  "apps/prototype-web/worker/routes.market.ts",
+  "apps/prototype-web/worker/routes.delivery.ts",
+  "apps/prototype-web/worker/routes.manage.ts",
+  "apps/prototype-web/worker/domain/",
+  "apps/prototype-web/worker/db/migrations-pg/",
+  "apps/prototype-web/worker/tests/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/pages/",
+  "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md"
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md"
+ ],
+ "dependencies": [
+  "DOC-040"
+ ],
+ "related_items": [
+  "DOC-037",
+  "DOC-039"
+ ],
+ "layers": [
+  "worker-api",
+  "application",
+  "presentation",
+  "documentation",
+  "operations-control"
+ ],
+ "classification": "FIX_BEFORE_PILOT",
+ "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+ "owner": "Product owner (Qays) / Z AI implementation writer per bd242b3e",
+ "tests_required": [
+  "Focused worker tests per wave over real workerd + local PostgreSQL (synthetic data only)",
+  "True-concurrency PostgreSQL race tests for W3 (capacity/overlap/idempotency)",
+  "Negative authz tests across guest/owner/supplier/driver/admin and cross-account/cross-workspace",
+  "Full repository gate exactly once on the final integrated candidate"
+ ],
+ "owner_decision": "القرارات النهائية 2026-11-21 حاكمة (فرع القرارات — قراءة فقط)؛ القرارات الأربعة المفتوحة في gap-analysis §1 تحتاج قرار مالك ولا تُحسم من الوكيل",
+ "updated_at": "2026-11-21",
+ "status_history": [
+  {
+   "status": "READY",
+   "changed_at": "2026-11-21",
+   "actor": "zai-claim-2026-11-21",
+   "reason": "أنشئ البند بأمر المالك المؤرخ 2026-11-21 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e) — مصالحة الكود مع القرارات النهائية وتنفيذ الفجوات الآمنة وإصلاحات الأمن القابلة للتطبيق بالموجات W1..W5 على الفرع نفسه، ضمن مطالبة WS-251 الجديدة (لا تداخل نشط — WS-250 حُررت قانونيًا إلى REVIEW_REQUIRED)."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-21",
+   "actor": "zai-claim-2026-11-21",
+   "reason": "أُضيف إلى مطالبة WS-251 مع areas تغطي العامل والعميل والعقود ومجلد التسليم ومصادر التحكم."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-21",
+   "actor": "zai-implementation-writer",
+   "reason": "W0 منجزة في هذا الالتزام نفسه (توثيق/تحكم فقط — صفر كود): الفحص المسبق الحي، حفظ تقرير المسح ببصمته، EX-D24 في DECISIONS.md، ومصالحة G01–G14 والنتائج الثلاثين المسجلة في بطاقة البند؛ الحالة الحية للنتائج الثلاثين كلها: مفتوحة على رأس bd242b3e (لا دليل إغلاق أحدث من سجل الفجوات — الكود لم يتغير عن رأس أدلة f5305e59 إلا بأمر التوثيق)؛ أول إجراء غير مكتمل: W1."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "التنفيذ مستمر بالموجات المرخصة W1..W5 دون وقفة موافقة روتينية؛ عند الاكتمال تقرير عربي واحد جديد في مجلد التسليم ثم التوقف عند بوابة مراجعة المالك (لا PR/دمج/main/مزود/بيانات حقيقية — NO_CLEANUP)."
+}

@@ -1,0 +1,78 @@
+{
+ "id": "WS-251",
+ "title": "ما بعد المجموعة ٦ — معالجة فجوات القرارات النهائية 2026-11-21 والنتائج الأمنية المفتوحة القابلة للتنفيذ (أمر المالك POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e)",
+ "status": "IN_PROGRESS",
+ "items": [
+  "DOC-041"
+ ],
+ "branch": "zai/micro-manage-online-20261114",
+ "base_sha": "bd242b3e7b856c01a4a307c5ceb77b91758daa63",
+ "areas": [
+  "docs/expansion/DECISIONS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/auth/",
+  "apps/prototype-web/worker/api/",
+  "apps/prototype-web/worker/commands.ts",
+  "apps/prototype-web/worker/idempotency.ts",
+  "apps/prototype-web/worker/ratelimit.ts",
+  "apps/prototype-web/worker/http.ts",
+  "apps/prototype-web/worker/routes.ts",
+  "apps/prototype-web/worker/routes.market.ts",
+  "apps/prototype-web/worker/routes.delivery.ts",
+  "apps/prototype-web/worker/routes.manage.ts",
+  "apps/prototype-web/worker/domain/",
+  "apps/prototype-web/worker/db/migrations-pg/",
+  "apps/prototype-web/worker/tests/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/pages/",
+  "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md"
+ ],
+ "agent": "ZAI — sole implementation writer per owner prompt bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md); one writer/integrator only, no parallel writers, no agent fan-out",
+ "pr": null,
+ "started_at": "2026-11-21",
+ "updated_at": "2026-11-21",
+ "next_action": "التنفيذ جارٍ بالموجات المرخصة W1..W5 دون وقفات موافقة روتينية؛ W0 (الخط القاعدي والمصالحة) منجزة في هذا الالتزام نفسه؛ يليها W1 الهوية/السياق/Admin/الجلسات؛ عند التسليم النهائي: تقرير عربي واحد POST-GROUP6-REMEDIATION-REPORT-2026-11-21.md ثم التوقف عند بوابة مراجعة المالك — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا من هذه السلسلة؛ NO_CLEANUP.",
+ "notes": [
+  "Hard boundaries from the owner order bd242b3e: read-only owner-decision branch docs/micro-final-decisions-20261121 (PR #385 open — do not edit/retarget/approve/merge); the 2026-11-21 final decisions supersede earlier D1–D8 and EX-D19..D23 where they conflict; no Ask Micro AI provider wiring; no spending/paid providers; no Cloudflare/Neon/R2/OAuth writes; no live DB/migration application/real-data transfer/backup/deployment; repository migration files + ephemeral/local PostgreSQL tests with synthetic data are permitted; no structural refactoring/bulk moves/module reorganization/file splitting/new generic architecture layer (the Post-Group 6 scan/owner-review gate stays in force — structural proposals are DEFER); no dark mode; no global token/color redesign; every pushed commit starts with [CF-Pages-Skip] so no Cloudflare Pages preview is created; preserve the untracked Post-Group 6 scan report untouched.",
+  "The claim continues the WS-250 branch series at the owner's bd242b3e order after WS-250's M1–M6 implementation closed at its owner-review gate (DOC-040 stays IN_REVIEW with its evidence intact).",
+  "Wave 0 live verification (2026-11-21): target branch head bd242b3e (local == origin, fast-forward); main at 16c90e48 == merge-base; PR #385 open (head b04ba6ef = the decision branch, unmerged); latest CI on branch 43620704296 success on bf90754b; scan report preserved untracked at docs/architecture/refactoring/post-group6-scan-20261121/ with SHA-256 a4c0dc78a18c5c755a414828e804ad9bff5f9c60b87d6637882d90858bff4784; the shared security-audit source file is NOT available in the Z AI project context — gap-analysis.md §4 (30 findings) is the accessible mirror per the order §3."
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md"
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-21",
+   "actor": "zai-claim-2026-11-21",
+   "reason": "أنشئت المطالبة بأمر المالك المؤرخ 2026-11-21 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e) لتنفيذ معالجة ما بعد المجموعة ٦ على الفرع نفسه zai/micro-manage-online-20261114 من رأس أمر المالك bd242b3e، بعد تحرير مطالبة WS-250 قانونيًا إلى REVIEW_REQUIRED بنمط WS-249→WS-250 نفسه (تنفيذ M1–M6 مكتمل عند بوابة مراجعة المالك وبند DOC-040 باقٍ في IN_REVIEW بأدلته سليمة). بند DOC-041 ضمن هذه المطالبة؛ لا تداخل مع أي مطالبة نشطة أخرى."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-21",
+   "actor": "zai-implementation-writer",
+   "reason": "W0 (الخط القاعدي والتتبع) منجزة في هذا الالتزام نفسه (توثيق/تحكم فقط — صفر كود): الفحص المسبق الحي (الفروع/PR #385/Actions/Control) وتوثيق حفظ تقرير المسح غير المتتبَّع وبصمته وEX-D24 في DECISIONS.md (تسجيل حاكمية قرارات المالك النهائية 2026-11-21 فوق D1–D8/EX-D19..D23 عند التعارض) ومصالحة G01–G14 والنتائج الأمنية الثلاثين المسجلة في بطاقة البند DOC-041؛ يليها W1 (الهوية/السياق/Admin/الجلسات) بترتيب الموجات المرخص."
+  }
+ ],
+ "migration_baseline": false
+}
