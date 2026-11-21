@@ -41,6 +41,24 @@ describe("manage online mode guard (M6)", () => {
     expect(currentManageOnlineMode()).toBe("local");
   });
 
+  /* MNG-LOCAL-02 (Post-Group 6 W1): الوضع المعروف لزج — بعد قراءة ناجحة
+   * «online_only»، فشل قراءة لاحق لا يُرجع الوضع بصمت إلى المحلي. */
+  it("keeps the KNOWN online-only mode on a later read failure (no silent local fallback)", async () => {
+    mockedFetchMode.mockResolvedValue({ workspaceId: "ws-1", onlineOnly: true });
+    expect(await refreshManageOnlineMode()).toBe("online_only");
+    mockedFetchMode.mockRejectedValue(new Error("network down"));
+    expect(await refreshManageOnlineMode()).toBe("online_only");
+    expect(currentManageOnlineMode()).toBe("online_only");
+    expect(() => assertLocalFinancialWriteAllowed()).toThrow(ManageOnlineOnlyError);
+  });
+
+  it("keeps the KNOWN local mode on a later read failure (no flapping either)", async () => {
+    mockedFetchMode.mockResolvedValue({ workspaceId: "ws-1", onlineOnly: false });
+    expect(await refreshManageOnlineMode()).toBe("local");
+    mockedFetchMode.mockRejectedValue(new Error("network down"));
+    expect(await refreshManageOnlineMode()).toBe("local");
+  });
+
   it("keeps local when the server reports onlineOnly=false", async () => {
     mockedFetchMode.mockResolvedValue({ workspaceId: "ws-1", onlineOnly: false });
     expect(await refreshManageOnlineMode()).toBe("local");
@@ -80,5 +98,73 @@ describe("manage online mode guard (M6)", () => {
     expect((guarded.replaceSnapshot as unknown as () => string)()).toBe("replaced");
     expect((guarded.saveFormDraft as unknown as () => string)()).toBe("draft");
     void calls;
+  });
+
+  /* Post-Group 6 W1 (EX-D24 / MNG-LOCAL-01 — أمر المالك bd242b3e): تعداد
+   * كل وصفة كتابة مالية محروسة — كل واحدة تُرفض رفضًا صادقًا في وضع القطع،
+   * وكل وصفة غير مالية (مسودة/تفضيلات/تهيئة/كتالوج/قراءة) تمر كما هي.
+   * هذا هو اختبار التعداد الذي يتطلبه إغلاق النتيجة. */
+  it("MNG-LOCAL-01: enumerates EVERY guarded financial mutation — each refuses honestly under online-only", () => {
+    const financialRecipes = [
+      "commitAssetRecord",
+      "commitFinancialEventCorrection",
+      "commitOrderUpdate",
+      "commitCashContinuity",
+      "saveOrder",
+      "saveDirectSale",
+      "saveFinancialEvent",
+      "saveSupplierPurchase",
+      "saveShortCashDeclaration",
+      "saveOwnerEntitlementRecord",
+      "saveOwnerEntitlementOpeningBalance",
+      "saveActualTimeRecord",
+      "saveInventoryActivation",
+      "saveExpenseBudget",
+      "saveExpenseBudgetRevisionPair",
+    ];
+    const passThroughRecipes = [
+      "readSnapshot",
+      "replaceSnapshot",
+      "runProtectedReplacement",
+      "listFinancialEvents",
+      "listExpenseBudgets",
+      "saveDraft",
+      "savePreferences",
+      "saveProfile",
+      "saveOwnerProfile",
+      "saveCatalogItem",
+      "saveMeasurementUnit",
+      "saveCatalogTemplate",
+      "saveAllocationPolicy",
+      "saveSchedule",
+      "saveRecurrence",
+    ];
+    const fakeStore: Record<string, ReturnType<typeof vi.fn>> = {};
+    for (const recipe of [...financialRecipes, ...passThroughRecipes]) {
+      fakeStore[recipe] = vi.fn(() => `ok:${recipe}`);
+    }
+    const guarded = guardLocalStoreForOnlineMode(fakeStore as unknown as PrototypeLocalStore);
+
+    // Mode OFF: everything passes (today's behavior, byte-for-byte).
+    for (const recipe of [...financialRecipes, ...passThroughRecipes]) {
+      expect((guarded[recipe as keyof PrototypeLocalStore] as unknown as () => string)()).toBe(
+        `ok:${recipe}`,
+      );
+    }
+
+    // Mode ON: every FINANCIAL mutation refuses honestly (MNG-LOCAL-01: no
+    // local financial write may bypass the guard when online-only is active).
+    setManageOnlineModeForTest("online_only");
+    for (const recipe of financialRecipes) {
+      expect(() => (guarded[recipe as keyof PrototypeLocalStore] as unknown as () => string)()).toThrow(
+        ManageOnlineOnlyError,
+      );
+    }
+    // Non-financial local surfaces stay available in every mode.
+    for (const recipe of passThroughRecipes) {
+      expect((guarded[recipe as keyof PrototypeLocalStore] as unknown as () => string)()).toBe(
+        `ok:${recipe}`,
+      );
+    }
   });
 });

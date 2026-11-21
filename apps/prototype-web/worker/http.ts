@@ -7,6 +7,8 @@ export const JSON_HEADERS_BASE: Record<string, string> = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
   "x-content-type-options": "nosniff",
+  /* WEB-01: legacy-browser frame fallback above frame-ancestors. */
+  "x-frame-options": "DENY",
 };
 
 export function jsonResponse(data: unknown, status = 200, extraHeaders?: Record<string, string>): Response {

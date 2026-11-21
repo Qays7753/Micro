@@ -216,7 +216,10 @@ function applyChangesToAgreement(
 export async function decideChange(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const row = await loadRequest(ctx, ctx.params.id!);
   const { party, driverIdentityId } = await resolveParty(ctx, auth, row);
-  if (party === null && !auth.isAdmin) throw new HttpError(404, "not_found");
+  // AUTHZ-01 (Post-Group 6 — قرار المالك النهائي: موافقة تغيير الاتفاق
+  // والمبالغ لطرفي الاتفاق وحدهما): المشرف غير الطرف لا يقبل ولا يرفض
+  // مقترحًا — القرار الإداري (كالإلغاء الإداري) مسار مستقل مختلف.
+  if (party === null) throw new HttpError(403, "forbidden", { reason: "agreement_parties_only" });
   const body = (await readJsonBody(ctx.request)) as {
     proposalId?: unknown;
     decision?: unknown;
@@ -244,7 +247,6 @@ export async function decideChange(ctx: RouteContext, auth: AuthenticatedContext
   if (proposerParty === party) {
     throw new HttpError(403, "forbidden", { reason: "other_party_decision_required" });
   }
-  if (party === null && !auth.isAdmin) throw new HttpError(404, "not_found");
   if (String(proposal.status) !== "pending") {
     throw new HttpError(409, "conflict", { reason: `proposal_already_${String(proposal.status)}` });
   }

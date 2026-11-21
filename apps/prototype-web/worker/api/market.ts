@@ -9,7 +9,7 @@ import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
-import { enforceGuestReadLimit } from "../ratelimit.ts";
+import { enforceGuestReadLimit, enforceQuantityCheckLimit } from "../ratelimit.ts";
 import {
   conformsToQuantityRules,
   freshnessFrom,
@@ -394,8 +394,11 @@ export async function submitVendorProfile(ctx: RouteContext, auth: Authenticated
   return jsonResponse({ ok: true });
 }
 
-/** Quantity conformance endpoint (used by the client quantity helper). */
+/** Quantity conformance endpoint (used by the client quantity helper).
+ * API-01 (Post-Group 6 — order bd242b3e): public path, rate-limited per
+ * connecting IP like every public read — no unbounded anonymous hammering. */
 export async function checkQuantity(ctx: RouteContext): Promise<Response> {
+  await enforceQuantityCheckLimit(db(ctx), ctx.request, nowMs());
   const body = (await readJsonBody(ctx.request)) as {
     minQuantityMilli?: string;
     stepMilli?: string;

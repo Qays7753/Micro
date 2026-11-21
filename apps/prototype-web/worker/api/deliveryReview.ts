@@ -77,6 +77,11 @@ export async function reviewDriver(ctx: RouteContext, auth: AuthenticatedContext
   if (!driver) throw new HttpError(404, "not_found");
   const driverId = String(driver.id);
   const driverIdentity = String(driver.identity_id);
+  // AUTHZ-02 (Post-Group 6 — أمر المالك bd242b3e / فصل واجبات): لا يراجع
+  // المشرف سجلًّا يملكه — رفض صادق مسموع، والسجل يبقى دون قرار.
+  if (driverIdentity === auth.identityId) {
+    throw new HttpError(403, "self_review_forbidden", { reason: "own_driver_profile" });
+  }
   // OD22: person AND vehicle approval are both required; approving the person
   // promotes the work copy to the public copy but never grants acceptance.
   if (action === "approve") {
@@ -160,10 +165,16 @@ export async function reviewEvidence(ctx: RouteContext, auth: AuthenticatedConte
   }
   const now = nowMs();
   const evidence = await db(ctx)
-    .prepare("SELECT id, driver_profile_id FROM driver_evidence WHERE id = ?")
+    .prepare(
+      "SELECT e.id, e.driver_profile_id, p.identity_id AS owner_identity_id FROM driver_evidence e JOIN driver_profile p ON p.id = e.driver_profile_id WHERE e.id = ?",
+    )
     .bind(ctx.params.id!)
     .first<Record<string, unknown>>();
   if (!evidence) throw new HttpError(404, "not_found");
+  // AUTHZ-02: لا يراجع المشرف دليله/مركبته الخاصة.
+  if (String(evidence.owner_identity_id) === auth.identityId) {
+    throw new HttpError(403, "self_review_forbidden", { reason: "own_driver_evidence" });
+  }
   const status = body.action === "approve" ? "approved" : body.action === "reject" ? "rejected" : "pending";
   await db(ctx)
     .prepare(
@@ -202,10 +213,16 @@ export async function reviewVehicle(ctx: RouteContext, auth: AuthenticatedContex
   }
   const now = nowMs();
   const vehicle = await db(ctx)
-    .prepare("SELECT id FROM driver_vehicle WHERE id = ?")
+    .prepare(
+      "SELECT v.id, p.identity_id AS owner_identity_id FROM driver_vehicle v JOIN driver_profile p ON p.id = v.driver_profile_id WHERE v.id = ?",
+    )
     .bind(ctx.params.id!)
     .first<Record<string, unknown>>();
   if (!vehicle) throw new HttpError(404, "not_found");
+  // AUTHZ-02: لا يراجع المشرف مركبته الخاصة.
+  if (String(vehicle.owner_identity_id) === auth.identityId) {
+    throw new HttpError(403, "self_review_forbidden", { reason: "own_driver_vehicle" });
+  }
   const status = body.action === "approve" ? "approved" : body.action === "reject" ? "rejected" : "pending";
   await db(ctx)
     .prepare("UPDATE driver_vehicle SET status = ?, updated_at = ? WHERE id = ?")

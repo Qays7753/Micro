@@ -6,6 +6,7 @@
 
 import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
+import { MAX_MEDIA_BYTES } from "../env.ts";
 import { randomToken } from "../crypto.ts";
 import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import { HttpError, jsonResponse } from "../http.ts";
@@ -39,7 +40,17 @@ export async function uploadMedia(ctx: RouteContext, auth: AuthenticatedContext)
     now,
   );
   const contentType = ctx.request.headers.get("content-type") ?? "";
+  /* SRV-02 (Post-Group 6 — order bd242b3e): the declared length is refused
+   * BEFORE the body is buffered; the post-read store check stays for the
+   * lying/chunked case. */
+  const declaredLength = Number(ctx.request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_MEDIA_BYTES) {
+    throw new HttpError(400, "bad_request", { field: "size", maxBytes: MAX_MEDIA_BYTES });
+  }
   const bytes = await ctx.request.arrayBuffer();
+  if (bytes.byteLength > MAX_MEDIA_BYTES) {
+    throw new HttpError(400, "bad_request", { field: "size", maxBytes: MAX_MEDIA_BYTES });
+  }
   const media = await storeMedia(
     ctx.env,
     db(ctx),

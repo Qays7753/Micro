@@ -27,7 +27,7 @@ import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken, sha256Hex } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
-import { enforceRate, minuteBucket, rateLimits } from "../ratelimit.ts";
+import { enforceRate, ipBucketKey, minuteBucket, rateLimits } from "../ratelimit.ts";
 import { apiBindingsConfigured, type Env } from "../env.ts";
 import type { RuntimeEnv } from "../db/db.ts";
 import { clearedSessionCookie, errorResponse, jsonResponse, parseCookies, sessionCookie } from "../http.ts";
@@ -93,11 +93,12 @@ export async function googleStart(
   // Anonymous abuse control: one row is written per start, so throttle per
   // connecting IP (engineering reference — configurable, not policy).
   const startNow = nowMs();
-  const ip = request.headers.get("cf-connecting-ip") ?? "local";
+  /* SRV-06: مفتاح معدّل مجزأ — لا يخزن العنوان الخام في مفاتيح الحد. */
+  const ipKey = await ipBucketKey(request);
   const limits = await rateLimits(db);
   await enforceRate(
     db,
-    minuteBucket("auth-start", ip, startNow),
+    minuteBucket("auth-start", ipKey, startNow),
     limits.authStartsPerMinute ?? 10,
     60 * 1000,
     startNow,
@@ -125,7 +126,9 @@ export async function googleStart(
  * why, with a way back. */
 const CSP_HEADER =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; " +
-  "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'";
+  "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; " +
+  /* WEB-01: no site may embed the app. */
+  "frame-ancestors 'none'";
 
 function signInErrorPage(status: number, reason: string): Response {
   const page =
@@ -145,6 +148,7 @@ function signInErrorPage(status: number, reason: string): Response {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "no-store",
       "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
       "content-security-policy": CSP_HEADER,
     },
   });

@@ -18,6 +18,11 @@ import { fetchManageMode } from "@/application/network";
 export type ManageOnlineModeState = "local" | "online_only";
 
 let cachedMode: ManageOnlineModeState = "local";
+/** MNG-LOCAL-02 (Post-Group 6 W1 — أمر المالك bd242b3e): هل قرأنا الوضع
+ * بنجاح مرة على الأقل؟ الوضع المجهول قبل أول قراءة ناجحة هو المحلي (واقع
+ * اليوم الموثق في M6)، لكن بعد معرفة «online_only» لا يجوز أن يعود بصمت
+ * إلى المحلي عند فشل قراءة لاحق — الوضع المعروف يبقى لزجًا. */
+let hasEverReadMode = false;
 
 export function currentManageOnlineMode(): ManageOnlineModeState {
   return cachedMode;
@@ -26,6 +31,7 @@ export function currentManageOnlineMode(): ManageOnlineModeState {
 /** For tests: reset the cache to the startup default. */
 export function resetManageOnlineModeForTest(): void {
   cachedMode = "local";
+  hasEverReadMode = false;
 }
 
 /** For tests/operator-verified flows: set the cached mode directly. */
@@ -42,8 +48,13 @@ export async function refreshManageOnlineMode(): Promise<ManageOnlineModeState> 
   try {
     const mode = await fetchManageMode();
     cachedMode = mode.onlineOnly ? "online_only" : "local";
+    hasEverReadMode = true;
   } catch {
-    cachedMode = "local";
+    if (!hasEverReadMode) {
+      cachedMode = "local";
+    }
+    // MNG-LOCAL-02: بعد قراءة ناجحة سابقة يبقى الوضع المعروف — لا رجوع
+    // صامت إلى الكتابة المحلية عند فشل قراءة لاحق (لا تذبذب).
   }
   return cachedMode;
 }
@@ -65,9 +76,32 @@ export function assertLocalFinancialWriteAllowed(): void {
 }
 
 /**
+ * Post-Group 6 W1 (EX-D24 / MNG-LOCAL-01 — أمر المالك bd242b3e): وصفات
+ * الكتابة المالية/التشغيلية المحروسة التي لا تبدأ بـ«commit» — تعداد صريح
+ * لا تخمين بادئات، لأن save* يشمل أيضًا مسودات وتفضيلات وتهيئة يجب أن تبقى
+ * محلية في كل وضع. المعيار: السجل يغير حقيقة المال أو المخزون أو حق
+ * المالك أو وقت العمل المكتبي — لا المسميات ولا التهيئة ولا المسودات.
+ * أي وصفة مالية جديدة تضاف هنا مع اختبار تعداد في نفس الالتزام.
+ */
+const GUARDED_LOCAL_FINANCIAL_WRITES: ReadonlySet<string> = new Set([
+  "saveOrder", // الطلب يحمل ماله وعربونه وتسليمه
+  "saveDirectSale", // البيع المباشر قيد مالي
+  "saveFinancialEvent", // الحدث المالي العام (MNG-LOCAL-01)
+  "saveSupplierPurchase", // الشراء يكتب المخزون والمال
+  "saveShortCashDeclaration", // إقرار النقد الناقص
+  "saveOwnerEntitlementRecord", // حق المالك
+  "saveOwnerEntitlementOpeningBalance", // افتتاح حق المالك
+  "saveActualTimeRecord", // وقت العمل الفعلي مدخل تكلفة
+  "saveInventoryActivation", // تفعيل المخزون يكتب حالة المواد
+  "saveExpenseBudget", // ميزانية المصروف (MNG-LOCAL-01)
+  "saveExpenseBudgetRevisionPair", // زوج مراجعة الميزانية
+]);
+
+/**
  * غلاف الحارس حول المخزن الوحيد: يمرر كل شيء كما هو، ويعترض وصفات
- * commit* (الكتابات المالية المحروسة وحدها) بفحص الحارس. لا يمس القراءة
- * ولا المسودات ولا التفضيلات ولا replaceSnapshot/runProtectedReplacement
+ * commit* المحروسة ووصفات الكتابة المالية الصريحة (MNG-LOCAL-01 — التعداد
+ * أعلاه) بفحص الحارس. لا يمس القراءة ولا المسودات ولا التفضيلات ولا
+ * التهيئة/الكتالوج ولا replaceSnapshot/runProtectedReplacement
  * (التصدير/الاسترداد باقٍ حرفيًا). معطل بنيويًا حتى يفعّل المشغل العلم —
  * سلوك اليوم مطابق لما كان قبل الغلاف تمامًا.
  */
@@ -75,11 +109,14 @@ export function guardLocalStoreForOnlineMode(store: PrototypeLocalStore): Protot
   return new Proxy(store, {
     get(target, property, receiver) {
       const value = Reflect.get(target, property, receiver);
-      if (typeof property === "string" && property.startsWith("commit") && typeof value === "function") {
-        return (...args: unknown[]) => {
-          assertLocalFinancialWriteAllowed();
-          return (value as (...fnArgs: unknown[]) => unknown).apply(target, args);
-        };
+      if (typeof property === "string" && typeof value === "function") {
+        const guarded = property.startsWith("commit") || GUARDED_LOCAL_FINANCIAL_WRITES.has(property);
+        if (guarded) {
+          return (...args: unknown[]) => {
+            assertLocalFinancialWriteAllowed();
+            return (value as (...fnArgs: unknown[]) => unknown).apply(target, args);
+          };
+        }
       }
       return value;
     },

@@ -103,6 +103,14 @@ export async function readJsonBody(request: Request): Promise<unknown> {
   if (!contentType.includes("application/json")) {
     throw new HttpError(400, "bad_request", { field: "content-type" });
   }
+  /* SRV-02 (Post-Group 6 — order bd242b3e): the declared length is checked
+   * BEFORE the body is read — an oversized request is refused early instead
+   * of being buffered first. The post-read cap below stays for the lying or
+   * missing header case (chunked bodies). */
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredLength) && declaredLength > 256 * 1024) {
+    throw new HttpError(400, "bad_request", { reason: "body_too_large" });
+  }
   const text = await request.text();
   if (text.length > 256 * 1024) throw new HttpError(400, "bad_request", { reason: "body_too_large" });
   try {

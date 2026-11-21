@@ -25,6 +25,10 @@ export function isSafeInternalPath(value: string | null): boolean {
   if (!value || !value.startsWith("/")) return false;
   if (value.startsWith("//")) return false;
   if (value.includes("://")) return false;
+  /* AUTH-03 (Post-Group 6 — order bd242b3e): backslash rejected — some
+   * browsers/intermediaries treat it as a path separator, so a return path
+   * like /\evil.com or \/evil.com must never pass as internal. */
+  if (value.includes("\\")) return false;
   if (/[\u0000-\u001f]/.test(value)) return false;
   return true;
 }

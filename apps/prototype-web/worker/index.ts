@@ -19,7 +19,9 @@ import { endDb, withDbEnv } from "./db/db.ts";
 /** Mirror of `client/public/_headers` (advanced mode bypasses the file). */
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; " +
-  "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'";
+  "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; " +
+  /* WEB-01 (Post-Group 6 — order bd242b3e): no site may embed the app. */
+  "frame-ancestors 'none'";
 
 const NO_CACHE_PATHS = new Set(["/sw.js", "/registerSW.js", "/manifest.webmanifest"]);
 
@@ -27,6 +29,7 @@ function applyStaticHeaders(response: Response, url: URL): Response {
   const headers = new Headers(response.headers);
   if (!headers.has("content-security-policy")) headers.set("content-security-policy", CSP);
   if (!headers.has("x-content-type-options")) headers.set("x-content-type-options", "nosniff");
+  if (!headers.has("x-frame-options")) headers.set("x-frame-options", "DENY");
   if (!headers.has("service-worker-allowed")) headers.set("service-worker-allowed", "/");
   if (NO_CACHE_PATHS.has(url.pathname)) headers.set("cache-control", "no-cache, no-store, must-revalidate");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });

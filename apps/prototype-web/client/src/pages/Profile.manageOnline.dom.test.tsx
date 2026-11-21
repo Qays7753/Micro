@@ -286,7 +286,7 @@ describe("Profile manage-online section (M3): truthful states", () => {
   });
 
   it("does not render the section for an unauthenticated visitor", async () => {
-    sessionMocks.session = { authenticated: false, identity: undefined };
+    sessionMocks.session = { authenticated: false, identity: undefined, workspaces: undefined };
     renderProfile();
     await waitFor(() => {
       expect(screen.getByText(/لديك حساب Micro واحد لكل المنتجات/)).toBeDefined();

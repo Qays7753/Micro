@@ -6,6 +6,7 @@
  * owner action (EX-O16). Counters are atomic via UPSERT increments.
  */
 
+import { sha256Hex } from "./crypto.ts";
 import { HttpError } from "./http.ts";
 import { getSetting, type Db } from "./db/db.ts";
 
@@ -17,6 +18,10 @@ export interface RateLimits {
   guestReadsPerMinute: number;
   /** Sign-in flow starts per minute per IP (engineering reference). */
   authStartsPerMinute?: number;
+  /** API-01 (Post-Group 6 — order bd242b3e): public quantity-check requests
+   * per minute per IP (engineering reference; the pilot value stays an owner
+   * action, EX-O16). */
+  quantityChecksPerMinute?: number;
 }
 
 export const DEFAULT_RATE_LIMITS: RateLimits = {
@@ -76,6 +81,7 @@ export async function enforceRate(
   now: number,
 ): Promise<void> {
   const decision = await consumeRate(db, bucket, limit, windowMs, now);
+  void cleanupExpiredWindows(db, now);
   if (!decision.allowed) {
     throw new HttpError(429, "too_many_requests", { retryAfterMs: windowMs });
   }
@@ -90,12 +96,53 @@ export function minuteBucket(kind: string, key: string, now: number): string {
 }
 
 /**
+ * SRV-06 (Post-Group 6 — order bd242b3e): the rate keys never store the raw
+ * IP — the connecting address is salted only by its SHA-256 prefix before it
+ * becomes part of a bucket key (data minimization; the raw address is not
+ * needed for counting and the hash keeps distinct IPs distinct).
+ */
+export async function ipBucketKey(request: Request): Promise<string> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "local";
+  return (await sha256Hex(ip)).slice(0, 24);
+}
+
+/** SRV-06: retention of rate_counter rows — windows older than this are dead
+ * (their buckets embed the window number) and are cleaned opportunistically. */
+const RATE_RETENTION_MS = 24 * 60 * 60 * 1000;
+
+/** Opportunistic cleanup (SRV-06): a bounded probabilistic delete of expired
+ * windows, amortized over enforcing traffic — no unbounded table growth and
+ * no raw-IP retention beyond the live window. */
+async function cleanupExpiredWindows(db: Db, now: number): Promise<void> {
+  if (Math.random() >= 0.02) return;
+  await db
+    .prepare("DELETE FROM rate_counter WHERE window_start < ?")
+    .bind(now - RATE_RETENTION_MS)
+    .run();
+}
+
+/**
  * Guest (unauthenticated) read limiter: fixed window per connecting IP.
  * Cloudflare always sets `CF-Connecting-IP` in production; without it (local
  * emulation) all callers share one bucket — still bounded, never bypassed.
  */
 export async function enforceGuestReadLimit(db: Db, request: Request, now: number): Promise<void> {
-  const ip = request.headers.get("cf-connecting-ip") ?? "local";
+  const ipKey = await ipBucketKey(request);
   const limits = await rateLimits(db);
-  await enforceRate(db, minuteBucket("guest-read", ip, now), limits.guestReadsPerMinute, MINUTE_MS, now);
+  await enforceRate(db, minuteBucket("guest-read", ipKey, now), limits.guestReadsPerMinute, MINUTE_MS, now);
+}
+
+/** API-01 (Post-Group 6 — order bd242b3e): the public quantity-check path is
+ * rate-limited per connecting IP (hashed key — SRV-06) like every public
+ * read; the limit is an engineering reference (default 60/minute). */
+export async function enforceQuantityCheckLimit(db: Db, request: Request, now: number): Promise<void> {
+  const ipKey = await ipBucketKey(request);
+  const limits = await rateLimits(db);
+  await enforceRate(
+    db,
+    minuteBucket("quantity-check", ipKey, now),
+    limits.quantityChecksPerMinute ?? 60,
+    MINUTE_MS,
+    now,
+  );
 }
