@@ -99,6 +99,12 @@ export const READER_FILES = [
  * القراءة يُرفض. الملف الـ63 (inventory/materialUnitLabels.ts — شريحة
  * R10-B3) مدقق أدناه: مفردات تسميات صرفة بلا أي فعل كتابة. */
 export const READ_LIKE_CORPUS_BASELINE = [
+  /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01+G02، 2026-11-22):
+   * بيت لوحة المشرف الجديد — قراءة من الخادم حصرًا عبر /api/admin/* (الطوابير
+   * والبحث وسجل القرارات) بلا أي كتابة تخزين محلي؛ كل أوامر الإيقاف/الإلغاء
+   * أوامر خادمية مدققة عبر الباب نفسه. صنّف في نفس الـPR الذي أدخله (قاعدة الحارس). */
+  "admin/adminPanelService.ts",
+  "admin/index.ts",
   "activity/activityLabels.ts",
   "activity/activityService.ts",
   "activity/index.ts",
@@ -120,6 +126,10 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "network/index.ts",
   "network/sessionService.ts",
   "network/askMicroService.ts",
+  /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01، 2026-11-22):
+   * خدمة أدوار الحساب — قراءة الحالة وتوجيه أوامر الخادم المدققة
+   * (إلغاء المسودة/إزالة الدور) عبر باب الشبكة؛ صفر تخزين محلي. */
+  "network/accountRolesService.ts",
   "market/marketService.ts",
   "market/marketEstimate.ts",
   "market/index.ts",
@@ -308,7 +318,10 @@ export function checkReadLikeCorpus(repoRoot) {
       });
     }
   }
-  return { violations, stats: { baseline: READ_LIKE_CORPUS_BASELINE.length, liveReadLike: liveReadLike.length } };
+  return {
+    violations,
+    stats: { baseline: READ_LIKE_CORPUS_BASELINE.length, liveReadLike: liveReadLike.length },
+  };
 }
 
 /** الفحص الكامل: يعيد الخروق والإحصاءات. */

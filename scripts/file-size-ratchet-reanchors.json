@@ -12276,6 +12276,25 @@
         "trigger": "post-group6-continuous-g03-ask",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-readwrite-01",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 363,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4/§7 — the final CI gate 44938559449 failed the guards chain at registry-coverage and the chain never reached this guard's own growth rule) — the three new read-like files from the authorized G01/G02 work (admin/adminPanelService.ts + its door admin/index.ts and network/accountRolesService.ts) join READ_LIKE_CORPUS_BASELINE with dated classification comments in the same PR, exactly as the guard's documented D-04 protocol requires; corpus 75 → 78 (the guard's own test expectation updated in the same PR)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

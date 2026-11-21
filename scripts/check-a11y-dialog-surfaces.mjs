@@ -117,6 +117,42 @@ const CLASSIFIED_DIALOG_SURFACES = [
     focusContract:
       "conformant F-002/UXR-03 — focus-in on open (first choice) + Escape/cancel restore focus to the expense trigger; backdrop closes without restore (pointer user — the standing Home-panels pattern); no trap by design (OD-A11Y non-modal)",
   },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01، 2026-11-22):
+     * صناديق تأكيد إزالة الدور/إلغاء المسودة داخل قسم «أدوارك» في الملف — أربعة
+     * أسطح inline بنمط micro-confirm-box القائم: role="alertdialog" مصرحة بلا
+     * aria-modal (تأكيد داخل سطح قائم — غير تطبيقي-المودال)، أزرار تراجع/تنفيذ
+     * متاحة دائمًا، ولا فخ تركيز بقرار OD-A11Y لغير المودال؛ مصنفة بنفس الـPR
+     * الذي أدخلها (قاعدة الحارس). */
+    file: "components/profile/RolesSection.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — صناديق تأكيد inline داخل قسم الأدوار (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
+  },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G02، 2026-11-22):
+     * صندوق تأكيد الإيقاف داخل نتائج بحث المشرف — نفس نمط micro-confirm-box:
+     * السبب الإلزامي مكتوب قبل التفعيل وزر التأكيد معطل دونه. */
+    file: "pages/admin/AdminUserSearch.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — تأكيد إيقاف inline داخل نتيجة البحث (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
+  },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G02، 2026-11-22):
+     * صندوق تأكيد الإلغاء الإداري للحجز — نفس النمط؛ معرف الحجز والسبب الإلزامي
+     * قبل التفعيل. */
+    file: "pages/admin/AdminCancelBooking.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — تأكيد إلغاء إداري inline داخل اللوحة (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
+  },
 ];
 
 function listClientProductionFiles(repoRoot) {

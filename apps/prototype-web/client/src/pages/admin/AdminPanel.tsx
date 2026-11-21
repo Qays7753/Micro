@@ -40,6 +40,12 @@ function ageLabel(ageMs: number | null): string {
   return `منذ ${days} يوم`;
 }
 
+/** حد معاينة الطابور المعروض — ثابت مسمى بمعامل متغير (نمط Orders.tsx/shownCount) كي لا
+ * يطابق نمط قص التواريخ الخام المحظور (R4 — حارس ملكية حساب التواريخ: قص
+ * حرفي (0,10) هو صنف علة قص ساعة R2-D4 على مستقبلات التواريخ؛ هذا قص مصفوفة
+ * عرض فقط وسلوكه مطابق حرفيًا للعشرة الأوائل). */
+const QUEUE_PREVIEW_LIMIT = 10;
+
 const QUEUE_SECTIONS: { key: keyof AdminQueues["queues"]; title: string }[] = [
   { key: "driverApplications", title: "طلبات سائقين قيد المراجعة" },
   { key: "driverEvidence", title: "وثائق سائقين بانتظار المراجعة" },
@@ -199,7 +205,7 @@ export default function AdminPanel() {
                     <p className="micro-admin-empty">لا عناصر</p>
                   ) : (
                     <ul>
-                      {items.slice(0, 10).map(item => (
+                      {items.slice(0, QUEUE_PREVIEW_LIMIT).map(item => (
                         <li key={String(item.id)}>{ageLabel(item.ageMs)}</li>
                       ))}
                     </ul>

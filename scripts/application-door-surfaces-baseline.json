@@ -12,7 +12,8 @@
     "EX-D23 M6 (DOC-040 — أمر المالك 2026-11-14 §6-M6): باب الشبكة أضاف قراءة وضع القطع المحروس (معطل افتراضيًا ولا مسار يبدله — قرار مشغل مباشر بعد بوابة المالك النهائية) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
     "Post-Group 6 W1 (WS-251/DOC-041 — EX-D24 أ-3/أ-7، 2026-11-21): باب الشبكة أضاف جلسات الأجهزة (fetchDeviceSessions/signOutAllDevices — قرار أ-7) وإنشاء المشروع الواحد الصريح (createWorkspace — قرار أ-3/أ-4) والنوع DeviceSession؛ PC-3 توسيع مقصود مؤرخ في نفس الالتزام.",
     "WS-251/DOC-041 (Post-Group 6 Wave 2 — 2026-11-21، أمر المالك POST-GROUP6-REMEDIATION @ ab08ec74): باب السوق توسع عمدًا بثلاث دوال ونوعين — كشف رقم المورد المدقق revealSupplierPhone (قرار د-1/§8-3)، الأعداد التشغيلية fetchMarketOpsCounts (Q154)، وإدارة التصنيفات الهرمية putMarketCategories (Q49/Q146) مع النوعين ListingVariant وMarketCategoryNode — وحُذف submitVendorProfile لأن مراجعة ملف المورد أُلغيت بقرار المالك النهائي (Q4/Q28: التفعيل بإكمال الملف وقَبول الشروط). PC-3 تغيير مقصود في نفس الـPR.",
-    "Post-Group 6 Wave 3 (DOC-041، 2026-11-21): توسيع سطح باب التوصيل بثلاث وظائف القرار النهائي (إلغاء السائق قبل الاستلام Q106، بلاغ «لم يحضر» Q242، سحب موافقة كشف بيانات المستلم MD-01) وباب الشبكة بوظيفتي اشتراك تنبيهات Web Push أفضل الجهد (G09 د-6) — تعديل مقصود بنفس الـPR بتوثيق مؤرخ."
+    "Post-Group 6 Wave 3 (DOC-041، 2026-11-21): توسيع سطح باب التوصيل بثلاث وظائف القرار النهائي (إلغاء السائق قبل الاستلام Q106، بلاغ «لم يحضر» Q242، سحب موافقة كشف بيانات المستلم MD-01) وباب الشبكة بوظيفتي اشتراك تنبيهات Web Push أفضل الجهد (G09 د-6) — تعديل مقصود بنفس الـPR بتوثيق مؤرخ.",
+    "الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §5.3، نفس-الـPR 2026-11-22): +نوعان على باب الشبكة (AskDraftField وAskDraftProposal) — نوعا مسودة Ask القابلة للتحرير لمستهلكيهما (AskDraftCard وAskMicro)؛ تصحيح ما فات توصيلهما في الالتزام الأصلي؛ توسيع مقصود PC-3."
   ],
   "doors": {
     "activity": {
@@ -38,30 +39,15 @@
         "startAgreementPrice",
         "storeScheduleProposal"
       ],
-      "type": [
-        "AgreementContextService",
-        "AgreementResult",
-        "AgreementService",
-        "AgreementSourceValue"
-      ]
+      "type": ["AgreementContextService", "AgreementResult", "AgreementService", "AgreementSourceValue"]
     },
     "assets": {
       "value": [],
-      "type": [
-        "AssetOverviewRead",
-        "AssetService",
-        "AssetSummaryRow"
-      ]
+      "type": ["AssetOverviewRead", "AssetService", "AssetSummaryRow"]
     },
     "budgets": {
-      "value": [
-        "ExpenseBudgetService"
-      ],
-      "type": [
-        "ExpenseBudgetMonthList",
-        "ExpenseBudgetStatusLine",
-        "ExpenseBudgetStatusesReading"
-      ]
+      "value": ["ExpenseBudgetService"],
+      "type": ["ExpenseBudgetMonthList", "ExpenseBudgetStatusLine", "ExpenseBudgetStatusesReading"]
     },
     "cash": {
       "value": [
@@ -70,19 +56,11 @@
         "cashCountDifferenceReason",
         "cashCountSettlementNote"
       ],
-      "type": [
-        "CashContinuityOverview",
-        "CashWalletBalance",
-        "WalletLedgerOverview"
-      ]
+      "type": ["CashContinuityOverview", "CashWalletBalance", "WalletLedgerOverview"]
     },
     "catalog": {
       "value": [],
-      "type": [
-        "CatalogService",
-        "TemplatePlannedCost",
-        "TemplatePlannedCostService"
-      ]
+      "type": ["CatalogService", "TemplatePlannedCost", "TemplatePlannedCostService"]
     },
     "collections": {
       "value": [],
@@ -100,33 +78,19 @@
     },
     "cost": {
       "value": [],
-      "type": [
-        "CostEditorInput",
-        "CostService",
-        "GroupedCostEditorInput"
-      ]
+      "type": ["CostEditorInput", "CostService", "GroupedCostEditorInput"]
     },
     "diagnostics": {
-      "value": [
-        "localDiagnostics",
-        "routeTemplateFor"
-      ],
+      "value": ["localDiagnostics", "routeTemplateFor"],
       "type": []
     },
     "drafts": {
-      "value": [
-        "FormDraftService"
-      ],
-      "type": [
-        "FormDraftValues"
-      ]
+      "value": ["FormDraftService"],
+      "type": ["FormDraftValues"]
     },
     "estimates": {
       "value": [],
-      "type": [
-        "CostEstimateInput",
-        "CostEstimateService"
-      ]
+      "type": ["CostEstimateInput", "CostEstimateService"]
     },
     "finance": {
       "value": [
@@ -178,10 +142,7 @@
     },
     "financial-pulse": {
       "value": [],
-      "type": [
-        "FinancialPulseService",
-        "LocalFinancialPulse"
-      ]
+      "type": ["FinancialPulseService", "LocalFinancialPulse"]
     },
     "financial-records": {
       "value": [
@@ -204,10 +165,7 @@
       ]
     },
     "follow-up": {
-      "value": [
-        "UnifiedFollowUpService",
-        "projectFollowUp"
-      ],
+      "value": ["UnifiedFollowUpService", "projectFollowUp"],
       "type": [
         "DailyFollowUp",
         "DailyFollowUpService",
@@ -261,9 +219,7 @@
         "parseEnglishQuantityText",
         "percentToBpsExact"
       ],
-      "type": [
-        "EnglishNumericKind"
-      ]
+      "type": ["EnglishNumericKind"]
     },
     "inventory": {
       "value": [
@@ -285,9 +241,7 @@
       ]
     },
     "loans": {
-      "value": [
-        "ReceivedLoanService"
-      ],
+      "value": ["ReceivedLoanService"],
       "type": [
         "LoanOverviewRead",
         "LoanService",
@@ -297,21 +251,11 @@
       ]
     },
     "owner-money": {
-      "value": [
-        "OwnerEntitlementService"
-      ],
-      "type": [
-        "CrossModelOwnerDuplicate",
-        "OwnerEntitlementOverview",
-        "OwnerMoneyOverview"
-      ]
+      "value": ["OwnerEntitlementService"],
+      "type": ["CrossModelOwnerDuplicate", "OwnerEntitlementOverview", "OwnerMoneyOverview"]
     },
     "parties": {
-      "value": [
-        "purchasePartySnapshotOf",
-        "salePartySnapshotOf",
-        "supplierDisplayLabelOf"
-      ],
+      "value": ["purchasePartySnapshotOf", "salePartySnapshotOf", "supplierDisplayLabelOf"],
       "type": [
         "PartyAccountEntry",
         "PartyDirectoryOverview",
@@ -326,10 +270,7 @@
       ]
     },
     "preferences": {
-      "value": [
-        "isKnownCapabilityId",
-        "isOfferingPreference"
-      ],
+      "value": ["isKnownCapabilityId", "isOfferingPreference"],
       "type": [
         "BrowserPersistenceReading",
         "CapabilityId",
@@ -367,28 +308,16 @@
       ]
     },
     "security": {
-      "value": [
-        "retireLocalLockRecord"
-      ],
-      "type": [
-        "LockRetirementOutcome"
-      ]
+      "value": ["retireLocalLockRecord"],
+      "type": ["LockRetirementOutcome"]
     },
     "suppliers": {
       "value": [],
-      "type": [
-        "SupplierPurchaseService",
-        "SupplierPurchaseSummary"
-      ]
+      "type": ["SupplierPurchaseService", "SupplierPurchaseSummary"]
     },
     "time": {
-      "value": [
-        "todayInAmman"
-      ],
-      "type": [
-        "ActualTimeService",
-        "OperatingModeValue"
-      ]
+      "value": ["todayInAmman"],
+      "type": ["ActualTimeService", "OperatingModeValue"]
     },
     "transfers": {
       "value": [
@@ -426,9 +355,7 @@
         "computeIdeaReview",
         "IDEA_REVIEW_QUESTIONS"
       ],
-      "type": [
-        "PlanningToolsResult"
-      ]
+      "type": ["PlanningToolsResult"]
     },
     "network": {
       "value": [
@@ -468,6 +395,8 @@
         "ApiCallOptions",
         "ApiErrorShape",
         "AskAnswer",
+        "AskDraftField",
+        "AskDraftProposal",
         "AskStatus",
         "AskStatusContext",
         "DeviceSession",
@@ -584,15 +513,8 @@
         "searchAdminUsers",
         "suspendAdminIdentity"
       ],
-      "type": [
-        "AdminDecision",
-        "AdminQueueItem",
-        "AdminQueues",
-        "AdminUserResult"
-      ]
+      "type": ["AdminDecision", "AdminQueueItem", "AdminQueues", "AdminUserResult"]
     }
   },
-  "rootFiles": [
-    "resultCodes.ts"
-  ]
+  "rootFiles": ["resultCodes.ts"]
 }

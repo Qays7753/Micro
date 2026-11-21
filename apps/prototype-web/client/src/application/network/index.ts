@@ -23,7 +23,19 @@ export {
 } from "./sessionService";
 export type { NetworkSession, NetworkWorkspace, DeviceSession } from "./sessionService";
 export { fetchAskStatus, askQuestion } from "./askMicroService";
-export type { AskStatus, AskStatusContext, AskAnswer } from "./askMicroService";
+export type {
+  AskStatus,
+  AskStatusContext,
+  AskAnswer,
+  AskDraftField,
+  AskDraftProposal,
+} from "./askMicroService";
+/* توسيع مقصود مؤرخ (الاستكمال المستمر — DOC-041/WS-251، أمر المالك 7593b9c4
+ * §5.3، نفس-الـPR 2026-11-22): نوعا مسودة Ask القابلة للتحرير
+ * (AskDraftField وAskDraftProposal) يُصدَّران عبر الباب — المسودة بطاقة
+ * عرض/تحرير فقط لا معاملة محفوظة؛ لا كتابة قبل تأكيد المستخدم الصريح عبر
+ * المسار الكنسي. تصحيح ما فات توصيل النوعين إلى مستهلكيهما (AskDraftCard
+ * وAskMicro) في الالتزام الأصلي — PC-3. */
 
 /*
  * توسيع مقصود مؤرخ (Post-Group 6 continuous completion — 2026-11-22 /

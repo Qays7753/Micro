@@ -181,7 +181,7 @@ afterEach(() => {
 
 function renderProfile() {
   return render(
-    <UnsavedChangesProvider>
+    <UnsavedChangesProvider navigate={() => undefined}>
       <Profile />
     </UnsavedChangesProvider>,
   );

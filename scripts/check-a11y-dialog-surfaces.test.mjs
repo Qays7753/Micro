@@ -59,10 +59,16 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
     /* EX-D21 (Phase B 2026-11-14): لوحة «قريبًا» في AppHeader أُزيلت مع تحول
      * «اسأل Micro» إلى مدخل حقيقي إلى /ask — السجل صار 7 أسطح (6 ملفات
      * بتصريح حي)؛ إزالة موثقة نفس-الـPR. */
-    expect(stdout).toMatch(/7 سطحًا حواريًا مصنفًا/);
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01+G02،
+     * نفس-الـPR 2026-11-22): +3 ملفات بتصريح حي — صناديق تأكيد الأدوار
+     * (RolesSection.tsx) وتأكيد إيقاف الهوية في بحث المشرف (AdminUserSearch.tsx)
+     * وتأكيد الإلغاء الإداري (AdminCancelBooking.tsx)، كلها alertdialog
+     * غير مودال بنمط micro-confirm-box القائم؛ السجل صار 10 أسطح (9 ملفات
+     * بتصريح حي)؛ تصنيف موثق نفس-الـPR (قاعدة الحارس). */
+    expect(stdout).toMatch(/10 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(7);
+    expect(stats.classified).toBe(10);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {
@@ -91,7 +97,9 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
     );
     const { ok, violations } = checkA11yDialogSurfaces(dir);
     expect(ok).toBe(false);
-    expect(violations.some(v => v.rule === "unclassified-dialog-surface" && v.key.includes("pages/Probe.tsx"))).toBe(true);
+    expect(
+      violations.some(v => v.rule === "unclassified-dialog-surface" && v.key.includes("pages/Probe.tsx")),
+    ).toBe(true);
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
