@@ -1,7 +1,15 @@
 /**
  * Delivery + driver portal route registration (EX-D18 — contract 21/OD01).
  */
-import { driverDirectory, driverPublicProfile, ownerOverview, requestDetail } from "./api/delivery.ts";
+import {
+  closeDeliveryCase,
+  driverDirectory,
+  driverPublicProfile,
+  listDeliveryCases,
+  ownerOverview,
+  reportDeliveryCase,
+  requestDetail,
+} from "./api/delivery.ts";
 import {
   answerContactAttempt,
   cancelRequest,
@@ -64,6 +72,27 @@ export function registerDeliveryRoutes(router: ApiRouter): void {
   router.get(
     "api/delivery/requests/:id",
     authedRoute((ctx, auth) => requestDetail(ctx, auth)),
+  );
+  // Wave 3 (د-8 + MD-02): a party files a case on the booking (بلاغ على
+  // الحجز) — the ONLY key that unlocks the administrative full read; the
+  // admin lists and closes cases with a required reason (audited).
+  router.post(
+    "api/delivery/requests/:id/report",
+    command(
+      "delivery-case-file",
+      authedRoute((ctx, auth) => reportDeliveryCase(ctx, auth)),
+    ),
+  );
+  router.get(
+    "api/delivery/cases",
+    authedRoute((ctx, auth) => listDeliveryCases(ctx, auth)),
+  );
+  router.post(
+    "api/delivery/cases/:id/close",
+    command(
+      "delivery-case-close",
+      authedRoute((ctx, auth) => closeDeliveryCase(ctx, auth)),
+    ),
   );
   router.post(
     "api/delivery/requests",

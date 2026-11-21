@@ -5,10 +5,17 @@
  * the disclosure gate (EX-O14) — the driver sees zones until the owner's
  * documented legal decision; the requester's own phone is always visible to
  * both parties of a directed request.
+ *
+ * Wave 3 privacy slice (final decisions 2026-11-21 ج-بيانات المستلم/Q115/Q238
+ * + د-8): the driver's recipient-data access stops IMMEDIATELY on
+ * cancellation/withdrawal and 48 HOURS after the delivery declaration
+ * (server clock — RECIPIENT_ACCESS_CUTOFF_MS); the admin's full read is
+ * unlocked ONLY by an open case filed by a party (بلاغ على الحجز — MD-02),
+ * audited with no content copy; the requester always sees their own data.
  */
 
 import { audit, notify } from "../audit.ts";
-import { enforceGuestReadLimit } from "../ratelimit.ts";
+import { dailyBucket, enforceGuestReadLimit, enforceRate, rateLimits } from "../ratelimit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { getDisclosureSettings, newId, type Db } from "../db/db.ts";
@@ -22,6 +29,147 @@ import { bookingPayloadSummary } from "./deliveryShared.ts";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
+}
+
+/** ج-بيانات المستلم: the driver loses recipient-data access 48 hours after
+ * the delivery declaration (server time — never a client clock). */
+export const RECIPIENT_ACCESS_CUTOFF_MS = 48 * 60 * 60 * 1000;
+
+/** د-8: the closed reason set for a delivery case (بلاغ على الحجز). */
+const DELIVERY_CASE_REASONS = [
+  "undelivered",
+  "damage",
+  "no_show",
+  "fare_dispute",
+  "contact_issue",
+  "other",
+] as const;
+
+/**
+ * POST /api/delivery/requests/:id/report — a PARTY (requester or assigned
+ * driver) files a case on the booking (د-8: بلاغ على الحجز). The case is the
+ * ONLY key that unlocks the administrative full read (MD-02) and never
+ * copies recipient data — just the reference, the reason, and the details.
+ * Daily rate-limited per reporter like the market report path.
+ */
+export async function reportDeliveryCase(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const body = (await readJsonBody(ctx.request)) as { reason?: string; details?: string };
+  if (
+    typeof body.reason !== "string" ||
+    !(DELIVERY_CASE_REASONS as readonly string[]).includes(body.reason)
+  ) {
+    throw new HttpError(400, "bad_request", { field: "reason" });
+  }
+  const now = nowMs();
+  const row = await db(ctx)
+    .prepare("SELECT id, requester_identity_id, driver_profile_id FROM delivery_request WHERE id = ?")
+    .bind(ctx.params.id!)
+    .first<Record<string, unknown>>();
+  if (!row) throw new HttpError(404, "not_found");
+  const driverIdentity = await db(ctx)
+    .prepare("SELECT identity_id FROM driver_profile WHERE id = ?")
+    .bind(String(row.driver_profile_id))
+    .first<{ identity_id: string }>();
+  const isRequester = String(row.requester_identity_id) === auth.identityId;
+  const isDriver = driverIdentity !== null && driverIdentity.identity_id === auth.identityId;
+  if (!isRequester && !isDriver) throw new HttpError(404, "not_found");
+  const limits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("delivery-case", auth.identityId, now),
+    limits.reportsPerDay,
+    24 * 60 * 60 * 1000,
+    now,
+  );
+  const filed = await db(ctx)
+    .prepare(
+      "INSERT INTO delivery_case (request_id, reporter_identity_id, reason, details, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id",
+    )
+    .bind(
+      String(row.id),
+      auth.identityId,
+      body.reason,
+      typeof body.details === "string" ? body.details.slice(0, 1000) : null,
+      now,
+    )
+    .first<{ id: number }>();
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: "delivery_case_filed",
+      objectType: "delivery_request",
+      objectId: String(row.id),
+      result: "success",
+      meta: { caseId: Number(filed?.id ?? 0), reason: body.reason },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true, caseId: Number(filed?.id ?? 0) }, 201);
+}
+
+/** GET /api/delivery/cases — the admin's case list (open first). */
+export async function listDeliveryCases(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const rows = await db(ctx)
+    .prepare(
+      "SELECT c.id, c.request_id, c.reporter_identity_id, c.reason, c.details, c.status, c.resolution_note, c.closed_by, c.closed_at, c.created_at " +
+        "FROM delivery_case c ORDER BY CASE WHEN c.status = 'open' THEN 0 ELSE 1 END, c.created_at DESC LIMIT 100",
+    )
+    .all<Record<string, unknown>>();
+  return jsonResponse({
+    cases: rows.results.map(entry => ({
+      id: Number(entry.id),
+      requestId: String(entry.request_id),
+      reporterIdentityId: String(entry.reporter_identity_id),
+      reason: String(entry.reason),
+      details: entry.details === null ? null : String(entry.details),
+      status: String(entry.status),
+      resolutionNote: entry.resolution_note === null ? null : String(entry.resolution_note),
+      closedBy: entry.closed_by === null ? null : String(entry.closed_by),
+      closedAt: entry.closed_at === null ? null : Number(entry.closed_at),
+      createdAt: Number(entry.created_at),
+    })),
+  });
+}
+
+/**
+ * POST /api/delivery/cases/:id/close — the administrative closure with a
+ * required reason (audited). Closing the case re-locks the administrative
+ * full read of that booking's recipient data (MD-02 — the unlock is only
+ * until closure, exactly the final decision's wording).
+ */
+export async function closeDeliveryCase(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as { note?: string };
+  const note =
+    typeof body.note === "string" && body.note.trim().length > 0 ? body.note.trim().slice(0, 1000) : null;
+  if (note === null) throw new HttpError(400, "bad_request", { field: "note" });
+  const caseIdParam = ctx.params.id!;
+  if (!/^\d{1,18}$/.test(caseIdParam)) throw new HttpError(404, "not_found");
+  const now = nowMs();
+  const closed = await db(ctx)
+    .prepare(
+      "UPDATE delivery_case SET status = 'closed', resolution_note = ?, closed_by = ?, closed_at = ? WHERE id = ? AND status = 'open'",
+    )
+    .bind(note, auth.identityId, now, caseIdParam)
+    .run();
+  if (Number(closed.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "case_already_closed" });
+  }
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: "delivery_case_closed",
+      objectType: "delivery_case",
+      objectId: caseIdParam,
+      result: "success",
+      meta: { note },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
 }
 
 export interface DriverDirectoryEntry {
@@ -189,11 +337,60 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
   );
   const payload = JSON.parse(String(row.payload_json)) as Record<string, unknown>;
   const disclosure = await getDisclosureSettings(db(ctx));
-  if (
+  const execution = await db(ctx)
+    .prepare(
+      "SELECT execution_status, confirmation_status, contact_status, goods_location, money_status, confirmation_requested_at FROM delivery_execution WHERE request_id = ?",
+    )
+    .bind(String(row.id))
+    .first<Record<string, unknown>>();
+  /* الموجة 3 (ج-بيانات المستلم/Q115/Q238 — القرار النهائي): القاعدة الزمنية
+   * والقاعدة الإدارية لبيانات المستلم. وصول السائق يقف فورًا عند الإلغاء،
+   * وبعد ٤٨ ساعة من إعلان التسليم (المحسوب من الطابع الخادمي لإعلان
+   * التسليم — ساعة الخادم تحسم، لا ساعة العميل). والمشرف يرى التفاصيل
+   * الكاملة فقط عبر قضية مفتوحة (MD-02) — بدونه تُعرض النسخة المنقّحة
+   * نفسها التي يراها غير الأطراف، وكل قراءة مفتوحة تُدقّق بلا نسخة
+   * محتوى. صاحب الحجز يرى بياناته دائمًا. */
+  const executionConfirmationRequestedAt =
+    execution === null ||
+    execution.confirmation_requested_at === null ||
+    execution.confirmation_requested_at === undefined
+      ? null
+      : Number(execution.confirmation_requested_at);
+  const terminated = ["cancelled", "withdrawn"].includes(String(row.status));
+  const driverRecipientAccess =
     isDriver &&
+    !terminated &&
     disclosure.recipient_details_to_driver === "allowed_after_acceptance" &&
-    status === "confirmed"
-  ) {
+    status === "confirmed" &&
+    (executionConfirmationRequestedAt === null ||
+      now < executionConfirmationRequestedAt + RECIPIENT_ACCESS_CUTOFF_MS);
+  const openCase = auth.isAdmin
+    ? await db(ctx)
+        .prepare(
+          "SELECT id FROM delivery_case WHERE request_id = ? AND status = 'open' ORDER BY created_at DESC LIMIT 1",
+        )
+        .bind(String(row.id))
+        .first()
+    : null;
+  const adminRecipientAccess = auth.isAdmin && openCase !== null;
+  if (adminRecipientAccess) {
+    // MD-02 (contract 22 §4): the administrative read through an open case is
+    // audited — actor/reference/time and the access scope ONLY, never a copy
+    // of the field contents.
+    await audit(
+      db(ctx),
+      {
+        actorIdentityId: auth.identityId,
+        action: "delivery_scoped_read",
+        objectType: "delivery_request",
+        objectId: String(row.id),
+        result: "success",
+        meta: { scope: "open_case_admin" },
+      },
+      now,
+    );
+  }
+  if (driverRecipientAccess) {
     // F-07 (contract 22 §4, amendment E-12): the assigned driver reading
     // recipient-scoped details (phone/address) is audited — actor/reference/
     // time and the disclosure scope ONLY, never a copy of the field contents.
@@ -216,12 +413,6 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
         .bind(String(row.quote_id))
         .first<Record<string, unknown>>()
     : null;
-  const execution = await db(ctx)
-    .prepare(
-      "SELECT execution_status, confirmation_status, contact_status, goods_location, money_status, confirmation_requested_at FROM delivery_execution WHERE request_id = ?",
-    )
-    .bind(String(row.id))
-    .first<Record<string, unknown>>();
   const consentProposals = await db(ctx)
     .prepare(
       "SELECT id, kind, terms_json, status, proposed_by_identity_id, decided_at, decision_note, applied_execution, created_at FROM delivery_consent_proposal WHERE request_id = ? ORDER BY created_at DESC, id DESC LIMIT 10",
@@ -256,21 +447,24 @@ export async function requestDetail(ctx: RouteContext, auth: AuthenticatedContex
       agreementCopy:
         row.agreement_copy_json === null
           ? null
-          : isRequester ||
-              auth.isAdmin ||
-              (disclosure.recipient_details_to_driver === "allowed_after_acceptance" &&
-                status === "confirmed")
+          : isRequester || adminRecipientAccess || driverRecipientAccess
             ? (JSON.parse(String(row.agreement_copy_json)) as Record<string, unknown>)
             : {
                 ...(JSON.parse(String(row.agreement_copy_json)) as Record<string, unknown>),
                 payload: redactPayload(
                   (JSON.parse(String(row.agreement_copy_json)) as { payload: Record<string, unknown> })
                     .payload,
-                  disclosure.recipient_details_to_driver,
+                  "blocked",
                   status,
                 ),
               },
-      payload: isRequester ? payload : redactPayload(payload, disclosure.recipient_details_to_driver, status),
+      payload: isRequester
+        ? payload
+        : redactPayload(
+            payload,
+            driverRecipientAccess || adminRecipientAccess ? "allowed_after_acceptance" : "blocked",
+            driverRecipientAccess || adminRecipientAccess ? "confirmed" : status,
+          ),
       createdAt: Number(row.created_at),
     },
     quote:

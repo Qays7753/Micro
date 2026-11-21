@@ -11611,6 +11611,25 @@
         "trigger": "post-group6-wave2-market-decisions",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-delivery-watch-register",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "reason": "Wave 3 privacy slice (ج-بيانات المستلم/د-8/MD-02): the recipient-privacy rules (48h post-declaration cutoff, immediate cancellation cutoff, open-case-gated administrative read) and the delivery-case endpoints (file/list/close) grow the file into the WATCH band — register row per the documented pattern.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-delivery-privacy",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

@@ -2041,6 +2041,10 @@
     "apps/prototype-web/client/src/pages/MarketReview.tsx": {
       "nbLoc": 574,
       "band": "WATCH"
+    },
+    "apps/prototype-web/worker/api/delivery.ts": {
+      "nbLoc": 582,
+      "band": "WATCH"
     }
   }
 }
