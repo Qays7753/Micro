@@ -95,8 +95,21 @@ const money = (minor: number | null | undefined): string =>
 
 const date = (value: string): string => formatLocalDate(value) ?? value;
 
+/* WEB-02 (Post-Group 6 Wave 5 / DOC-041): قيم يستخدمها صاحب السجل (تسميات
+ * البنود، مؤهلاتها، أسباب التصحيح) تُدرَج نصًا خامًا في Markdown مُصدَّر
+ * يُعرض في عارض خارجي. تُهرَّب المحارف التي تبني بها بنية خطرة — وسوم
+ * HTML (< > &) وتأكيد Markdown (` * _) وقوسا الوصلات ([ ]) — فلا يُفسر
+ * المحتوى المدخل بنيةً في العارض أبدًا؛ بقية المحارف (أقواس التجميع،
+ * الشرطة، الأرقام والتواريخ المولَّدة داخليًا) تمر كما هي ولا معنى
+ * خطريًّا لها بلا أقواس الوصلات. */
+export function escapeMarkdownValue(value: string): string {
+  return value.replace(/[<>&`*_\[\]]/g, matched => `\\${matched}`);
+}
+
 function line(label: string, value: string, note?: string): string {
-  return `- ${label}: ${value}${note ? ` — ${note}` : ""}`;
+  /* التسمية والمؤهل والسبب مدخلات المستخدم — تُهرَّب؛ القيمة مولَّدة
+   * داخليًا (مبالغ/تواريخ كانونية) فتمر كما هي. */
+  return `- ${escapeMarkdownValue(label)}: ${value}${note ? ` — ${escapeMarkdownValue(note)}` : ""}`;
 }
 
 export class StatementMarkdownService {

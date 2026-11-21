@@ -265,11 +265,11 @@ export class LocalTransferService {
         return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
       const countsError = verifyTransferCounts(candidate, migrated, isCurrent);
       if (countsError !== null) return fail(countsError);
-    } catch (error) {
-      const detail = error instanceof Error ? ` (${error.message})` : "";
-      return fail(
-        `الملف لا يطابق بنية Micro المطلوبة فتعذر التحقق منه${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
-      );
+    } catch {
+      /* MNG-LOCAL-05 (Post-Group 6 Wave 5 / DOC-041): نص الاستثناء الخام لا
+       * يُعرض للمستخدم أبدًا — رسالة ثابتة آمنة بلا أي تفاصيل داخلية؛ قرار
+       * القبول/الرفض نفسه لم يتغير (الرفض قبل أي كتابة في الحالتين). */
+      return fail("الملف لا يطابق بنية Micro المطلوبة فتعذر التحقق منه. بقيت بيانات هذا الجهاز دون تغيير.");
     }
     /* R11 W2b / OD-KEYS — W2-2 (تفعيل 2026-10-16 بالحمولة المعتمدة حرفيًا):
      * رفض مفاتيح data العلوية المجهولة للزوج الحالي وحده — الموضع بعد بوابة

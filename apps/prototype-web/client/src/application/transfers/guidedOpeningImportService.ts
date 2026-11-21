@@ -69,6 +69,11 @@ export type GuidedOpeningImportResult<T> =
   | { ok: false; code: "validation_error" | "non_empty_store" | "storage_error"; message: string };
 
 type GuidedOpeningImportErrorCode = "validation_error" | "non_empty_store" | "storage_error";
+/** MNG-LOCAL-05 (Post-Group 6 Wave 5 / DOC-041): رمي التحقق المتعمد وحده —
+ * نص عربي ثابت كتبه الكود عمدًا لسبب رفض صادق؛ غيره من الاستثناءات لا
+ * يُعرض نصه الخام للمستخدم أبدًا. */
+class GuidedOpeningValidationError extends Error {}
+
 const fail = <T>(code: GuidedOpeningImportErrorCode, message: string): GuidedOpeningImportResult<T> => ({
   ok: false,
   code,
@@ -145,7 +150,7 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
       !walletKinds.has(item.kind as CashWalletKind) ||
       !isInteger(item.openingMinor)
     )
-      throw new Error("بيانات محفظة الكاش الافتتاحية غير صالحة.");
+      throw new GuidedOpeningValidationError("بيانات محفظة الكاش الافتتاحية غير صالحة.");
     walletIds.add(item.id);
     return {
       ...item,
@@ -169,7 +174,9 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
       !isInteger(item.openingValueMinor) ||
       (item.openingQuantityMilli === 0) !== (item.openingValueMinor === 0)
     )
-      throw new Error("بيانات المادة الافتتاحية تحتاج كمية وقيمة موجبتين معًا، أو صفرًا معًا.");
+      throw new GuidedOpeningValidationError(
+        "بيانات المادة الافتتاحية تحتاج كمية وقيمة موجبتين معًا، أو صفرًا معًا.",
+      );
     materialIds.add(item.id);
     return {
       ...item,
@@ -236,10 +243,16 @@ export class GuidedOpeningImportService {
     try {
       parsed = parseFile(text, this.now());
     } catch (error) {
-      const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+      /* MNG-LOCAL-05 (Post-Group 6 Wave 5 / DOC-041): رمي التحقق المتعمد
+       * وحده (GuidedOpeningValidationError بنص عربي ثابت) يظهر سببه الصادق؛
+       * أي استثناء آخر غير متوقع لا يُعرض نصه الخام أبدًا — رسالة ثابتة
+       * آمنة بلا أي تفاصيل داخلية. قرار القبول/الرفض لم يتغير. */
+      if (error instanceof GuidedOpeningValidationError) {
+        return fail("validation_error", `${error.message} بقيت بيانات هذا الجهاز دون تغيير.`);
+      }
       return fail(
         "validation_error",
-        `بيانات الاستيراد الافتتاحي غير صالحة${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
+        "بيانات الاستيراد الافتتاحي غير صالحة. بقيت بيانات هذا الجهاز دون تغيير.",
       );
     }
     if (!parsed.ok) return parsed;

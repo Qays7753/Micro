@@ -11725,6 +11725,63 @@
         "trigger": "post-group6-wave4-contextual-links",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts",
+      "from": {
+        "nbLoc": 231,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 264,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 5 (WEB-02): escapeMarkdownValue + the narrowed escaping scope in line() — user-entered values (labels/qualifiers/reasons) are escaped before entering the exported Markdown.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 428,
+        "band": "WATCH"
+      },
+      "reason": "Wave 5 (MNG-LOCAL-05): the GuidedOpeningValidationError typed class — deliberate validation throws keep their honest Arabic reason while unexpected exceptions get the fixed safe message; the branch evolution plus the new class crosses the WATCH threshold.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 537,
+        "band": "WATCH"
+      },
+      "reason": "Wave 5 (MNG-LOCAL-05): the import catch drops the raw exception text for the fixed safe message; the branch evolution plus the dated comment lands at 537 in the WATCH band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }
