@@ -38,6 +38,7 @@ import {
   adminDecisionsLog,
   adminPanelQueues,
   adminUserSearch,
+  liftIdentitySuspension,
   suspendIdentity,
 } from "./api/adminPanel.ts";
 import { registerPushSubscription, removePushSubscription } from "./webPush.ts";
@@ -251,6 +252,16 @@ export function buildRouter(): ApiRouter {
     command(
       "admin-identity-suspend",
       authedRoute((ctx, auth) => suspendIdentity(ctx, auth)),
+    ),
+  );
+  // Owner supplement §10.1-2 (2026-11-22): the audited Admin lift of an
+  // identity suspension — reason + Admin identity + timestamp recorded;
+  // restores access only through roles that remain active/approved.
+  router.post(
+    "api/admin/panel/identities/:id/lift-suspension",
+    command(
+      "admin-identity-lift-suspension",
+      authedRoute((ctx, auth) => liftIdentitySuspension(ctx, auth)),
     ),
   );
   router.post(

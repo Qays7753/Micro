@@ -273,6 +273,21 @@ export async function revokeRecipientConsent(
 /** POST /api/delivery/requests/:id/submit — send the directed request (30-min window). */
 export async function submitRequest(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const row = await loadOwnRequest(ctx, auth, ctx.params.id!);
+  /* Owner supplement §10.3-11 (2026-11-22): the driver eligibility RECHECK at
+   * submit time — the draft may have sat while the driver was removed,
+   * suspended, or otherwise left 'approved'; a stale draft never submits
+   * silently to a driver who can no longer take it. The check mirrors the
+   * creation-time gate exactly (profile status 'approved'). */
+  const driverNow = await db(ctx)
+    .prepare("SELECT status FROM driver_profile WHERE id = ?")
+    .bind(String(row.driver_profile_id))
+    .first<Record<string, unknown>>();
+  if (driverNow === null || String(driverNow.status) !== "approved") {
+    throw new HttpError(409, "conflict", {
+      reason: "driver_no_longer_eligible",
+      message: "لم يعد السائق متاحًا لهذا الحجز (حالته تغيّرت منذ إنشاء المسودة). اختر سائقًا آخر.",
+    });
+  }
   const status = transitionRequest(
     { status: String(row.status) as RequestStatus, responseDeadlineAt: null, quoteValidUntil: null },
     "submit",

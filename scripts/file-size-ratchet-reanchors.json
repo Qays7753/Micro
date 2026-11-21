@@ -12333,6 +12333,82 @@
         "trigger": "post-group6-continuous-gate-fix",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-lift-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/adminPanel.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10) — the admin panel module enters the WATCH register: the audited Admin lift of an identity suspension (§10.1-2: reason + Admin identity + timestamp recorded atomically with its audit; restores access only through still-active/approved roles, never removed roles, never bookings; the already-lifted vs never-suspended distinction 409/404), the queue ages for driver evidence and vehicles (§10.3-9 «كل الطوابير مع عمر كل عنصر»), and the atomic state/event/notification/audit batch for the administrative cancel (§10.3-10 — one PostgreSQL transaction, the evidence rows ride the cancellation marker, never a silent partial state)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-lift",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-recheck-submit-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 616,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.3-11) — the driver eligibility RECHECK when submitting an existing draft: the draft may have sat while the driver was removed or otherwise left 'approved'; a stale draft never submits silently to a driver who can no longer take it (an honest 409 driver_no_longer_eligible with the Arabic reason, mirroring the creation-time gate exactly)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-recheck-submit",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-readd-market-catchup",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 710,
+        "band": "WATCH"
+      },
+      "reason": "Honest catch-up anchoring the already-committed G01 re-add growth (commit c80a2fe1, owner supplement §10.1-1) that the 694 row did not cover: every by-identity supplier profile read now deterministically picks the NEWEST row (ORDER BY created_at DESC, id DESC) so an archived removed row is never the current state, and saveVendorProfile falls through to the fresh-application insert branch when the newest row is removed (audit supplier_role_reapplied) instead of refusing — the same-PR protocol applied in the immediately following commit, exactly like the documented W1 post-push catch-up precedent",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-readd-catchup",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-readd-listings-catchup",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 658,
+        "band": "WATCH"
+      },
+      "reason": "Honest catch-up anchoring the already-committed G01 re-add growth (commit c80a2fe1, owner supplement §10.1-1) that the 656 row did not cover: the by-identity supplier lookup behind the listing choke points picks the NEWEST profile row so a re-applied supplier's fresh row governs listing mutations while the archived row stays archived — the same-PR protocol applied in the immediately following commit",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-readd-catchup",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

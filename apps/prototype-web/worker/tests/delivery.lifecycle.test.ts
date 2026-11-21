@@ -327,3 +327,123 @@ describe("delivery: driver self-activation is impossible (OD17/OD22)", () => {
     expect(selfApprove.status).toBe(403);
   });
 });
+
+describe("delivery: driver eligibility recheck when submitting an existing draft (owner supplement §10.3-11)", () => {
+  it("a draft whose driver was REMOVED after creation refuses to submit with the honest reason", async () => {
+    const localWorker = await startWorker();
+    try {
+      const admin = await signInAs(localWorker, { sub: "rc-admin", email: "rc-admin@example.test" });
+      const localDb = await rawDb(localWorker);
+      await localDb
+        .prepare(
+          "INSERT INTO network_membership (identity_id, role, status, granted_by, granted_at) " +
+            "SELECT id, 'admin', 'active', 'test', 1 FROM network_identity WHERE email = ?",
+        )
+        .bind("rc-admin@example.test")
+        .run();
+      const adminCookie = admin.cookieHeader;
+      const owner = await signInAs(localWorker, { sub: "rc-owner", email: "rc-owner@example.test" });
+      const workspaceId = await createWorkspace(localWorker, owner.cookieHeader, "مشروع إعادة فحص الأهلية");
+      const driver = await createApprovedDriver(
+        { worker: localWorker, adminCookie },
+        "rc-driver@example.test",
+        "rc-driver",
+      );
+      // Create a DRAFT (never submitted) against the now-approved driver.
+      const created = await apiPost(localWorker, owner.cookieHeader, "/api/delivery/requests", {
+        driverProfileId: driver.driverProfileId,
+        needType: "deliver_to_customer",
+        loadClass: "small",
+        weightBand: "under_10kg",
+        pieceCount: 1,
+        recipientDataConsent: true,
+        pricingMode: "prepriced",
+        offeredFareMinor: "200",
+        workspaceId,
+        payload: {
+          pickup: { governorate: "عمان" },
+          dropoff: { governorate: "إربد" },
+        },
+      });
+      expect(created.status).toBe(201);
+      const { request } = (await created.json()) as { request: { id: string } };
+      // The driver's role is removed (a draft is not an ONGOING booking, so
+      // the removal protection does not apply) — the draft is now stale.
+      const removed = await apiPost(localWorker, driver.cookie, "/api/account/roles/driver/remove", {});
+      expect(removed.status).toBe(200);
+      // The submit RECHECK refuses the stale draft honestly — never a silent
+      // submission to a driver who can no longer take it.
+      const submitted = await apiPost(
+        localWorker,
+        owner.cookieHeader,
+        `/api/delivery/requests/${request.id}/submit`,
+        {},
+      );
+      expect(submitted.status).toBe(409);
+      const body = (await submitted.json()) as { error: { details: { reason: string; message?: string } } };
+      expect(body.error.details.reason).toBe("driver_no_longer_eligible");
+      expect(body.error.details.message).toContain("لم يعد السائق متاحًا");
+      // The draft itself is untouched by the refusal (still a draft, nothing sent).
+      const row = await localDb
+        .prepare("SELECT status FROM delivery_request WHERE id = ?")
+        .bind(request.id)
+        .first<{ status: string }>();
+      expect(row!.status).toBe("draft");
+      const driverNotified = await localDb
+        .prepare("SELECT COUNT(*) AS n FROM network_notification WHERE payload_json LIKE ?")
+        .bind(`%"${request.id}"%`)
+        .first<{ n: number }>();
+      expect(Number(driverNotified!.n)).toBe(0); // nothing was sent to the removed driver
+    } finally {
+      await localWorker.close();
+    }
+  });
+
+  it("a draft whose driver is STILL approved submits normally (no false refusal)", async () => {
+    const localWorker = await startWorker();
+    try {
+      const admin = await signInAs(localWorker, { sub: "rc2-admin", email: "rc2-admin@example.test" });
+      const localDb = await rawDb(localWorker);
+      await localDb
+        .prepare(
+          "INSERT INTO network_membership (identity_id, role, status, granted_by, granted_at) " +
+            "SELECT id, 'admin', 'active', 'test', 1 FROM network_identity WHERE email = ?",
+        )
+        .bind("rc2-admin@example.test")
+        .run();
+      const adminCookie = admin.cookieHeader;
+      const owner = await signInAs(localWorker, { sub: "rc2-owner", email: "rc2-owner@example.test" });
+      const workspaceId = await createWorkspace(localWorker, owner.cookieHeader, "مشروع إعادة فحص السليمة");
+      const driver = await createApprovedDriver(
+        { worker: localWorker, adminCookie },
+        "rc2-driver@example.test",
+        "rc2-driver",
+      );
+      const created = await apiPost(localWorker, owner.cookieHeader, "/api/delivery/requests", {
+        driverProfileId: driver.driverProfileId,
+        needType: "deliver_to_customer",
+        loadClass: "small",
+        weightBand: "under_10kg",
+        pieceCount: 1,
+        recipientDataConsent: true,
+        pricingMode: "prepriced",
+        offeredFareMinor: "200",
+        workspaceId,
+        payload: {
+          pickup: { governorate: "عمان" },
+          dropoff: { governorate: "إربد" },
+        },
+      });
+      const { request } = (await created.json()) as { request: { id: string } };
+      const submitted = await apiPost(
+        localWorker,
+        owner.cookieHeader,
+        `/api/delivery/requests/${request.id}/submit`,
+        {},
+      );
+      expect(submitted.status).toBe(200);
+    } finally {
+      await localWorker.close();
+    }
+  });
+});

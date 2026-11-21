@@ -370,3 +370,297 @@ describe("G02 admin panel: «إلغاء حجز جارٍ بقرار إداري م
     expect(again.status).toBe(404);
   });
 });
+
+describe("G02 admin panel: the audited suspension LIFT (owner supplement §10.1-2)", () => {
+  it("lift records reason+admin+timestamp, restores access only through still-active/approved roles, never touches bookings", async () => {
+    const owner = await signInAs(worker, { sub: "ap-lift-owner", email: "ap-lift-owner@example.test" });
+    const ownerWorkspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع رفع الإيقاف");
+    const driver = await createApprovedDriver(refs, "ap-lift-driver@example.test", "ap-lift-driver");
+    const bookingId = await setupExecutionPair(
+      worker,
+      owner.cookieHeader,
+      driver.cookie,
+      driver.driverProfileId,
+      ownerWorkspaceId,
+    );
+    const driverIdentityId = await identityIdOf("ap-lift-driver@example.test");
+    await apiPost(worker, adminCookie, `/api/admin/panel/identities/${driverIdentityId}/suspend`, {
+      reason: "بلاغ قيد التحقق — إيقاف مؤقت",
+    });
+    const blocked = await apiGet(worker, driver.cookie, "/api/driver/portal");
+    expect(blocked.status).toBe(401);
+    // A reason is mandatory on the lift too.
+    const noReason = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/identities/${driverIdentityId}/lift-suspension`,
+      { reason: "قص" },
+    );
+    expect(noReason.status).toBe(400);
+    // A non-admin caller is refused.
+    const byUser = await apiPost(
+      worker,
+      owner.cookieHeader,
+      `/api/admin/panel/identities/${driverIdentityId}/lift-suspension`,
+      { reason: "محاولة رفع من غير المشرف" },
+    );
+    expect(byUser.status).toBe(403);
+    // The lift succeeds with the reason recorded.
+    const lifted = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/identities/${driverIdentityId}/lift-suspension`,
+      { reason: "تحقق البلاغ: لا أساس له — رفع الإيقاف" },
+    );
+    expect(lifted.status).toBe(200);
+    const liftBody = (await lifted.json()) as {
+      liftedAt: number;
+      rolesRegained: { owner: boolean; supplier: boolean; driver: boolean };
+      bookingsUntouched: boolean;
+    };
+    expect(liftBody.liftedAt).toBeGreaterThan(0);
+    expect(liftBody.rolesRegained.driver).toBe(true); // the role REMAINED approved — access returns through it
+    expect(liftBody.bookingsUntouched).toBe(true);
+    const db = await rawDb(worker);
+    const suspension = await db
+      .prepare(
+        "SELECT lifted_at, lifted_by, lift_reason FROM identity_suspension WHERE identity_id = ? ORDER BY suspended_at DESC LIMIT 1",
+      )
+      .bind(driverIdentityId)
+      .first<{ lifted_at: number; lifted_by: string; lift_reason: string }>();
+    expect(suspension!.lifted_at).not.toBeNull();
+    expect(suspension!.lift_reason).toBe("تحقق البلاغ: لا أساس له — رفع الإيقاف");
+    const adminIdentityId = await identityIdOf("ap-admin@example.test");
+    expect(suspension!.lifted_by).toBe(adminIdentityId); // the Admin identity is recorded
+    // The booking was NEVER touched by suspension or lift.
+    const booking = await db
+      .prepare("SELECT status FROM delivery_request WHERE id = ?")
+      .bind(bookingId)
+      .first<{ status: string }>();
+    expect(booking!.status).toBe("confirmed");
+    // The lift is audited with its reason.
+    const auditRow = await db
+      .prepare(
+        "SELECT meta_json FROM network_audit_event WHERE action = 'identity_suspension_lifted' AND result = 'success'",
+      )
+      .first<{ meta_json: string }>();
+    expect(auditRow).not.toBeNull();
+    expect(auditRow!.meta_json).toContain("رفع الإيقاف");
+    // The old session stays revoked (it was revoked at suspension) — but a NEW
+    // sign-in works again (resolveSession keys on lifted_at IS NULL).
+    const stillRevoked = await apiGet(worker, driver.cookie, "/api/driver/portal");
+    expect(stillRevoked.status).toBe(401);
+    const fresh = await signInAs(worker, { sub: "ap-lift-driver", email: "ap-lift-driver@example.test" });
+    const portal = await apiGet(worker, fresh.cookieHeader, "/api/driver/portal");
+    expect(portal.status).toBe(200);
+    // A second lift is an honest conflict; lifting a never-suspended identity is 404.
+    const twice = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/identities/${driverIdentityId}/lift-suspension`,
+      { reason: "محاولة رفع ثانية" },
+    );
+    expect(twice.status).toBe(409);
+    await signInAs(worker, { sub: "ap-lift-none", email: "ap-lift-none@example.test" });
+    const noneIdentityId = await identityIdOf("ap-lift-none@example.test");
+    const never = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/identities/${noneIdentityId}/lift-suspension`,
+      { reason: "لا يوجد إيقاف أصلًا" },
+    );
+    expect(never.status).toBe(404);
+  });
+
+  it("a role REMOVED while suspended is not restored by the lift (removed stays removed)", async () => {
+    const owner = await signInAs(worker, { sub: "ap-lift2-owner", email: "ap-lift2-owner@example.test" });
+    await createWorkspace(worker, owner.cookieHeader, "مشروع رفع بلا استعادة");
+    const vendorSession = await signInAs(worker, {
+      sub: "ap-lift-vendor",
+      email: "ap-lift-vendor@example.test",
+    });
+    // An active supplier who then removes his own role, and is suspended afterwards.
+    const vendorWorkspaceId = await createWorkspace(
+      worker,
+      vendorSession.cookieHeader,
+      "مشروع مورد رفع الإيقاف",
+    );
+    await apiPost(worker, vendorSession.cookieHeader, "/api/market/vendor/profile", {
+      displayName: "مورد الرفع",
+      contactPhone: "+962790100002",
+      governorate: "عمان",
+      supplierType: "manufacturer",
+      deliveryOption: "delivery",
+      termsAccepted: true,
+      workspaceId: vendorWorkspaceId,
+    });
+    await apiPost(worker, vendorSession.cookieHeader, "/api/account/roles/supplier/remove", {});
+    const vendorIdentityId = await identityIdOf("ap-lift-vendor@example.test");
+    await apiPost(worker, adminCookie, `/api/admin/panel/identities/${vendorIdentityId}/suspend`, {
+      reason: "إيقاف لاختبار عدم الاستعادة",
+    });
+    const lifted = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/identities/${vendorIdentityId}/lift-suspension`,
+      { reason: "رفع بعد التحقق" },
+    );
+    expect(lifted.status).toBe(200);
+    const body = (await lifted.json()) as {
+      rolesRegained: { supplier: boolean };
+      rolesNotRestored: { supplier: string | null };
+    };
+    expect(body.rolesRegained.supplier).toBe(false); // removed ≠ restored
+    expect(body.rolesNotRestored.supplier).toBe("removed_stays_removed");
+    const db = await rawDb(worker);
+    const profile = await db
+      .prepare(
+        "SELECT status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+      )
+      .bind(vendorIdentityId)
+      .first<{ status: string }>();
+    expect(profile!.status).toBe("removed");
+  });
+});
+
+describe("G02 admin panel: every queue type carries the item age (owner supplement §10.3-9)", () => {
+  it("driver evidence and vehicles queues report ageMs like every other queue", async () => {
+    // A driver application left pending: profile submitted + pending evidence + pending vehicle.
+    const applicant = await signInAs(worker, {
+      sub: "ap-queue-driver",
+      email: "ap-queue-driver@example.test",
+    });
+    await apiPost(worker, applicant.cookieHeader, "/api/driver/profile", {
+      displayName: "سائق الطوابير",
+      phone: "+962790000011",
+      serviceAreas: ["عمان"],
+    });
+    const db = await rawDb(worker);
+    const profile = await db
+      .prepare(
+        "SELECT id FROM driver_profile WHERE identity_id = (SELECT id FROM network_identity WHERE email = 'ap-queue-driver@example.test')",
+      )
+      .first<{ id: string }>();
+    await db
+      .prepare("UPDATE driver_profile SET status = 'submitted', submitted_at = 1 WHERE id = ?")
+      .bind(profile!.id)
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO driver_vehicle (id, driver_profile_id, info_json, status, created_at, updated_at) VALUES ('veh_q1', ?, '{}', 'pending', 1, 1)",
+      )
+      .bind(profile!.id)
+      .run();
+    // driver_evidence.media_id references media_object(id) — seed the media
+    // row first (the synthetic evidence image the applicant uploaded).
+    await db
+      .prepare(
+        "INSERT INTO media_object (id, r2_key, owner_identity_id, purpose, content_type, size_bytes, status, created_at) " +
+          "SELECT 'media_q1', 'r2/media_q1', id, 'driver_evidence', 'image/png', 4, 'pending', 1 " +
+          "FROM network_identity WHERE email = 'ap-queue-driver@example.test'",
+      )
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO driver_evidence (id, driver_profile_id, category, media_id, status, created_at, updated_at) VALUES ('evd_q1', ?, 'identity', 'media_q1', 'pending', 1, 1)",
+      )
+      .bind(profile!.id)
+      .run();
+    const queues = (await (await apiGet(worker, adminCookie, "/api/admin/panel/queues")).json()) as {
+      queues: {
+        marketListings: { ageMs: number | null }[];
+        marketMedia: { ageMs: number | null }[];
+        marketReports: { ageMs: number | null }[];
+        driverApplications: { ageMs: number | null }[];
+        driverEvidence: { ageMs: number | null }[];
+        driverVehicles: { ageMs: number | null }[];
+        openCases: { ageMs: number | null }[];
+      };
+    };
+    // EVERY queue type's items carry a server-clock age — none may be missing.
+    const evidence = queues.queues.driverEvidence;
+    expect(evidence).toHaveLength(1);
+    expect(evidence[0]!.ageMs).not.toBeNull();
+    expect(evidence[0]!.ageMs!).toBeGreaterThan(0);
+    const vehicles = queues.queues.driverVehicles;
+    expect(vehicles).toHaveLength(1);
+    expect(vehicles[0]!.ageMs).not.toBeNull();
+    expect(vehicles[0]!.ageMs!).toBeGreaterThan(0);
+    const applications = queues.queues.driverApplications;
+    expect(applications).toHaveLength(1);
+    expect(applications[0]!.ageMs).not.toBeNull();
+    // The other queue types exist and age uniformly (empty or aged items).
+    for (const queue of [
+      queues.queues.marketListings,
+      queues.queues.marketMedia,
+      queues.queues.marketReports,
+      queues.queues.openCases,
+    ]) {
+      for (const item of queue) {
+        expect(item.ageMs).not.toBeNull();
+      }
+    }
+  });
+});
+
+describe("G02 admin cancel: atomic state/event/notification/audit (owner supplement §10.3-10)", () => {
+  it("exactly ONE of each evidence row exists after a successful cancel — and a repeat writes nothing new", async () => {
+    const owner = await signInAs(worker, { sub: "ap-atomic-owner", email: "ap-atomic-owner@example.test" });
+    const ownerWorkspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع الذرّية");
+    const driver = await createApprovedDriver(refs, "ap-atomic-driver@example.test", "ap-atomic-driver");
+    const bookingId = await setupExecutionPair(
+      worker,
+      owner.cookieHeader,
+      driver.cookie,
+      driver.driverProfileId,
+      ownerWorkspaceId,
+    );
+    const cancelled = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/delivery/requests/${bookingId}/admin-cancel`,
+      { reason: "إلغاء إداري لاختبار الذرّية" },
+    );
+    expect(cancelled.status).toBe(200);
+    const db = await rawDb(worker);
+    const counts = async () => {
+      const event = await db
+        .prepare(
+          "SELECT COUNT(*) AS n FROM delivery_event WHERE request_id = ? AND event_type = 'admin_cancelled'",
+        )
+        .bind(bookingId)
+        .first<{ n: number }>();
+      const ownerIdentityId = await identityIdOf("ap-atomic-owner@example.test");
+      const notification = await db
+        .prepare(
+          "SELECT COUNT(*) AS n FROM network_notification WHERE identity_id = ? AND idempotency_key = ?",
+        )
+        .bind(ownerIdentityId, `admin-cancel:${bookingId}`)
+        .first<{ n: number }>();
+      const audit = await db
+        .prepare(
+          "SELECT COUNT(*) AS n FROM network_audit_event WHERE action = 'admin_booking_cancelled' AND result = 'success'",
+        )
+        .first<{ n: number }>();
+      return {
+        event: Number(event!.n),
+        notification: Number(notification!.n),
+        audit: Number(audit!.n),
+      };
+    };
+    const after = await counts();
+    expect(after.event).toBe(1); // the state change and ALL its evidence committed together
+    expect(after.notification).toBe(1);
+    expect(after.audit).toBe(1);
+    // A second attempt on the now-terminal booking writes NOTHING new.
+    const again = await apiPost(
+      worker,
+      adminCookie,
+      `/api/admin/panel/delivery/requests/${bookingId}/admin-cancel`,
+      { reason: "محاولة ثانية لا تكتب شيئًا" },
+    );
+    expect(again.status).toBe(404);
+    const unchanged = await counts();
+    expect(unchanged).toEqual(after);
+  });
+});

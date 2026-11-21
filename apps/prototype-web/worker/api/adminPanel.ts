@@ -17,7 +17,7 @@
  * action that notifies the booker immediately with the reason.
  */
 
-import { audit, notify } from "../audit.ts";
+import { audit } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
@@ -72,14 +72,14 @@ export async function adminPanelQueues(ctx: RouteContext, auth: AuthenticatedCon
     .all<Record<string, unknown>>();
   const driverEvidence = await db(ctx)
     .prepare(
-      "SELECT e.id, e.driver_profile_id, e.category FROM driver_evidence e " +
-        "JOIN driver_profile p ON p.id = e.driver_profile_id WHERE e.status = 'pending' AND p.status IN ('submitted','approved','under_review') LIMIT 100",
+      "SELECT e.id, e.driver_profile_id, e.category, e.created_at FROM driver_evidence e " +
+        "JOIN driver_profile p ON p.id = e.driver_profile_id WHERE e.status = 'pending' AND p.status IN ('submitted','approved','under_review') ORDER BY e.created_at LIMIT 100",
     )
     .all<Record<string, unknown>>();
   const driverVehicles = await db(ctx)
     .prepare(
-      "SELECT v.id, v.driver_profile_id FROM driver_vehicle v " +
-        "JOIN driver_profile p ON p.id = v.driver_profile_id WHERE v.status = 'pending' AND p.status IN ('submitted','approved','under_review') LIMIT 100",
+      "SELECT v.id, v.driver_profile_id, v.created_at FROM driver_vehicle v " +
+        "JOIN driver_profile p ON p.id = v.driver_profile_id WHERE v.status = 'pending' AND p.status IN ('submitted','approved','under_review') ORDER BY v.created_at LIMIT 100",
     )
     .all<Record<string, unknown>>();
   const openCases = await db(ctx)
@@ -131,10 +131,14 @@ export async function adminPanelQueues(ctx: RouteContext, auth: AuthenticatedCon
         id: String(row.id),
         driverProfileId: String(row.driver_profile_id),
         category: String(row.category),
+        /* Owner supplement §10.3-9 (Q129 «كل الطوابير مع عمر كل عنصر»): the
+         * age of EVERY queue item — driver evidence and vehicles included. */
+        ageMs: age(row.created_at),
       })),
       driverVehicles: driverVehicles.results.map(row => ({
         id: String(row.id),
         driverProfileId: String(row.driver_profile_id),
+        ageMs: age(row.created_at),
       })),
       openCases: openCases.results.map(row => ({
         id: Number(row.id),
@@ -329,6 +333,94 @@ export async function suspendIdentity(ctx: RouteContext, auth: AuthenticatedCont
 }
 
 /**
+ * POST /api/admin/panel/identities/:id/lift-suspension — owner supplement
+ * §10.1-2 (2026-11-22): the audited Admin action to LIFT an identity
+ * suspension, recording the reason, the Admin identity, and the timestamp.
+ * Lifting restores access ONLY through roles that remain active and
+ * approved (suspension never changed profile statuses — the lift ends the
+ * block and each role's CURRENT state governs); removed roles are never
+ * restored and bookings are never touched. Revoked sessions stay revoked —
+ * the user signs in again. The lift + its audit commit atomically.
+ */
+export async function liftIdentitySuspension(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  requireAdmin(auth);
+  const body = (await readJsonBody(ctx.request)) as { reason?: unknown };
+  const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
+  if (reason.length < 4) throw new HttpError(400, "bad_request", { field: "reason" });
+  const targetId = ctx.params.id!;
+  const now = nowMs();
+  const active = await db(ctx)
+    .prepare("SELECT id FROM identity_suspension WHERE identity_id = ? AND lifted_at IS NULL")
+    .bind(targetId)
+    .first<Record<string, unknown>>();
+  if (!active) {
+    /* The honest distinction the decision requires: an identity whose
+     * suspension was ALREADY lifted is a conflict (the record exists, the
+     * state is wrong); an identity with NO suspension record at all is
+     * simply not found. */
+    const latest = await db(ctx)
+      .prepare("SELECT id, lifted_at FROM identity_suspension WHERE identity_id = ? ORDER BY suspended_at DESC LIMIT 1")
+      .bind(targetId)
+      .first<Record<string, unknown>>();
+    if (latest) throw new HttpError(409, "conflict", { reason: "suspension_already_lifted" });
+    throw new HttpError(404, "not_found", { reason: "no_active_suspension" });
+  }
+  const auditStatement = db(ctx)
+    .prepare(
+      "INSERT INTO network_audit_event (actor_identity_id, action, object_type, object_id, result, created_at, meta_json) " +
+        "SELECT ?, 'identity_suspension_lifted', 'network_identity', ?, 'success', ?, ? " +
+        "WHERE EXISTS (SELECT 1 FROM identity_suspension WHERE id = ? AND lifted_at IS NOT NULL AND lifted_at = ?)",
+    )
+    .bind(auth.identityId, targetId, now, JSON.stringify({ reason }), String(active.id), now);
+  /* Atomic (§10.3-10): the CAS lift and its audit commit in ONE PostgreSQL
+   * transaction; the audit row exists only when the lift actually happened
+   * (the EXISTS guard rides the lifted_at marker the UPDATE just wrote). */
+  const results = await db(ctx).batch([
+    db(ctx)
+      .prepare(
+        "UPDATE identity_suspension SET lifted_at = ?, lifted_by = ?, lift_reason = ? WHERE id = ? AND lifted_at IS NULL",
+      )
+      .bind(now, auth.identityId, reason, String(active.id)),
+    auditStatement,
+  ]);
+  if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(409, "conflict", { reason: "suspension_already_lifted" });
+  }
+  if (Number(results[1]?.meta?.changes ?? 0) !== 1) {
+    throw new HttpError(500, "internal", { reason: "lift_audit_missing" });
+  }
+  /* The honest current-role report: which roles the user REGAINS access
+   * through (still active/approved) and which stay removed — never a
+   * restoration claim. */
+  const roles = await db(ctx)
+    .prepare(
+      "SELECT " +
+        "(SELECT p.status FROM supplier_profile p WHERE p.identity_id = ? ORDER BY p.created_at DESC, p.id DESC LIMIT 1) AS vendor_status, " +
+        "(SELECT d.status FROM driver_profile d WHERE d.identity_id = ? ORDER BY d.created_at DESC, d.id DESC LIMIT 1) AS driver_status, " +
+        "(SELECT COUNT(*) FROM workspace_member m WHERE m.identity_id = ? AND m.role = 'owner' AND m.status = 'active') AS owner_active",
+    )
+    .bind(targetId, targetId, targetId)
+    .first<Record<string, unknown>>();
+  const vendorStatus = roles?.vendor_status === null || roles?.vendor_status === undefined ? null : String(roles.vendor_status);
+  const driverStatus = roles?.driver_status === null || roles?.driver_status === undefined ? null : String(roles.driver_status);
+  return jsonResponse({
+    ok: true,
+    lifted: targetId,
+    liftedAt: now,
+    rolesRegained: {
+      owner: Number(roles?.owner_active ?? 0) > 0,
+      supplier: vendorStatus === "active",
+      driver: driverStatus === "approved",
+    },
+    rolesNotRestored: {
+      supplier: vendorStatus === "removed" ? "removed_stays_removed" : null,
+      driver: driverStatus === "removed" ? "removed_stays_removed" : null,
+    },
+    bookingsUntouched: true,
+  });
+}
+
+/**
  * POST /api/admin/panel/delivery/requests/:id/admin-cancel — «إلغاء حجز
  * جارٍ بقرار إداري مع سبب» (final decision ج): an ONGOING booking only,
  * with a REQUIRED reason, CAS on the current status, an event on the
@@ -351,43 +443,57 @@ export async function adminCancelBooking(ctx: RouteContext, auth: AuthenticatedC
     .first<Record<string, unknown>>();
   if (!row) throw new HttpError(404, "not_found", { reason: "ongoing_booking_required" });
   const from = String(row.status);
-  const moved = await db(ctx)
-    .prepare("UPDATE delivery_request SET status = 'cancelled', updated_at = ? WHERE id = ? AND status = ?")
-    .bind(now, requestId, from)
-    .run();
-  if (Number(moved.meta?.changes ?? 0) !== 1) {
+  /* Atomic (owner supplement §10.3-10, 2026-11-22): the CAS state change, the
+   * request-axis event, the REQUIRED booker notification, and the admin audit
+   * commit in ONE PostgreSQL transaction — the event/notification/audit
+   * inserts ride an EXISTS guard on the cancellation marker (status='cancelled'
+   * AND updated_at=now) so they exist ONLY when the cancellation itself happened;
+   * any statement failure rolls the whole transaction back (all-or-nothing). */
+  const results = await db(ctx).batch([
+    db(ctx)
+      .prepare("UPDATE delivery_request SET status = 'cancelled', updated_at = ? WHERE id = ? AND status = ?")
+      .bind(now, requestId, from),
+    db(ctx)
+      .prepare(
+        "INSERT INTO delivery_event (request_id, actor_identity_id, axis, event_type, from_value, to_value, reason, created_at) " +
+          "SELECT ?, ?, 'request', 'admin_cancelled', ?, 'cancelled', ?, ? " +
+          "WHERE EXISTS (SELECT 1 FROM delivery_request WHERE id = ? AND status = 'cancelled' AND updated_at = ?)",
+      )
+      .bind(requestId, auth.identityId, from, reason, now, requestId, now),
+    db(ctx)
+      .prepare(
+        "INSERT INTO network_notification (identity_id, type, target_path, payload_json, created_at, idempotency_key) " +
+          "SELECT ?, 'status_changed', ?, ?, ?, ? " +
+          "WHERE EXISTS (SELECT 1 FROM delivery_request WHERE id = ? AND status = 'cancelled' AND updated_at = ?) " +
+          "ON CONFLICT DO NOTHING",
+      )
+      .bind(
+        String(row.requester_identity_id),
+        `/delivery/booking/${requestId}`,
+        JSON.stringify({ requestId, reason, by: "admin" }),
+        now,
+        `admin-cancel:${requestId}`,
+        requestId,
+        now,
+      ),
+    db(ctx)
+      .prepare(
+        "INSERT INTO network_audit_event (actor_identity_id, action, object_type, object_id, result, created_at, meta_json) " +
+          "SELECT ?, 'admin_booking_cancelled', 'delivery_request', ?, 'success', ?, ? " +
+          "WHERE EXISTS (SELECT 1 FROM delivery_request WHERE id = ? AND status = 'cancelled' AND updated_at = ?)",
+      )
+      .bind(auth.identityId, requestId, now, JSON.stringify({ reason, from }), requestId, now),
+  ]);
+  if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
     throw new HttpError(409, "conflict", { reason: "request_state_changed" });
   }
-  await db(ctx)
-    .prepare(
-      "INSERT INTO delivery_event (request_id, actor_identity_id, axis, event_type, from_value, to_value, reason, created_at) " +
-        "VALUES (?, ?, 'request', 'admin_cancelled', ?, 'cancelled', ?, ?)",
-    )
-    .bind(requestId, auth.identityId, from, reason, now)
-    .run();
-  /* «يُبلَّغ صاحب الحجز فورًا» — داخل التطبيق (الأساس) مع سبب القرار. */
-  await notify(
-    db(ctx),
-    {
-      identityId: String(row.requester_identity_id),
-      type: "status_changed",
-      targetPath: `/delivery/booking/${requestId}`,
-      payload: { requestId, reason, by: "admin" },
-      idempotencyKey: `admin-cancel:${requestId}`,
-    },
-    now,
-  ).catch(() => undefined);
-  await audit(
-    db(ctx),
-    {
-      actorIdentityId: auth.identityId,
-      action: "admin_booking_cancelled",
-      objectType: "delivery_request",
-      objectId: requestId,
-      result: "success",
-      meta: { reason, from },
-    },
-    now,
-  );
+  if (
+    Number(results[1]?.meta?.changes ?? 0) !== 1 ||
+    Number(results[3]?.meta?.changes ?? 0) !== 1
+  ) {
+    // The transaction committed the cancellation but its event/audit rider
+    // did not fire — an honest 500, never a silent partial state.
+    throw new HttpError(500, "internal", { reason: "cancel_evidence_missing" });
+  }
   return jsonResponse({ ok: true, cancelled: requestId, from });
 }
