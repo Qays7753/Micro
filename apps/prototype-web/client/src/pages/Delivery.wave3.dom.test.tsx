@@ -324,6 +324,10 @@ describe("Wave 3 driver booking detail (Q106/MD-04)", () => {
 describe("Wave 3 profile push section (G09)", () => {
   it("renders the best-effort wording and the iPhone home-screen hint", async () => {
     mockApi({
+      /* الترتيب مقصود: المسار الجمعي يُفحص قبل المفرد وإلا طابق بادئة
+       * "/api/auth/session" مسار "/api/auth/sessions" فتُخدَّم جلسة بلا
+       * حقل sessions (سبّب سابقًا انهيارًا عشوائيًا للصفحة). */
+      "/api/auth/sessions": { sessions: [] },
       "/api/auth/session": AUTHENTICATED_SESSION,
     });
     render(
@@ -335,6 +339,25 @@ describe("Wave 3 profile push section (G09)", () => {
     expect(section.textContent).toContain("محاولة إرسال بلا ضمان وصول");
     expect(section.textContent).toContain("لا رسائل SMS أبدًا");
     expect(section.textContent).toContain("الشاشة الرئيسية");
+    expect(screen.getByRole("button", { name: /فعّل تنبيهات هذا الجهاز/ })).toBeTruthy();
+  });
+
+  it("a malformed sessions response never crashes the account page (W1 fail-closed regression)", async () => {
+    /* السباق التاريخي: خادم الجلسات يرد بشكل غير متوقع (بلا مصفوفة
+     * sessions) — التحصين يرفضه ApiError فيعرض قسم الجلسات حالته الصادقة
+     * لإعادة المحاولة، وتبقى بقية الصفحة (قسم التنبيهات) تعمل — لا انهيار
+     * لشجرة React أبدًا. */
+    mockApi({
+      "/api/auth/session": AUTHENTICATED_SESSION,
+    });
+    render(
+      <UnsavedChangesProvider navigate={() => {}}>
+        <Profile />
+      </UnsavedChangesProvider>,
+    );
+    expect(await screen.findByText(/تعذر قراءة جلساتك الآن/)).toBeTruthy();
+    const section = await screen.findByTestId("push-notifications-section");
+    expect(section.textContent).toContain("محاولة إرسال بلا ضمان وصول");
     expect(screen.getByRole("button", { name: /فعّل تنبيهات هذا الجهاز/ })).toBeTruthy();
   });
 });

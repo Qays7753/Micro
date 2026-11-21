@@ -6,7 +6,7 @@
  * فقط؛ هذه الخدمة تقرأ الحالة وتوجه المتصفح لمسار الدخول الخادمي.
  */
 
-import { apiFetch } from "./apiClient";
+import { ApiError, apiFetch } from "./apiClient";
 
 /** عضوية Workspace كما يحسبها الخادم (EX-D19) — عرض فقط، لا فرض صلاحيات من العميل. */
 export interface NetworkWorkspace {
@@ -48,7 +48,18 @@ export interface DeviceSession {
  * للحساب — الدخول من أكثر من جهاز مسموح والصفحة تعرضها كلها.
  */
 export async function fetchDeviceSessions(signal?: AbortSignal): Promise<DeviceSession[]> {
-  const body = await apiFetch<{ sessions: DeviceSession[] }>("/api/auth/sessions", { signal });
+  const body = await apiFetch<{ sessions?: DeviceSession[] }>("/api/auth/sessions", { signal });
+  /* W1 تحصين (Post-Group 6، 2026-11-21): استجابة غير متوقعة/مشوهة (وكيل عكسي،
+   * صفحة خطأ تُفسَّر JSON…) لا يجوز أن تصل إلى العرض فتنهار صفحة الحساب كلها
+   * (TypeError على undefined.sessions كان يفكك شجرة React بأكملها). الفشل
+   * الصادق: حقل sessions غير المصفوفة يُرمى ApiError فيُظهر القسم حالته
+   * الصادقة «تعذر القراءة + إعادة المحاولة» بدل الانهيار — لا نجاح كاذب. */
+  if (!Array.isArray(body?.sessions)) {
+    throw new ApiError(502, {
+      code: "malformed_sessions_response",
+      message: "تعذر قراءة جلسات الأجهزة الآن — أعد المحاولة.",
+    });
+  }
   return body.sessions;
 }
 
