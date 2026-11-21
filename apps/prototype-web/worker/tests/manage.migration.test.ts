@@ -377,7 +377,9 @@ describe("manage migration SRV-07 (Post-Group 6 Wave 4): the concurrent-apply ra
     // The winner's records are EXACTLY its own — the loser's partial writes
     // never survived (no mix, no leftovers).
     const records = await db
-      .prepare("SELECT family, record_id FROM manage_record WHERE workspace_id = ? ORDER BY family, record_id")
+      .prepare(
+        "SELECT family, record_id FROM manage_record WHERE workspace_id = ? ORDER BY family, record_id",
+      )
       .bind(linked.workspaceId)
       .all<{ family: string; record_id: string }>();
     const ids = records.results.map(row => `${row.family}/${row.record_id}`);

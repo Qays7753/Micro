@@ -45,7 +45,11 @@ describe("MNG-LOCAL-06: import depth/count resource limits", () => {
     const bloatedFamily: Record<string, unknown> = {
       orders: Array.from({ length: MAX_IMPORT_FAMILY_RECORDS + 1 }, (_, index) => ({ id: `o-${index}` })),
     };
-    expect(importFamilyCountVerdict(bloatedFamily)).toEqual({ ok: false, reason: "family", family: "orders" });
+    expect(importFamilyCountVerdict(bloatedFamily)).toEqual({
+      ok: false,
+      reason: "family",
+      family: "orders",
+    });
     // Many families each under the family cap but over the total.
     const bloatedTotal: Record<string, unknown> = {};
     for (let family = 0; family < 60; family += 1) {
@@ -67,10 +71,7 @@ describe("MNG-LOCAL-04: the export-authenticity honest labeling", () => {
   it("the Settings export notice carries the accidental-corruption-only wording", async () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
-    const settings = fs.readFileSync(
-      path.resolve(import.meta.dirname, "../../pages/Settings.tsx"),
-      "utf8",
-    );
+    const settings = fs.readFileSync(path.resolve(import.meta.dirname, "../../pages/Settings.tsx"), "utf8");
     /* التسمية الصادقة: البصمة تكشف التلف العرضي فقط ولا تثبت الأصالة —
      * النص في رسالة نجاح التصدير نفسها. */
     expect(settings).toContain("تكشف التلف العرضي");

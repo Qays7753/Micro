@@ -271,7 +271,9 @@ export async function applyMigration(ctx: RouteContext, auth: AuthenticatedConte
   } catch (error) {
     if (error !== null && typeof error === "object" && (error as { code?: string }).code === "23505") {
       const winner = await db
-        .prepare("SELECT export_fingerprint FROM manage_migration WHERE workspace_id = ? AND status = 'applied'")
+        .prepare(
+          "SELECT export_fingerprint FROM manage_migration WHERE workspace_id = ? AND status = 'applied'",
+        )
         .bind(owner.workspaceId)
         .first<Record<string, unknown>>();
       throw new HttpError(409, "conflict", {
