@@ -24,9 +24,44 @@ export interface AskStatus {
   context?: AskStatusContext;
 }
 
+export interface AskStatus {
+  available: boolean;
+  configured: boolean;
+  reason?: string;
+  context?: AskStatusContext;
+}
+
+/** Post-Group 6 continuous completion (§5): مصدر موثق — قيمة محسوبة خادميًا. */
+export interface AskAnswerSource {
+  id: string;
+  label: string;
+  value: string | number | boolean;
+  source: string;
+}
+
+/** Post-Group 6 continuous completion (§5.3): مسودة قابلة للتحرير — ليست
+ * معاملة محفوظة أبدًا؛ القيم المجهولة تبقى فارغة والمستخدم يقررها. */
+export interface AskDraftField {
+  name: string;
+  label: string;
+  type: "text" | "decimal" | "date" | "enum" | "governorate" | "count";
+  required: boolean;
+  value: string | number | null;
+  options?: string[];
+}
+
+export interface AskDraftProposal {
+  kind: "delivery-booking";
+  title: string;
+  fields: AskDraftField[];
+}
+
 export interface AskAnswer {
-  ok: boolean;
+  ok?: boolean;
   answer?: string;
+  answerText?: string;
+  sources?: AskAnswerSource[];
+  draft?: AskDraftProposal;
 }
 
 export async function fetchAskStatus(signal?: AbortSignal): Promise<AskStatus> {

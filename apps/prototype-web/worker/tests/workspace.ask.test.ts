@@ -287,6 +287,17 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
 
   it("a signed-in OWNER gets a context scoped to their own records and workspaces", async () => {
     const owner = await signInAs(worker, { sub: "ask-o", email: "ask-o@example.test" });
+    /* Post-Group 6 continuous completion (أمر المالك 7593b9c4 — القرار
+     * النهائي أ-2): «الزائر ومن لا دور له: غير متاح» — حساب بلا مشروع
+     * وبلا دور مورد/سائق لا يرى اسأل Micro؛ الوضع يتطلب المشروع الصريح.
+     * كانت الحالة القديمة متاحة لكل حساب موقع (EX-D21 2026-11-13) — صُححت
+     * هنا إلى القرار النهائي الأحدث. */
+    const gated = await apiGet(worker, owner.cookieHeader, "/api/ask/status");
+    const gatedBody = (await gated.json()) as { available: boolean; reason?: string };
+    expect(gatedBody.available).toBe(false);
+    expect(gatedBody.reason).toBe("no_active_role");
+    const workspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع صاحب السياق");
+    void workspaceId;
     const response = await apiGet(worker, owner.cookieHeader, "/api/ask/status");
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
@@ -308,7 +319,6 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
     expect(body.context.roles.driver).toBe(false);
     expect(body.context.permittedRecordSummary.ownerPendingDecisions).toBe(0);
   });
-
   it("a DRIVER gets the entry with driver-scoped context only — no owner/market data leaks", async () => {
     const refs: WorkerRefs = { worker, adminCookie };
     const driver = await createApprovedDriver(refs, "ask-driver@example.test", "ask-driver");
@@ -362,22 +372,30 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
     expect(body.context.permittedRecordSummary.vendorListings).toBe(0);
   });
 
-  it("a REVIEWER/ADMIN gets the entry with the admin role in context (Phase E)", async () => {
+  it("a REVIEWER/ADMIN account holds no business role — Ask Micro is honestly unavailable (أ-2)", async () => {
+    /* Post-Group 6 continuous completion (أمر المالك 7593b9c4 — القرار
+     * النهائي أ-2): المشرف ليس أحد الأوضاع الثلاثة؛ حسابه لا يحمل أدوار
+     * عمل (ب-المشرف)، فالإدخال غير متاح له بصدق. كانت الحالة القديمة
+     * متاحة (Phase E) — صُححت هنا إلى القرار النهائي الأحدث. */
     const response = await apiGet(worker, adminCookie, "/api/ask/status");
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
       available: boolean;
+      reason?: string;
       context: {
         roles: { owner: boolean; vendor: boolean; driver: boolean; admin: boolean };
       };
     };
-    expect(body.available).toBe(true);
+    expect(body.available).toBe(false);
+    expect(body.reason).toBe("no_active_role");
     expect(body.context.roles.admin).toBe(true);
     expect(body.context.roles.vendor).toBe(false);
   });
 
   it("asking without an approved provider returns an honest 501 — no fabricated answers", async () => {
     const owner = await signInAs(worker, { sub: "ask-q", email: "ask-q@example.test" });
+    /* أ-2: الوضع يتطلب المشروع الصريح — أنشئه ثم اسأل. */
+    await createWorkspace(worker, owner.cookieHeader, "مشروع سؤال بلا مزود");
     const response = await apiPost(worker, owner.cookieHeader, "/api/ask", {
       question: "كم لديّ من طلبات قيد التأكيد؟",
     });
@@ -397,6 +415,7 @@ describe("ask micro: universal permission-scoped boundary (EX-D21)", () => {
 
   it("the ask boundary never writes product state (no new network events/audit rows)", async () => {
     const owner = await signInAs(worker, { sub: "ask-w", email: "ask-w@example.test" });
+    await createWorkspace(worker, owner.cookieHeader, "مشروع حدود الكتابة");
     const db = await rawDb(worker);
     const before = (await db.prepare("SELECT COUNT(*) AS n FROM delivery_event").first<{ n: number }>())?.n;
     await apiGet(worker, owner.cookieHeader, "/api/ask/status");

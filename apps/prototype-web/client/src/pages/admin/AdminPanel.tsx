@@ -13,19 +13,17 @@ import { ArrowRight, ShieldAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
-  adminCancelBooking,
   fetchAdminDecisions,
   fetchAdminQueues,
-  searchAdminUsers,
-  suspendAdminIdentity,
   type AdminDecision,
   type AdminQueues,
-  type AdminUserResult,
 } from "@/application/admin";
 import { ApiError } from "@/application/network";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { Button, Notice } from "@/components/primitives";
+import { AdminCancelBooking } from "./AdminCancelBooking";
+import { AdminUserSearch } from "./AdminUserSearch";
 
 type LoadState<T> =
   { phase: "loading" } | { phase: "failed" } | { phase: "refused" } | { phase: "ready"; value: T };
@@ -74,18 +72,6 @@ export default function AdminPanel() {
   const [, navigate] = useLocation();
   const [queues, setQueues] = useState<LoadState<AdminQueues>>({ phase: "loading" });
   const [decisions, setDecisions] = useState<LoadState<AdminDecision[]>>({ phase: "loading" });
-  const [query, setQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<AdminUserResult[] | null>(null);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [suspendTarget, setSuspendTarget] = useState<AdminUserResult | null>(null);
-  const [suspendReason, setSuspendReason] = useState("");
-  const [actionBusy, setActionBusy] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
-  const [cancelBookingId, setCancelBookingId] = useState("");
-  const [cancelReason, setCancelReason] = useState("");
-  const [cancelConfirming, setCancelConfirming] = useState(false);
 
   const loadAll = useCallback(async () => {
     setQueues({ phase: "loading" });
@@ -112,59 +98,6 @@ export default function AdminPanel() {
     if (sessionLoading || !session.authenticated) return;
     void loadAll();
   }, [sessionLoading, session.authenticated, loadAll]);
-
-  async function runSearch(): Promise<void> {
-    if (query.trim().length < 2) return;
-    setSearching(true);
-    setSearchError(null);
-    try {
-      setSearchResults(await searchAdminUsers(query.trim()));
-    } catch (cause) {
-      setSearchError(cause instanceof ApiError ? cause.message : "تعذر البحث الآن — أعد المحاولة.");
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  async function runSuspend(): Promise<void> {
-    if (!suspendTarget || suspendReason.trim().length < 4) return;
-    setActionBusy(true);
-    setActionError(null);
-    setActionNotice(null);
-    try {
-      await suspendAdminIdentity(suspendTarget.identityId, suspendReason.trim());
-      setActionBusy(false);
-      setActionNotice(
-        `أُوقفت هوية ${suspendTarget.displayName} — جلساتها ملغاة والدخول مرفوض بسببها المسجل.`,
-      );
-      setSuspendTarget(null);
-      setSuspendReason("");
-      setSearchResults(null);
-      void loadAll();
-    } catch (cause) {
-      setActionBusy(false);
-      setActionError(cause instanceof ApiError ? cause.message : "تعذر إيقاف الهوية الآن — أعد المحاولة.");
-    }
-  }
-
-  async function runCancel(): Promise<void> {
-    if (cancelBookingId.trim().length < 2 || cancelReason.trim().length < 4) return;
-    setActionBusy(true);
-    setActionError(null);
-    setActionNotice(null);
-    try {
-      await adminCancelBooking(cancelBookingId.trim(), cancelReason.trim());
-      setActionBusy(false);
-      setActionNotice("أُلغي الحجز إداريًا وأُبلغ صاحب الحجز فورًا بسبب القرار.");
-      setCancelBookingId("");
-      setCancelReason("");
-      setCancelConfirming(false);
-      void loadAll();
-    } catch (cause) {
-      setActionBusy(false);
-      setActionError(cause instanceof ApiError ? cause.message : "تعذر الإلغاء الإداري الآن — أعد المحاولة.");
-    }
-  }
 
   /* F-15/S12: تعذّر التحقق من الجلسة لا يُعرض أبدًا كأنه «غير مصرح». */
   if (!sessionLoading && sessionFailed) {
@@ -278,141 +211,8 @@ export default function AdminPanel() {
         </>
       ) : null}
 
-      <section className="micro-admin-section" aria-labelledby="admin-search-title">
-        <h2 id="admin-search-title">البحث عن مستخدم</h2>
-        <form
-          className="micro-admin-search"
-          onSubmit={event => {
-            event.preventDefault();
-            void runSearch();
-          }}
-        >
-          <label className="micro-field">
-            <span>الاسم أو البريد أو الهاتف</span>
-            <input
-              value={query}
-              onChange={event => setQuery(event.target.value)}
-              placeholder="مثال: +962790000000"
-              dir="auto"
-            />
-          </label>
-          <Button action="secondary" type="submit" loading={searching} disabled={query.trim().length < 2}>
-            ابحث
-          </Button>
-        </form>
-        {searchError ? (
-          <p className="micro-field-error" role="alert">
-            {searchError}
-          </p>
-        ) : null}
-        {searchResults !== null ? (
-          searchResults.length === 0 ? (
-            <p role="status">لا نتائج مطابقة.</p>
-          ) : (
-            <ul className="micro-admin-users" data-testid="admin-search-results">
-              {searchResults.map(user => (
-                <li key={user.identityId}>
-                  <div>
-                    <strong>{user.displayName}</strong> — <bdi dir="ltr">{user.email}</bdi>
-                    <div className="micro-admin-user-state">
-                      {user.isAdmin ? "حساب إدارة" : null}
-                      {user.vendorStatus !== null ? `مورد (${user.vendorStatus})` : null}
-                      {user.driverStatus !== null ? `سائق (${user.driverStatus})` : null}
-                      {user.suspended ? `موقوف: ${user.suspensionReason ?? ""}` : "غير موقوف"}
-                    </div>
-                  </div>
-                  {!user.suspended && !user.isAdmin ? (
-                    <Button
-                      action="secondary"
-                      disabled={actionBusy}
-                      onClick={() => {
-                        setSuspendTarget(user);
-                        setSuspendReason("");
-                        setActionError(null);
-                      }}
-                    >
-                      أوقف الهوية
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )
-        ) : null}
-        {suspendTarget ? (
-          <div className="micro-confirm-box" role="alertdialog" aria-label="تأكيد إيقاف الهوية">
-            <p>
-              إيقاف هوية <strong>{suspendTarget.displayName}</strong> كاملة بسبب مكتوب — تُلغى جلساتها فورًا
-              ويرفض دخولها بالسبب نفسه. لا يُلغى أي حجز جارٍ تلقائيًا (الحجز يكتمل)؛ الإلغاء الإداري فعل منفصل
-              أدناه.
-            </p>
-            <label className="micro-field">
-              <span>السبب (إلزامي)</span>
-              <input
-                value={suspendReason}
-                onChange={event => setSuspendReason(event.target.value)}
-                placeholder="مثال: خطر على الناس — بلاغ موثق"
-              />
-            </label>
-            <div className="micro-form-actions">
-              <Button action="quiet" disabled={actionBusy} onClick={() => setSuspendTarget(null)}>
-                تراجع
-              </Button>
-              <Button
-                action="commit"
-                disabled={actionBusy || suspendReason.trim().length < 4}
-                onClick={() => void runSuspend()}
-              >
-                {actionBusy ? "جارٍ الإيقاف…" : "نفّذ الإيقاف"}
-              </Button>
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="micro-admin-section" aria-labelledby="admin-cancel-title">
-        <h2 id="admin-cancel-title">إلغاء حجز جارٍ إداريًا</h2>
-        {!cancelConfirming ? (
-          <Button action="secondary" onClick={() => setCancelConfirming(true)}>
-            ألغِ حجزًا جاريًا بقرار إداري
-          </Button>
-        ) : (
-          <div className="micro-confirm-box" role="alertdialog" aria-label="تأكيد الإلغاء الإداري">
-            <p>
-              الإلغاء الإداري للحجز الجارٍ فعل نهائي بسبب مكتوب — يُبلَّغ صاحب الحجز فورًا، ويبقى سجل الحجز
-              للطرفين.
-            </p>
-            <label className="micro-field">
-              <span>معرّف الحجز</span>
-              <input
-                value={cancelBookingId}
-                onChange={event => setCancelBookingId(event.target.value)}
-                dir="ltr"
-              />
-            </label>
-            <label className="micro-field">
-              <span>السبب (إلزامي)</span>
-              <input
-                value={cancelReason}
-                onChange={event => setCancelReason(event.target.value)}
-                placeholder="مثال: خطر على الناس"
-              />
-            </label>
-            <div className="micro-form-actions">
-              <Button action="quiet" disabled={actionBusy} onClick={() => setCancelConfirming(false)}>
-                تراجع
-              </Button>
-              <Button
-                action="commit"
-                disabled={actionBusy || cancelBookingId.trim().length < 2 || cancelReason.trim().length < 4}
-                onClick={() => void runCancel()}
-              >
-                {actionBusy ? "جارٍ الإلغاء…" : "ألغِ الحجز"}
-              </Button>
-            </div>
-          </div>
-        )}
-      </section>
+      <AdminUserSearch onActioned={() => void loadAll()} />
+      <AdminCancelBooking onActioned={() => void loadAll()} />
 
       {decisions.phase === "ready" ? (
         <section className="micro-admin-section" aria-labelledby="admin-decisions-title">
@@ -438,16 +238,6 @@ export default function AdminPanel() {
         </section>
       ) : null}
 
-      {actionNotice ? (
-        <p className="micro-save-note" role="status">
-          {actionNotice}
-        </p>
-      ) : null}
-      {actionError ? (
-        <p className="micro-field-error" role="alert">
-          {actionError}
-        </p>
-      ) : null}
       <p className="micro-admin-footer" data-testid="admin-footer">
         <ShieldAlert aria-hidden="true" size={14} /> حساب الإدارة منفصل عن أدوار العمل، وتفعيل التحقق بخطوتين
         على حسابه فحص تشغيلي على المشغل لا يُدّعى من الكود.

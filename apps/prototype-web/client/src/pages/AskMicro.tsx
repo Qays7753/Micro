@@ -14,12 +14,25 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
-import { fetchAskStatus, askQuestion, type AskStatus } from "@/application/network";
+import {
+  fetchAskStatus,
+  askQuestion,
+  type AskAnswer,
+  type AskDraftProposal,
+  type AskStatus,
+} from "@/application/network";
 import { ApiError } from "@/application/network";
 import { Button, EmptyState, Notice } from "@/components/primitives";
+import { AskDraftCard } from "@/components/ask/AskDraftCard";
 import { useReturnPath } from "@/app/useReturnNavigation";
 
 type AskMessage = { tone: "neutral" | "error" | "success"; text: string } | null;
+
+type AskResult = {
+  answer: string;
+  sources: { id: string; label: string; value: string | number | boolean; source: string }[];
+  draft: AskDraftProposal | null;
+} | null;
 
 export default function AskMicro() {
   const { loading: sessionLoading, session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
@@ -30,6 +43,7 @@ export default function AskMicro() {
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<AskMessage>(null);
+  const [result, setResult] = useState<AskResult>(null);
 
   useEffect(() => {
     if (sessionLoading || !session.authenticated) return;
@@ -95,12 +109,17 @@ export default function AskMicro() {
     if (busy) return;
     setBusy(true);
     setMessage(null);
+    setResult(null);
     try {
       const answer = await askQuestion(question.trim());
-      setMessage({
-        tone: "success",
-        text: answer.answer ?? "تم إرسال السؤال.",
+      /* §5: الإجابة تأتي مع مصادرها الموثقة فقط، والمسودة — إن وجدت — بطاقة
+       * قابلة للتحرير لا معاملة محفوظة. */
+      setResult({
+        answer: answer.answer ?? answer.answerText ?? "تم إرسال السؤال.",
+        sources: answer.sources ?? [],
+        draft: answer.draft ?? null,
       });
+      setMessage({ tone: "success", text: "" });
     } catch (error) {
       if (error instanceof ApiError) {
         setMessage({ tone: "error", text: error.message });
@@ -198,7 +217,29 @@ export default function AskMicro() {
               اسأل
             </Button>
           </form>
-          {message ? (
+          {result ? (
+            <div className="micro-ask-result" data-testid="ask-result">
+              <p className="micro-ask-answer" data-testid="ask-answer">
+                {result.answer}
+              </p>
+              {result.sources.length > 0 ? (
+                <div className="micro-ask-sources" data-testid="ask-sources">
+                  <p className="micro-overline">المصادر (من سجلاتك المحسوبة خادميًا)</p>
+                  <ul>
+                    {result.sources.map(source => (
+                      <li key={source.id}>
+                        {source.label}: <strong>{String(source.value)}</strong> — {source.source}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {result.draft ? (
+                <AskDraftCard draft={result.draft} session={session} onDismissed={() => setResult(null)} />
+              ) : null}
+            </div>
+          ) : null}
+          {message && message.text ? (
             <Notice tone={message.tone === "error" ? "error" : "success"}>{message.text}</Notice>
           ) : null}
         </>

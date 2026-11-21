@@ -50,16 +50,36 @@ export interface GoogleMock {
   nextPayload: Record<string, unknown> | null;
 }
 
+/** The injected Ask Micro MOCK provider (Post-Group 6 continuous completion
+ * §5): a plain fetch double behind the optional ASK_PROVIDER service
+ * binding — NEVER a real provider; production has no such binding and the
+ * honest runtime state stays «not configured». */
+export interface AskProviderMock {
+  /** Set what the mock answers on the next call (a provider-shaped result). */
+  nextResult: { answerText: string; citedFactIds?: string[]; draft?: unknown } | null;
+  /** When set, the mock fails with this HTTP status (provider failure path). */
+  failWithStatus?: number;
+  /** Every input the mock received (for scope assertions — §5.1). */
+  received: {
+    question: string;
+    role: string;
+    facts: Array<{ id: string; value: string | number | boolean; source: string }>;
+  }[];
+}
+
 export interface WorkerInstance {
   origin: string;
   mf: Miniflare;
   googleMock: GoogleMock;
+  askProviderMock: AskProviderMock;
   fetch: (pathAndQuery: string, init?: RequestInit) => Promise<Response>;
   close: () => Promise<void>;
 }
 
 export interface HarnessOptions {
   bindings?: Record<string, unknown>;
+  /** Inject the Ask Micro MOCK provider binding (tests only — §5). */
+  askProvider?: AskProviderMock;
 }
 
 /* ── Per-file isolated database ─────────────────────────────────────────── */
@@ -152,6 +172,7 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
   await resetFileDatabase();
   const script = await workerScript();
   const googleMock: GoogleMock = { nextPayload: null };
+  const askMock: AskProviderMock = options.askProvider ?? { nextResult: null, received: [] };
   const mf = new Miniflare({
     modules: true,
     script,
@@ -191,6 +212,29 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
         const idToken = `${encode({ alg: "none" })}.${encode(googleMock.nextPayload)}.synthetic`;
         return Response.json({ id_token: idToken, token_type: "Bearer" });
       },
+      /* The Ask Micro MOCK provider — present ONLY when a test passes the
+       * askProvider option (the production shape has NO binding: asking
+       * stays an honest 501). The mock records every input it receives so
+       * tests can prove the scope boundary (§5.1). */
+      ...(options.askProvider === undefined
+        ? {}
+        : {
+            ASK_PROVIDER: async (request: Request) => {
+              const input = (await request.json()) as {
+                question: string;
+                role: string;
+                facts: Array<{ id: string; value: string | number | boolean; source: string }>;
+              };
+              askMock.received.push(input);
+              if (askMock.failWithStatus !== undefined) {
+                return new Response("mock provider failure", { status: askMock.failWithStatus });
+              }
+              if (askMock.nextResult === null) {
+                return Response.json({ error: "mock_not_configured" }, { status: 500 });
+              }
+              return Response.json(askMock.nextResult);
+            },
+          }),
     },
   });
   const origin = "http://mf.local";
@@ -198,6 +242,7 @@ export async function startWorker(options: HarnessOptions = {}): Promise<WorkerI
     mf,
     origin,
     googleMock,
+    askProviderMock: askMock,
     // Redirects must surface as responses (the browser would follow them,
     // never the test transport).
     fetch: (pathAndQuery: string, init?: RequestInit): Promise<Response> =>

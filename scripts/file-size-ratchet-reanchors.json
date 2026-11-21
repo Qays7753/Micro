@@ -12257,6 +12257,25 @@
         "trigger": "post-group6-continuous-g02-admin",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-g03-ask-01",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1089,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 continuous completion G03 (owner order 7593b9c4 §5 — BINDING) — the dated AskMicro cap ledger entry 16 → 50 for the answer-with-sources rendering and the typed editable draft card (the mandated §5.3-§5.5 labels: the eight required booking fields, the fixed enum options, the confirm/cancel buttons, and the honest not-saved/server-accepted/failure states)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g03-ask",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

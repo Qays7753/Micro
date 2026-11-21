@@ -626,7 +626,14 @@ CAPS: dict[str, int] = {
     # AskMicro (EX-D21/DOC-037، Phase B — 2026-11-14): مدخل Ask Micro الشامل —
     # الحالة الصادقة غير المهيأة + سياق الأدوار/المساحات + نموذج السؤال؛
     # القياس الأول 13 ويُقفل عند 16 برأس هامش 3 للتسميات المفروضة لاحقًا (سابقة Profile).
-    "AskMicro": 16,
+    # AskMicro 16 → 50 (2026-11-22, Post-Group 6 continuous completion/DOC-041,
+    # owner order 7593b9c4 §5 — BINDING): الإجابة بمصادرها الموثقة (تسمية
+    # «المصادر…» وسطر المصدر) وبطاقة المسودة القابلة للتحرير (AskDraftCard
+    # داخل إغلاق الشاشة) — تسميات الحقول الإلزامية الثمانية وخيارات
+    # الأنواع/الأحجام/الأشرطة/التسعير الثابتة، وأزرار التأكيد/الإلغاء،
+    # وحالات «ليست محفوظة»/«بعد قبول الخادم»/الفشل الصادق — كلها مفروضة
+    # بنص الأمر §5.3–§5.5 والقرار النهائي أ-2، لا نثرًا حرًا.
+    "AskMicro": 50,
     # Settings (2026-09-02, Group 5 S1-13): first explicit cap for the surface at its
     # current honest count — the contract-26 return label ("رجوع") honoring the
     # Foundation guided-import ?from; notices now render inline per section (S3-11)

@@ -76,6 +76,15 @@ export interface Env {
    * delivery is never claimed). An operator configuring it later is a setup
    * step outside this repository's authorization. */
   PUSH_VAPID_PRIVATE_KEY?: string;
+  /** Optional service binding carrying an APPROVED Ask Micro provider
+   * (Post-Group 6 continuous completion — owner order 7593b9c4 §5). ABSENT
+   * in every current environment by design: no provider is chosen,
+   * connected, configured, called, or paid for in this repository — the
+   * honest runtime state stays «not configured» (a 501 on asking) until the
+   * owner/Manus decision wires an approved provider. Tests inject a MOCK
+   * binding only; the worker sends it nothing but the bounded per-role fact
+   * set (no identity, no raw records). */
+  ASK_PROVIDER?: OutboundFetcher;
 }
 
 export const DB_BINDING_NAME = "DB";
