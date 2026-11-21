@@ -1,7 +1,9 @@
 /**
- * السوق — التصفح العام Listing-first (OD-03/OD-04، عقد 20): بحث وفلاتر
- * وإعلانات معتمدة على مستوى الأردن، وقناة التواصل المعتمدة وحدها، ومساحة
- * المورد للمستخدم الموثق. لا سلة ولا شراء ولا أي أثر مالي (OD-13).
+ * السوق — التصفح العام Listing-first (OD-03/OD-04، عقد 20 + الموجة 2
+ * للقرارات النهائية 2026-11-21): بحث وفلاتر القرار النهائي (نوع المورد،
+ * المحافظة، يوصّل أو استلام فقط، أقل كمية، التصنيف الهرمي الرئيسي/الفرعي)
+ * وإعلانات موردين فعّالين على مستوى الأردن — لا رقم هاتف في أي عرض عام
+ * (د-1) ولا سلة ولا شراء ولا أي أثر مالي (OD-13).
  */
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -14,6 +16,19 @@ import {
   type PublicListingSummary,
 } from "@/application/market";
 import { Button, EmptyState, Notice } from "@/components/primitives";
+import { normalizeAsciiDigits } from "@/application/input";
+
+const SUPPLIER_TYPE_OPTIONS = [
+  { value: "manufacturer", label: "مصنّع" },
+  { value: "wholesale", label: "جملة" },
+  { value: "importer", label: "مستورد" },
+  { value: "shop", label: "محل" },
+];
+
+const DELIVERY_FILTER_OPTIONS = [
+  { value: "delivery", label: "يوصّل" },
+  { value: "pickup_only", label: "استلام فقط" },
+];
 
 const FRESHNESS_LABELS: Record<string, string> = {
   fresh: "",
@@ -45,14 +60,30 @@ export default function Market() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
   const [governorate, setGovernorate] = useState("");
+  const [supplierType, setSupplierType] = useState("");
+  const [deliveryOption, setDeliveryOption] = useState("");
+  const [maxMinQuantity, setMaxMinQuantity] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const load = useCallback(async () => {
     setState("loading");
     try {
-      const result = await browseMarketListings({ search, category, governorate, availableOnly });
+      const normalizedMaxMin = normalizeAsciiDigits(maxMinQuantity.trim());
+      const maxMinMilli = /^\d{1,6}(\.\d{1,3})?$/.test(normalizedMaxMin)
+        ? `${normalizedMaxMin.split(".")[0]}${(normalizedMaxMin.split(".")[1] ?? "").padEnd(3, "0")}`
+        : "";
+      const result = await browseMarketListings({
+        search,
+        category: subCategory !== "" ? subCategory : category,
+        governorate,
+        supplierType,
+        deliveryOption,
+        maxMinQuantityMilli: maxMinMilli === "" ? undefined : maxMinMilli,
+        availableOnly,
+      });
       setListings(result.listings);
       setNextCursor(result.nextCursor);
       setHasMore(result.hasMore);
@@ -61,7 +92,16 @@ export default function Market() {
     } catch {
       setState("error");
     }
-  }, [search, category, governorate, availableOnly]);
+  }, [
+    search,
+    category,
+    subCategory,
+    governorate,
+    supplierType,
+    deliveryOption,
+    maxMinQuantity,
+    availableOnly,
+  ]);
 
   const loadMore = useCallback(async () => {
     if (nextCursor === null || moreState === "loading") return;
@@ -69,8 +109,10 @@ export default function Market() {
     try {
       const result = await browseMarketListings({
         search,
-        category,
+        category: subCategory !== "" ? subCategory : category,
         governorate,
+        supplierType,
+        deliveryOption,
         availableOnly,
         cursor: nextCursor,
       });
@@ -81,7 +123,17 @@ export default function Market() {
     } catch {
       setMoreState("error");
     }
-  }, [search, category, governorate, availableOnly, nextCursor, moreState]);
+  }, [
+    search,
+    category,
+    subCategory,
+    governorate,
+    supplierType,
+    deliveryOption,
+    availableOnly,
+    nextCursor,
+    moreState,
+  ]);
 
   useEffect(() => {
     void load();
@@ -139,8 +191,14 @@ export default function Market() {
             </p>
           ) : null}
           <label>
-            التصنيف
-            <select value={category} onChange={event => setCategory(event.target.value)}>
+            التصنيف الرئيسي
+            <select
+              value={category}
+              onChange={event => {
+                setCategory(event.target.value);
+                setSubCategory("");
+              }}
+            >
               <option value="">كل التصنيفات</option>
               {(meta?.categories ?? []).map(entry => (
                 <option key={entry.id} value={entry.id}>
@@ -149,6 +207,23 @@ export default function Market() {
               ))}
             </select>
           </label>
+          {/* Q146: التصنيفات الفرعية تُعرض تحت الرئيسي المختار فقط — فلتر
+           * فرعي بلا رئيسي لا معنى له في شجرة المستويين. */}
+          {category !== "" && (meta?.categories ?? []).find(entry => entry.id === category)?.sub.length ? (
+            <label>
+              التصنيف الفرعي
+              <select value={subCategory} onChange={event => setSubCategory(event.target.value)}>
+                <option value="">كل الفرعيات</option>
+                {(meta?.categories ?? [])
+                  .find(entry => entry.id === category)!
+                  .sub.map(sub => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.label}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ) : null}
           <label>
             المحافظة
             <select value={governorate} onChange={event => setGovernorate(event.target.value)}>
@@ -159,6 +234,38 @@ export default function Market() {
                 </option>
               ))}
             </select>
+          </label>
+          <label>
+            نوع المورد
+            <select value={supplierType} onChange={event => setSupplierType(event.target.value)}>
+              <option value="">كل الأنواع</option>
+              {SUPPLIER_TYPE_OPTIONS.map(entry => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            طريقة التسليم
+            <select value={deliveryOption} onChange={event => setDeliveryOption(event.target.value)}>
+              <option value="">الكل</option>
+              {DELIVERY_FILTER_OPTIONS.map(entry => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            أقصى حد أدنى للطلب
+            <input
+              type="text"
+              inputMode="numeric"
+              value={maxMinQuantity}
+              onChange={event => setMaxMinQuantity(event.target.value)}
+              placeholder="مثال: 5"
+            />
           </label>
           <label>
             <input
@@ -222,7 +329,11 @@ export default function Market() {
               onClick={() => {
                 setSearch("");
                 setCategory("");
+                setSubCategory("");
                 setGovernorate("");
+                setSupplierType("");
+                setDeliveryOption("");
+                setMaxMinQuantity("");
                 setAvailableOnly(false);
               }}
             >

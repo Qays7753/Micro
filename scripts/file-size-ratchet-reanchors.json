@@ -11440,6 +11440,177 @@
         "trigger": "post-group6-w1-baseline-growth",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 376,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 2 (Q49/Q146): the final-decision browse filters (supplier type, delivery vs pickup-only, max minimum-quantity) and the two-level category picker grow the filters panel within the band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketListingEditor.tsx",
+      "from": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 683,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q38/Q146): the variant options editor (label/price/min-quantity/availability per option, cap 20) and the hierarchical main/sub category picker.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketReview.tsx",
+      "to": {
+        "nbLoc": 584,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q4/Q28/Q129/Q146/Q154): profile review is abolished — the page gains the supplier suspend/unsuspend administrative pair, the first-listing verification-call recording, the category-tree management screen, and the operational counts panel.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      },
+      "from": {
+        "nbLoc": 574,
+        "band": "WATCH"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-04",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 664,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (ب-قواعد/Q49): the profile form gains supplier type, delivery option, and the versioned terms acceptance with automatic activation; the profile-review submit path is removed.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-05",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 688,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2: the audited supplier phone reveal endpoint (د-1/§8-3 — 10 distinct suppliers/day server window), auto-activation on profile completion + terms (Q4/Q28), the final-decision browse filters, the hierarchical meta tree, and the Q154 operational counts endpoint.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-06",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 643,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q38/Q49): variant validation at create/update with the variant-aware effective minimum, and category validation against the active admin-managed tree.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-07",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/marketReview.ts",
+      "from": {
+        "nbLoc": 454,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 568,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2: the first-listing verification-call gate (ب-قواعد), the ACTIVE-supplier publication gate, and the suspend/unsuspend-only profile actions (profile review abolished).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-08",
+      "date": "2026-11-21",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 571,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (PC-3): the market door gains revealSupplierPhone/fetchMarketOpsCounts/putMarketCategories + ListingVariant/MarketCategoryNode and drops submitVendorProfile — the dated note entry grows the data file.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-density-policy-growth",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1061,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 2: the four Market density-cap provenance entries (Market/Detail/Editor/VendorWorkspace — final-decision-mandated labels Q38/Q49/Q146/د-1/د-8/د-10) grow the policy data file within its band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

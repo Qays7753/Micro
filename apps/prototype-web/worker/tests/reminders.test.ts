@@ -53,19 +53,17 @@ beforeAll(async () => {
   vendorCookie = (await signInAs(worker, { sub: "rm-vendor", email: "rm-vendor@example.test" })).cookieHeader;
   const rmVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع مورد التذكيرات");
   plainUserCookie = (await signInAs(worker, { sub: "rm-user", email: "rm-user@example.test" })).cookieHeader;
+  // Wave 2: complete + terms ACTIVATES the supplier (no review anywhere).
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد التذكيرات",
     contactPhone: "+962790000003",
     governorate: "عمان",
+    supplierType: "importer",
+    deliveryOption: "pickup_only",
+    termsAccepted: true,
     workspaceId: rmVendorWorkspaceId,
   });
-  const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
-    workspaceId: rmVendorWorkspaceId,
-  });
-  await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
-    action: "approve",
-  });
+  expect(((await profileResponse.json()) as { profile: { status: string } }).profile.status).toBe("active");
 });
 
 afterAll(async () => {
@@ -95,7 +93,10 @@ async function publishListing(title: string): Promise<string> {
     kind: "cover",
   });
   await apiPost(worker, vendorCookie, `/api/market/vendor/listings/${listing.id}/submit`, {});
-  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, { action: "approve" });
+  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, {
+    action: "approve",
+    verificationCall: { done: true },
+  });
   await apiPost(worker, adminCookie, `/api/market/review/media/${mediaBody.media.id}`, { action: "approve" });
   return listing.id;
 }

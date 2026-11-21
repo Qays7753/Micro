@@ -45,7 +45,10 @@ async function publish(title: string, pricing: Record<string, unknown>): Promise
     kind: "gallery",
   });
   await apiPost(worker, vendorCookie, `/api/market/vendor/listings/${listing.id}/submit`, {});
-  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, { action: "approve" });
+  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, {
+    action: "approve",
+    verificationCall: { done: true },
+  });
   await apiPost(worker, adminCookie, `/api/market/review/media/${mediaBody.media.id}`, { action: "approve" });
   return listing.id;
 }
@@ -68,19 +71,18 @@ beforeAll(async () => {
   otherVendorCookie = (await signInAs(worker, { sub: "du-other", email: "du-other@example.test" }))
     .cookieHeader;
   const duVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع التحديث المباشر");
+  // Wave 2: complete + terms ACTIVATES the supplier (no review anywhere).
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد التحديث المباشر",
     contactPhone: "+962790000002",
     governorate: "إربد",
+    supplierType: "wholesale",
+    deliveryOption: "delivery",
+    termsAccepted: true,
     workspaceId: duVendorWorkspaceId,
   });
-  const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
-    workspaceId: duVendorWorkspaceId,
-  });
-  await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
-    action: "approve",
-  });
+  const profile = (await profileResponse.json()) as { profile: { id: string; status: string } };
+  expect(profile.profile.status).toBe("active");
 });
 
 afterAll(async () => {

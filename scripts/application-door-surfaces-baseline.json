@@ -10,7 +10,8 @@
     "EX-D23 M4 (DOC-040 — أمر المالك 2026-11-14 §6-M4): باب الشبكة أضاف الكتابة المتصلة saveManageRecord (UPSERT حتمي بCAS — «محفوظ» بعد تأكيد الخادم فقط) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
     "EX-D23 M5 (DOC-040 — أمر المالك 2026-11-14 §6-M5): باب الشبكة أضاف مسار الترحيل الاصطناعي (تطبيق/حالة/رجوع بالإثبات المزدوج §2-ب) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
     "EX-D23 M6 (DOC-040 — أمر المالك 2026-11-14 §6-M6): باب الشبكة أضاف قراءة وضع القطع المحروس (معطل افتراضيًا ولا مسار يبدله — قرار مشغل مباشر بعد بوابة المالك النهائية) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
-    "Post-Group 6 W1 (WS-251/DOC-041 — EX-D24 أ-3/أ-7، 2026-11-21): باب الشبكة أضاف جلسات الأجهزة (fetchDeviceSessions/signOutAllDevices — قرار أ-7) وإنشاء المشروع الواحد الصريح (createWorkspace — قرار أ-3/أ-4) والنوع DeviceSession؛ PC-3 توسيع مقصود مؤرخ في نفس الالتزام."
+    "Post-Group 6 W1 (WS-251/DOC-041 — EX-D24 أ-3/أ-7، 2026-11-21): باب الشبكة أضاف جلسات الأجهزة (fetchDeviceSessions/signOutAllDevices — قرار أ-7) وإنشاء المشروع الواحد الصريح (createWorkspace — قرار أ-3/أ-4) والنوع DeviceSession؛ PC-3 توسيع مقصود مؤرخ في نفس الالتزام.",
+    "WS-251/DOC-041 (Post-Group 6 Wave 2 — 2026-11-21، أمر المالك POST-GROUP6-REMEDIATION @ ab08ec74): باب السوق توسع عمدًا بثلاث دوال ونوعين — كشف رقم المورد المدقق revealSupplierPhone (قرار د-1/§8-3)، الأعداد التشغيلية fetchMarketOpsCounts (Q154)، وإدارة التصنيفات الهرمية putMarketCategories (Q49/Q146) مع النوعين ListingVariant وMarketCategoryNode — وحُذف submitVendorProfile لأن مراجعة ملف المورد أُلغيت بقرار المالك النهائي (Q4/Q28: التفعيل بإكمال الملف وقَبول الشروط). PC-3 تغيير مقصود في نفس الـPR."
   ],
   "doors": {
     "activity": {
@@ -487,13 +488,15 @@
         "estimateMaterialValue",
         "fetchListingDetail",
         "fetchMarketMeta",
+        "fetchMarketOpsCounts",
         "fetchVendorListingDraft",
         "fetchVendorOverview",
         "formatMicroJodAsJod",
         "listingLifecycleAction",
+        "putMarketCategories",
         "reportListing",
+        "revealSupplierPhone",
         "submitListing",
-        "submitVendorProfile",
         "toggleSavedListing",
         "updateListingDraft",
         "uploadListingImage",
@@ -503,6 +506,8 @@
         "EstimateInput",
         "EstimateResult",
         "ListingDraftInput",
+        "ListingVariant",
+        "MarketCategoryNode",
         "MarketMeta",
         "PublicListingDetail",
         "PublicListingSummary",

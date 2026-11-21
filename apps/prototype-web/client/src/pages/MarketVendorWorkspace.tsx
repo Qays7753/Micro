@@ -16,7 +16,6 @@ import {
   fetchVendorOverview,
   listingLifecycleAction,
   submitListing,
-  submitVendorProfile,
   upsertVendorProfile,
   type VendorListingDraft,
   type VendorOverview,
@@ -25,6 +24,8 @@ import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
+  active: "فعّال",
+  suspended: "موقوف من الإدارة",
   submitted: "قيد المراجعة",
   changes_requested: "يحتاج تعديلًا",
   rejected: "مرفوض",
@@ -33,6 +34,18 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "مؤرشف",
   admin_suspended: "موقوف من الإدارة",
   expired: "قديم — يحتاج تجديدًا",
+};
+
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  manufacturer: "مصنّع",
+  wholesale: "جملة",
+  importer: "مستورد",
+  shop: "محل",
+};
+
+const DELIVERY_OPTION_LABELS: Record<string, string> = {
+  delivery: "يوصّل",
+  pickup_only: "استلام فقط",
 };
 
 const REVISION_LABELS: Record<string, string> = {
@@ -88,6 +101,12 @@ export default function MarketVendorWorkspace() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [governorate, setGovernorate] = useState("");
+  /* الموجة 2 (القرار النهائي ب-قواعد): نوع المورد وطريقة التسليم والموافقة
+   * على الشارات — إكمالها مع بقية الحقول يفعّل المورد تلقائيًا بلا مراجعة
+   * ملف (Q4/Q28). */
+  const [supplierType, setSupplierType] = useState("");
+  const [deliveryOption, setDeliveryOption] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   /* OD-09 (contract 20 §3.3): direct updates on published listings — numeric
    * price within the SAME pricing mode (fixed scalar / tiered list), the
    * declared quantity figures, and availability. Prefilled from the vendor's
@@ -129,6 +148,8 @@ export default function MarketVendorWorkspace() {
       setDisplayName(current => (current === "" ? (fields.displayName ?? current) : current));
       setPhone(current => (current === "" ? (fields.contactPhone ?? current) : current));
       setGovernorate(current => (current === "" ? (fields.governorate ?? current) : current));
+      setSupplierType(current => (current === "" ? (fields.supplierType ?? current) : current));
+      setDeliveryOption(current => (current === "" ? (fields.deliveryOption ?? current) : current));
     }
   }, [overview?.profileFields]);
 
@@ -271,7 +292,7 @@ export default function MarketVendorWorkspace() {
       </button>
       <div className="micro-page-heading">
         <h1>مساحة المورد</h1>
-        <p>ملفك وإعلاناتك خاصة حتى اكتمال القبول — لا يظهر شيء للعامة تلقائيًا.</p>
+        <p>ملفك يفعّل بإكماله وقَبول الشارات، وكل إعلان يُراجع قبل النشر — لا يظهر شيء للعامة قبلها.</p>
       </div>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
@@ -280,12 +301,24 @@ export default function MarketVendorWorkspace() {
         <p className="micro-vendor-profile__status">
           الحالة: {vendorStatus === null ? "لم يُنشأ بعد" : (STATUS_LABELS[vendorStatus] ?? vendorStatus)}
         </p>
-        {overview?.vendorReviewReason ? (
-          <p className="micro-review-reason" role="status">
-            ملاحظة المراجع: {overview.vendorReviewReason}
+        {/* الموجة 2 (قرار المالك النهائي ب-قواعد): التفعيل بإكمال الملف
+         * وقَبول الشارات — لا مراجعة ملف أبدًا؛ كل إعلان يُراجع قبل النشر
+         * وأول إعلان يرافقه اتصال تحقق من المشرف. */}
+        {vendorStatus === "active" ? (
+          <p className="micro-vendor-profile__hint" role="status">
+            ملفك مكتمل وفعّال — إعلاناتك تُراجع قبل النشر، وأول إعلان يرافقه اتصال تحقق من المشرف.
           </p>
         ) : null}
-        {vendorStatus === null || vendorStatus === "draft" || vendorStatus === "changes_requested" ? (
+        {overview?.vendorReviewReason ? (
+          <p className="micro-review-reason" role="status">
+            ملاحظة الإدارة: {overview.vendorReviewReason}
+          </p>
+        ) : null}
+        {vendorStatus === null ||
+        vendorStatus === "draft" ||
+        vendorStatus === "changes_requested" ||
+        vendorStatus === "active" ||
+        vendorStatus === "suspended" ? (
           <>
             <Button action="outline" onClick={() => setProfileOpen(open => !open)}>
               {vendorStatus === null ? "إنشاء ملف المورد" : "تعديل بيانات الملف"}
@@ -321,6 +354,42 @@ export default function MarketVendorWorkspace() {
                     ))}
                   </select>
                 </Field>
+                {/* الموجة 2 (Q49/Q146): نوع المورد وطريقة التسليم — فلاتر
+                 * التصفح العامة تُبنى عليها. */}
+                <Field label="نوع النشاط">
+                  <select value={supplierType} onChange={event => setSupplierType(event.target.value)}>
+                    <option value="">اختر نوع النشاط</option>
+                    {Object.entries(SUPPLIER_TYPE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="طريقة التسليم">
+                  <select value={deliveryOption} onChange={event => setDeliveryOption(event.target.value)}>
+                    <option value="">اختر طريقة التسليم</option>
+                    {Object.entries(DELIVERY_OPTION_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                {/* د-10 (القرار النهائي): موافقة مسجّلة بإصدار عند إضافة الدور —
+                 * يسجلها الخادم بطابع زمني وإصدار الشروط. */}
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={event => setTermsAccepted(event.target.checked)}
+                  />
+                  أوافق على شروط الموردين وسياسة الخصوصية (إصدار {overview?.termsVersion ?? ""})
+                </label>
+                <p className="micro-vendor-profile__hint" role="status">
+                  إكمال الحقول مع القبول يفعّل ملفك فورًا بلا مراجعة — بلا شارة «معتمد»؛ النشر يحتاج مراجعة كل
+                  إعلان.
+                </p>
                 <Button
                   action="save"
                   onClick={() =>
@@ -329,30 +398,22 @@ export default function MarketVendorWorkspace() {
                       if (!activeWorkspaceId) {
                         throw new Error("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
                       }
-                      await upsertVendorProfile({
+                      const result = await upsertVendorProfile({
                         displayName,
                         contactPhone: phone,
                         governorate,
+                        supplierType,
+                        deliveryOption,
+                        termsAccepted,
                         workspaceId: activeWorkspaceId,
                       });
-                    }, "حُفظ ملف المورد كمسودة.")
+                      if (result.profile.status === "active") {
+                        setMessage({ tone: "success", text: "اكتمل الملف — مورّد فعّال بلا مراجعة ملف." });
+                      }
+                    }, "حُفظ ملف المورد.")
                   }
                 >
                   حفظ الملف
-                </Button>
-                <Button
-                  action="commit"
-                  onClick={() =>
-                    void run(async () => {
-                      const activeWorkspaceId = session.workspaces?.[0]?.id;
-                      if (!activeWorkspaceId) {
-                        throw new Error("لا يوجد مشروع بعد — أنشئ مشروعك أولًا من ملف الحساب.");
-                      }
-                      await submitVendorProfile(activeWorkspaceId);
-                    }, "أُرسل الملف للمراجعة — ليس اعتمادًا.")
-                  }
-                >
-                  إرسال الملف للمراجعة
                 </Button>
               </div>
             ) : null}

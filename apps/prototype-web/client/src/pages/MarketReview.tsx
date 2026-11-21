@@ -1,13 +1,22 @@
 /**
- * طابور مراجعة السوق (OD-10، عقد 22): للمراجع المخول فقط — قيس بالبداية.
- * قرارات إدارية موثقة بفاعل وسبب؛ لا اعتماد دفع أو نيابة عن طرف، والنشر
- * يمر ببوابة اكتمال القبول (الملف + المحتوى + كل صورة).
+ * طابور مراجعة السوق (OD-10، عقد 22 + الموجة 2 للقرارات النهائية
+ * 2026-11-21): للمراجع المخول فقط — قيس بالبداية. لا مراجعة ملفات موردين
+ * بعد اليوم (Q4/Q28 — التفعيل بإكمال الملف والشروط)؛ يبقى الإيقاف/الرفع
+ * الإداري للموردين، ومراجعة كل إعلان قبل النشر مع تسجيل اتصال التحقق
+ * لأول إعلان (ب-قواعد)، وإدارة التصنيفات الهرمية (Q146)، والأعداد
+ * التشغيلية (Q154) — قرارات موثقة بفاعل وسبب دائمًا.
  */
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useNetworkSession } from "@/app/useNetworkSession";
 import { ApiError, apiFetch } from "@/application/network";
+import {
+  fetchMarketMeta,
+  fetchMarketOpsCounts,
+  putMarketCategories,
+  type MarketCategoryNode,
+} from "@/application/market";
 import { Button, EmptyState, Field, Notice } from "@/components/primitives";
 
 const LISTING_STATUS_LABELS: Record<string, string> = {
@@ -25,7 +34,7 @@ const REVISION_STATUS_LABELS: Record<string, string> = {
   none: "",
   submitted: "نسخة معدلة قيد المراجعة",
   changes_requested: "التعديل يحتاج استكمالًا",
-  content_approved: "المحتوى مقبول — بانتظار اكتمال الملف",
+  content_approved: "المحتوى مقبول — بانتظار بقية البوابة",
   renewal_requested: "طلب تجديد قيد المراجعة",
 };
 
@@ -38,10 +47,17 @@ const REPORT_REASON_LABELS: Record<string, string> = {
 };
 
 interface ReviewQueue {
-  profiles: { id: string; work_copy_json: string; submitted_at: number }[];
+  profiles: { id: string; status: string; work_copy_json: string; activated_at: number | null }[];
   listings: { id: string; title: string; status: string; revision_status: string; work_copy_json: string }[];
   media: { id: string; listing_id: string | null }[];
   reports: { id: number; object_id: string; reason: string; details: string | null }[];
+}
+
+interface OpsCounts {
+  activeSuppliers: number;
+  activeDrivers: number;
+  weeklyBookings: number;
+  launchThreshold: { suppliers: number; drivers: number; governorates: number };
 }
 
 export default function MarketReview() {
@@ -53,6 +69,11 @@ export default function MarketReview() {
     null,
   );
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  /* الموجة 2 (ب-قواعد): تسجيل اتصال التحقق مع قبول أول إعلان للمورد —
+   * مربع صريح لكل إعلان؛ الخادم يرفض قبول أول إعلان بدونه برسالة صادقة. */
+  const [verificationCalls, setVerificationCalls] = useState<Record<string, boolean>>({});
+  const [opsCounts, setOpsCounts] = useState<OpsCounts | null>(null);
+  const [categories, setCategories] = useState<MarketCategoryNode[] | null>(null);
 
   const load = useCallback(async () => {
     setState("loading");
@@ -74,10 +95,27 @@ export default function MarketReview() {
     else if (!sessionLoading) setState("forbidden");
   }, [session.authenticated, sessionLoading, load]);
 
+  /* Q154: الأعداد التشغيلية — تُعرض كما هي بلا أي ادعاء استيفاء عتبة
+   * الإطلاق (قرار المالك التشغيلي على حسابات حقيقية فقط). */
+  useEffect(() => {
+    if (!session.authenticated) return;
+    void fetchMarketOpsCounts()
+      .then(setOpsCounts)
+      .catch(() => setOpsCounts(null));
+    void fetchMarketMeta()
+      .then(meta => setCategories(meta.categories))
+      .catch(() => setCategories(null));
+  }, [session.authenticated, queue]);
+
   /* Stage C (S13/R4-15): قرار واحد قيد التنفيذ في كل لحظة — يمنع سباق
    * قرارين متتاليين على العنصر نفسه أثناء تحديث الطابور. */
   const [pendingDecision, setPendingDecision] = useState<string | null>(null);
-  const decide = async (kind: "profile" | "listing" | "media", id: string, action: string) => {
+  const decide = async (
+    kind: "profile" | "listing" | "media" | "report",
+    id: string,
+    action: string,
+    extra?: Record<string, unknown>,
+  ) => {
     const key = `${kind}:${id}:${action}`;
     if (pendingDecision !== null) return;
     setPendingDecision(key);
@@ -85,7 +123,10 @@ export default function MarketReview() {
     try {
       await apiFetch(
         `/api/market/review/${kind}/${encodeURIComponent(id)}`,
-        { method: "POST", body: JSON.stringify({ action, reason: reason || undefined }) },
+        {
+          method: "POST",
+          body: JSON.stringify({ action, reason: reason || undefined, ...extra }),
+        },
         { idempotencyKey: `review:${kind}:${id}:${action}` },
       );
       setMessage({ tone: "success", text: "سُجل القرار بفاعله وسببه." });
@@ -94,6 +135,18 @@ export default function MarketReview() {
       setMessage({ tone: "error", text: error instanceof Error ? error.message : "تعذر تسجيل القرار." });
     } finally {
       setPendingDecision(null);
+    }
+  };
+
+  /* Q146: حفظ شجرة التصنيفات بعد تعديل محلي — تحقق الخادم من الشكل
+   * (مستويان، معرفات وتسميات فريدة) ويرفض غير الصالح برسالة صادقة. */
+  const saveCategories = async () => {
+    if (categories === null) return;
+    try {
+      await putMarketCategories(categories);
+      setMessage({ tone: "success", text: "حُفظت شجرة التصنيفات." });
+    } catch (error) {
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "تعذر حفظ التصنيفات." });
     }
   };
 
@@ -143,7 +196,7 @@ export default function MarketReview() {
       </button>
       <div className="micro-page-heading">
         <h1>مراجعة السوق</h1>
-        <p>قرارات إدارية موثقة — النشر يمر ببوابة اكتمال قبول كل الأجزاء.</p>
+        <p>قرارات إدارية موثقة — النشر يمر ببوابة اكتمال قبول كل الأجزاء، وأول إعلان معه اتصال التحقق.</p>
       </div>
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       {state === "loading" ? (
@@ -168,24 +221,42 @@ export default function MarketReview() {
 
       {state === "ready" && queue ? (
         <>
+          {/* Q154: أعداد تشغيلية بسيطة — مصادرها صريحة ولا تدّعي جاهزية
+           * إطلاق أبدًا؛ عتبة الإطلاق قرار مالك على حسابات حقيقية. */}
+          {opsCounts !== null ? (
+            <section data-testid="market-ops-counts">
+              <h2>أرقام تشغيلية</h2>
+              <p className="micro-review-item__meta">
+                موردون محسوبون بالقاعدة الكاملة: {opsCounts.activeSuppliers} · سائقون معتمدون:{" "}
+                {opsCounts.activeDrivers} · حجوزات الأسبوع: {opsCounts.weeklyBookings} — عتبة الإطلاق (
+                {opsCounts.launchThreshold.suppliers} موردين و{opsCounts.launchThreshold.drivers} سائقين على{" "}
+                {opsCounts.launchThreshold.governorates} محافظة) قرار مالك على حسابات حقيقية، لا تُستوفى من
+                بيانات اصطناعية.
+              </p>
+            </section>
+          ) : null}
+
+          {/* الموجة 2 (Q4/Q28): لا مراجعة ملفات — هؤلاء الموردون الفعّالون/
+           الموقوفون للإيقاف/الرفع الإداري فقط، بقرار مسبب دوما. */}
           <section>
-            <h2>ملفات الموردين</h2>
-            {queue.profiles.length === 0 ? (
-              <p className="micro-review-queue-empty">لا طلبات ملفات معلقة.</p>
-            ) : null}
+            <h2>الموردون</h2>
+            <p className="micro-review-queue-empty">لا مراجعة للملفات — التفعيل بإكمال الملف والشروط.</p>
             {queue.profiles.map(profile => {
               const work = JSON.parse(profile.work_copy_json) as {
                 displayName?: string;
-                contactPhone?: string;
                 governorate?: string;
               };
               return (
-                <article key={profile.id} className="micro-review-item">
-                  <strong>ملف مورد: {work.displayName ?? "بلا اسم"}</strong>
+                <article
+                  key={profile.id}
+                  className="micro-review-item"
+                  data-testid={`supplier-${profile.id}`}
+                >
+                  <strong>{work.displayName ?? "مورد بلا اسم"}</strong>
                   <p className="micro-review-item__meta">
-                    {work.governorate ?? "—"} · هاتف: {work.contactPhone ?? "—"}
+                    {work.governorate ?? "—"} · {profile.status === "suspended" ? "موقوف" : "فعّال"}
                   </p>
-                  <Field label="سبب القرار (للرفض أو طلب التعديل)">
+                  <Field label="سبب القرار (إلزامي للإيقاف)">
                     <input
                       value={reasons[`profile:${profile.id}`] ?? ""}
                       onChange={event =>
@@ -194,18 +265,23 @@ export default function MarketReview() {
                     />
                   </Field>
                   <div className="micro-review-item__actions">
-                    <Button action="save" onClick={() => void decide("profile", profile.id, "approve")}>
-                      قبول
-                    </Button>
-                    <Button
-                      action="outline"
-                      onClick={() => void decide("profile", profile.id, "changes_requested")}
-                    >
-                      طلب تعديل
-                    </Button>
-                    <Button action="destructive" onClick={() => void decide("profile", profile.id, "reject")}>
-                      رفض
-                    </Button>
+                    {profile.status !== "suspended" ? (
+                      <Button
+                        action="destructive"
+                        disabled={pendingDecision !== null}
+                        onClick={() => void decide("profile", profile.id, "suspend")}
+                      >
+                        إيقاف المورد
+                      </Button>
+                    ) : (
+                      <Button
+                        action="save"
+                        disabled={pendingDecision !== null}
+                        onClick={() => void decide("profile", profile.id, "unsuspend")}
+                      >
+                        رفع الإيقاف
+                      </Button>
+                    )}
                   </div>
                 </article>
               );
@@ -220,7 +296,7 @@ export default function MarketReview() {
             {queue.listings.map(listing => {
               /* Stage C (S13/R1-9): المحتوى الكامل قبل قرار البوابة — كان
                * المراجع يقبل/يرفض من العنوان وحده؛ النسخة العاملة تُعرض
-               * كاملة كما تُعرض ملفات الموردين في القسم أعلاه. */
+               * كاملة. */
               const work = JSON.parse(listing.work_copy_json) as {
                 title?: string;
                 category?: string;
@@ -318,11 +394,31 @@ export default function MarketReview() {
                       }
                     />
                   </Field>
+                  {/* ب-قواعد: اتصال التحقق يسجل مع قبول أول إعلان للمورد —
+                   * لو كان أول إعلان ولم يُسجل، يرفض الخادم برسالة صادقة. */}
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={verificationCalls[`listing:${listing.id}`] === true}
+                      onChange={event =>
+                        setVerificationCalls(current => ({
+                          ...current,
+                          [`listing:${listing.id}`]: event.target.checked,
+                        }))
+                      }
+                    />
+                    أجريت اتصال التحقق مع المورد (إلزامي لقبول أول إعلان)
+                  </label>
                   <div className="micro-review-item__actions">
                     <Button
                       action="save"
                       disabled={pendingDecision !== null}
-                      onClick={() => void decide("listing", listing.id, "approve")}
+                      onClick={() =>
+                        void decide("listing", listing.id, "approve", {
+                          verificationCall:
+                            verificationCalls[`listing:${listing.id}`] === true ? { done: true } : undefined,
+                        })
+                      }
                     >
                       قبول المحتوى
                     </Button>
@@ -345,6 +441,125 @@ export default function MarketReview() {
               );
             })}
           </section>
+
+          {/* Q146: شاشة إدارة التصنيفات — إضافة/إزالة رئيسي وفرعي وتعديل
+           * التسمية؛ الحفظ يمر بتحقق الخادم للشكل الكامل. */}
+          {categories !== null ? (
+            <section data-testid="market-categories-admin">
+              <h2>إدارة التصنيفات</h2>
+              {categories.map((main, mainIndex) => (
+                <article key={main.id} className="micro-review-item">
+                  <label>
+                    تصنيف رئيسي
+                    <input
+                      value={main.label}
+                      onChange={event =>
+                        setCategories(current =>
+                          current!.map((entry, position) =>
+                            position === mainIndex ? { ...entry, label: event.target.value } : entry,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <ul>
+                    {main.sub.map((sub, subIndex) => (
+                      <li key={sub.id}>
+                        <label>
+                          فرعي
+                          <input
+                            value={sub.label}
+                            onChange={event =>
+                              setCategories(current =>
+                                current!.map((entry, position) =>
+                                  position === mainIndex
+                                    ? {
+                                        ...entry,
+                                        sub: entry.sub.map((subEntry, subPosition) =>
+                                          subPosition === subIndex
+                                            ? { ...subEntry, label: event.target.value }
+                                            : subEntry,
+                                        ),
+                                      }
+                                    : entry,
+                                ),
+                              )
+                            }
+                          />
+                        </label>
+                        <Button
+                          action="quiet"
+                          onClick={() =>
+                            setCategories(current =>
+                              current!.map((entry, position) =>
+                                position === mainIndex
+                                  ? {
+                                      ...entry,
+                                      sub: entry.sub.filter((_, subPosition) => subPosition !== subIndex),
+                                    }
+                                  : entry,
+                              ),
+                            )
+                          }
+                        >
+                          حذف الفرعي
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="micro-review-item__actions">
+                    <Button
+                      action="outline"
+                      onClick={() =>
+                        setCategories(current =>
+                          current!.map((entry, position) =>
+                            position === mainIndex
+                              ? {
+                                  ...entry,
+                                  sub: [
+                                    ...entry.sub,
+                                    {
+                                      id: `${main.id}-sub${entry.sub.length + 1}-${Date.now().toString(36)}`,
+                                      label: "",
+                                    },
+                                  ],
+                                }
+                              : entry,
+                          ),
+                        )
+                      }
+                    >
+                      إضافة فرعي
+                    </Button>
+                    <Button
+                      action="quiet"
+                      onClick={() =>
+                        setCategories(current => current!.filter((_, position) => position !== mainIndex))
+                      }
+                    >
+                      حذف الرئيسي
+                    </Button>
+                  </div>
+                </article>
+              ))}
+              <div className="micro-review-item__actions">
+                <Button
+                  action="outline"
+                  onClick={() =>
+                    setCategories(current => [
+                      ...(current ?? []),
+                      { id: `main-${Date.now().toString(36)}`, label: "", sub: [] },
+                    ])
+                  }
+                >
+                  إضافة تصنيف رئيسي
+                </Button>
+                <Button action="save" onClick={() => void saveCategories()}>
+                  حفظ شجرة التصنيفات
+                </Button>
+              </div>
+            </section>
+          ) : null}
 
           <section>
             <h2>الصور</h2>

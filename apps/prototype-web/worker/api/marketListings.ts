@@ -11,13 +11,18 @@ import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
 import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
 import {
+  effectiveMinQuantityMilli,
+  flattenCategoryIds,
   JORDAN_GOVERNORATES,
   MAX_PRICE_MICRO,
   parsePositiveIntegerString,
   validatePricing,
+  validateVariants,
   type ListingPricing,
   type ListingQuantity,
+  type ListingVariant,
 } from "../domain/market.ts";
+import { activeCategoryTree } from "./market.ts";
 import { LISTING_FRESHNESS_HIDE_MS, MAX_LISTING_MEDIA } from "../env.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
@@ -58,7 +63,12 @@ async function loadListing(ctx: RouteContext, listingId: string) {
   return row;
 }
 
-/** POST /api/market/vendor/listings — create a listing draft (idempotent). */
+/** POST /api/market/vendor/listings — create a listing draft (idempotent).
+ * Wave 2 (Q38/Q49 final decisions): the category must exist in the ACTIVE
+ * tree (main or sub id); optional product variants (1..20) are validated
+ * server-side — each with its own price, minimum quantity and availability —
+ * and the denormalized minimum quantity becomes the smallest of the base and
+ * variant minimums so the browse filter stays honest for variant listings. */
 export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
   const title = typeof body.title === "string" && body.title.trim().length >= 8 ? body.title.trim() : null;
@@ -83,12 +93,19 @@ export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedC
   if (!title || !category || !governorate || !description || !contactType || !contactValue) {
     throw new HttpError(400, "bad_request", { field: "listing" });
   }
+  const tree = await activeCategoryTree(db(ctx));
+  if (!flattenCategoryIds(tree).has(category)) {
+    throw new HttpError(400, "bad_request", { field: "category", reason: "unknown_category" });
+  }
   const pricing = (body.pricing ?? null) as ListingPricing | null;
   const quantity = (body.quantity ?? null) as ListingQuantity | null;
   if (!pricing || !quantity) throw new HttpError(400, "bad_request", { field: "pricing/quantity" });
   validatePricing(pricing);
   if (BigInt(quantity.minQuantityMilli) < 1n)
     throw new HttpError(400, "bad_request", { field: "minQuantityMilli" });
+  const variants = Array.isArray(body.variants) ? (body.variants as ListingVariant[]) : undefined;
+  if (variants !== undefined) validateVariants(variants);
+  const effectiveMin = effectiveMinQuantityMilli(quantity.minQuantityMilli, variants);
   const profile = await db(ctx)
     .prepare("SELECT id FROM supplier_profile WHERE identity_id = ?")
     .bind(auth.identityId)
@@ -103,6 +120,7 @@ export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedC
     description,
     pricing,
     quantity,
+    ...(variants !== undefined ? { variants } : {}),
     notes: typeof body.notes === "string" ? body.notes.slice(0, 500) : null,
   });
   await db(ctx)
@@ -129,7 +147,7 @@ export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedC
           ? JSON.stringify(pricing.tiers)
           : null,
       quantity.unit,
-      quantity.minQuantityMilli,
+      effectiveMin,
       quantity.stepMilli,
       now,
       JSON.stringify({ type: contactType, value: contactValue }),
@@ -179,6 +197,36 @@ export async function updateListingDraft(ctx: RouteContext, auth: AuthenticatedC
   if (quantity !== undefined) {
     work.quantity = quantity;
   }
+  // Wave 2 (Q38): variants are review-scope content — a full validated list
+  // replaces the old one (empty array clears them). For a still-editable
+  // draft the denormalized minimum follows the smallest of the base and
+  // variant minimums; for a PUBLISHED listing the public columns stay on the
+  // approved copy until the revision is approved (the publish path refreshes
+  // the column from the approved work copy).
+  if (body.variants !== undefined) {
+    if (!Array.isArray(body.variants)) throw new HttpError(400, "bad_request", { field: "variants" });
+    const variants = body.variants as ListingVariant[];
+    if (variants.length > 0) validateVariants(variants);
+    if (variants.length === 0) delete work.variants;
+    else work.variants = variants;
+    if (editable) {
+      const baseMin =
+        (work.quantity as ListingQuantity | undefined)?.minQuantityMilli ?? String(row.min_quantity_milli);
+      stagedColumns.minQuantityMilli = effectiveMinQuantityMilli(
+        baseMin,
+        variants.length > 0 ? variants : undefined,
+      );
+    }
+  }
+  // Wave 2 (Q49/Q146): a category change must stay inside the ACTIVE tree.
+  if (typeof body.category === "string" && body.category.length > 0) {
+    const tree = await activeCategoryTree(db(ctx));
+    if (!flattenCategoryIds(tree).has(body.category)) {
+      throw new HttpError(400, "bad_request", { field: "category", reason: "unknown_category" });
+    }
+    work.category = body.category;
+    if (editable) stagedColumns.category = body.category;
+  }
   if (typeof body.notes === "string") work.notes = body.notes.slice(0, 500);
   // Persist the staged work copy; for a not-yet-published listing the draft
   // columns may mirror the edits directly (nothing is public yet).
@@ -191,6 +239,14 @@ export async function updateListingDraft(ctx: RouteContext, auth: AuthenticatedC
   if (editable && stagedColumns.description !== undefined) {
     sets.push("description = ?");
     values.push(stagedColumns.description);
+  }
+  if (editable && stagedColumns.category !== undefined) {
+    sets.push("category = ?");
+    values.push(stagedColumns.category);
+  }
+  if (editable && stagedColumns.minQuantityMilli !== undefined) {
+    sets.push("min_quantity_milli = ?");
+    values.push(stagedColumns.minQuantityMilli);
   }
   values.push(String(row.id));
   await db(ctx)
@@ -223,6 +279,8 @@ export async function getVendorListingDraft(
       contact: JSON.parse(String(row.contact_channel_json ?? "{}")),
       pricing: (work.pricing ?? null) as Record<string, unknown> | null,
       quantity: (work.quantity ?? null) as Record<string, unknown> | null,
+      // Wave 2 (Q38): the variant options live in the work copy — review scope.
+      variants: (work.variants ?? null) as Record<string, unknown>[] | null,
       mediaIds: media.results.map(entry => String(entry.media_id)),
     },
   });

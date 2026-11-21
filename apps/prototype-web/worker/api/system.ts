@@ -6,6 +6,7 @@
 import { audit, listNotifications, notify, isNotificationType } from "../audit.ts";
 import { nowMs } from "../clock.ts";
 import { putSetting, type Db } from "../db/db.ts";
+import { validateCategoryTree } from "../domain/market.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
@@ -100,6 +101,13 @@ const ADMIN_SETTINGS_ALLOWLIST: Record<string, (value: unknown) => unknown> = {
       throw new HttpError(400, "bad_request", { field: "value", reason: "invalid_module_flag" });
     }
     return { delivery_enabled: value === "enabled" };
+  },
+  /* Wave 2 (final decision Q49/Q146 — شاشة إدارة التصنيفات للمشرف): the
+   * admin-managed two-level category tree. The validated canonical shape is
+   * stored under 'market.categories' and read by /api/market/meta and every
+   * category validation path. */
+  "market.categories": value => {
+    return validateCategoryTree(value);
   },
 };
 

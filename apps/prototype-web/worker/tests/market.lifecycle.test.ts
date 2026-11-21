@@ -1,9 +1,12 @@
 /**
- * Market acceptance — full listing lifecycle with the atomic publication
- * gate (OD-09/OD-16): vendor draft → submit → review (content approved
- * awaiting file) → profile approval publishes; content revision keeps the
- * old public copy; direct numeric updates are logged; freshness 30/60 with
- * review-based renewal (OD-11); cross-vendor isolation; guest boundaries.
+ * Market acceptance — the Wave 2 lifecycle with the atomic publication
+ * gate (final decisions 2026-11-21 + OD-09/OD-16): the supplier ACTIVATES
+ * automatically on a complete profile + accepted terms (NO profile review —
+ * Q4/Q28); every listing is reviewed before publication; the FIRST listing
+ * requires the reviewer-recorded verification call (ب-قواعد); content revision
+ * keeps the old public copy; direct numeric updates are logged; freshness
+ * 30/60 with review-based renewal (OD-11); cross-vendor isolation; guest
+ * boundaries; the contact VALUE never appears in a public DTO (د-1).
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -47,13 +50,19 @@ async function becomeAdmin(cookie: string, email: string): Promise<void> {
 }
 
 async function createVendorListing(listingTitle: string): Promise<ListingRefs> {
+  // Wave 2 (final decision ب-قواعد): the complete profile + accepted terms
+  // ACTIVATES the supplier in this single request — no submit, no review.
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد الاختبار",
     contactPhone: "+962790000001",
     governorate: "عمان",
+    supplierType: "manufacturer",
+    deliveryOption: "delivery",
+    termsAccepted: true,
     workspaceId: vendorWorkspaceId,
   });
-  const profile = (await profileResponse.json()) as { profile: { id: string } };
+  const profile = (await profileResponse.json()) as { profile: { id: string; status: string } };
+  expect(profile.profile.status).toBe("active");
   const mediaResponse = await worker.fetch("/api/media?purpose=market_listing_media", {
     method: "POST",
     headers: { "content-type": "image/png", origin: worker.origin, "x-micro-api": "1", cookie: vendorCookie },
@@ -111,15 +120,23 @@ describe("market: guest boundaries (S-01/S-03/OD-04)", () => {
     expect(create.status).toBe(401);
   });
 
-  it("meta exposes categories and the 12 governorates", async () => {
+  it("meta exposes the hierarchical category tree and the 12 governorates", async () => {
     const response = await apiGet(worker, null, "/api/market/meta");
-    const body = (await response.json()) as { categories: unknown[]; governorates: string[] };
+    const body = (await response.json()) as {
+      categories: { id: string; label: string; sub: { id: string; label: string }[] }[];
+      governorates: string[];
+      supplierTypes: string[];
+      deliveryOptions: string[];
+    };
     expect(body.categories.length).toBeGreaterThanOrEqual(6);
+    expect(body.categories[0]!.sub.length).toBeGreaterThanOrEqual(1);
     expect(body.governorates).toHaveLength(12);
+    expect(body.supplierTypes).toEqual(["manufacturer", "wholesale", "importer", "shop"]);
+    expect(body.deliveryOptions).toEqual(["delivery", "pickup_only"]);
   });
 });
 
-describe("market: lifecycle and the atomic publication gate (OD-09/OD-16)", () => {
+describe("market: lifecycle and the atomic publication gate (Wave 2)", () => {
   let refs: ListingRefs;
 
   it("drafts and submissions stay private (S-07)", async () => {
@@ -131,45 +148,65 @@ describe("market: lifecycle and the atomic publication gate (OD-09/OD-16)", () =
     expect(stillHidden.status).toBe(404);
   });
 
-  it("approving listing content with a pending file does NOT publish (spec §7.4)", async () => {
+  it("the FIRST listing approval refuses without the verification call (ب-قواعد)", async () => {
+    const refused = await apiPost(worker, adminCookie, `/api/market/review/listing/${refs.listingId}`, {
+      action: "approve",
+    });
+    expect(refused.status).toBe(400);
+    const body = (await refused.json()) as { error: { details: { reason: string } } };
+    expect(body.error.details.reason).toBe("verification_call_required_for_first_listing");
+  });
+
+  it("content approval with the verification call still waits for media (spec §7.4)", async () => {
     const approve = await apiPost(worker, adminCookie, `/api/market/review/listing/${refs.listingId}`, {
       action: "approve",
+      verificationCall: { done: true, note: "اتصال تحقق أول إعلان — تم" },
     });
     expect(approve.status).toBe(200);
     const db = await rawDb(worker);
     const row = await db
-      .prepare("SELECT status, revision_status FROM supplier_listing WHERE id = ?")
+      .prepare("SELECT status, revision_status, verification_call_at FROM supplier_listing WHERE id = ?")
       .bind(refs.listingId)
-      .first<{ status: string; revision_status: string }>();
+      .first<{ status: string; revision_status: string; verification_call_at: number | null }>();
     expect(row!.status).toBe("submitted");
     expect(row!.revision_status).toBe("content_approved");
+    expect(row!.verification_call_at).not.toBeNull();
     const browse = (await (await apiGet(worker, null, "/api/market/listings")).json()) as { count: number };
     expect(browse.count).toBe(0);
   });
 
-  it("approving the file publishes atomically once media is also approved", async () => {
+  it("media approval publishes atomically (the supplier is already ACTIVE)", async () => {
     await apiPost(worker, adminCookie, `/api/market/review/media/${refs.mediaId}`, { action: "approve" });
-    // Media approval alone does not publish (content is approved, file is not).
-    let browse = (await (await apiGet(worker, null, "/api/market/listings")).json()) as { count: number };
-    expect(browse.count).toBe(0);
-    await apiPost(worker, adminCookie, `/api/market/review/profile/${refs.profileId}`, { action: "approve" });
-    browse = (await (await apiGet(worker, null, "/api/market/listings")).json()) as { count: number };
+    const browse = (await (await apiGet(worker, null, "/api/market/listings")).json()) as { count: number };
     expect(browse.count).toBe(1);
   });
 
-  it("the published copy is public with its contact channel (OD-04)", async () => {
+  it("the published copy is public with NO contact value in any public DTO (د-1)", async () => {
     const detailResponse = await apiGet(worker, null, `/api/market/listings/${refs.listingId}`);
     expect(detailResponse.status).toBe(200);
     const detail = (await detailResponse.json()) as {
-      listing: { title: string; priceMicroJod: string; contactChannel: { type: string } };
+      listing: {
+        title: string;
+        priceMicroJod: string;
+        contactChannelType: string;
+        contactChannel?: unknown;
+        contactValue?: unknown;
+      };
       mediaIds: string[];
       vendor: { displayName: string };
     };
     expect(detail.listing.title).toContain("أكواب");
     expect(detail.listing.priceMicroJod).toBe("1500000");
-    expect(detail.listing.contactChannel.type).toBe("phone");
+    expect(detail.listing.contactChannelType).toBe("phone");
+    expect(detail.listing.contactChannel).toBeUndefined();
+    expect(detail.listing.contactValue).toBeUndefined();
     expect(detail.mediaIds).toHaveLength(1);
     expect(detail.vendor.displayName).toBe("مورد الاختبار");
+    // The raw browse payload never carries the value either.
+    const browse = (await (await apiGet(worker, null, "/api/market/listings")).json()) as {
+      listings: Record<string, unknown>[];
+    };
+    expect(JSON.stringify(browse.listings)).not.toContain("+962790000001");
   });
 
   it("a content revision keeps the OLD public copy visible until approved (OD-09)", async () => {
@@ -343,9 +380,9 @@ describe("market: freshness 30/60 with review renewal (OD-11)", () => {
   it("after 30 days the listing asks for confirmation; after 60 it hides; renewal restores through review", async () => {
     const refs = await createVendorListing("مادة تجربة الحداثة الكاملة");
     await apiPost(worker, vendorCookie, `/api/market/vendor/listings/${refs.listingId}/submit`, {});
+    // Not the vendor's first listing anymore — no verification call needed.
     await apiPost(worker, adminCookie, `/api/market/review/listing/${refs.listingId}`, { action: "approve" });
     await apiPost(worker, adminCookie, `/api/market/review/media/${refs.mediaId}`, { action: "approve" });
-    await apiPost(worker, adminCookie, `/api/market/review/profile/${refs.profileId}`, { action: "approve" });
     const db = await rawDb(worker);
     const now = Date.now();
 

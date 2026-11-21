@@ -6,7 +6,7 @@
  * (worker/tests/market.*.test.ts).
  */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Market from "@/pages/Market";
 import MarketListingDetail from "@/pages/MarketListingDetail";
@@ -136,11 +136,27 @@ describe("market listing detail (OD-04 contact + estimate)", () => {
             availabilityStatus: "available",
             availabilityConfirmedAt: Date.now(),
             freshness: "fresh",
-            contactChannel: { type: "phone", value: "+962790000001" },
+            /* د-1 (القرار النهائي): نوع القناة فقط — القيمة ليست في أي DTO عام،
+             * وزر «إظهار الرقم» هو المسار المدقق الوحيد إليها. */
+            contactChannelType: "phone",
+            variants: [
+              {
+                id: "v1",
+                label: "حجم صغير",
+                priceMicroJod: "1200000",
+                minQuantityMilli: "12000",
+                availability: "available",
+              },
+            ],
             publishedAt: Date.now() - 1000,
           },
           mediaIds: [],
-          vendor: { displayName: "مورد معتمد", governorate: "عمان" },
+          vendor: {
+            displayName: "مورد معتمد",
+            governorate: "عمان",
+            supplierType: "manufacturer",
+            deliveryOption: "delivery",
+          },
         });
       }
       if (path.startsWith("/api/auth/session")) return jsonResponse({ authenticated: false });
@@ -149,13 +165,66 @@ describe("market listing detail (OD-04 contact + estimate)", () => {
     render(<MarketListingDetail />);
     expect(await screen.findByText("أكواب تغليف شفافة")).toBeTruthy();
     expect(screen.getByText(/مورد معتمد/)).toBeTruthy();
-    /* قناة التواصل المعتمدة وحدها — لا دردشة داخلية. */
-    expect(screen.getByText(/تواصل واتساب|اتصال مباشر/)).toBeTruthy();
+    /* Q38: خيارات المنتج تُعرض بسعرها وأقل كميتها وتوفرها. */
+    expect(screen.getByText(/حجم صغير/)).toBeTruthy();
+    expect(screen.getByTestId("market-variants").textContent).toContain("12 حبة");
+    /* د-1: لا رقم في أي مكان للزائر — زر الكشف الصريح فقط. */
+    expect(screen.queryByText(/\+962790000001/)).toBeNull();
+    expect(screen.queryByTestId("market-revealed-phone")).toBeNull();
+    expect(screen.getByRole("button", { name: /إظهار الرقم/ })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /أضف إلى السلة|اشترِ/ })).toBeNull();
   });
 });
 
 describe("market vendor workspace gating", () => {
+  it("reveals the supplier phone through the audited endpoint for a signed-in account (د-1)", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = String(input);
+      if (path.startsWith("/api/market/listings/lst_sample_1/reveal-phone")) {
+        if ((init?.method ?? "GET") !== "POST") return jsonResponse({}, 405);
+        return jsonResponse({ phone: "+962790000001", channelType: "phone", remainingToday: 9 });
+      }
+      if (path.startsWith("/api/market/listings/lst_sample_1")) {
+        return jsonResponse({
+          listing: {
+            id: "lst_sample_1",
+            title: "أكواب تغليف شفافة",
+            category: "packaging",
+            governorate: "عمان",
+            description: "وصف معتمد للنشر العام.",
+            priceMode: "fixed",
+            priceMicroJod: "1500000",
+            minQuantityMilli: "24000",
+            stepMilli: "12000",
+            quantityUnit: "حبة",
+            availabilityStatus: "available",
+            availabilityConfirmedAt: Date.now(),
+            freshness: "fresh",
+            contactChannelType: "phone",
+            variants: [],
+            publishedAt: Date.now() - 1000,
+          },
+          mediaIds: [],
+          vendor: {
+            displayName: "مورد معتمد",
+            governorate: "عمان",
+            supplierType: null,
+            deliveryOption: null,
+          },
+        });
+      }
+      if (path.startsWith("/api/auth/session"))
+        return jsonResponse({ authenticated: true, identity: { email: "buyer@example.test" } });
+      return jsonResponse({}, 404);
+    });
+    render(<MarketListingDetail />);
+    const revealButton = await screen.findByRole("button", { name: /إظهار الرقم/ });
+    fireEvent.click(revealButton);
+    const revealed = await screen.findByTestId("market-revealed-phone");
+    expect(revealed.textContent).toContain("+962790000001");
+    expect(revealed.textContent).toContain("9");
+  });
+
   it("requires an authenticated Micro session before any vendor data loads", async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       if (String(input).startsWith("/api/auth/session")) return jsonResponse({ authenticated: false });
@@ -178,7 +247,10 @@ describe("market vendor workspace gating", () => {
       }
       if (path.startsWith("/api/market/vendor/overview")) {
         return jsonResponse({
-          vendor: { status: "approved", supplierProfileId: "sp_1" },
+          vendor: { status: "active", supplierProfileId: "sp_1" },
+          termsAcceptedAt: 1,
+          termsVersion: "2026-11-21",
+          activatedAt: 1,
           listings: [
             {
               id: "lst_mine",

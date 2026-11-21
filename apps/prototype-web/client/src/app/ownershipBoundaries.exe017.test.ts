@@ -172,7 +172,15 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     const market = readRepoFile("../pages/Market.tsx");
     expect(market.includes("usePrototypeServices")).toBe(false);
     expect(market.includes("@/storage/local/")).toBe(false);
-    const allowedNetworkHomes = ["@/application/market", "@/application/network", "@/application/delivery"];
+    /* Post-Group 6 Wave 2 (DOC-041، 2026-11-21): أُضيف @/application/input —
+     * منقّط الأرقام ASCII الصرف (بلا تخزين ولا خدمة Manage) لفلتر «أقصى حد
+     * أدنى للطلب» (Q49/Q146)؛ حد الملكية نفسه بلا مساس. */
+    const allowedNetworkHomes = [
+      "@/application/market",
+      "@/application/network",
+      "@/application/delivery",
+      "@/application/input",
+    ];
     const applicationImports = [...market.matchAll(/from "(@\/application\/[^"]+)"/g)].map(match => match[1]);
     for (const imported of applicationImports) {
       expect(allowedNetworkHomes.some(home => imported.startsWith(home))).toBe(true);

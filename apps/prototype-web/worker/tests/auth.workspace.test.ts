@@ -172,31 +172,59 @@ describe("G01/AUTHZ-05 — explicit project creation and explicit context", () =
     expect(saved.status).toBe(201);
   });
 
-  it("vendor profile submit requires the explicit context and refuses a foreign workspace id", async () => {
+  it("vendor profile activation is automatic on completion + terms (no submit/review path — Wave 2)", async () => {
     const owner = await signInAs(worker, { sub: "vendor-submit-ctx", email: "vendorsubmit@example.test" });
     const workspaceId = await createWorkspace(worker, owner.cookieHeader, "مشروع التقديم");
-    await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile", {
+
+    // A partial profile (no supplier type / delivery / terms) stays a draft —
+    // the honest incomplete state, never a fake activation.
+    const partial = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد التقديم",
       contactPhone: "+962790000002",
       governorate: "عمان",
       workspaceId,
     });
+    expect(partial.status).toBe(201);
+    expect(((await partial.json()) as { profile: { status: string } }).profile.status).toBe("draft");
 
-    const noContext = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile/submit", {});
-    expect(noContext.status).toBe(400);
-    expect(((await noContext.json()) as { error: { code: string } }).error.code).toBe(
-      "workspace_context_required",
-    );
-
-    const foreign = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile/submit", {
-      workspaceId: "ws_someone_else",
-    });
-    expect(foreign.status).toBe(403);
-
-    const own = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile/submit", {
+    // The profile-review submission path is GONE (final decision Q4/Q28).
+    const gone = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile/submit", {
       workspaceId,
     });
-    expect(own.status).toBe(200);
+    expect(gone.status).toBe(404);
+
+    // The same request completing the profile + accepting the versioned terms
+    // activates the supplier immediately — no review anywhere.
+    const active = await apiPost(worker, owner.cookieHeader, "/api/market/vendor/profile", {
+      displayName: "مورد التقديم",
+      contactPhone: "+962790000002",
+      governorate: "عمان",
+      supplierType: "shop",
+      deliveryOption: "pickup_only",
+      termsAccepted: true,
+      workspaceId,
+    });
+    expect(active.status).toBe(200);
+    const activeBody = (await active.json()) as { profile: { status: string } };
+    expect(activeBody.profile.status).toBe("active");
+    const db = await rawDb(worker);
+    const row = await db
+      .prepare(
+        "SELECT status, terms_accepted_at, activated_at, supplier_type, delivery_option FROM supplier_profile WHERE identity_id = (SELECT id FROM network_identity WHERE email = ?)",
+      )
+      .bind("vendorsubmit@example.test")
+      .first<{
+        status: string;
+        terms_accepted_at: number | null;
+        activated_at: number | null;
+        supplier_type: string | null;
+        delivery_option: string | null;
+      }>();
+    expect(row!.status).toBe("active");
+    expect(row!.terms_accepted_at).not.toBeNull();
+    expect(row!.activated_at).not.toBeNull();
+    expect(row!.supplier_type).toBe("shop");
+    expect(row!.delivery_option).toBe("pickup_only");
   });
 });
 

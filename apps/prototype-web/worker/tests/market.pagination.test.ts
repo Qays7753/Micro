@@ -46,7 +46,13 @@ async function publishListing(title: string, pricing: Record<string, unknown>): 
     kind: "cover",
   });
   await apiPost(worker, vendorCookie, `/api/market/vendor/listings/${listing.id}/submit`, {});
-  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, { action: "approve" });
+  // Wave 2: the FIRST listing of this vendor needs the verification call;
+  // passing it always is a no-op for the later ones (the requirement is
+  // computed per-supplier server-side).
+  await apiPost(worker, adminCookie, `/api/market/review/listing/${listing.id}`, {
+    action: "approve",
+    verificationCall: { done: true },
+  });
   await apiPost(worker, adminCookie, `/api/market/review/media/${mediaBody.media.id}`, { action: "approve" });
   return listing.id;
 }
@@ -68,21 +74,19 @@ beforeAll(async () => {
   vendorCookie = (await signInAs(worker, { sub: "pg-vendor", email: "pg-vendor@example.test" })).cookieHeader;
   otherVendorCookie = (await signInAs(worker, { sub: "pg-other", email: "pg-other@example.test" }))
     .cookieHeader;
-  // Vendor profile first (the publication gate needs an approved file).
+  // Vendor profile first — Wave 2: complete + terms ACTIVATES (no review).
   const pgVendorWorkspaceId = await createWorkspace(worker, vendorCookie, "مشروع مورد الترقيم");
   const profileResponse = await apiPost(worker, vendorCookie, "/api/market/vendor/profile", {
     displayName: "مورد الترقيم",
     contactPhone: "+962790000001",
     governorate: "عمان",
+    supplierType: "manufacturer",
+    deliveryOption: "delivery",
+    termsAccepted: true,
     workspaceId: pgVendorWorkspaceId,
   });
-  const profile = (await profileResponse.json()) as { profile: { id: string } };
-  await apiPost(worker, vendorCookie, "/api/market/vendor/profile/submit", {
-    workspaceId: pgVendorWorkspaceId,
-  });
-  await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.profile.id}`, {
-    action: "approve",
-  });
+  const profile = (await profileResponse.json()) as { profile: { id: string; status: string } };
+  expect(profile.profile.status).toBe("active");
 });
 
 afterAll(async () => {

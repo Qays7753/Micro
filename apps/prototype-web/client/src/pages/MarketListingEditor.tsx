@@ -18,6 +18,7 @@ import {
   updateListingDraft,
   uploadListingImage,
   type ListingDraftInput,
+  type ListingVariant,
   type MarketMeta,
 } from "@/application/market";
 import { Button, Field, Notice } from "@/components/primitives";
@@ -56,6 +57,30 @@ function milliToQuantityText(milli: string | undefined): string {
   return fraction === "" ? whole.toString() : `${whole}.${fraction}`;
 }
 
+/** الموجة 2 (Q38): سطر خيار منتج في المحرر — نص دينار/كمية يُحوَّل عند البناء
+ * إلى مقاييس العقد (×1,000,000 للسعر و×1,000 للكمية) بلا float. */
+interface VariantRow {
+  id: string;
+  label: string;
+  priceJod: string;
+  minQuantity: string;
+  availability: "available" | "made_to_order" | "temporarily_unavailable";
+}
+
+const VARIANT_AVAILABILITY_OPTIONS = [
+  { value: "available", label: "متوفر" },
+  { value: "made_to_order", label: "بالطلب" },
+  { value: "temporarily_unavailable", label: "غير متوفر مؤقتًا" },
+] as const;
+
+const MAX_EDITOR_VARIANTS = 20;
+
+let variantIdCounter = 0;
+function nextVariantRowId(): string {
+  variantIdCounter += 1;
+  return `v${Date.now().toString(36)}${variantIdCounter}`;
+}
+
 export default function MarketListingEditor() {
   const [match] = useLocation();
   const [, navigate] = useLocation();
@@ -84,6 +109,12 @@ export default function MarketListingEditor() {
     minQuantity: "1",
     stepQuantity: "1",
   });
+  /* الموجة 2 (Q49/Q146): التصنيف الرئيسي المختار — الرئيسي يفتح قائمة
+   * الفرعيات، والإعلان يحمل معرّف الرئيسي أو الفرعي المختار. */
+  const [categoryMain, setCategoryMain] = useState("");
+  /* الموجة 2 (Q38): خيارات المنتج حتى 20 — لكل خيار سعره وأقل كمية طلبه
+   * وحالة توفره، وتُراجع مع محتوى الإعلان قبل النشر. */
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const [mediaIds, setMediaIds] = useState<string[]>([]);
   /* Stage C (S13/R1-10): إعلان مسعّر بشرائح لا يُحول صامتًا إلى سعر ثابت —
    * التسعير بالشرائح يُدار من التحديث المباشر في مساحة المورد؛ هذا
@@ -134,6 +165,18 @@ export default function MarketListingEditor() {
           stepQuantity: milliToQuantityText(listing.quantity?.stepMilli),
         }));
         setMediaIds(listing.mediaIds);
+        // الموجة 2: تعبئة الخيارات من نسخة العمل وتحديد الرئيسي من الشجرة.
+        if (Array.isArray(listing.variants)) {
+          setVariantRows(
+            (listing.variants as ListingVariant[]).map(variant => ({
+              id: variant.id,
+              label: variant.label,
+              priceJod: microToJodText(variant.priceMicroJod),
+              minQuantity: milliToQuantityText(variant.minQuantityMilli),
+              availability: variant.availability,
+            })),
+          );
+        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -163,6 +206,7 @@ export default function MarketListingEditor() {
     form.minQuantity,
     form.stepQuantity,
     mediaIds.length,
+    variantRows.length,
   ]);
   /* S12/F-15 (Stage C — أمر المالك 2026-11-14): تعذّر التحقق حالة مستقلة
    * قبل بوابة الدخول — انقطاع الشبكة لا يُعرض كأنه «غير مسجل». */
@@ -228,17 +272,49 @@ export default function MarketListingEditor() {
         unpacked: true,
       },
     };
+    /* الموجة 2 (Q38): بناء الخيارات — نفس مقاييس العقد، ورفض صادق عند
+     * أي سطر ناقص؛ لا يُرسل خيار بلا سعره وأقل كميته وحالة توفره. */
+    let variants: ListingVariant[] | undefined;
+    if (variantRows.length > 0) {
+      const built: ListingVariant[] = [];
+      const labels = new Set<string>();
+      for (const row of variantRows) {
+        const priceMicro = jodToMicro(row.priceJod);
+        const rowMinMilli = quantityToMilli(row.minQuantity);
+        const label = row.label.trim();
+        if (priceMicro === undefined || rowMinMilli === undefined || label === "") {
+          return { error: "كل خيار يحتاج اسمًا وسعرًا صحيحًا وأقل كمية صحيحة." };
+        }
+        if (labels.has(label)) {
+          return { error: "أسماء الخيارات يجب أن تكون مختلفة — لا تكرار." };
+        }
+        labels.add(label);
+        built.push({
+          id: row.id,
+          label,
+          priceMicroJod: priceMicro,
+          minQuantityMilli: rowMinMilli,
+          availability: row.availability,
+        });
+      }
+      variants = built;
+    }
     /* Stage C (S13/R1-10): إعلان مسعّر بشرائح — لا يُرسل التسعير أبدًا فلا
      * يُستبدل جدول الشرائح في نسخة العمل؛ الحقول الأخرى تُحفظ كما هي. */
     if (tieredOriginal && originalPricingRef.current !== null) {
       return {
-        input: { ...base, pricing: originalPricingRef.current as ListingDraftInput["pricing"] },
+        input: {
+          ...base,
+          pricing: originalPricingRef.current as ListingDraftInput["pricing"],
+          ...(variants !== undefined ? { variants } : {}),
+        },
         targetId: listingId,
       };
     }
     return {
       input: {
         ...base,
+        ...(variants !== undefined ? { variants } : {}),
         pricing:
           form.priceMode === "fixed"
             ? {
@@ -350,9 +426,17 @@ export default function MarketListingEditor() {
         <input value={form.title} onChange={event => update({ title: event.target.value })} />
       </Field>
       <div className="micro-editor-grid">
-        <Field label="التصنيف">
-          <select value={form.category} onChange={event => update({ category: event.target.value })}>
-            <option value="">اختر التصنيف</option>
+        {/* الموجة 2 (Q49/Q146): التصنيف الهرمي — الرئيسي ثم الفرعي تحت
+         * الرئيسي المختار؛ الإعلان يحمل المعرّف الأدق المختار. */}
+        <Field label="التصنيف الرئيسي">
+          <select
+            value={categoryMain}
+            onChange={event => {
+              setCategoryMain(event.target.value);
+              update({ category: event.target.value });
+            }}
+          >
+            <option value="">اختر التصنيف الرئيسي</option>
             {(meta?.categories ?? []).map(entry => (
               <option key={entry.id} value={entry.id}>
                 {entry.label}
@@ -360,6 +444,21 @@ export default function MarketListingEditor() {
             ))}
           </select>
         </Field>
+        {categoryMain !== "" &&
+        (meta?.categories ?? []).find(entry => entry.id === categoryMain)?.sub.length ? (
+          <Field label="التصنيف الفرعي (اختياري)">
+            <select value={form.category} onChange={event => update({ category: event.target.value })}>
+              <option value={categoryMain}>بلا تصنيف فرعي</option>
+              {(meta?.categories ?? [])
+                .find(entry => entry.id === categoryMain)!
+                .sub.map(sub => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.label}
+                  </option>
+                ))}
+            </select>
+          </Field>
+        ) : null}
         <Field label="المحافظة">
           <select value={form.governorate} onChange={event => update({ governorate: event.target.value })}>
             <option value="">اختر المحافظة</option>
@@ -450,6 +549,102 @@ export default function MarketListingEditor() {
           />
         </Field>
       </div>
+
+      {/* الموجة 2 (Q38 — القرار النهائي): خيارات المنتج حتى 20 — لكل خيار
+       * سعره وأقل كمية طلبه وحالة توفره؛ تُراجع مع محتوى الإعلان قبل النشر. */}
+      <h2>خيارات المنتج (اختياري — حتى 20 خيارًا)</h2>
+      {variantRows.length === 0 ? (
+        <p className="micro-editor-hint">أضف خيارات (حجم/لون/نوع) إذا اختلف السعر أو الكمية بينها.</p>
+      ) : null}
+      <ul className="micro-variant-rows" data-testid="variant-rows">
+        {variantRows.map((row, index) => (
+          <li key={row.id}>
+            <label>
+              اسم الخيار
+              <input
+                value={row.label}
+                onChange={event =>
+                  setVariantRows(current =>
+                    current.map((entry, position) =>
+                      position === index ? { ...entry, label: event.target.value } : entry,
+                    ),
+                  )
+                }
+              />
+            </label>
+            <label>
+              السعر (د.أ)
+              <input
+                value={row.priceJod}
+                onChange={event =>
+                  setVariantRows(current =>
+                    current.map((entry, position) =>
+                      position === index ? { ...entry, priceJod: event.target.value } : entry,
+                    ),
+                  )
+                }
+                inputMode="decimal"
+              />
+            </label>
+            <label>
+              أقل كمية
+              <input
+                value={row.minQuantity}
+                onChange={event =>
+                  setVariantRows(current =>
+                    current.map((entry, position) =>
+                      position === index ? { ...entry, minQuantity: event.target.value } : entry,
+                    ),
+                  )
+                }
+                inputMode="decimal"
+              />
+            </label>
+            <label>
+              التوفر
+              <select
+                value={row.availability}
+                onChange={event =>
+                  setVariantRows(current =>
+                    current.map((entry, position) =>
+                      position === index
+                        ? { ...entry, availability: event.target.value as VariantRow["availability"] }
+                        : entry,
+                    ),
+                  )
+                }
+              >
+                {VARIANT_AVAILABILITY_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              action="quiet"
+              onClick={() => setVariantRows(current => current.filter((_, position) => position !== index))}
+            >
+              حذف
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {variantRows.length < MAX_EDITOR_VARIANTS ? (
+        <Button
+          action="outline"
+          onClick={() =>
+            setVariantRows(current => [
+              ...current,
+              { id: nextVariantRowId(), label: "", priceJod: "", minQuantity: "", availability: "available" },
+            ])
+          }
+        >
+          إضافة خيار
+        </Button>
+      ) : (
+        <p className="micro-editor-hint">بلغت الحد الأقصى — 20 خيارًا لكل إعلان.</p>
+      )}
 
       <h2>الصور (خاصة حتى القبول)</h2>
       <input

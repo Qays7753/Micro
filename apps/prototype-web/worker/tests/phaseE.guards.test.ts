@@ -170,25 +170,18 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
     // Publish ONE listing through the honest gate while market is enabled —
     // bookmarks may only ever touch PUBLISHED data (OD-04/OD-09), so the
     // keep-available assertions need a genuinely published listing.
+    // Wave 2: complete + terms ACTIVATES the supplier (no review anywhere).
     const profileSaved = await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile", {
       displayName: "مورد التغطية",
       contactPhone: "+962790000130",
       governorate: "عمان",
+      supplierType: "shop",
+      deliveryOption: "delivery",
+      termsAccepted: true,
       workspaceId: peV9Workspace,
     });
     expect(profileSaved.status).toBe(201);
-    const { profile } = (await profileSaved.json()) as { profile: { id: string } };
-    expect(
-      (
-        await apiPost(worker, vendor.cookieHeader, "/api/market/vendor/profile/submit", {
-          workspaceId: peV9Workspace,
-        })
-      ).status,
-    ).toBe(200);
-    expect(
-      (await apiPost(worker, adminCookie, `/api/market/review/profile/${profile.id}`, { action: "approve" }))
-        .status,
-    ).toBe(200);
+    expect(((await profileSaved.json()) as { profile: { status: string } }).profile.status).toBe("active");
     const publishablePayload = {
       title: "كرتون تغليف متين للاختبار",
       category: "packaging",
@@ -211,13 +204,17 @@ describe("F-25: global module kill-switch — business actions fail closed, entr
       (await apiPost(worker, vendor.cookieHeader, `/api/market/vendor/listings/${listingA.id}/submit`, {}))
         .status,
     ).toBe(200);
-    // First approve = content; with the profile already approved and NO
-    // pending media attached, the same call passes the publication gate and
-    // publishes atomically (spec §7.4 — with pending media it would stop at
-    // content_approved instead).
+    // First approve = content + the FIRST-listing verification call (Wave 2);
+    // with an ACTIVE supplier and NO pending media attached, the same call
+    // passes the publication gate and publishes atomically (spec §7.4 — with
+    // pending media it would stop at content_approved instead).
     expect(
-      (await apiPost(worker, adminCookie, `/api/market/review/listing/${listingA.id}`, { action: "approve" }))
-        .status,
+      (
+        await apiPost(worker, adminCookie, `/api/market/review/listing/${listingA.id}`, {
+          action: "approve",
+          verificationCall: { done: true },
+        })
+      ).status,
     ).toBe(200);
     expect((await apiGet(worker, null, `/api/market/listings/${listingA.id}`)).status).toBe(200);
     // A SECOND listing stays a draft — the non-entry write to block below.
@@ -321,11 +318,22 @@ describe("F-08: a multi-hat admin cannot review their own records", () => {
       .bind(adminId)
       .first<{ id: string; status: string }>();
     expect(profileRow?.status).toBe("submitted");
+    // Wave 2: profile review is abolished — the remaining administrative
+    // actions are suspend/unsuspend, and the self-review guard still refuses
+    // the multi-hat admin deciding their own record.
     const review = await apiPost(worker, adminCookie, `/api/market/review/profile/${profileRow!.id}`, {
       action: "approve",
     });
-    expect(review.status).toBe(403);
-    const body = (await review.json()) as { error: { code: string; message: string } };
+    expect(review.status).toBe(400);
+    expect(((await review.json()) as { error: { details: { reason: string } } }).error.details.reason).toBe(
+      "profile_review_abolished_admin_actions_only",
+    );
+    const selfSuspend = await apiPost(worker, adminCookie, `/api/market/review/profile/${profileRow!.id}`, {
+      action: "suspend",
+      reason: "إيقاف ذاتي مرفوض",
+    });
+    expect(selfSuspend.status).toBe(403);
+    const body = (await selfSuspend.json()) as { error: { code: string; message: string } };
     expect(body.error.code).toBe("self_review_forbidden");
     expect(body.error.message).toContain("سجلك الخاص");
     // The record was NOT decided by the refusal.
@@ -334,10 +342,11 @@ describe("F-08: a multi-hat admin cannot review their own records", () => {
       .bind(profileRow!.id)
       .first<{ status: string }>();
     expect(after?.status).toBe("submitted");
-    // A DIFFERENT admin reviews the same profile fine.
+    // A DIFFERENT admin suspends the same record fine (the honest action).
     const admin2 = await makeAdmin("pe-admin2@example.test");
     const ok = await apiPost(worker, admin2, `/api/market/review/profile/${profileRow!.id}`, {
-      action: "approve",
+      action: "suspend",
+      reason: "إيقاف إداري من مشرف آخر",
     });
     expect(ok.status).toBe(200);
   });

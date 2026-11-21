@@ -2,13 +2,18 @@
  * Market review API (admin/reviewer — contract 20 §3.4, contract 22).
  * Reviewer decisions are administrative only: approve / request changes /
  * reject / suspend, each with actor, timestamp, reason and status history.
- * Publication is an ATOMIC gate (spec §7): the supplier file, the listing
- * content copy, and every attached image must all be approved; the last
- * approval re-verifies everything before anything becomes public.
+ * Publication is an ATOMIC gate (spec §7): an ACTIVE supplier (final decision
+ * 2026-11-21 — activation is automatic on profile completion + terms, NO
+ * profile review), the listing content copy, and every attached image must
+ * all be approved; the last approval re-verifies everything before anything
+ * becomes public. The supplier's FIRST listing additionally requires the
+ * reviewer-recorded verification call (final decision ب-قواعد + the approved
+ * counting rule §8-4) — the gate refuses to publish without it.
  */
 
 import { audit, notify } from "../audit.ts";
 import { nowMs } from "../clock.ts";
+import { effectiveMinQuantityMilli, type ListingVariant } from "../domain/market.ts";
 import type { Db } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
@@ -49,12 +54,15 @@ function requireNotOwnRecord(authIdentityId: string, ownerIdentityId: string): v
   }
 }
 
-/** GET /api/market/review/queue — pending profiles, listings, media, reports. */
+/** GET /api/market/review/queue — pending listings, media, reports + the
+ * active/suspended suppliers (no profile review queue anymore — final
+ * decision Q4/Q28 abolishes profile moderation; the supplier list stays for
+ * the administrative suspend/unsuspend workflow, Q129). */
 export async function reviewQueue(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
   const profiles = await db(ctx)
     .prepare(
-      "SELECT id, identity_id, status, work_copy_json, submitted_at FROM supplier_profile WHERE status = 'submitted' ORDER BY submitted_at",
+      "SELECT id, identity_id, status, public_copy_json, work_copy_json, activated_at FROM supplier_profile WHERE status IN ('active','suspended') ORDER BY activated_at",
     )
     .all<Record<string, unknown>>();
   const listings = await db(ctx)
@@ -84,13 +92,17 @@ export async function reviewQueue(ctx: RouteContext, auth: AuthenticatedContext)
 }
 
 /**
- * Publication gate: publish iff profile approved AND listing content approved
- * AND every attached media approved. Runs inside one atomic batch.
+ * Publication gate: publish iff the supplier is ACTIVE (auto-activation, no
+ * profile review) AND the listing content is approved AND every attached
+ * media is approved — AND, for the supplier's FIRST publication, the
+ * reviewer-recorded verification call exists (final decision: أول إعلان
+ * يرافقه اتصال تحقق). Runs inside one atomic batch.
  */
 async function tryPublish(db: Db, listingId: string, now: number): Promise<boolean> {
   const listing = await db
     .prepare(
-      "SELECT id, supplier_profile_id, status, revision_status, work_copy_json FROM supplier_listing WHERE id = ?",
+      "SELECT id, supplier_profile_id, status, revision_status, verification_call_at, published_at, work_copy_json, " +
+        "category, price_mode, price_micro_jod, min_quantity_milli, quantity_step_milli FROM supplier_listing WHERE id = ?",
     )
     .bind(listingId)
     .first<Record<string, unknown>>();
@@ -99,9 +111,20 @@ async function tryPublish(db: Db, listingId: string, now: number): Promise<boole
     .prepare("SELECT status FROM supplier_profile WHERE id = ?")
     .bind(String(listing.supplier_profile_id))
     .first<Record<string, unknown>>();
-  if (!profile || String(profile.status) !== "approved") return false;
+  if (!profile || String(profile.status) !== "active") return false;
   // Content must be explicitly approved by a reviewer first (spec §7.4).
   if (String(listing.revision_status) !== "content_approved") return false;
+  // First publication requires the recorded verification call (the gate the
+  // launch-threshold counting rule depends on — prompt §8 decision 4).
+  if (listing.published_at === null) {
+    const otherPublished = await db
+      .prepare(
+        "SELECT 1 AS ok FROM supplier_listing WHERE supplier_profile_id = ? AND id != ? AND status = 'approved_for_publish' AND published_at IS NOT NULL",
+      )
+      .bind(String(listing.supplier_profile_id), listingId)
+      .first();
+    if (otherPublished === null && listing.verification_call_at === null) return false;
+  }
   const pendingMedia = await db
     .prepare(
       "SELECT COUNT(*) AS n FROM listing_media lm JOIN media_object m ON m.id = lm.media_id " +
@@ -110,27 +133,47 @@ async function tryPublish(db: Db, listingId: string, now: number): Promise<boole
     .bind(listingId)
     .first<Record<string, unknown>>();
   if (Number(pendingMedia?.n ?? 0) > 0) return false;
+  // Denormalized columns refresh from the APPROVED work copy (Reviewer 1,
+  // 2026-11-12) — Wave 2 adds category and the variant-aware effective
+  // minimum so the browse filters can never diverge from the reviewed copy.
+  const work = JSON.parse(String(listing.work_copy_json)) as {
+    category?: string;
+    pricing?: { mode?: string; priceMicroJod?: string };
+    quantity?: { minQuantityMilli?: string; stepMilli?: string };
+    variants?: ListingVariant[];
+  };
+  const effectiveMin = effectiveMinQuantityMilli(
+    work.quantity?.minQuantityMilli ?? String(listing.min_quantity_milli),
+    work.variants,
+  );
   await db
     .prepare(
       "UPDATE supplier_listing SET status = 'approved_for_publish', " +
         "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
         "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
-        // Denormalized price/quantity columns are refreshed from the approved
-        // work copy exactly like the revision-approve path — the public price
-        // must never diverge from the reviewed copy (Reviewer 1, 2026-11-12).
+        "category = COALESCE(?, category), " +
         "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
         "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
-        "min_quantity_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,minQuantityMilli}', min_quantity_milli), " +
+        "min_quantity_milli = ?, " +
         "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
         "public_copy_json = work_copy_json, published_at = COALESCE(published_at, ?), freshness_state = 'fresh', " +
         "revision_status = 'none', reviewed_at = ?, updated_at = ? WHERE id = ?",
     )
-    .bind(now, now, now, listingId)
+    .bind(work.category ?? null, effectiveMin, now, now, now, listingId)
     .run();
   return true;
 }
 
-/** POST /api/market/review/profile/:id — approve/changes_requested/reject. */
+/**
+ * POST /api/market/review/profile/:id — administrative supplier actions ONLY
+ * (final decision Q4/Q28: profile moderation is ABOLISHED — the approve /
+ * changes_requested / reject actions are gone; the supplier activates on
+ * profile completion + terms). What remains is the honest administrative
+ * pair: suspend (with a required reason — the supplier's listings disappear
+ * from the public browse immediately because browse requires an ACTIVE
+ * supplier) and unsuspend (back to active — the profile was complete when it
+ * activated; suspension never destroyed the work copy).
+ */
 export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
   const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
@@ -139,11 +182,14 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
     typeof body.reason === "string" && body.reason.trim().length > 0
       ? body.reason.trim().slice(0, 1000)
       : null;
-  if (action !== "approve" && (action === "changes_requested" || action === "reject") && !reason) {
-    throw new HttpError(400, "bad_request", { field: "reason" });
+  if (!["suspend", "unsuspend"].includes(action ?? "")) {
+    throw new HttpError(400, "bad_request", {
+      field: "action",
+      reason: "profile_review_abolished_admin_actions_only",
+    });
   }
-  if (!["approve", "changes_requested", "reject", "suspend", "unsuspend"].includes(action ?? "")) {
-    throw new HttpError(400, "bad_request", { field: "action" });
+  if (action === "suspend" && !reason) {
+    throw new HttpError(400, "bad_request", { field: "reason" });
   }
   const now = nowMs();
   const profile = await db(ctx)
@@ -154,31 +200,7 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
   const profileId = String(profile.id);
   const vendorIdentityId = String(profile.identity_id);
   requireNotOwnRecord(auth.identityId, vendorIdentityId);
-  if (action === "approve") {
-    await db(ctx)
-      .prepare(
-        "UPDATE supplier_profile SET status = 'approved', public_copy_json = work_copy_json, reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
-      )
-      .bind(auth.identityId, now, now, profileId)
-      .run();
-    // Publication gate for listings whose content already passed review.
-    const pending = await db(ctx)
-      .prepare(
-        "SELECT id FROM supplier_listing WHERE supplier_profile_id = ? AND revision_status = 'content_approved'",
-      )
-      .bind(profileId)
-      .all<Record<string, unknown>>();
-    for (const row of pending.results) {
-      await tryPublish(db(ctx), String(row.id), now);
-    }
-  } else if (action === "changes_requested" || action === "reject") {
-    await db(ctx)
-      .prepare(
-        "UPDATE supplier_profile SET status = ?, review_reason = ?, reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
-      )
-      .bind(action, reason, auth.identityId, now, now, profileId)
-      .run();
-  } else if (action === "suspend") {
+  if (action === "suspend") {
     await db(ctx)
       .prepare(
         "UPDATE supplier_profile SET status = 'suspended', review_reason = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
@@ -187,9 +209,7 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
       .run();
   } else {
     await db(ctx)
-      .prepare(
-        "UPDATE supplier_profile SET status = 'approved', reviewed_at = ?, updated_at = ? WHERE id = ?",
-      )
+      .prepare("UPDATE supplier_profile SET status = 'active', reviewed_at = ?, updated_at = ? WHERE id = ?")
       .bind(now, now, profileId)
       .run();
   }
@@ -223,7 +243,11 @@ export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContex
 /** POST /api/market/review/listing/:id — approve/changes_requested/reject/suspend. */
 export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
-  const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
+  const body = (await readJsonBody(ctx.request)) as {
+    action?: string;
+    reason?: string;
+    verificationCall?: { done?: boolean; note?: string };
+  };
   const action = body.action;
   const reason =
     typeof body.reason === "string" && body.reason.trim().length > 0
@@ -238,7 +262,7 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
   const now = nowMs();
   const listing = await db(ctx)
     .prepare(
-      "SELECT id, identity_id, supplier_profile_id, status, revision_status FROM supplier_listing WHERE id = ?",
+      "SELECT id, identity_id, supplier_profile_id, status, revision_status, verification_call_at, published_at FROM supplier_listing WHERE id = ?",
     )
     .bind(ctx.params.id!)
     .first<Record<string, unknown>>();
@@ -249,6 +273,47 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
   const status = String(listing.status);
   const revisionStatus = String(listing.revision_status);
   if (action === "approve") {
+    // First-listing verification call (final decision ب-قواعد: أول إعلان
+    // يرافقه اتصال تحقق من المشرف): when this approval would be the
+    // supplier's FIRST publication, the reviewer must record the
+    // verification call in the SAME approval — the publication gate refuses
+    // to publish without it, so the honest refusal happens here with a clear
+    // reason instead of a silently stuck queue entry.
+    if (status === "submitted" && listing.published_at === null && listing.verification_call_at === null) {
+      const otherPublished = await db(ctx)
+        .prepare(
+          "SELECT 1 AS ok FROM supplier_listing WHERE supplier_profile_id = ? AND id != ? AND status = 'approved_for_publish' AND published_at IS NOT NULL",
+        )
+        .bind(String(listing.supplier_profile_id), listingId)
+        .first();
+      if (otherPublished === null) {
+        if (body.verificationCall?.done !== true) {
+          throw new HttpError(400, "bad_request", {
+            field: "verificationCall",
+            reason: "verification_call_required_for_first_listing",
+          });
+        }
+        const note =
+          typeof body.verificationCall.note === "string" && body.verificationCall.note.trim().length > 0
+            ? body.verificationCall.note.trim().slice(0, 500)
+            : null;
+        await db(ctx)
+          .prepare(
+            "UPDATE supplier_listing SET verification_call_at = ?, verification_call_note = ?, updated_at = ? WHERE id = ?",
+          )
+          .bind(now, note, now, listingId)
+          .run();
+        await moderationEvent(
+          db(ctx),
+          "supplier_listing",
+          listingId,
+          auth.identityId,
+          "first_listing_verification_call",
+          note,
+          now,
+        );
+      }
+    }
     if (status === "submitted") {
       if (revisionStatus === "content_approved") {
         const published = await tryPublish(db(ctx), listingId, now);
@@ -272,19 +337,53 @@ export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContex
       // Content revision approved: promote the work copy atomically. When the
       // listing was hidden for staleness, this approval IS the OD-11 renewal
       // (availability re-confirmed through review; published_at is preserved).
+      // Wave 2: category and the variant-aware effective minimum refresh from
+      // the approved copy too.
+      const revisionWork = JSON.parse(
+        String(
+          (
+            await db(ctx)
+              .prepare("SELECT work_copy_json FROM supplier_listing WHERE id = ?")
+              .bind(listingId)
+              .first<Record<string, unknown>>()
+          )?.work_copy_json ?? "{}",
+        ),
+      ) as {
+        category?: string;
+        quantity?: { minQuantityMilli?: string };
+        variants?: ListingVariant[];
+      };
+      const currentRow = await db(ctx)
+        .prepare("SELECT min_quantity_milli FROM supplier_listing WHERE id = ?")
+        .bind(listingId)
+        .first<Record<string, unknown>>();
+      const revisionEffectiveMin = effectiveMinQuantityMilli(
+        revisionWork.quantity?.minQuantityMilli ?? String(currentRow?.min_quantity_milli ?? "0"),
+        revisionWork.variants,
+      );
       await db(ctx)
         .prepare(
           "UPDATE supplier_listing SET public_copy_json = work_copy_json, revision_status = 'none', " +
             "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
             "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
+            "category = COALESCE(?, category), " +
             "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
             "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
-            "min_quantity_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,minQuantityMilli}', min_quantity_milli), " +
+            "min_quantity_milli = ?, " +
             "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
             "availability_confirmed_at = CASE WHEN availability_confirmed_at < ? THEN ? ELSE availability_confirmed_at END, " +
             "freshness_state = 'fresh', reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
         )
-        .bind(now - LISTING_FRESHNESS_HIDE_MS, now, auth.identityId, now, now, listingId)
+        .bind(
+          revisionWork.category ?? null,
+          revisionEffectiveMin,
+          now - LISTING_FRESHNESS_HIDE_MS,
+          now,
+          auth.identityId,
+          now,
+          now,
+          listingId,
+        )
         .run();
     } else {
       throw new HttpError(409, "conflict", { reason: `listing_status_${status}` });

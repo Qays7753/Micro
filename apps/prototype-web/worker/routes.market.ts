@@ -6,8 +6,9 @@ import {
   checkQuantity,
   listingDetail,
   marketMeta,
+  marketOpsCounts,
+  revealSupplierPhone,
   saveVendorProfile,
-  submitVendorProfile,
   vendorOverview,
 } from "./api/market.ts";
 import {
@@ -47,12 +48,22 @@ export function registerMarketRoutes(router: ApiRouter): void {
       moduleGated("market", (ctx, auth) => saveVendorProfile(ctx, auth)),
     ),
   );
+  // Wave 2 (approved decision §8-3): the supplier phone reveal — ANY
+  // authenticated account (including one with no active role; the decision
+  // forbids an active-role gate), so this is authedRoute, NOT moduleGated.
   router.post(
-    "api/market/vendor/profile/submit",
+    "api/market/listings/:id/reveal-phone",
     command(
-      "vendor-profile-submit",
-      moduleGated("market", (ctx, auth) => submitVendorProfile(ctx, auth)),
+      "market-reveal-phone",
+      authedRoute((ctx, auth) => revealSupplierPhone(ctx, auth)),
     ),
+  );
+  // Wave 2 (Q154): admin-only operational counts (the launch-threshold
+  // counting rule is the documented query — never a threshold-satisfied
+  // claim from synthetic data).
+  router.get(
+    "api/market/admin/ops-counts",
+    authedRoute((ctx, auth) => marketOpsCounts(ctx, auth)),
   );
   router.post(
     "api/market/vendor/listings",

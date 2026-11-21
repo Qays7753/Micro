@@ -400,7 +400,10 @@ CAPS: dict[str, int] = {
     # Market first measurement (2026-09-16, product-journey package NAV-001): the
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
-    "Market": 13,
+    # Market 13 -> 20 (2026-11-21, Post-Group 6 Wave 2/DOC-041, owner order
+    # ab08ec74): فلاتر القرار النهائي الإلزامية — نوع المورد وطريقة التسليم
+    # وأقصى حد أدنى والتصنيف الهرمي رئيسي/فرعي (Q49/Q146)؛ لا نص محذوف.
+    "Market": 20,
     # UNIT-043 (S16 — أول قياس): صفحة التوصيل إعلان قريبًا بنمط السوق نفسه.
     # Delivery 13 -> 22 (التوسعة الشبكية EX-D18، 2026-11-12): الصفحة صارت بيت
     # صاحب المشروع الفعلي — قائمة الحجوزات الحقيقية بالتسميات الكانونية +
@@ -471,10 +474,19 @@ CAPS: dict[str, int] = {
     # على بطاقة الوارد نفسها قبل قرار القبول — من وحدة bookingSummaryText
     # المستقلة (المحافظتان والموعد فقط، لا عناوين تفصيلية)؛ لا نص محذوف.
     "DriverPortal": 141,
-    "MarketListingDetail": 20,
-    "MarketListingEditor": 45,
+    # MarketListingDetail 20 -> 23 (2026-11-21, Post-Group 6 Wave 2/DOC-041,
+    # owner order ab08ec74): تسميات إلزامية بالقرار النهائي — زر «إظهار الرقم»
+    # وحالته الصادقة (د-1) وجدول خيارات المنتج (Q38) وزر البلاغ الموصول (د-8)؛
+    # لا نص محذوف.
+    "MarketListingDetail": 23,
+    # MarketListingEditor 45 -> 47 (2026-11-21, Post-Group 6 Wave 2/DOC-041):
+    # منتقي التصنيف الهرمي رئيسي/فرعي (Q146) وعنوان قسم خيارات المنتج (Q38).
+    "MarketListingEditor": 47,
     "MarketReview": 40,
-    "MarketVendorWorkspace": 58,
+    # MarketVendorWorkspace 58 -> 66 (2026-11-21, Post-Group 6 Wave 2/DOC-041):
+    # حقول نوع النشاط وطريقة التسليم والموافقة على الشارات بإصدارها وحالة
+    # التفعيل الصادقة بلا مراجعة ملف (ب-قواعد/Q4/Q28/Q49/د-10)؛ لا نص محذوف.
+    "MarketVendorWorkspace": 66,
     # ── طابور مراجعة التوصيل (إغلاق فجوات §17 — 2026-11-12، مطالبة WS-249):
     # أول قياس — طابور إداري للمراجع المخول: طلبات السائقين وإثباتاتهم
     # ومركباتهم وتعليقات النجوم بتسميات كاملة وأسباب موثقة (OD17/OD22/OD28–OD31). ──
