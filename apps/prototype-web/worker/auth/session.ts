@@ -55,7 +55,12 @@ export async function resolveSession(
     .prepare(
       "SELECT s.id AS session_id, s.expires_at, i.id AS identity_id, i.google_sub, i.email, " +
         "i.display_name, i.picture_url, i.last_seen_at, " +
-        "(SELECT COUNT(*) FROM network_membership m WHERE m.identity_id = i.id AND m.role = 'admin' AND m.status = 'active') AS is_admin " +
+        "(SELECT COUNT(*) FROM network_membership m WHERE m.identity_id = i.id AND m.role = 'admin' AND m.status = 'active') AS is_admin, " +
+        /* Post-Group 6 continuous completion (G02 — Q129 «إيقاف هوية كاملة
+         * بسبب»): هوية موقوفة تفشل مغلقة عند كل طلب — حتى لو بقيت جلسة
+         * غير ملغاة (الإيقاف نفسه يلغي كل الجلسات؛ هذا الحاجز احتياط
+         * صارم لا مصدر الحقيقة). */
+        "(SELECT COUNT(*) FROM identity_suspension sus WHERE sus.identity_id = i.id AND sus.lifted_at IS NULL) AS suspended " +
         "FROM network_session s JOIN network_identity i ON i.id = s.identity_id " +
         "WHERE s.token_hash = ? AND s.revoked_at IS NULL",
     )
@@ -63,6 +68,7 @@ export async function resolveSession(
     .first<Record<string, unknown>>();
   if (!row) return null;
   if (Number(row.expires_at) <= now) return null;
+  if (Number(row.suspended) > 0) return null;
   return {
     identityId: String(row.identity_id),
     email: String(row.email),

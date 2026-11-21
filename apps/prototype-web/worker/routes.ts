@@ -33,6 +33,13 @@ import {
 import { askQuestion, askStatus } from "./api/ask.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
+import {
+  adminCancelBooking,
+  adminDecisionsLog,
+  adminPanelQueues,
+  adminUserSearch,
+  suspendIdentity,
+} from "./api/adminPanel.ts";
 import { registerPushSubscription, removePushSubscription } from "./webPush.ts";
 
 /** Resolve the session then run the handler with it (uniform auth guard). */
@@ -221,6 +228,36 @@ export function buildRouter(): ApiRouter {
     command(
       "driver-role-remove",
       authedRoute((ctx, auth) => removeDriverRole(ctx, auth)),
+    ),
+  );
+  // Post-Group 6 continuous completion (G02 — Q129): the Platform Admin
+  // panel — a separate unit (this API module + the /admin client unit),
+  // server-protected on every route, admin-only, audited on the
+  // consequential actions, with NO Manage financial access anywhere.
+  router.get(
+    "api/admin/panel/queues",
+    authedRoute((ctx, auth) => adminPanelQueues(ctx, auth)),
+  );
+  router.get(
+    "api/admin/panel/user-search",
+    authedRoute((ctx, auth) => adminUserSearch(ctx, auth)),
+  );
+  router.get(
+    "api/admin/panel/decisions",
+    authedRoute((ctx, auth) => adminDecisionsLog(ctx, auth)),
+  );
+  router.post(
+    "api/admin/panel/identities/:id/suspend",
+    command(
+      "admin-identity-suspend",
+      authedRoute((ctx, auth) => suspendIdentity(ctx, auth)),
+    ),
+  );
+  router.post(
+    "api/admin/panel/delivery/requests/:id/admin-cancel",
+    command(
+      "admin-booking-cancel",
+      authedRoute((ctx, auth) => adminCancelBooking(ctx, auth)),
     ),
   );
   registerMarketRoutes(router);

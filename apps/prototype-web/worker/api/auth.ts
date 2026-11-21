@@ -207,6 +207,27 @@ export async function googleCallback(
     );
   }
   const identityId = await upsertIdentity(db, idTokenPayload, now, newId("idn", randomToken));
+  /* Post-Group 6 continuous completion (G02 — Q129 «إيقاف هوية كاملة
+   * بسبب»): الهوية الموقوفة لا تفتح جلسة جديدة أبدًا — الرفض الصادق
+   * يعرض السبب نفسه بلا تفاصيل أخرى. */
+  const suspension = await db
+    .prepare("SELECT reason FROM identity_suspension WHERE identity_id = ? AND lifted_at IS NULL")
+    .bind(identityId)
+    .first<Record<string, unknown>>();
+  if (suspension) {
+    await audit(
+      db,
+      {
+        actorIdentityId: identityId,
+        action: "signin_suspended_refused",
+        objectType: "network_identity",
+        objectId: identityId,
+        result: "denied",
+      },
+      now,
+    );
+    return signInErrorPage(403, "حسابك موقوف حاليًا بقرار إداري. السبب المسجل: " + String(suspension.reason));
+  }
   const bootstrapped = await bootstrapFirstAdmin(
     db,
     identityId,
