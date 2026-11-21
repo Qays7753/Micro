@@ -12086,6 +12086,25 @@
         "trigger": "post-group6-wave5-guards",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-21-badge-decision-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 385,
+        "band": "NORMAL"
+      },
+      "reason": "The approved 2026-11-21 supplier-badge decision (order §8-1): the public Market hero no longer describes suppliers as «معتمدين» nor claims nationwide coverage — only the listing is described as published after listing review. +3 nbLOC is the in-code decision reference comment on the rephrased hero line (commit 39414309).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — the approved supplier-badge decision §8-1 applied under WS-251/DOC-041 with this same-PR documented re-anchor",
+        "trigger": "post-group6-w2-badge-decision",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }
