@@ -208,11 +208,18 @@ async function purgeAskHistoryExpired(now: number): Promise<void> {
     const index = transaction.objectStore(askHistoryStore).index("askedAt");
     const range = IDBKeyRange.upperBound(now - ASK_HISTORY_MAX_AGE_MS, true);
     const request = index.openCursor(range);
+    /* R9-GA-F7: مستمع النجاح محروس — أي فشل في حذف المنتهي يُبتلع بصدق
+     * (القراءة تُرشِّح بالنافذة أيضًا فلا يُعاد أبدًا ما تجاوز الـ٢١ يومًا). */
     request.onsuccess = () => {
-      const cursor = request.result;
-      if (cursor === null) return;
-      cursor.delete();
-      cursor.continue();
+      try {
+        const cursor = request.result;
+        if (cursor === null) return;
+        cursor.delete();
+        cursor.continue();
+      } catch {
+        /* الفشل هنا لا يفسد العملية الأساسية — الحد يُطبَّق مرة أخرى
+         * عند القراءة/الحفظ التاليين داخل نافذة التصفية. */
+      }
     };
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => resolve();
@@ -523,11 +530,17 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
          * للجهاز يُنفَّذ عند حد الكتابة نفسه (الطلبات تنفَّذ بترتيب إصدارها
          * داخل المعاملة فالإحصاء يرى المحفوظ الجديد). */
         const enumerated = store.getAll();
+        /* R9-GA-F7: مستمع النجاح محروس — حذف الأقدم من حد العناصر داخل
+         * المعاملة نفسها؛ أي فشل لا يفسد الحفظ الأساسي. */
         enumerated.onsuccess = () => {
-          const retained = (enumerated.result as AskHistoryEntry[])
-            .sort((left, right) => right.askedAt - left.askedAt)
-            .slice(ASK_HISTORY_MAX_ENTRIES);
-          for (const expired of retained) store.delete(expired.id);
+          try {
+            const retained = (enumerated.result as AskHistoryEntry[])
+              .sort((left, right) => right.askedAt - left.askedAt)
+              .slice(ASK_HISTORY_MAX_ENTRIES);
+            for (const expired of retained) store.delete(expired.id);
+          } catch {
+            /* الحد يُطبَّق مرة أخرى عند الحفظ التالي داخل المعاملة الجديدة. */
+          }
         };
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
