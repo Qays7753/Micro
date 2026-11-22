@@ -194,7 +194,7 @@
 ## 11. خريطة الوحدات/الوصول/التخزين المستهدفة (لهوية Micro واحدة)
 
 ```
-هوية Micro واحدة (Google OIDC — كما هي) 
+هوية Micro واحدة (Google OIDC — كما هي)
   └─ principal/session (PostgreSQL عبر Hyperdrive؛ نفس نمط التجزئة SHA-256 بلا سر توقيع)
       ├─ Workspace لكل عمل + عضوية بدور (owner/supplier/driver/admin مراجع) — فرض خادمي في كل مسار
       │    ├─ Market (PostgreSQL؛ عزل منطقي بقيود/أدوار/اختبارات سلبية)
