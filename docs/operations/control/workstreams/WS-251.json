@@ -1,7 +1,7 @@
 {
  "id": "WS-251",
  "title": "ما بعد المجموعة ٦ — معالجة فجوات القرارات النهائية 2026-11-21 والنتائج الأمنية المفتوحة القابلة للتنفيذ (أمر المالك POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e)",
- "status": "IN_PROGRESS",
+ "status": "REVIEW_REQUIRED",
  "items": [
   "DOC-041"
  ],
@@ -50,7 +50,7 @@
  "pr": null,
  "started_at": "2026-11-21",
  "updated_at": "2026-11-22",
- "next_action": "تنفيذ موجات المرحلة الثانية من رأس الملحق e4ad9051 على الفرع نفسه (البند DOC-041 في IN_PROGRESS)، مع بوابة ci.yml غير الناشرة على مرشح الكود النهائي وتقرير ختامي مؤرخ جديد، ثم التسليم عند بوابة مراجعة المالك.",
+ "next_action": "مراجعة المالك لتقرير المرحلة الثانية وdiffs الاستكالة عند بوابة المراجعة؛ القرارات المفتوحة كما هي (MNG-LOCAL-03 المؤجلة، توصيل مزود Ask، الاحتفاظ القانوني، قبول مسح 2026-11-21 لفتح العمل الهيكلي) وخطوات المشغل (G11/G12، MFA، تطبيق الترحيلات حتى 0017) قبل أي بيانات حقيقية.",
  "notes": [
   "Hard boundaries from the owner order bd242b3e: read-only owner-decision branch docs/micro-final-decisions-20261121 (PR #385 open — do not edit/retarget/approve/merge); the 2026-11-21 final decisions supersede earlier D1–D8 and EX-D19..D23 where they conflict; no Ask Micro AI provider wiring; no spending/paid providers; no Cloudflare/Neon/R2/OAuth writes; no live DB/migration application/real-data transfer/backup/deployment; repository migration files + ephemeral/local PostgreSQL tests with synthetic data are permitted; no structural refactoring/bulk moves/module reorganization/file splitting/new generic architecture layer (the Post-Group 6 scan/owner-review gate stays in force — structural proposals are DEFER); no dark mode; no global token/color redesign; every pushed commit starts with [CF-Pages-Skip] so no Cloudflare Pages preview is created; preserve the untracked Post-Group 6 scan report untouched.",
   "The claim continues the WS-250 branch series at the owner's bd242b3e order after WS-250's M1–M6 implementation closed at its owner-review gate (DOC-040 stays IN_REVIEW with its evidence intact).",
@@ -63,7 +63,8 @@
   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-REPORT-2026-11-21.md",
   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMAINING-WAVES-REPORT-2026-11-21.md",
   "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md",
-  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22.md"
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22-PHASE2.md"
  ],
  "status_history": [
   {
@@ -113,6 +114,12 @@
    "changed_at": "2026-11-22",
    "actor": "zai-implementation-writer",
    "reason": "تنفيذ المرحلة الثانية تحت البند DOC-041 المفتوح: موجات صغيرة مستقلة غير هيكلية مع اختبارات انحدار مركزة، وبوابة ci.yml غير الناشرة على مرشح الكود النهائي مرة واحدة، وتقرير ختامي مؤرخ جديد، ثم العودة إلى بوابة مراجعة المالك."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "تسليم المرحلة الثانية كاملة عند بوابة مراجعة المالك: أربعة التزامات منتج §10 (c80a2fe1 إعادة الدور كطلب جديد، 63aeb86e رفع الإيقاف المدقَّق + إعادة فحص الأهلية، 093928cf حوكمة Ask والمسودة المالية الكنسية، c3666e8f التصدير قبل الحذف) فوق رأس الملحق a69a63f0، ثلاثة التزامات استكمال بروتوكول (85a3c132 منفذ تخزين سجل اسأل، 0300f31f الزوج 41→42 بdiff مزدوج، 09d626c9 حارس المستمعات) وملف بيانات الختم 3f995bba — كلها مدفوعة fast-forward على الفرع zai/micro-manage-online-20261114 ولم يُمس main ولا PR #385؛ البوابة الختامية غير الناشرة 45002061919 خضراء بالكامل على 3f995bba (الجذر 84 ملفًا 1027/1027 والنموذج 474 ملفًا 3779/3779 وكل الحراس خضراء) مع أمانة التشغيل الفاشل الأول 45000696324 وإغلاقه بإعادة الإرساء الموثقة؛ تقرير POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22-PHASE2.md مسلَّم مفهرسًا 12V؛ تقرير المسح غير المتتبَّع محفوظ في مساحة عمل Z AI غير منشور كما يفرض الأمر؛ لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية ولا حذف حي ولا هيكلة ولا نشر."
   }
  ],
  "migration_baseline": false

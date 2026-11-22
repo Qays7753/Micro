@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 9 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -41,4 +41,4 @@ python3 scripts/operations-control/validate.py
 | WS-247 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-031 | W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ حرّرت المطالبة من IN_REVIEW إلى REVIEW_REQUIRED قانونيًا بأمر المرحلة النهائية المؤرخ 2026-11-06 — لا يعني النقل أي قبول: تنتظر التحقق المجموع (الفحوص المؤجلة والمراجعة الخماسية المستقلة على المرشح النهائي بعد اكتمال تنفيذ W05) وقرار المالك؛ لا قبول ذاتي ولا دمج. |
 | WS-249 | REVIEW_REQUIRED | `zai/micro-market-delivery-handoff-20261111` | — | DOC-033, DOC-034, DOC-035, DOC-036, DOC-037, DOC-038, DOC-039 | بانتظار مراجعة المالك/قرار الدمج للفرع zai/micro-market-delivery-handoff-20261111 عند رأسه النهائي المُتحقق 84f30151 (كل بنوده السبعة IN_REVIEW؛ لا PR ولا دمج ولا main من هذه السلسلة)؛ استكمال السلسلة يجري على الفرع المخصص zai/micro-manage-online-20261114 تحت مطالبة WS-250/DOC-040 المستقلة. |
 | WS-250 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-040 | تنفيذ M1–M6 مكتمل بدليل الدفع النهائي (التشغيل الختامي 43620704296 أخضر كاملًا على الرأس النهائي bf90754b) والبند DOC-040 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main من هذه السلسلة أبدًا؛ لا تنظيف (NO_CLEANUP). استكمال السلسلة على الفرع نفسه يجري الآن تحت مطالبة WS-251/DOC-041 المستقلة بأمر المالك المؤرخ 2026-11-21 (bd242b3e) دون مساس بأدلة مراجعة هذا البند. |
-| WS-251 | IN_PROGRESS | `zai/micro-manage-online-20261114` | — | DOC-041 | تنفيذ موجات المرحلة الثانية من رأس الملحق e4ad9051 على الفرع نفسه (البند DOC-041 في IN_PROGRESS)، مع بوابة ci.yml غير الناشرة على مرشح الكود النهائي وتقرير ختامي مؤرخ جديد، ثم التسليم عند بوابة مراجعة المالك. |
+| WS-251 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-041 | مراجعة المالك لتقرير المرحلة الثانية وdiffs الاستكالة عند بوابة المراجعة؛ القرارات المفتوحة كما هي (MNG-LOCAL-03 المؤجلة، توصيل مزود Ask، الاحتفاظ القانوني، قبول مسح 2026-11-21 لفتح العمل الهيكلي) وخطوات المشغل (G11/G12، MFA، تطبيق الترحيلات حتى 0017) قبل أي بيانات حقيقية. |
