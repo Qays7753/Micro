@@ -47,6 +47,7 @@ import {
   localOwnerProfileId,
   localSecurityId,
   type ActivityProfile,
+  type AskHistoryEntry,
   type CostEstimate,
   type FormDraftEnvelope,
   type InventoryActivation,
@@ -160,6 +161,7 @@ import {
   expenseBudgetStore,
   financialEventStore,
   formDraftStore,
+  askHistoryStore,
   inventoryActivationStore,
   inventoryMovementStore,
   inventoryShortageStore,
@@ -184,6 +186,7 @@ import {
   supplierPurchaseStore,
   receivedLoanStore,
 } from "./indexedDbStores";
+import { ASK_HISTORY_MAX_AGE_MS, ASK_HISTORY_MAX_ENTRIES } from "./askHistory";
 import { connection, failure, guardedSuccessListener } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
 import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnapshot";
@@ -194,6 +197,28 @@ import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnap
  * الخاصة في قاعدة الحماية المنفصلة). */
 type RestoreProtectionEngine = typeof import("./restoreProtectionStore");
 let protectionEngine: Promise<RestoreProtectionEngine> | null = null;
+/* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): تقليم سجل
+ * اسأل المحلي — حذف ما تجاوز الـ٢١ يومًا عبر فهرس askedAt في معاملة
+ * مستقلة قبل كل قراءة/حفظ (حد الاستبقاء يُنفَّذ عند حد التخزين؛ فشل
+ * التقليم لا يمنع العملية الأساسية — القراءة تُرشِّح بالنافذة أيضًا). */
+async function purgeAskHistoryExpired(now: number): Promise<void> {
+  const database = await connection();
+  await new Promise<void>(resolve => {
+    const transaction = database.transaction(askHistoryStore, "readwrite");
+    const index = transaction.objectStore(askHistoryStore).index("askedAt");
+    const range = IDBKeyRange.upperBound(now - ASK_HISTORY_MAX_AGE_MS, true);
+    const request = index.openCursor(range);
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (cursor === null) return;
+      cursor.delete();
+      cursor.continue();
+    };
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => resolve();
+    transaction.onabort = () => resolve();
+  });
+}
 function loadProtectionEngine(): Promise<RestoreProtectionEngine> {
   protectionEngine ??= import("./restoreProtectionStore");
   return protectionEngine;
@@ -454,6 +479,59 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           resolve({ ok: true, value: null });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل
+   * المحلي النصي عند حد التخزين — القراءة والحفظ يقلمان معًا: كل عملية تحذف
+   * ما تجاوز الـ٢١ يومًا عبر فهرس askedAt (فهرس الترقية 41→42) ثم تُرجع/تحفظ
+   * أحدث حدود العناصر؛ اللحظة تُمرَّر صريحة (لا ساعة محيطية هنا)، والمخزن
+   * خارج اللقطة والتصدير كما المسودات — لا يغادر الجهاز أبدًا. */
+  async listAskHistory(now: number): Promise<StorageResult<readonly AskHistoryEntry[]>> {
+    try {
+      await purgeAskHistoryExpired(now);
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(askHistoryStore, "readonly");
+        const request = transaction.objectStore(askHistoryStore).getAll();
+        request.onerror = () => resolve(failure(request.error, database));
+        request.onsuccess = () => {
+          const entries = (request.result as AskHistoryEntry[])
+            .filter(entry => entry.askedAt > now - ASK_HISTORY_MAX_AGE_MS)
+            .sort((left, right) => right.askedAt - left.askedAt)
+            .slice(0, ASK_HISTORY_MAX_ENTRIES);
+          resolve({ ok: true, value: entries });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  async saveAskHistoryEntry(entry: AskHistoryEntry, now: number): Promise<StorageResult<AskHistoryEntry>> {
+    try {
+      await purgeAskHistoryExpired(now);
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(askHistoryStore, "readwrite");
+        const store = transaction.objectStore(askHistoryStore);
+        const request = store.put(entry);
+        request.onerror = () => resolve(failure(request.error, database));
+        /* حد العناصر بعد الحفظ: احتفظ بأحدث MAX_ENTRIES فقط — الحد المعلن
+         * للجهاز يُنفَّذ عند حد الكتابة نفسه (الطلبات تنفَّذ بترتيب إصدارها
+         * داخل المعاملة فالإحصاء يرى المحفوظ الجديد). */
+        const enumerated = store.getAll();
+        enumerated.onsuccess = () => {
+          const retained = (enumerated.result as AskHistoryEntry[])
+            .sort((left, right) => right.askedAt - left.askedAt)
+            .slice(ASK_HISTORY_MAX_ENTRIES);
+          for (const expired of retained) store.delete(expired.id);
+        };
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({ ok: true, value: entry });
         };
       });
     } catch (error) {

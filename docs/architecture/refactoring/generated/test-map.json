@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "549afd5b1ae067c6e0d68f12a3f6cf009c691641",
+  "head": "c3666e8f64a6434fe5e2013d19471fbde6cbcdaa",
   "pages": {
     "total": 76,
     "map": {
@@ -14,6 +14,7 @@
         "kind": "direct",
         "evidence": [
           "pages/AskMicro.dom.test.tsx",
+          "pages/AskMicro.governance.dom.test.tsx",
           "pages/SharedShell.phaseE.dom.test.tsx"
         ]
       },

@@ -168,6 +168,17 @@ export type FormDraftEnvelope = {
   createdAt: string;
   updatedAt: string;
 };
+/* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل Micro
+ * المحلي النصي — نص فقط (لا صوت خام في أي مكان)، عابر خارج اللقطة والتصدير
+ * كمسودات النماذج (نمط form-drafts)، يُقلَّم إلى ٢١ يومًا عند كل قراءة
+ * وحفظ داخل المهايئين، محلي الجهاز ولا يُرسل إلى الخادم أبدًا. */
+export type AskHistoryEntry = {
+  id: string;
+  /** لحظة السؤال بالميلي ثانية — أساس تقليم الـ٢١ يومًا. */
+  askedAt: number;
+  question: string;
+  answer: string;
+};
 export type LocalSecurityRecord = {
   id: typeof localSecurityId;
   /** بصمة الرمز بترميز سداسي عشري — الرمز نفسه لا يُخزن أبدًا. */
@@ -1152,6 +1163,13 @@ export interface PrototypeLocalStore {
    * نفسه يبقى خارج اللقطة والتصدير كما كان. */
   listFormDrafts(): Promise<StorageResult<readonly FormDraftEnvelope[]>>;
   clearFormDrafts(): Promise<StorageResult<null>>;
+  /* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل
+   * المحلي النصي عند حد التخزين — القراءة والحفظ يقلمان معًا إلى ٢١ يومًا
+   * وحد العناصر داخل المهايئ نفسه (اللحظة تُمرَّر صريحة؛ لا ساعة محيطية في
+   * طبقة التخزين)؛ المخزن خارج اللقطة والتصدير كما المسودات، ولا يغادر
+   * الجهاز أبدًا. الحفظ بفعل save* المفردات المحروسة (القارئ لا يكتب — R5). */
+  listAskHistory(now: number): Promise<StorageResult<readonly AskHistoryEntry[]>>;
+  saveAskHistoryEntry(entry: AskHistoryEntry, now: number): Promise<StorageResult<AskHistoryEntry>>;
   /* المجموعة ٥ (القفل المحلي): سجل أمان واحد بمعرّف ثابت — خارج اللقطة والتصدير
    * والأسرار؛ تخزين الرمز نفسه ممنوع، البصمة فقط. */
   getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>>;

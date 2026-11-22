@@ -14,6 +14,7 @@
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { parseEnglishNumericText } from "@/application/input";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export interface AskFinancialEventDraftInput {
   eventType: string;
@@ -30,21 +31,34 @@ export function askDraftAmountMinor(amountJodText: string): number | null {
   return parseEnglishNumericText(amountJodText.trim(), "money");
 }
 
+/* R10-B3/R10A-F-012 + R10B-NF-006 (نمط البيت — retainedDepositService نفسه):
+ * المعرّف عبر نمط السلسلة الاختيارية المعتمد في جرد OD-TIME (randomUUID
+ * حرفيًا عند توفره، وبديل حتمي-آمن خارجه) — موقع واحد مسجل بإعادة إرساء
+ * موثقة بنفس الـPR (الملحق §10.2 — مرجع مراجعة المالك، 2026-11-22). */
+function askDraftId(prefix: string): string {
+  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+}
+
 /** Construct the canonical financial-event record from the user-completed
  * draft values — the domain validates every value (positive amount, valid
- * date, non-blank note) and freezes the record with its computed deltas. */
-export function constructFinancialEventRecord(input: AskFinancialEventDraftInput): FinancialEvent {
+ * date, non-blank note) and freezes the record with its computed deltas.
+ * R11 W1b-3/D-12 (OD-TIME): the recorded moment crosses through the injected
+ * clock port only — no ambient new Date() in the application layer. */
+export function constructFinancialEventRecord(
+  input: AskFinancialEventDraftInput,
+  now: Clock = systemClock,
+): FinancialEvent {
   const amountMinor = askDraftAmountMinor(input.amountJodText);
   if (amountMinor === null || amountMinor <= 0 || !Number.isSafeInteger(amountMinor)) {
     throw new Error("أدخل مبلغًا صحيحًا بالدينار (منزلتان كحد أقصى).");
   }
   return createFinancialEvent({
-    id: globalThis.crypto?.randomUUID?.() ?? `financial-${Date.now()}`,
+    id: askDraftId("financial"),
     type: input.eventType as Parameters<typeof createFinancialEvent>[0]["type"],
     amountMinor,
     occurredOn: input.occurredOn,
-    recordedAt: new Date().toISOString(),
-    idempotencyKey: globalThis.crypto?.randomUUID?.() ?? `ask-${Date.now()}`,
+    recordedAt: now(),
+    idempotencyKey: askDraftId("ask"),
     note: input.note.trim(),
     counterparty: input.counterparty.trim() === "" ? null : input.counterparty.trim(),
   });

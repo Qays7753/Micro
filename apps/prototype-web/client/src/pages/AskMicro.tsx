@@ -27,7 +27,8 @@ import { ApiError } from "@/application/network";
 import { Button, EmptyState, Notice } from "@/components/primitives";
 import { AskDraftCard } from "@/components/ask/AskDraftCard";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { loadAskHistory, recordAskExchange, type AskHistoryEntry } from "@/application/ask";
+import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import type { AskHistoryEntry } from "@/application/ask";
 
 type AskMessage = { tone: "neutral" | "error" | "success"; text: string } | null;
 
@@ -44,6 +45,9 @@ type AskResult = {
 
 export default function AskMicro() {
   const { loading: sessionLoading, session, signIn, failed: sessionFailed, refresh } = useNetworkSession();
+  /* §10.2-7-2: the history service rides the storage port (both adapters) —
+   * mounted from the services interpreter like every store-backed service. */
+  const { askHistory } = usePrototypeServices();
   const returnTo = useReturnPath();
   const [, navigate] = useLocation();
   const [status, setStatus] = useState<AskStatus | null>(null);
@@ -73,7 +77,8 @@ export default function AskMicro() {
         setStatusState("error");
       });
     /* §10.2-7-2: the local text history loads with its 21-day purge. */
-    loadAskHistory()
+    askHistory
+      .loadHistory()
       .then(loaded => {
         if (active) setHistory(loaded);
       })
@@ -81,7 +86,7 @@ export default function AskMicro() {
     return () => {
       active = false;
     };
-  }, [sessionLoading, session.authenticated]);
+  }, [sessionLoading, session.authenticated, askHistory]);
 
   /* F-15/S12 (صادق مع الحقيقة — Phase E): تعذّر التحقق حالة مستقلة قبل بوابة
    * الدخول — انقطاع الشبكة لا يُعرض أبدًا كأنه «غير مسجل» (كانت البوابة
@@ -144,7 +149,10 @@ export default function AskMicro() {
       setMessage({ tone: "success", text: "" });
       /* §10.2-7-2: the served Q&A pair lands in the local text history
        * (the purge rides the append — nothing beyond 21 days is kept). */
-      const stored = await recordAskExchange(question.trim(), answer.answer ?? answer.answerText ?? "");
+      const stored = await askHistory.recordExchange(
+        question.trim(),
+        answer.answer ?? answer.answerText ?? "",
+      );
       if (stored !== null) setHistory(current => [stored, ...current].slice(0, 200));
     } catch (error) {
       if (error instanceof ApiError) {

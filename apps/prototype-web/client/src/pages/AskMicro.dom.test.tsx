@@ -91,16 +91,26 @@ beforeEach(() => {
   posted = [];
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
-  mockedUsePrototypeServices.mockImplementation(
-    () =>
-      ({
-        preferences: {
-          load: async () => ({ ok: true, preference: { theme: "light" } }),
-          save: async () => ({ ok: true }),
-        },
-        dataVersion: 0,
-      }) as unknown as ReturnType<typeof usePrototypeServices>,
-  );
+  /* الملحق §10.2-7-2: خدمة السجل المحلي عند منفذ التخزين — الكعب
+   * مرجع ثابت لكل الاختبار (كما المفسر الحي الذي يميزن الخدمات ميد للوطاء لا يعيد التأثير مع كل رسم). */
+  const askHistoryStub = {
+    loadHistory: async () => [{ id: "ask-1", askedAt: 1, question: "سؤال سابق", answer: "جواب سابق" }],
+    recordExchange: async (question: string, answer: string) => ({
+      id: "ask-2",
+      askedAt: 2,
+      question,
+      answer,
+    }),
+  };
+  const servicesStub = {
+    preferences: {
+      load: async () => ({ ok: true, preference: { theme: "light" } }),
+      save: async () => ({ ok: true }),
+    },
+    dataVersion: 0,
+    askHistory: askHistoryStub,
+  } as unknown as ReturnType<typeof usePrototypeServices>;
+  mockedUsePrototypeServices.mockImplementation(() => servicesStub);
 });
 
 afterEach(() => {

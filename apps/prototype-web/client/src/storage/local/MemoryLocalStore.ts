@@ -92,6 +92,7 @@ import type {
 import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import type {
   ActivityProfile,
+  AskHistoryEntry,
   CostEstimate,
   FormDraftEnvelope,
   InventoryActivation,
@@ -115,6 +116,7 @@ import type {
   StorageResult,
   StoredCraftOrder,
 } from "./types";
+import { ASK_HISTORY_MAX_AGE_MS, ASK_HISTORY_MAX_ENTRIES } from "./askHistory";
 /* S02-A: البصمة الكنونية لسياج الاستبدال داخل حد الكتابة، والتطبيع الموحد —
  * المحوّل الذاكري خارج كومة الإقلاع (اختبارات/توافق) فالاستيرادان مباشران. */
 import { canonicalSnapshotDigest } from "./snapshotCanonicalization";
@@ -199,6 +201,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* المجموعة ٥ (الاستمرارية): مسودات النماذج وسجل القفل — خارج اللقطة في
    * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
   private formDrafts = new Map<string, FormDraftEnvelope>();
+  /* الملحق §10.2-7-2 (قرار المالك 2026-11-22): سجل اسأل المحلي النصي —
+   * حالة الذاكرة المستقلة ككل مخازن المحوّل الذاكري؛ خارج اللقطة والتصدير. */
+  private askHistory = new Map<string, AskHistoryEntry>();
   private security: LocalSecurityRecord | null = null;
   /* S02-A (SH-02/SH-03): حالة حماية الاستبدال في الذاكرة — تطابق قاعدة
    * الحماية المنفصلة في المتصفح سلوكًا وعقدًا (قراءة واحدة، وعمليات ذرّية
@@ -304,6 +309,35 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async clearFormDrafts(): Promise<StorageResult<null>> {
     this.formDrafts.clear();
     return { ok: true, value: null };
+  }
+  /* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل
+   * المحلي عند حد التخزين الذاكي — نفس سياسة محوّل IndexedDB حرفيًا:
+   * التقليم إلى ٢١ يومًا وحد العناصر على كل قراءة وحفظ، الأحدث أولًا، نسخة
+   * مستقلة للمستدعي، ولا يغادر الجهاز أبدًا. */
+  private pruneAskHistory(now: number): void {
+    const cutoff = now - ASK_HISTORY_MAX_AGE_MS;
+    for (const [id, entry] of this.askHistory) {
+      if (entry.askedAt <= cutoff) this.askHistory.delete(id);
+    }
+    if (this.askHistory.size <= ASK_HISTORY_MAX_ENTRIES) return;
+    const oldest = Array.from(this.askHistory.values())
+      .sort((left, right) => left.askedAt - right.askedAt)
+      .slice(0, this.askHistory.size - ASK_HISTORY_MAX_ENTRIES);
+    for (const entry of oldest) this.askHistory.delete(entry.id);
+  }
+  async listAskHistory(now: number): Promise<StorageResult<readonly AskHistoryEntry[]>> {
+    this.pruneAskHistory(now);
+    const listed = Array.from(this.askHistory.values(), entry => clone(entry))
+      .filter(entry => entry.askedAt > now - ASK_HISTORY_MAX_AGE_MS)
+      .sort((left, right) => right.askedAt - left.askedAt)
+      .slice(0, ASK_HISTORY_MAX_ENTRIES);
+    return { ok: true, value: listed };
+  }
+  async saveAskHistoryEntry(entry: AskHistoryEntry, now: number): Promise<StorageResult<AskHistoryEntry>> {
+    this.askHistory.set(entry.id, clone(entry));
+    /* التقليم بعد الحفظ: النافذة وحد العناصر يُنفَّذان على الحالة الجديدة. */
+    this.pruneAskHistory(now);
+    return { ok: true, value: clone(entry) };
   }
   async getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>> {
     return { ok: true, value: this.security ? clone(this.security) : null };

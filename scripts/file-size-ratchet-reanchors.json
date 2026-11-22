@@ -12599,6 +12599,82 @@
         "trigger": "post-group6-continuous-project-lifecycle",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-port-context-wiring",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 663,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the ask-history service wiring at the composition root (the AskHistoryService constructor row + the interface field + the door import) — the history moved to the storage port in BOTH adapters (the form-drafts pattern), so the root mounts it like every store-backed service. +6 lines, no behavior change beyond the documented port move.",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-port-types-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1384,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the AskHistoryEntry record type + the two storage-port methods (listAskHistory/saveAskHistoryEntry) with their governance comments — the entity-touchpoints registration requires the domain type at the port and both adapters implementing the store (the form-drafts pattern). +18 lines; no store split (the OD-PRESERVE boundary stands; the file was already SPLIT_NOW).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-adminpanel-prettier-compliance",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/adminPanel.ts",
+      "from": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 491,
+        "band": "WATCH"
+      },
+      "reason": "Prettier compliance fix at the committed g02+recheck head (63aeb86e left the file unformatted — the full-suite prettier check failed): prettier --write only, zero behavior change (line re-wrapping of existing statements).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "prettier-compliance-gate-fix"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-readwrite-reclassification",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 374,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the dated reclassification of ask/askHistoryService.ts out of the read-like corpus (it now carries the persistent local write saveAskHistoryEntry at the storage port — the EX-D23 precedent), documented in the same PR.",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
     }
   ]
 }

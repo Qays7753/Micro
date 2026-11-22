@@ -646,7 +646,7 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 124 edges (82 value + 42 type) — S16 re-anchor 129/84/45 -> 124/82/42", () => {
+  it("the live repository passes on the recorded census: 126 edges (84 value + 42 type) — ask port registration 124/82/42 -> 126/84/42 (2026-11-22)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -688,8 +688,8 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * قارئ الرئيسية حذف حوافه عديمة المستهلك (activity ×2، agreements،
      * formatting، inventory، suppliers) وكسب حافة القارئ الموحد للمتابعة
      * (type)؛ تضييق لا توسيع (راجع تقرير S16). */
-    expect(result.stats.houseEdges).toBe(124);
-    expect(result.stats.houseEdgesValue).toBe(82);
+    expect(result.stats.houseEdges).toBe(126);
+    expect(result.stats.houseEdgesValue).toBe(84);
     expect(result.stats.houseEdgesType).toBe(42);
   });
 

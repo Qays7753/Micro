@@ -12,6 +12,7 @@ import {
 import { DraftService } from "@/application/drafts/draftService";
 /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة — خارج اللقطة، بلا أثر مالي. */
 import { FormDraftService } from "@/application/drafts/formDraftService";
+import { AskHistoryService } from "@/application/ask";
 /* المجموعة ٥ (عقد ٣٧): القفل المحلي — بصمة الرمز فقط، خارج اللقطة. */
 import { CostService } from "@/application/cost/costService";
 /* S12 (DOC-021 — أمر 2e645802 §9، سابقة EXE-014/S07/S10 نفسها): خدمة الاتفاق
@@ -108,6 +109,10 @@ type PrototypeServices = {
   drafts: DraftService;
   /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة. */
   formDrafts: FormDraftService;
+  /* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل
+   * المحلي النصي عند منفذ التخزين (نمط مسودات النماذج) — الخدمة تُركّب
+   * هنا كالمعتاد والصفحة تستهلكها من مفسر الخدمات. */
+  askHistory: AskHistoryService;
   directSales: DirectSaleService;
   costs: CostService;
   /* S12 (DOC-021 — أمر 2e645802 §9، سابقة supplierPurchases/EXE-014 نفسها): خدمة
@@ -614,6 +619,7 @@ function createServices(): Omit<
     actualTime: new ActualTimeService(store),
     drafts: new DraftService(store),
     formDrafts: new FormDraftService(store),
+    askHistory: new AskHistoryService(store),
     directSales: directSales,
     costs,
     agreementContext,

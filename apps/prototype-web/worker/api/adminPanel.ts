@@ -342,7 +342,10 @@ export async function suspendIdentity(ctx: RouteContext, auth: AuthenticatedCont
  * restored and bookings are never touched. Revoked sessions stay revoked —
  * the user signs in again. The lift + its audit commit atomically.
  */
-export async function liftIdentitySuspension(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+export async function liftIdentitySuspension(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+): Promise<Response> {
   requireAdmin(auth);
   const body = (await readJsonBody(ctx.request)) as { reason?: unknown };
   const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
@@ -359,7 +362,9 @@ export async function liftIdentitySuspension(ctx: RouteContext, auth: Authentica
      * state is wrong); an identity with NO suspension record at all is
      * simply not found. */
     const latest = await db(ctx)
-      .prepare("SELECT id, lifted_at FROM identity_suspension WHERE identity_id = ? ORDER BY suspended_at DESC LIMIT 1")
+      .prepare(
+        "SELECT id, lifted_at FROM identity_suspension WHERE identity_id = ? ORDER BY suspended_at DESC LIMIT 1",
+      )
       .bind(targetId)
       .first<Record<string, unknown>>();
     if (latest) throw new HttpError(409, "conflict", { reason: "suspension_already_lifted" });
@@ -401,8 +406,10 @@ export async function liftIdentitySuspension(ctx: RouteContext, auth: Authentica
     )
     .bind(targetId, targetId, targetId)
     .first<Record<string, unknown>>();
-  const vendorStatus = roles?.vendor_status === null || roles?.vendor_status === undefined ? null : String(roles.vendor_status);
-  const driverStatus = roles?.driver_status === null || roles?.driver_status === undefined ? null : String(roles.driver_status);
+  const vendorStatus =
+    roles?.vendor_status === null || roles?.vendor_status === undefined ? null : String(roles.vendor_status);
+  const driverStatus =
+    roles?.driver_status === null || roles?.driver_status === undefined ? null : String(roles.driver_status);
   return jsonResponse({
     ok: true,
     lifted: targetId,
@@ -487,10 +494,7 @@ export async function adminCancelBooking(ctx: RouteContext, auth: AuthenticatedC
   if (Number(results[0]?.meta?.changes ?? 0) !== 1) {
     throw new HttpError(409, "conflict", { reason: "request_state_changed" });
   }
-  if (
-    Number(results[1]?.meta?.changes ?? 0) !== 1 ||
-    Number(results[3]?.meta?.changes ?? 0) !== 1
-  ) {
+  if (Number(results[1]?.meta?.changes ?? 0) !== 1 || Number(results[3]?.meta?.changes ?? 0) !== 1) {
     // The transaction committed the cancellation but its event/audit rider
     // did not fire — an honest 500, never a silent partial state.
     throw new HttpError(500, "internal", { reason: "cancel_evidence_missing" });

@@ -75,7 +75,7 @@
  *     commitDirectSaleWrite فقط بلا أي حذف؛ التصعيد مرغوب وموثق في سجل
  *     نتيجة S11، لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ152 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء لـ154 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 و
  *     localExportVersion = 33 (كان 32 — تصحيح مؤرخ 2026-11-01 DOC-021/S12) (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
@@ -97,7 +97,7 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ152 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ154 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
  * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة).
  * S03 (UNIT-039 B2/عقد §17، 2026-10-28): commitProfileRename أُضيف بإعادة
@@ -110,7 +110,10 @@ const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "t
  * S14 (DOC-023 — أمر ba2ce7b4 §5، 2026-11-02): listPeriodSummaries و
  * listCommandReceipts وgetCommandReceipt وcommitAccountCompletion أُضيفت
  * بإعادة إرساء موثقة نفس-الـPR (منافذ الاستكمال المنسق عند حد الكتابة —
- * 148 ← 152). */
+ * 148 ← 152).
+ * الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251، إعادة إرساء موثقة نفس-الـPR): listAskHistory و
+ * saveAskHistoryEntry أضيفا — سجل اسأل المحلي النصي عند منفذ التخزين في
+ * المهايئن كليهما (نمط مسودات النماذج) — 152 ← 154. */
 export const PINNED_PORT_METHODS: readonly string[] = [
   "abortReplacementIntent",
   "beginReplacementIntent",
@@ -201,6 +204,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "getSupplierPurchase",
   "listActualTimeRecords",
   "listAllocationPolicies",
+  "listAskHistory",
   "listAssets",
   "listBalanceObservations",
   "listCashContinuityEntries",
@@ -240,6 +244,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "replaceSnapshot",
   "saveActualTimeRecord",
   "saveAllocationPolicy",
+  "saveAskHistoryEntry",
   "saveCatalogItem",
   "saveCatalogTemplate",
   "saveCostEstimate",
@@ -307,17 +312,17 @@ function publicMethodNames(prototype: object): string[] {
 }
 
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
-  it("واجهة PrototypeLocalStore تحمل بالضبط 152 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
+  it("واجهة PrototypeLocalStore تحمل بالضبط 154 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(152);
+    expect(live).toHaveLength(154);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ152 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء لـ154 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ152 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء لـ154 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
     /* حدّ موثق: `private`/`protected` في TypeScript زمن ترجمة لا زمن تشغيل —
      * المساعد يظهر على النموذج؛ نثبته بالاسم فأي مساعد جديد (خاص أو عام)
      * يفشل الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد.
@@ -334,10 +339,15 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
      * ثلاث؛ وأربع طرق منفذ عام جديدة دخلت القائمة المثبتة (152 = 148 +
      * listPeriodSummaries/listCommandReceipts/getCommandReceipt/
      * commitAccountCompletion). */
+    /* الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): إعادة إرساء
+     * موثقة نفس-الـPR — إضافة pruneAskHistory وحدها (private، تقليم سجل اسأل
+     * إلى ٢١ يومًا وحد العناصر عند القراءة/الحفظ في المحوّل الذاكري)
+     * رفعت المساعدات الموثقة من ثلاث إلى أربع. */
     const documentedPrivateHelpers = [
       "checkRecurrenceSchedule",
       "onDeliveryBundleWrite",
       "onCoordinatedWrite",
+      "pruneAskHistory",
     ];
     expect(publicMethodNames(MemoryLocalStore.prototype)).toEqual(
       [...PINNED_PORT_METHODS, ...documentedPrivateHelpers].sort(),
