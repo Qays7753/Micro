@@ -209,7 +209,7 @@ describe("commitPreferencesUpdate — guarded atomic preference patch at the wri
        * المحفوظة)؛ كتابة التفضيلات نفسها لم تمس المخطط ولا صيغة الاستيراد قط. */
       /* S14 (DOC-023 — أمر ba2ce7b4 §5): مخطط 41/تصدير 34 بعد عائلتي
        * المنسق — كتابة التفضيلات نفسها لا تمس أي عائلة أخرى. */
-      expect(localSchemaVersion).toBe(41);
+      expect(localSchemaVersion).toBe(42);
       expect(localExportVersion).toBe(34);
     }
   });

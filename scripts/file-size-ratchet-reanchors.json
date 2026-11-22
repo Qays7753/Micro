@@ -12675,6 +12675,25 @@
         "ocRef": "DOC-041",
         "trigger": "post-group6-ask-port-registration"
       }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-released-pair-34-41",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts",
+      "from": {
+        "nbLoc": 71,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 76,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 pair-protocol completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the outgoing current pair 34/41 registered in RELEASED_LEGACY_EXPORT_PAIRS with its dated comment (the ask-history schema advance 41→42 releases the S14 pair as a legacy-import-accepted pair — the same documented protocol every prior advance followed).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-ask-pair-protocol",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

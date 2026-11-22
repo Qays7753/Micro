@@ -52,7 +52,7 @@ describe("schema 31 export round-trip with expense category labels", () => {
     /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
      * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
     expect(verified.value.file.version).toBe(34);
-    expect(verified.value.file.schemaVersion).toBe(41);
+    expect(verified.value.file.schemaVersion).toBe(42);
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);

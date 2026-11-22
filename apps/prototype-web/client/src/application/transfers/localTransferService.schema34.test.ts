@@ -97,7 +97,7 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     expect(verified.ok).toBe(true);
     if (!verified.ok) return;
     expect(verified.value.file.version).toBe(34);
-    expect(verified.value.file.schemaVersion).toBe(41);
+    expect(verified.value.file.schemaVersion).toBe(42);
     expect(verified.value.summary.assets).toBe(1);
     expect(verified.value.summary.loans).toBe(1);
 
@@ -123,7 +123,7 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     expect(prepared.value.file.data.assets).toEqual([]);
     expect(prepared.value.file.data.loans).toEqual([]);
     expect(prepared.value.file.version).toBe(34);
-    expect(prepared.value.file.schemaVersion).toBe(41);
+    expect(prepared.value.file.schemaVersion).toBe(42);
   });
 
   it("rejects an asset record whose acquisition event is missing — broken file, store untouched", async () => {

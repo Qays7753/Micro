@@ -134,7 +134,7 @@ describe("export envelope v29 (FIN-002 — عقد ٤٢ / عقد ٣٩)", () => {
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
     expect(exported.value.file.version).toBe(34);
-    expect(exported.value.file.schemaVersion).toBe(41);
+    expect(exported.value.file.schemaVersion).toBe(42);
     expect(exported.value.file.version).toBe(localExportVersion);
     expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);
     expect(exported.value.file.data.expenseBudgets).toHaveLength(4);

@@ -354,11 +354,14 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
     );
   });
 
-  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 41 وlocalExportVersion = 34 (تصحيح مؤرخ 2026-11-02 DOC-023/S14؛ كان 40/33)", () => {
+  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 42 وlocalExportVersion = 34 (تصحيح مؤرخ 2026-11-22 الملحق §10.2-7-2؛ كان 41/34)", () => {
     /* S14 (DOC-023 / UNIT-002 — عائلتا المنسق): الزوج الحي 41/34 (تصحيح مؤرخ
      * 2026-11-02 DOC-023/S14؛ كان 40/33 — مخزنا period-summaries و
-     * command-receipts بنمط D-037 بلا ترحيل بيانات). */
-    expect(localSchemaVersion).toBe(41);
+     * command-receipts بنمط D-037 بلا ترحيل بيانات).
+     * الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): الزوج الحي
+     * 42/34 — مخزن سجل اسأل المحلي النصي (نمط form-drafts خارج اللقطة) بلا
+     * ترحيل بيانات؛ كان 41/34. */
+    expect(localSchemaVersion).toBe(42);
     expect(localExportVersion).toBe(34);
   });
 

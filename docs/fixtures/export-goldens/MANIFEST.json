@@ -5,17 +5,24 @@
   "files": [
     {
       "file": "current-pair.golden.json",
-      "sha256": "f019da003eda8db6dea02841a209e917edab0c47a1a0e75c1de0a0576fa4ce64",
+      "sha256": "18af791a8264f92e1082eae9a8108ed27a51d4ef934c396b67f221008ac3866b",
       "kind": "current-pair",
-      "description": "34/41 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+      "description": "34/42 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
       "byteStable": true
     },
     {
       "file": "current-pair-supplement.golden.json",
-      "sha256": "da6f43eb0d5dec6747591fca3bba32566e3223b054fff730847e1ed0b0ae16f0",
+      "sha256": "952fe8532dea2bccdf1728f0b1eefeaf336ec68a9de6fc51c200f75e4e32d3a3",
       "kind": "current-pair-supplement",
-      "description": "34/41 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة وملخصات الفترة وإيصالات الأوامر) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+      "description": "34/42 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة وملخصات الفترة وإيصالات الأوامر) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
       "byteStable": false
+    },
+    {
+      "file": "legacy-minimal-34-41.golden.json",
+      "sha256": "91b11e8b2cbb10764b023de2db08f229aad8893717a82a47206611a976dc4d80",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 34/41 — مظروف أدنى مجمّد",
+      "byteStable": true
     },
     {
       "file": "legacy-minimal-33-40.golden.json",

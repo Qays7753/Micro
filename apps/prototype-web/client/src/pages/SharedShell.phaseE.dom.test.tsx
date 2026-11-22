@@ -35,6 +35,12 @@ vi.mock("wouter", () => ({
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: () => ({
     ownerProfile: { read: () => Promise.resolve({ ok: true, value: null }) },
+    /* الملحق §10.2-7-2 (2026-11-22): خدمة سجل اسأل المحلي عند منفذ التخزين — المسار
+     * المحروس يفتح من قشرة الشبكة للإدخول إلى /ask كما الإستمارة المختصرة. */
+    askHistory: {
+      loadHistory: () => Promise.resolve([]),
+      recordExchange: () => Promise.resolve(null),
+    },
     /* DOC-039 (NAV-001/R1-15): القشرة تقرأ وجود المشروع المحلي لمقاعد الضيف —
      * سياق المالك هنا صاحب مشروع محلي فالمقاعد الخمسة كاملة. */
     profiles: {
