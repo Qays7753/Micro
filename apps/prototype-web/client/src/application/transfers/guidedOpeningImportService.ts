@@ -20,13 +20,14 @@ import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamili
 import { canonicalSnapshotDigest } from "@/storage/local/snapshotCanonicalization";
 import { runProtectedReplacement, type VerifiedBackupBuilder } from "./replacementProtectionProtocol";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { errorMessageOf } from "@/application/resultCodes";
 /* UXR-06 (PERF-002): بوابة الحجم عند باب المستورد الافتتاحي نفسه — نفس الحارس
  * القائم (S17/عقد ٠٤٤ B3) قبل JSON.parse: لا تحليل لملف ضخم أبدًا، والرفض
  * قبل أي قراءة/كتابة تخزين وبلا مس أي بيانات. */
 import {
+  IMPORT_COUNT_LIMIT_MESSAGE,
   IMPORT_DEPTH_LIMIT_MESSAGE,
   IMPORT_SIZE_LIMIT_MESSAGE,
+  importFamilyCountVerdict,
   isWithinImportDepth,
   isWithinImportSizeLimit,
 } from "./transferResourceLimits";
@@ -142,6 +143,15 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
     );
   if (!Array.isArray(candidate.cashWallets) || !Array.isArray(candidate.materials))
     return fail("validation_error", "ينقص الملف قسم المحافظ أو المواد. بقيت بيانات هذا الجهاز دون تغيير.");
+  /* MNG-LOCAL-06 (إصلاح النتيجة المفتوحة 2026-11-23 — WS-254/DOC-044): بوابة
+   * العد قبل التحديد واحدًا-واحد — نفس سقفي العائلة والإجمالي الكنونيين لمسار
+   * الاستعادة الكامل (باب واحد لكل مستورد): ملف بحجم مسموح يمكنه تغليف
+   * عائلة منتفخة تُنهك الذاكرة قبل أي كتابة؛ الرفض صادق قبل أي فحص/كتابة. */
+  const countVerdict = importFamilyCountVerdict({
+    cashWallets: candidate.cashWallets,
+    materials: candidate.materials,
+  });
+  if (!countVerdict.ok) return fail("validation_error", IMPORT_COUNT_LIMIT_MESSAGE);
   const profileRecord = profile as Record<string, unknown>;
   const walletIds = new Set<string>();
   const cashWallets = candidate.cashWallets.map((value): GuidedOpeningImportFile["cashWallets"][number] => {
@@ -386,8 +396,16 @@ export class GuidedOpeningImportService {
         loans: [],
       };
       return { ok: true, value: { file, summary: this.summary(file), snapshot } };
-    } catch (error) {
-      return fail("validation_error", errorMessageOf(error, "بيانات الاستيراد الافتتاحي غير صالحة."));
+    } catch {
+      /* MNG-LOCAL-05 (إصلاح النتيجة المفتوحة 2026-11-23 — WS-254/DOC-044): نص
+       * الاستثناء الخام لا يُعرض للمستخدم أبدًا في أي موضع من مسار الاستيراد
+       * الافتتاحي — هذا الالتقاط (بناء كائنات المجال واللقطة) كان آخر موضع
+       * يمرّر نص الرمي؛ صار رسالة ثابتة آمنة بلا أي تفاصيل داخلية، وقرار
+       * القبول/الرفض نفسه لم يتغير (الرفض قبل أي كتابة في الحالتين). */
+      return fail(
+        "validation_error",
+        "بيانات الاستيراد الافتتاحي غير صالحة. بقيت بيانات هذا الجهاز دون تغيير.",
+      );
     }
   }
 
