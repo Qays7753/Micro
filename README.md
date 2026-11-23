@@ -8,9 +8,9 @@
 
 ## ما الذي يثبته هذا المستودع؟
 
-يحتوي المستودع على عقود المجال وDomain Core وPrototype Web محليًا في `apps/prototype-web/`، إضافة إلى الاختبارات وحراس الجودة وأدلة التشغيل. النظام Web-first وlocal-first؛ لا تدّعِ وجود Auth أو Sync أو Cloud أو بيانات مستخدمين حقيقية أو تطبيق Native أو Pilot إنتاجي إلا إذا أثبتها الكود والاختبارات و`main` والحالة الحية. الحالة التنفيذية ليست ثابتة داخل README؛ مصدرها الحي هو [`docs/operations/current-state.md`](docs/operations/current-state.md).
+يحتوي المستودع على عقود المجال وDomain Core وPrototype Web في `apps/prototype-web/`، كما يحتوي على كود Manage Online وMarket وDelivery وAsk Micro المدموج على `main`. وجود الكود لا يثبت نشره أو تهيئة خدماته أو جاهزيته لبيانات حقيقية. لا تدّعِ نجاح النشر أو تشغيل مزود Ask Micro أو قبول Pilot إلا بدليل من الحالة الحية والاختبارات ذات الصلة. مصدر الحالة التنفيذية هو [`docs/operations/current-state.md`](docs/operations/current-state.md).
 
-توجد PWA وتهيئة Cloudflare Pages ضمن حدود Prototype، لكن قبول Android/iOS أو standalone أو Offline الإنتاجي ميدانيًا ليس افتراضًا. لا يحتوي المستودع SaaS أو استقبال بيانات حقيقية، ولا يعتمد على نسخة من Accounting أو zman-app أو كود خارجي منقول.
+توجد PWA وتهيئة Cloudflare Pages في المصدر؛ لكن آخر نشر ناجح معروف ليس رأس `main` الحالي، ولم يثبت قبول Android/iOS أو Offline الإنتاجي أو Pilot ميداني. راجع الحالة الحية قبل وصف ما يعمل للمستخدمين. لا يعتمد Micro على نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
 ## من أين يبدأ Agent؟
 
@@ -24,7 +24,9 @@
 |---|---|
 | ما معنى السلوك أو المال؟ | العقود والسياسات المالية ذات الصلة في `docs/contracts/` و`docs/decisions/` |
 | ما القرار المعتمد أو المسحوب؟ | [`docs/02-decision-log.md`](docs/02-decision-log.md) والقرارات المفهرسة |
+| ما قرارات المالك النهائية والأسئلة التي شرحتها؟ | [`docs/product/decisions/README.md`](docs/product/decisions/README.md)؛ الملفات الأصلية للأسئلة والقرارات مرتبطة هناك ولا تُنسخ إلى هذه المقدمة |
 | ما الموجود فعليًا على `main`؟ | الكود والاختبارات وPR المدمج و[`current-state.md`](docs/operations/current-state.md) |
+| ما حالة نتائج الأمن؟ | [`docs/expansion/security-findings-status.md`](docs/expansion/security-findings-status.md) للإحالة الآمنة؛ تقرير التدقيق التفصيلي محفوظ في ملفات المشروع الخاصة |
 | ما الذي يعمل عليه Agent؟ | Operations Control و`generated/AGENT-BRIEF.md` و`generated/ACTIVE-WORK.md` |
 | ما التاريخ؟ | [`current-state-log.md`](docs/operations/current-state-log.md) — append-only |
 | كيف يبدأ Agent وينفذ ويسلّم؟ | [`AGENTS.md`](AGENTS.md) وSOP وHandoff أعلاه |
@@ -37,6 +39,8 @@
 - [`docs/05-documentation-governance.md`](docs/05-documentation-governance.md): قواعد إدارة الوثائق وتعارضاتها.
 - [`docs/research/global-build-reference-library-v1.md`](docs/research/global-build-reference-library-v1.md): مراجع الأنماط والتراخيص وبوابة إدخال الكود الخارجي.
 - [`docs/product/`](docs/product/): تعريف النظام ونموذج الاستخدام والنموذج المالي وسياسة التوجيه.
+- [`docs/product/decisions/README.md`](docs/product/decisions/README.md): نقطة دخول قرارات المالك النهائية والأسئلة الـ293 ومصدرها الأصلي.
+- [`docs/expansion/security-findings-status.md`](docs/expansion/security-findings-status.md): سجل آمن لمعرفات نتائج الأمن وحالتها؛ التفاصيل التقنية تبقى في تقرير المشروع الخاص.
 - [`docs/scenarios/`](docs/scenarios/): الشخصيات والحالات والأسئلة ونتائج الاختبار.
 - [`docs/quality/scenario-coverage-matrix-v1.md`](docs/quality/scenario-coverage-matrix-v1.md): ربط المشكلات بالسيناريوهات والقدرات.
 - [`docs/research/jordan-financial-problems-evidence.md`](docs/research/jordan-financial-problems-evidence.md): الأدلة الأردنية والخارجية وحدودها.

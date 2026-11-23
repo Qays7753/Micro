@@ -1,0 +1,78 @@
+{
+  "id": "WS-253",
+  "title": "PR #385 — توحيد قرارات المالك والأسئلة الـ293 وسجل الأمن والحالة الحية",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-043"
+  ],
+  "branch": "docs/micro-final-decisions-20261121",
+  "base_sha": "74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4",
+  "areas": [
+    "README.md",
+    "AGENTS.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/00-document-index.md",
+    "docs/product/decisions/",
+    "docs/expansion/security-findings-status.md",
+    "docs/operations/control/items/DOC-042.json",
+    "docs/operations/control/items/DOC-043.json",
+    "docs/operations/control/workstreams/WS-252.json",
+    "docs/operations/control/workstreams/WS-253.json",
+    "docs/operations/control/generated/",
+    "docs/operations/control/generated/MASTER-TRACKER.xlsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "README.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/product/decisions/README.md",
+    "docs/00-document-index.md"
+  ],
+  "agent": "Manus — sole documentation writer and integrator under explicit owner authorization; no parallel writers.",
+  "pr": 385,
+  "started_at": "2026-11-23",
+  "updated_at": "2026-11-23",
+  "next_action": "إكمال تحديث المصادر والسجل الأمني الآمن على فرع PR #385، ثم توليد Views والمصنف وفحوصها. بعد نجاحها ادفع التزامًا عاديًا بلا بادئة تخطٍ وانتظر فحوص PR الدقيقة؛ ادمج بMerge Commit عادي وفق التفويض القائم كي ينطلق Pages. تحقق من رأس main ونجاح النشر ومحتوى الملفات، وسجل أن الإنتاج بلا DB/Media وأن /api/* يرد 503؛ لا تستخدم بيانات حقيقية ولا تصف الخدمات بأنها متصلة. أعد بوابة النتائج المفتوحة قبل إضافة bindings إنتاجية. بعد التحقق توقف قبل حذف أي فرع واطلب تأكيد المالك الأخير.",
+  "notes": [
+    "المالك أجاز تحديث PR #385 التوثيقي ودمجه بعد الفحوص المطلوبة. يحفظ الفرع تاريخه بدمج عادي لـorigin/main، بلا rebase أو تعديل مباشر لـmain.",
+    "لا تغيير كود أو معنى مالي/سلوكي أو بنية؛ الدمج العادي إلى main يطلق Pages تلقائيًا وفق قرار المالك، من دون تغيير إعدادات Cloudflare/Neon/R2 أو استخدام بيانات حقيقية. لا توصيل لمزود Ask Micro؛ لا حذف فروع.",
+    "لا تضع بادئة تخطي Pages في التزام الدمج إلى main؛ إعداد الإنتاج التلقائي لفرع main مفعّل بالفعل. `delete_branch_on_merge=false` وقد تحققنا من ذلك قراءة فقط؛ لا تمرير لخيار حذف الفرع.",
+    "القرارات النهائية والأسئلة الـ293 وملف المصدر الأصلي لا تتغير. التوجيه يربطها ولا يكررها كاملة في مقدمة Agent.",
+    "تحليل الفجوات يبقى تاريخيًا على 2026-11-21 وmain@16c90e48 قبل دمج #386؛ تُزال تفاصيل الاستغلال ومسارات الشيفرة من النسخة العامة. التقرير الأمني التفصيلي محفوظ في ملفات المشروع الخاصة.",
+    "أُعيدت مراجعة النتائج الثلاثين مباشرة على main@74d74c: 22 fixed-verified و8 open؛ MNG-LOCAL-03 تظل open تقنيًا وdeferred-by-owner. تفاصيل الدليل في مذكرة المشروع الخاصة، ولا يغلق CI عامًا أي نتيجة.",
+    "وجود الكود على main لا يثبت النشر. مزود Ask Micro ما زال غير مهيأ. حدث Pages لـ74d74c تخطى البناء فقط بسبب بادئة رسالة الدمج؛ إعداد الإنتاج التلقائي مفعّل، والدمج العادي التالي إلى main سيطلقه. لا حاجة لتغيير إعدادات Cloudflare؛ افحص نتائج الحظر قبل النشر وتحقق من نتيجة Pages بعد الدمج.",
+    "مصالحة نشر Pages قراءة فقط 2026-11-23: الإنتاج بلا DB/Media bindings، والمعاينة وحدها بها DB وMEDIA. الحزمة تضم _worker.js، ويعيد كل /api/* حالة 503 عند غياب DB/MEDIA؛ الدمج العادي سينشر البناء لكنه لا يفعّل الخدمات المتصلة. لا تغيير إعدادات أو بيانات، ولا بيانات حقيقية؛ أعد بوابة الأمن قبل أي ربط إنتاجي."
+  ],
+  "evidence": [
+    "https://github.com/Qays7753/Micro/pull/385",
+    "https://github.com/Qays7753/Micro/pull/386",
+    "https://github.com/Qays7753/Micro/actions/runs/45134672644",
+    "docs/product/decisions/README.md",
+    "docs/expansion/security-findings-status.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-docs-integrator",
+      "reason": "حُجز نطاق توثيقي مستقل لـPR #385 بعد فحص قائمة PRs والفروع، وتأكيد خلو DOC-043 وWS-253 من التصادم، وتحديث WS-252 إلى MERGED_UNVERIFIED بعد دمج PR #386."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-23",
+      "actor": "manus-docs-integrator",
+      "reason": "بدء توثيق القرار والأسئلة والحالة والأمن في worktree منفصل بعد دمج main الحالي 74d74c دون rebase؛ لا تغييرات بعيدة حتى الآن."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-23",
+      "actor": "manus-docs-integrator",
+      "reason": "أُجريت مراجعة مباشرة للنتائج الأمنية الثلاثين على main@74d74c (22 fixed-verified و8 open مع إبقاء MNG-LOCAL-03 open/deferred-by-owner)، واكتملت فحوص الفهرس والحجم وOperations Control وgit diff --check وسلامة المصنف وبصمات ملفات القرار والأسئلة. أصبحت المطالبة جاهزة لمراجعة PR؛ لا تغيير إعدادات أو بيانات ولا ادعاء باتصال الخدمات."
+    }
+  ],
+  "migration_baseline": false
+}

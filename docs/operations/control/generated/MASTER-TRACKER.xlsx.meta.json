@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "9a608d9ea78c183e818e75e8ec5d3ac320c864032daf06995d5e104dd248464c",
+  "source_digest": "abbf2e7ebf214b6f70557bdfb57ed2d3753e47302ea8f15e721d03594d580fca",
   "source_files": [
     "docs/operations/control/items/ARCH-001.json",
     "docs/operations/control/items/ARCH-002.json",
@@ -67,6 +67,7 @@
     "docs/operations/control/items/DOC-040.json",
     "docs/operations/control/items/DOC-041.json",
     "docs/operations/control/items/DOC-042.json",
+    "docs/operations/control/items/DOC-043.json",
     "docs/operations/control/items/FIN-001.json",
     "docs/operations/control/items/FIN-002.json",
     "docs/operations/control/items/FIN-003.json",
@@ -201,6 +202,7 @@
     "docs/operations/control/workstreams/WS-250.json",
     "docs/operations/control/workstreams/WS-251.json",
     "docs/operations/control/workstreams/WS-252.json",
+    "docs/operations/control/workstreams/WS-253.json",
     "docs/operations/control/workstreams/review/WS-001.json",
     "docs/operations/control/workstreams/review/WS-141.json",
     "docs/operations/control/workstreams/review/WS-161.json",
@@ -228,7 +230,7 @@
     "docs/operations/control/workstreams/review/WS-183.json"
   ],
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
-  "workbook_sha256": "74862e9a6fc4f6c39344fdb67b72e9e0e39bb40ad2d9400b3ee92d87a394e65a",
+  "workbook_sha256": "831d938096fb62ed8ca13c9d18cec448ac14fafbcc8b6ca8374e76936db0a6e2",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
   "generated_at": "2026-11-23",
   "read_only_view": true,

@@ -2,15 +2,18 @@
   "id": "DOC-042",
   "title": "PR #386 — إصلاح مهلة اختبار CI وعزل قراءة حالة PR بصلاحية محدودة",
   "type": "QUALITY",
-  "status": "IN_REVIEW",
+  "status": "MERGED_UNVERIFIED",
   "priority": "P1",
   "stage": "pr386-ci-remediation-20261123",
-  "summary": "إصلاح موثوقية CI لطلب PR #386: التشغيل 45077307685 أخفق عند حد Vitest البالغ 5000ms لاختبار مسح شجرة العميل، كما كشف التشغيل المحلي الكامل اختبارين آخرين لمسح الشجرة تجاوزا الحد فقط تحت التوازي مع نجاح كل منهما منفردًا. تُرفع مهلة الاختبارات الثلاثة المحددة إلى 15000ms دون تغيير أي تأكيد، ويُضاف pull-requests: read وخطوة PR مستقلة تمرر GH_TOKEN لها وحدها؛ يبقى pnpm check بلا GH_TOKEN. هذه شريحة جودة داخلية لا تغيّر سلوك المنتج أو المال أو التخزين. DOC-038/WS-249 تخص إصلاح PostgreSQL التاريخي ولا يعاد فتحها؛ DOC-041/WS-251 وPR #385 محمية ولا تُعدل. سجل الأمن المصدر لم يتغير: CI-001 مفتوحة وخارج النطاق؛ لا إغلاق لـCI-002 أو SEC-GIT-001 أو أي نتيجة أخرى ضمن هذه الشريحة.",
+  "summary": "إصلاح موثوقية CI لطلب PR #386: التشغيل 45077307685 أخفق عند حد Vitest البالغ 5000ms لاختبار مسح شجرة العميل، كما كشف التشغيل المحلي الكامل اختبارين آخرين لمسح الشجرة تجاوزا الحد فقط تحت التوازي مع نجاح كل منهما منفردًا. تُرفع مهلة الاختبارات الثلاثة المحددة إلى 15000ms دون تغيير أي تأكيد، ويُضاف pull-requests: read وخطوة PR مستقلة تمرر GH_TOKEN لها وحدها؛ يبقى pnpm check بلا GH_TOKEN. هذه شريحة جودة داخلية لا تغيّر سلوك المنتج أو المال أو التخزين. DOC-038/WS-249 تخص إصلاح PostgreSQL التاريخي ولا يعاد فتحها؛ DOC-041/WS-251 خارج نطاق شريحة CI هذه. دمج PR #386 موثق أدناه، ومطالبة PR #385 منفصلة ومصرح بها للتوثيق فقط. سجل الأمن المصدر لم يتغير: CI-001 مفتوحة وخارج النطاق؛ لا إغلاق لـCI-002 أو SEC-GIT-001 أو أي نتيجة أخرى ضمن هذه الشريحة.",
   "source": {
     "report": "https://github.com/Qays7753/Micro/actions/runs/45077307685",
     "discovered_at_sha": "5ca1167ebaf998e8316d03a1cced9d78d9e725d6",
     "evidence": [
     "https://github.com/Qays7753/Micro/actions/runs/45077307685",
+    "https://github.com/Qays7753/Micro/pull/386",
+    "https://github.com/Qays7753/Micro/actions/runs/45134672644",
+    "https://github.com/Qays7753/Micro/commit/74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4",
     "scripts/check-label-vocabulary.test.mjs",
     ".github/workflows/ci.yml",
       "scripts/operations-control/validate.py"
@@ -50,7 +53,8 @@
   ],
   "dependencies": [],
   "related_items": [],
-  "owner_decision": "أجاز المالك مزامنة المصنف ثم متابعة إصلاحات CI على الفرع الحالي وPR #386 فقط. لا يتطلب الإصلاح قرار منتج أو مالي. تبقى نتيجة الأمن CI-001 مفتوحة وخارج النطاق؛ ولم يُعد تقييم CI-002 أو SEC-GIT-001 ولم تُغلق أي نتيجة أمنية. لا دمج أو نشر أو اتصال حي أو بيانات حقيقية.",
+  "merge_sha": "74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4",
+  "owner_decision": "أجاز المالك إصلاح CI المحدود على PR #386 ثم أجاز دمجه باستخدام merge commit. لا يتطلب الإصلاح قرار منتج أو مالي. نجح فحص GitHub Actions على رأس PR #386 `74403009795d79e756b92d05ade3319dbacb7993`؛ شجرة ذلك الرأس مطابقة لشجرة merge commit `74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4`. لم يظهر تشغيل CI على merge SHA نفسه، لذلك تبقى المطالبة MERGED_UNVERIFIED ولا تُوسم VERIFIED. تبقى CI-001 مفتوحة وخارج النطاق؛ لم يُعد تقييم CI-002 أو SEC-GIT-001 ولم تُغلق أي نتيجة أمنية.",
   "root_cause": "مهلة Vitest الافتراضية 5000ms ضيقة لثلاثة اختبارات تمسح شجرة العميل/المستودع كاملة؛ أكد التشغيل المحلي الكامل أن اثنين إضافيين يتجاوزانها فقط تحت توازي المجموعة، بينما نجحا منفردين. كذلك تحتاج قراءة علاقات PR في المدقق إلى اعتماد GitHub read-only غير متاح في خطوة pnpm check الحالية.",
   "updated_at": "2026-11-23",
   "status_history": [
@@ -77,10 +81,16 @@
       "changed_at": "2026-11-23",
       "actor": "manus-ci-integrator",
       "reason": "المرشح جاهز للمراجعة على PR #386 Draft بعد نجاح الاختبارات المركزة 41/41 واختبارات الجذر 84/84 (1028/1028) والبناء المحلي. تكامل prototype:test محليًا محجوب بمكتبات PostgreSQL المفقودة؛ لذلك يظل تشغيل Actions الكامل على SHA الذي سيدفع شرطًا غير منجز، ولا يعني هذا الانتقال VERIFIED. لم تتغير حالة أي نتيجة أمنية."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-post-merge-reconciliation",
+      "reason": "دُمج PR #386 في main بmerge commit 74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4 بعد موافقة المالك. GitHub Actions `checks` نجح على رأس PR 74403009795d79e756b92d05ade3319dbacb7993؛ أكد Git أن شجرة المصدر تطابق شجرة merge commit. لا تشغيل CI على merge SHA نفسه ظاهر في GitHub، لذا يبقى التحقق النهائي غير مكتمل. لم تُغلق أي نتيجة أمنية."
     }
   ],
   "migration_baseline": false,
-  "next_action": "إنشاء commit المطلوب ودفعه إلى الفرع نفسه، تحديث وصف PR #386 بالأدلة الدقيقة، والتحقق من اكتمال Actions على SHA النهائي قبل التوقف.",
+  "next_action": "معلّق التحقق النهائي: لا يُنقل هذا البند إلى VERIFIED حتى يوجد دليل فحص مقبول على merge SHA 74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4 على main. لا يُستخدم هذا البند لإغلاق أي نتيجة أمنية؛ CI-001 وCI-002 وSEC-GIT-001 وبقية النتائج تبقى وفق سجل الأمن المستقل.",
   "classification": "HARDENING",
   "gate_classification": "NOT_APPLICABLE",
   "owner": "Qays (owner authorization) / Manus (sole CI writer and integrator)",
