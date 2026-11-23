@@ -1,7 +1,7 @@
 {
   "id": "WS-254",
   "title": "إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-044"
   ],
@@ -44,7 +44,7 @@
   "pr": null,
   "started_at": "2026-11-23",
   "updated_at": "2026-11-23",
-  "next_action": "Manus publishes the controlling prompt on this branch. ZAI then reads it and continues implementation on this exact branch under DOC-044, preserving all existing work; ordinary branch pushes are authorized and may trigger the owner-approved automatic Pages preview. No PR, merge, manual deployment, settings change, or real-data operation.",
+  "next_action": "مراجعة المالك/Manus لتقرير التنفيذ العربي EXECUTION-REPORT-AR.md على رأس الفرع النهائي (fe2b1b5a) وdiffs الالتزامات الخمسة؛ القرار المفتوح الوحيد المتبقي تقنيًا هو MNG-LOCAL-03 (مؤجلة بقرار المالك المصرح) — لا PR ولا دمج ولا نشر يدوي ولا إعدادات ولا بيانات حقيقية من هذه السلسلة؛ معاينة Pages التلقائية المحتملة تُقرأ قراءة أدلة فقط ولا تعني جاهزية إطلاق.",
   "notes": [
     "This claim begins from main@5a9064e657a40041ebe63c8f107d57a802f6b93f. The ZAI execution must verify the live base and branch; the recorded SHA is a hint until checked.",
     "The owner expressly authorized ordinary pushes to this branch and accepts the possibility of an automatic Cloudflare Pages preview. This does not authorize a manual deployment/retry, production promotion, or Cloudflare/Neon/R2 configuration or data writes. Do not use [CF-Pages-Skip].",
@@ -68,6 +68,12 @@
       "changed_at": "2026-11-23",
       "actor": "manus-zai-handoff-integrator",
       "reason": "بدأ إعداد الأمر الكنسي والفهرس ومزامنة Control، ثم يتابع ZAI تنفيذ النطاق المصرح به على الفرع نفسه دون فتح فرع أو PR جديد."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-23",
+      "actor": "zai-open-findings-executor",
+      "reason": "اكتمل تنفيذ ZAI الكامل لأمر النتائج المفتوحة على الفرع نفسه (الأصل main@5a9064e6): سبعة إصلاحات جذور باختبارات انحدار مركزة، تسجيلات البروتوكول الموثقة نفس-الـPR (إرساءات حجم الملفات وخريطة الاختبارات وأسطح الحزمة بالبيئات الثلاث)، تحديث سجل الأمن الآمن، وتقرير التنفيذ العربي الكامل؛ البند إلى IN_REVIEW بانتظار مراجعة المالك/Manus — لا PR ولا دمج ولا تنظيف."
     }
   ],
   "migration_baseline": false
