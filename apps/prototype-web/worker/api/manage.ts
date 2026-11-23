@@ -24,7 +24,21 @@ import { randomToken, sha256Hex } from "../crypto.ts";
 import { rowString, type Db } from "../db/db.ts";
 import { HttpError, asString, jsonResponse } from "../http.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
-import type { RouteContext } from "../router.ts";
+import { JSON_BODY_MAX_BYTES, readBodyTextWithin, type RouteContext } from "../router.ts";
+
+/* SRV-02 (2026-11-23): the Manage link routes read their JSON bodies through
+ * the bounded reader — the declared length is refused BEFORE buffering and a
+ * lying/chunked body is capped after reading (these bodies are tiny: a proof
+ * secret or a nonce). Unparseable JSON keeps the historical honest "empty
+ * object" handling so the field validation below answers with its own 400. */
+async function readSmallJsonBodyLenient(request: Request): Promise<Record<string, unknown>> {
+  const text = await readBodyTextWithin(request, JSON_BODY_MAX_BYTES);
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
 
 /** Pending-link window (matches the short-lived invitation posture). */
 const PENDING_LINK_TTL_MS = 15 * 60 * 1000;
@@ -108,10 +122,7 @@ export async function manageState(db: Db, auth: AuthenticatedContext): Promise<R
  */
 export async function linkStart(db: Db, ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   await ensureManageSchema(db);
-  const body = (await ctx.request
-    .clone()
-    .json()
-    .catch(() => ({}))) as Record<string, unknown>;
+  const body = await readSmallJsonBodyLenient(ctx.request);
   const proofSecret = asString(body.proofSecret, "proofSecret", { min: PROOF_MIN, max: PROOF_MAX });
   // W1 (EX-D24 / AUTHZ-05): the caller may name the project being linked;
   // a named workspace that is not the caller's own owner membership is an
@@ -196,7 +207,7 @@ export async function linkStart(db: Db, ctx: RouteContext, auth: AuthenticatedCo
  */
 export async function linkConfirm(db: Db, ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   await ensureManageSchema(db);
-  const body = (await ctx.request.json()) as Record<string, unknown>;
+  const body = await readSmallJsonBodyLenient(ctx.request);
   const nonce = asString(body.nonce, "nonce", { min: 16, max: 64 });
   const now = Date.now();
 

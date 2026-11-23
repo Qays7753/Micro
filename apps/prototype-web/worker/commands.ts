@@ -14,16 +14,22 @@
 import { hashRequest, lookupIdempotent, reserveIdempotent, storeIdempotent } from "./idempotency.ts";
 import { sha256Hex } from "./crypto.ts";
 import { errorResponse } from "./http.ts";
-import type { RouteContext, RouteHandler } from "./router.ts";
+import { JSON_BODY_MAX_BYTES, readBodyTextWithin, type RouteContext, type RouteHandler } from "./router.ts";
 
 export interface CommandOptions {
   /** SRV-03: reject the request outright when no Idempotency-Key header is
    * present, and reserve the key atomically before executing. */
   requireIdempotencyKey?: boolean;
+  /** SRV-02 (2026-11-23): the request-body byte cap enforced by the wrapper
+   * itself BEFORE the body is buffered for the request hash — the default is
+   * the canonical JSON cap; routes whose documented payload is legitimately
+   * larger (the Manage migration envelope) register their own ceiling. */
+  maxBodyBytes?: number;
 }
 
 export function command(seed: string, handler: RouteHandler, options: CommandOptions = {}): RouteHandler {
   void seed;
+  const maxBodyBytes = options.maxBodyBytes ?? JSON_BODY_MAX_BYTES;
   return async (ctx: RouteContext): Promise<Response> => {
     const key = readIdempotencyKeyHeader(ctx.request);
     if (key === null) {
@@ -36,7 +42,12 @@ export function command(seed: string, handler: RouteHandler, options: CommandOpt
     // different accounts can never replay each other's responses.
     const sessionToken = readSessionCookie(ctx.request);
     const scopedKey = `${key}:${sessionToken === null ? "anon" : await sha256Hex(sessionToken)}`;
-    const bodyText = await ctx.request.clone().text();
+    /* SRV-02 (2026-11-23): the request body is hashed for replay detection —
+     * the byte cap is enforced by the SAME two layers as every other body
+     * reader (declared length before buffering, hard cap after reading a
+     * lying/chunked body), so an oversized command body is refused before it
+     * is ever buffered, whatever the route below it does. */
+    const bodyText = await readBodyTextWithin(ctx.request.clone(), maxBodyBytes);
     const requestHash = await hashRequest(
       `${ctx.url.pathname}${ctx.url.search}`,
       ctx.request.method,

@@ -29,7 +29,7 @@ import { rowString, type Db, type DbPreparedStatement } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { sha256Hex } from "../crypto.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
-import type { RouteContext } from "../router.ts";
+import { JSON_BODY_MAX_BYTES, readBodyTextWithin, type RouteContext } from "../router.ts";
 import { requireManageOwnerAudited } from "./manageReads.ts";
 
 /** The live released pair values (mirrored as plain numbers — the worker
@@ -158,13 +158,36 @@ interface MigrationReceipt {
   appliedAt: number;
 }
 
-/** POST /api/manage/migrate/apply — idempotent, transactional, double-proof. */
+/** The migration apply body byte ceiling (SRV-02, 2026-11-23). The tight
+ * semantic gates stay POST-parse (DATA_TEXT_MAX UTF-16 units over the data
+ * text, TOTAL_RECORDS_MAX): this pre-read ceiling exists only so the body is
+ * never buffered unbounded. Derivation: a UTF-8 byte is never smaller than
+ * the UTF-16 unit it encodes, so a legal COMPACT envelope is at most
+ * DATA_TEXT_MAX bytes + the small envelope/proof overhead, and a fully
+ * whitespace-padded one at most 2×; anything beyond 2×+64 KiB cannot pass
+ * the post-parse gate, so refusing it early never rejects an honest export. */
+export const MIGRATION_APPLY_BODY_MAX_BYTES = 2 * 2 ** 24 + 64 * 1024;
+
+/* SRV-02 (2026-11-23): bounded readers for the migration bodies — the
+ * declared length is refused BEFORE buffering (the apply route at its own
+ * documented envelope ceiling, the tiny rollback route at the canonical JSON
+ * cap), and a lying/chunked body is capped after reading. Unparseable JSON
+ * keeps the historical honest "empty object" handling so the field validation
+ * below answers with its own 400. */
+async function readJsonBodyLenient(request: Request, maxBytes: number): Promise<Record<string, unknown>> {
+  const text = await readBodyTextWithin(request, maxBytes);
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+/** POST /api/manage/migrate/apply — apply the verified local export to the
+ * caller's linked workspace store (synthetic fixtures only in this repo). */
 export async function applyMigration(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const preBody = (await ctx.request
-    .clone()
-    .json()
-    .catch(() => ({}))) as { workspaceId?: unknown };
+  const preBody = await readJsonBodyLenient(ctx.request, MIGRATION_APPLY_BODY_MAX_BYTES);
   const contextId =
     typeof preBody.workspaceId === "string" && preBody.workspaceId.length > 0
       ? preBody.workspaceId
@@ -339,10 +362,7 @@ export async function migrationStatus(
 /** POST /api/manage/migrate/rollback — full rollback; the local export stays the recovery source. */
 export async function rollbackMigration(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
   const db = ctx.env.DB;
-  const preBody = (await ctx.request
-    .clone()
-    .json()
-    .catch(() => ({}))) as { workspaceId?: unknown };
+  const preBody = await readJsonBodyLenient(ctx.request, JSON_BODY_MAX_BYTES);
   const contextId =
     typeof preBody.workspaceId === "string" && preBody.workspaceId.length > 0
       ? preBody.workspaceId

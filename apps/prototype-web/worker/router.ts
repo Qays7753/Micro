@@ -97,6 +97,28 @@ export class ApiRouter {
   }
 }
 
+/** The single canonical JSON body cap (SRV-02) — every JSON route reads
+ * through `readJsonBody`/`readBodyTextWithin` with this limit; command routes
+ * inherit it through the idempotency wrapper unless they register a larger
+ * documented cap (the Manage migration envelope). */
+export const JSON_BODY_MAX_BYTES = 256 * 1024;
+
+/** SRV-02 (2026-11-23): read a request body as text with BOTH size layers —
+ * the DECLARED content-length is refused BEFORE the body is buffered (an
+ * oversized request never reaches `text()`), and the post-read cap stays for
+ * the lying or missing header case (chunked bodies). The Manage routes and
+ * the idempotency command wrapper share this one helper so no body-reading
+ * path can bypass the limit anymore. */
+export async function readBodyTextWithin(request: Request, maxBytes: number): Promise<string> {
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new HttpError(400, "bad_request", { reason: "body_too_large", maxBytes });
+  }
+  const text = await request.text();
+  if (text.length > maxBytes) throw new HttpError(400, "bad_request", { reason: "body_too_large", maxBytes });
+  return text;
+}
+
 /** Read and parse a JSON request body (max 256 KB). */
 export async function readJsonBody(request: Request): Promise<unknown> {
   const contentType = request.headers.get("content-type") ?? "";
@@ -107,12 +129,7 @@ export async function readJsonBody(request: Request): Promise<unknown> {
    * BEFORE the body is read — an oversized request is refused early instead
    * of being buffered first. The post-read cap below stays for the lying or
    * missing header case (chunked bodies). */
-  const declaredLength = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(declaredLength) && declaredLength > 256 * 1024) {
-    throw new HttpError(400, "bad_request", { reason: "body_too_large" });
-  }
-  const text = await request.text();
-  if (text.length > 256 * 1024) throw new HttpError(400, "bad_request", { reason: "body_too_large" });
+  const text = await readBodyTextWithin(request, JSON_BODY_MAX_BYTES);
   try {
     return JSON.parse(text) as unknown;
   } catch {

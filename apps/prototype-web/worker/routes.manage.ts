@@ -10,7 +10,12 @@
 import { linkConfirm, linkStart, manageState, unlinkManage } from "./api/manage.ts";
 import { getRecord, listFamilies, listFamilyRecords, manageMode } from "./api/manageReads.ts";
 import { saveManageRecord } from "./api/manageWrites.ts";
-import { applyMigration, migrationStatus, rollbackMigration } from "./api/manageMigration.ts";
+import {
+  applyMigration,
+  migrationStatus,
+  rollbackMigration,
+  MIGRATION_APPLY_BODY_MAX_BYTES,
+} from "./api/manageMigration.ts";
 import { command } from "./commands.ts";
 import { authedRoute } from "./routes.ts";
 import type { ApiRouter } from "./router.ts";
@@ -79,6 +84,11 @@ export function registerManageRoutes(router: ApiRouter): void {
     command(
       "manage-migrate-apply",
       authedRoute((ctx, auth) => applyMigration(ctx, auth)),
+      /* SRV-02 (2026-11-23): the migration envelope is the ONE command body
+       * that legitimately exceeds the canonical JSON cap — the route
+       * registers its own documented byte ceiling (derived from the
+       * post-parse DATA_TEXT_MAX gate) instead of being buffered unbounded. */
+      { maxBodyBytes: MIGRATION_APPLY_BODY_MAX_BYTES },
     ),
   );
   router.post(
