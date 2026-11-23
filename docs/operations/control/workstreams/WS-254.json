@@ -1,0 +1,74 @@
+{
+  "id": "WS-254",
+  "title": "إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-044"
+  ],
+  "branch": "manus/zai-prompt-open-findings-20261123",
+  "base_sha": "5a9064e657a40041ebe63c8f107d57a802f6b93f",
+  "areas": [
+    "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/components/profile/ManageOnlineSection.tsx",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/resultCodes.ts",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/worker/router.ts",
+    "apps/prototype-web/worker/api/media.ts",
+    "apps/prototype-web/worker/media.ts",
+    "apps/prototype-web/worker/env.ts",
+    "apps/prototype-web/worker/authorization.ts",
+    "apps/prototype-web/worker/api/deliveryRequest.ts",
+    "apps/prototype-web/worker/tests/",
+    "docs/expansion/security-findings-status.md",
+    "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/",
+    "docs/00-document-index.md",
+    "docs/operations/control/items/DOC-044.json",
+    "docs/operations/control/workstreams/WS-254.json",
+    "docs/operations/control/generated/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/current-state.md",
+    "docs/operations/control/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/security-findings-status.md",
+    "docs/quality/security-boundaries.md",
+    "docs/contracts/04-limited-sync-contract.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md"
+  ],
+  "agent": "Manus — prompt and documentation integrator; ZAI — sole code writer and integrator under the owner's explicit authorization; no parallel writers",
+  "pr": null,
+  "started_at": "2026-11-23",
+  "updated_at": "2026-11-23",
+  "next_action": "Manus publishes the controlling prompt on this branch. ZAI then reads it and continues implementation on this exact branch under DOC-044, preserving all existing work; ordinary branch pushes are authorized and may trigger the owner-approved automatic Pages preview. No PR, merge, manual deployment, settings change, or real-data operation.",
+  "notes": [
+    "This claim begins from main@5a9064e657a40041ebe63c8f107d57a802f6b93f. The ZAI execution must verify the live base and branch; the recorded SHA is a hint until checked.",
+    "The owner expressly authorized ordinary pushes to this branch and accepts the possibility of an automatic Cloudflare Pages preview. This does not authorize a manual deployment/retry, production promotion, or Cloudflare/Neon/R2 configuration or data writes. Do not use [CF-Pages-Skip].",
+    "Keep all 30 security findings visible. The eight open findings are in scope; MNG-LOCAL-03 remains technically open and deferred-by-owner unless the owner changes that decision. Do not invent encryption, key recovery, or a new export/storage format.",
+    "No structural refactoring, bulk moves, architecture-layer changes, semantic/financial changes, live migrations, provider calls, credentials, or real-data use. Synthetic fixtures are for automated tests only; the owner's eventual private partner trial is not being redefined as synthetic-only.",
+    "Production Pages was last documented without DB/MEDIA bindings and /api/* returning 503. An automatic preview is not proof of connected services, release readiness, or permission to use data."
+  ],
+  "evidence": [
+    "docs/expansion/security-findings-status.md",
+    "docs/00-document-index.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-owner-authorized-handoff",
+      "reason": "حُجز نطاق واحد للمطالبة الأمنية والجاهزية على فرع جديد من main@5a9064e بعد التحقق من عدم وجود مطالبات تنفيذ نشطة متداخلة؛ موافقة المالك تشمل دفع الفرع واحتمال معاينة Pages تلقائية فقط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-23",
+      "actor": "manus-zai-handoff-integrator",
+      "reason": "بدأ إعداد الأمر الكنسي والفهرس ومزامنة Control، ثم يتابع ZAI تنفيذ النطاق المصرح به على الفرع نفسه دون فتح فرع أو PR جديد."
+    }
+  ],
+  "migration_baseline": false
+}
