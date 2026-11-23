@@ -1,7 +1,7 @@
 {
   "id": "WS-253",
   "title": "PR #385 — توحيد قرارات المالك والأسئلة الـ293 وسجل الأمن والحالة الحية",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-043"
   ],
@@ -36,7 +36,7 @@
   "pr": 385,
   "started_at": "2026-11-23",
   "updated_at": "2026-11-23",
-  "next_action": "إكمال تحديث المصادر والسجل الأمني الآمن على فرع PR #385، ثم توليد Views والمصنف وفحوصها. بعد نجاحها ادفع التزامًا عاديًا بلا بادئة تخطٍ وانتظر فحوص PR الدقيقة؛ ادمج بMerge Commit عادي وفق التفويض القائم كي ينطلق Pages. تحقق من رأس main ونجاح النشر ومحتوى الملفات، وسجل أن الإنتاج بلا DB/Media وأن /api/* يرد 503؛ لا تستخدم بيانات حقيقية ولا تصف الخدمات بأنها متصلة. أعد بوابة النتائج المفتوحة قبل إضافة bindings إنتاجية. بعد التحقق توقف قبل حذف أي فرع واطلب تأكيد المالك الأخير.",
+  "next_action": "أُغلقت المطالبة التوثيقية بعد التحقق من دمج PR #385 وCI وPages على 3dc26ee. لا تحذف فروعًا قبل موافقة المالك النهائية. قبل ربط DB/MEDIA أو استخدام بيانات حقيقية، أعد فحص النتائج الأمنية المفتوحة ذات الصلة.",
   "notes": [
     "المالك أجاز تحديث PR #385 التوثيقي ودمجه بعد الفحوص المطلوبة. يحفظ الفرع تاريخه بدمج عادي لـorigin/main، بلا rebase أو تعديل مباشر لـmain.",
     "لا تغيير كود أو معنى مالي/سلوكي أو بنية؛ الدمج العادي إلى main يطلق Pages تلقائيًا وفق قرار المالك، من دون تغيير إعدادات Cloudflare/Neon/R2 أو استخدام بيانات حقيقية. لا توصيل لمزود Ask Micro؛ لا حذف فروع.",
@@ -45,14 +45,22 @@
     "تحليل الفجوات يبقى تاريخيًا على 2026-11-21 وmain@16c90e48 قبل دمج #386؛ تُزال تفاصيل الاستغلال ومسارات الشيفرة من النسخة العامة. التقرير الأمني التفصيلي محفوظ في ملفات المشروع الخاصة.",
     "أُعيدت مراجعة النتائج الثلاثين مباشرة على main@74d74c: 22 fixed-verified و8 open؛ MNG-LOCAL-03 تظل open تقنيًا وdeferred-by-owner. تفاصيل الدليل في مذكرة المشروع الخاصة، ولا يغلق CI عامًا أي نتيجة.",
     "وجود الكود على main لا يثبت النشر. مزود Ask Micro ما زال غير مهيأ. حدث Pages لـ74d74c تخطى البناء فقط بسبب بادئة رسالة الدمج؛ إعداد الإنتاج التلقائي مفعّل، والدمج العادي التالي إلى main سيطلقه. لا حاجة لتغيير إعدادات Cloudflare؛ افحص نتائج الحظر قبل النشر وتحقق من نتيجة Pages بعد الدمج.",
-    "مصالحة نشر Pages قراءة فقط 2026-11-23: الإنتاج بلا DB/Media bindings، والمعاينة وحدها بها DB وMEDIA. الحزمة تضم _worker.js، ويعيد كل /api/* حالة 503 عند غياب DB/MEDIA؛ الدمج العادي سينشر البناء لكنه لا يفعّل الخدمات المتصلة. لا تغيير إعدادات أو بيانات، ولا بيانات حقيقية؛ أعد بوابة الأمن قبل أي ربط إنتاجي."
+    "مصالحة نشر Pages قراءة فقط 2026-11-23: الإنتاج بلا DB/Media bindings، والمعاينة وحدها بها DB وMEDIA. الحزمة تضم _worker.js، ويعيد كل /api/* حالة 503 عند غياب DB/MEDIA؛ الدمج العادي سينشر البناء لكنه لا يفعّل الخدمات المتصلة. لا تغيير إعدادات أو بيانات، ولا بيانات حقيقية؛ أعد بوابة الأمن قبل أي ربط إنتاجي.",
+    "ما بعد الدمج: PR #385 مدمج بدمج عادي على main@3dc26ee؛ CI run 45223275102 نجح على SHA الدمج، وPages نشر تلقائيًا deployment 834779de-e410-4b3c-b4fe-3d6eedbe29d8 دون تخطٍ.",
+    "تحقق HTTP: رابط الإنتاج ورابط النشر 200؛ /api/health يرد 503 network_not_configured لغياب DB/MEDIA. لا خدمات متصلة ولا تغيير إعدادات أو قاعدة بيانات أو استخدام بيانات حقيقية.",
+    "سجل الأمن بقي كما هو: 30 نتيجة (22 fixed-verified و8 open)، وMNG-LOCAL-03 open تقنيًا وdeferred-by-owner. مقارنة 74d74c..3dc26ee لا تظهر تغييرًا في ملفات التنفيذ أو الأمن؛ نجاح CI/Pages ليس إغلاقًا لأي نتيجة."
   ],
   "evidence": [
     "https://github.com/Qays7753/Micro/pull/385",
     "https://github.com/Qays7753/Micro/pull/386",
     "https://github.com/Qays7753/Micro/actions/runs/45134672644",
     "docs/product/decisions/README.md",
-    "docs/expansion/security-findings-status.md"
+    "docs/expansion/security-findings-status.md",
+    "https://github.com/Qays7753/Micro/commit/3dc26ee0accabce74547821ed58f034db88fbf0f",
+    "https://github.com/Qays7753/Micro/actions/runs/45223275102",
+    "https://834779de.micro-prototype.pages.dev",
+    "https://micro-prototype.pages.dev",
+    "https://micro-prototype.pages.dev/api/health"
   ],
   "status_history": [
     {
@@ -72,7 +80,21 @@
       "changed_at": "2026-11-23",
       "actor": "manus-docs-integrator",
       "reason": "أُجريت مراجعة مباشرة للنتائج الأمنية الثلاثين على main@74d74c (22 fixed-verified و8 open مع إبقاء MNG-LOCAL-03 open/deferred-by-owner)، واكتملت فحوص الفهرس والحجم وOperations Control وgit diff --check وسلامة المصنف وبصمات ملفات القرار والأسئلة. أصبحت المطالبة جاهزة لمراجعة PR؛ لا تغيير إعدادات أو بيانات ولا ادعاء باتصال الخدمات."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-post-merge-verifier",
+      "reason": "أكد GitHub دمج PR #385 على main@3dc26ee بدمج عادي؛ بانتظار تسجيل تحقق CI وPages في السجل."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-post-merge-verifier",
+      "reason": "تحقق CI run 45223275102 ونشر Pages التلقائي على 3dc26ee؛ الموقع 200 و/api/health 503 لغياب DB/MEDIA. أضيفت روابط الدليل وحُفظت حدود التشغيل وحالات الأمن دون تغيير."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "3dc26ee0accabce74547821ed58f034db88fbf0f",
+  "verified_on_main_sha": "3dc26ee0accabce74547821ed58f034db88fbf0f"
 }
