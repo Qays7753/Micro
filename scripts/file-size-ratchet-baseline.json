@@ -2069,6 +2069,10 @@
     "apps/prototype-web/worker/api/projectLifecycle.ts": {
       "nbLoc": 301,
       "band": "NORMAL"
+    },
+    "apps/prototype-web/worker/authorization.ts": {
+      "nbLoc": 391,
+      "band": "NORMAL"
     }
   }
 }

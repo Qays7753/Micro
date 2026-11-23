@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "09d626c9",
-        "date": "2026-11-22",
-        "method": "Post-Group 6 continuous-completion phase-2 registration re-anchor (WS-251/DOC-041, owner supplement §10.2 — 2026-11-22, code head 09d626c9): the ask-history store completing its registration protocol at the storage port in BOTH adapters (the form-drafts pattern — listAskHistory/saveAskHistoryEntry on IndexedDbLocalStore + MemoryLocalStore, the service class mounted at the composition root) grows the lazy layer 1,683,727/509,595 -> 1,688,503/510,438 and the PWA precache 3,140,709 -> 3,149,448 (lazyJsCount 149 -> 148: the ask storage unit rides the store chunk); sw runtime 28,894 -> 28,838; entry reported-only 610,795/149,564 under the untouched 650,000/155,300 budget ceilings. Measured directly from the fresh plain local build on this exact tree. No ceiling, tolerance, count rule, or guard code changed."
+        "head": "f0b31877",
+        "date": "2026-11-23",
+        "method": "Open-findings remediation registration re-anchor (WS-254/DOC-044, owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md 2026-11-23, code head f0b31877): the security fixes grow the lazy layer and the PWA precache — the Manage mode guard's explicit compile-time-complete financial/non-financial recipe enumeration replacing the commit* prefix (MNG-LOCAL-02), the guided opening import's canonical count gate + safe fixed error (MNG-LOCAL-05/06), and the restore preview's honest checksum-capacity statement (MNG-LOCAL-04). Measured from a fresh build on this exact tree with this environment's identity. No ceiling, tolerance, count rule, or guard code changed."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -32,12 +32,12 @@
       "measurements": {
         "initialRawTotal": 225330,
         "initialGzipNormTotal": 70867,
-        "lazyRawTotal": 1688503,
-        "lazyGzipNormTotal": 510438,
-        "precacheBytesTotal": 3149448,
+        "lazyRawTotal": 1689021,
+        "lazyGzipNormTotal": 510575,
+        "precacheBytesTotal": 3151548,
         "swRuntimeRawTotal": 28838,
-        "entryRawBytes": 610795,
-        "entryGzipNormBytes": 149564,
+        "entryRawBytes": 612377,
+        "entryGzipNormBytes": 149943,
         "lazyJsCount": 148,
         "initialJsCount": 2,
         "dynamicRootsCount": 100,
@@ -54,9 +54,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "09d626c9",
-        "date": "2026-11-22",
-        "method": "Post-Group 6 continuous-completion phase-2 registration re-anchor (WS-251/DOC-041, owner supplement §10.2): re-anchored from the simulated CF_PAGES+CF_PAGES_COMMIT_SHA identity build on this exact tree — byte-identical to the github-actions record (the proven class convergence: local + 90 identity footprint on precache, 3,149,448 -> 3,149,538); the [CF-Pages-Skip] prefix keeps this environment unpublished in this series — the record exists so the anchored truth stays complete for the future deploy gate."
+        "head": "f0b31877",
+        "date": "2026-11-23",
+        "method": "Open-findings remediation registration re-anchor (WS-254/DOC-044, owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md 2026-11-23, code head f0b31877): the security fixes grow the lazy layer and the PWA precache — the Manage mode guard's explicit compile-time-complete financial/non-financial recipe enumeration replacing the commit* prefix (MNG-LOCAL-02), the guided opening import's canonical count gate + safe fixed error (MNG-LOCAL-05/06), and the restore preview's honest checksum-capacity statement (MNG-LOCAL-04). Measured from a fresh build on this exact tree with this environment's identity. No ceiling, tolerance, count rule, or guard code changed."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -70,12 +70,12 @@
       "measurements": {
         "initialRawTotal": 225330,
         "initialGzipNormTotal": 70867,
-        "lazyRawTotal": 1688503,
-        "lazyGzipNormTotal": 510441,
-        "precacheBytesTotal": 3149538,
+        "lazyRawTotal": 1689021,
+        "lazyGzipNormTotal": 510578,
+        "precacheBytesTotal": 3151606,
         "swRuntimeRawTotal": 28838,
-        "entryRawBytes": 610795,
-        "entryGzipNormBytes": 149564,
+        "entryRawBytes": 612377,
+        "entryGzipNormBytes": 149943,
         "lazyJsCount": 148,
         "initialJsCount": 2,
         "dynamicRootsCount": 100,
@@ -92,9 +92,9 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "09d626c9",
-        "date": "2026-11-22",
-        "method": "Post-Group 6 continuous-completion phase-2 registration re-anchor (WS-251/DOC-041, owner supplement §10.2): re-anchored from the simulated GITHUB_ACTIONS+GITHUB_SHA identity build on this exact tree — lazy raw 1,688,503 and precache 3,149,538 byte-identical to the failed gate run 45000696324’s directly measured values on the pushed head (the convergence record); normalized lazy gzip 510,441 (the run’s 510,438 sits within the +16 tolerance band — zlib build variance); the final dispatch on the pushed head re-verifies from actuals."
+        "head": "f0b31877",
+        "date": "2026-11-23",
+        "method": "Open-findings remediation registration re-anchor (WS-254/DOC-044, owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md 2026-11-23, code head f0b31877): the security fixes grow the lazy layer and the PWA precache — the Manage mode guard's explicit compile-time-complete financial/non-financial recipe enumeration replacing the commit* prefix (MNG-LOCAL-02), the guided opening import's canonical count gate + safe fixed error (MNG-LOCAL-05/06), and the restore preview's honest checksum-capacity statement (MNG-LOCAL-04). Measured from a fresh build on this exact tree with this environment's identity. No ceiling, tolerance, count rule, or guard code changed."
       },
       "toolchain": {
         "node": "v24.22.3",
@@ -108,12 +108,12 @@
       "measurements": {
         "initialRawTotal": 225330,
         "initialGzipNormTotal": 70867,
-        "lazyRawTotal": 1688503,
-        "lazyGzipNormTotal": 510441,
-        "precacheBytesTotal": 3149538,
+        "lazyRawTotal": 1689021,
+        "lazyGzipNormTotal": 510578,
+        "precacheBytesTotal": 3151606,
         "swRuntimeRawTotal": 28838,
-        "entryRawBytes": 610795,
-        "entryGzipNormBytes": 149564,
+        "entryRawBytes": 612377,
+        "entryGzipNormBytes": 149943,
         "lazyJsCount": 148,
         "initialJsCount": 2,
         "dynamicRootsCount": 100,
