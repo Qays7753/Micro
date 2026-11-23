@@ -123,10 +123,14 @@ export async function driverStatus(db: Db, identityId: string, now: number): Pro
   };
 }
 
-/** Requester (project owner) capability: any authenticated identity (OD18). */
-export async function canCreateRequests(auth: AuthContext): Promise<string> {
-  return requireIdentity(auth);
-}
+/** Requester (project owner) capability — REMOVED (AUTHZ-04, 2026-11-23):
+ * the pre-W1 helper asserted "any authenticated identity (OD18)" and was
+ * dead code by the time the W1 explicit-context work landed (no production
+ * caller — delivery-request creation resolves everything through
+ * requireWorkspaceContext). Its documented permissive posture contradicted
+ * AUTHZ-04's owner-role requirement (contract 21: the delivery_request
+ * creator is the project owner), so the misleading dead function was deleted
+ * instead of left to be misused later. */
 
 /* ───────────── Workspace layer (EX-D19, contract 18 §2/§9) ───────────── */
 
@@ -288,13 +292,23 @@ export async function createPersonalWorkspace(
  *    NAMED workspace (cross-account/cross-context use is refused, not
  *    silently redirected to the caller's own workspace);
  *  - 403 workspace_capability_disabled — membership is fine but the module
- *    capability is off for that workspace.
+ *    capability is off for that workspace;
+ *  - 403 workspace_role_forbidden (AUTHZ-04/05, 2026-11-23) — the caller IS
+ *    an active member but the membership ROLE is not the one the action
+ *    requires (e.g. a non-owner member cannot create delivery requests or
+ *    bind a supplier profile: contract 21 makes the delivery_request creator
+ *    the project owner, and the owner's final decisions allow exactly one
+ *    owner per project with no team roles — enforced on the ROLE dimension
+ *    here, not just in the UI or by today's structural data).
  */
+export type RequiredWorkspaceRole = "owner";
+
 export async function requireWorkspaceContext(
   db: Db,
   identityId: string,
   workspaceId: string,
   module: "market" | "delivery",
+  requiredRole?: RequiredWorkspaceRole,
 ): Promise<WorkspaceContext> {
   const row = await db
     .prepare(
@@ -315,6 +329,12 @@ export async function requireWorkspaceContext(
     throw new HttpError(403, "workspace_forbidden", { reason: "not_a_member_of_workspace" });
   }
   const context = toWorkspaceContext(row);
+  if (requiredRole !== undefined && context.role !== requiredRole) {
+    throw new HttpError(403, "workspace_role_forbidden", {
+      reason: "membership_role_insufficient",
+      requiredRole,
+    });
+  }
   const enabled = module === "market" ? context.marketEnabled : context.deliveryEnabled;
   if (!enabled) {
     throw new HttpError(403, "workspace_capability_disabled", { reason: `module_${module}_disabled` });

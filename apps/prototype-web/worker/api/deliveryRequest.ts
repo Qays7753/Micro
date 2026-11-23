@@ -150,7 +150,13 @@ export async function createRequestDraft(ctx: RouteContext, auth: AuthenticatedC
       reason: "admin_account_holds_no_business_roles",
     });
   }
-  const workspace = await requireWorkspaceContext(db(ctx), auth.identityId, workspaceId, "delivery");
+  /* AUTHZ-04 (2026-11-23): the delivery_request creator must be the PROJECT
+   * OWNER of the named workspace — contract 21 binds delivery_request to
+   * "صاحب المشروع" (OD02), and the owner's final decisions allow exactly one
+   * owner per project with no team roles. An active membership alone is not
+   * enough: a (hypothetical future) non-owner member is refused here with an
+   * honest 403, not merely hidden in the UI. */
+  const workspace = await requireWorkspaceContext(db(ctx), auth.identityId, workspaceId, "delivery", "owner");
   await db(ctx)
     .prepare(
       "INSERT INTO delivery_request (id, requester_identity_id, workspace_id, driver_profile_id, need_type, payload_json, collection_minor, " +
