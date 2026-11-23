@@ -1,7 +1,7 @@
 {
   "id": "WS-252",
   "title": "CI closeout for PR #386 — test timeout resilience and scoped read-only PR validation",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-042"
   ],
@@ -24,9 +24,10 @@
   ],
   "agent": "Manus — sole writer/integrator under the owner's current explicit authorization; no parallel writers.",
   "pr": 386,
+  "merge_sha": "74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4",
   "started_at": "2026-11-23",
   "updated_at": "2026-11-23",
-  "next_action": "دفع المرشح إلى PR #386، تحديث وصفه بالأدلة والقيود الدقيقة، والتحقق من اكتمال Actions على SHA النهائي؛ التوقف قبل الدمج أو النشر.",
+  "next_action": "يتطلب WS-252 مراجعة الدليل المباشر على main قبل إغلاق DOC-042. يبقى DOC-042 MERGED_UNVERIFIED عند 74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4؛ نجاح checks على رأس PR 74403009795d79e756b92d05ade3319dbacb7993 مع تطابق الشجرة لا يثبت تشغيلًا على merge SHA نفسه. لا تُغلق أي نتيجة أمنية؛ أبقِ PR #386 مرجعًا تاريخيًا.",
   "notes": [
     "الفرع والرأس عند الإنشاء: zai/micro-manage-online-20261114؛ PR #386 مفتوح Draft؛ main/base عند 16c90e48bdc018939f97f41d05e969c900bc30e0؛ رأس PR عند الإنشاء 5ca1167ebaf998e8316d03a1cced9d78d9e725d6.",
     "المالك أجاز تحديث المصنف ثم إصلاح CI المحدود على هذا الفرع وPR فقط. ممنوع تعديل main أو الدمج أو النشر أو المعاينة أو أي اتصال حي/بيانات حقيقية. لا تغيير مالي أو دلالي أو هيكلي؛ كل تأكيدات الاختبار تبقى.",
@@ -35,7 +36,8 @@
     "الصلاحية الوحيدة الجديدة هي pull-requests: read؛ GH_TOKEN محصور في خطوة PR-only المنفصلة لتشغيل operations-control:check. لا يصل الرمز إلى pnpm check أو dependency install/build/test.",
     "التشغيل المحلي الكامل `env -u GH_TOKEN pnpm check` كشف اختبارين لمسح حي تجاوزا مهلة 5000ms تحت توازي المجموعة؛ نجح كل منهما منفردًا (7/7 و13/13). لذلك رُفعت المهلة الخاصة بهذين الاختبارين إلى 15000ms، إضافة إلى الاختبار الأصلي الذي فشل في Actions؛ لا تغيير في التأكيدات أو منطق الحراس. هذه توسعة زمنية محدودة داخل جذر مشكلة CI نفسه.",
     "في إعادة `env -u GH_TOKEN pnpm check` التالية نجحت كل فحوص الجذر و84/84 ملف اختبار و1028/1028 اختبارًا، لكن خطوة `prototype:test` المحلية توقفت قبل الاختبارات لأن libpq.so.5 وlibicuuc.so.60 غير موجودتين ولا توجد خدمة `MICRO_TEST_PG_CONNECTION`. لم يُستخدم اتصال حي أو بيانات؛ `env -u GH_TOKEN pnpm prototype:build` نجح محليًا. لذلك يلزم نجاح Actions الكامل على الرأس النهائي، حيث يهيئ ci.yml خدمة PostgreSQL 17 للاختبار.",
-    "السجل الأمني المصدر 2026-11-19 لا يتغير: CI-001 مفتوحة وخارج النطاق؛ وجود digest لـPostgreSQL وفحص pushed range على الفرع لا يغلق CI-002 أو SEC-GIT-001 في هذا العمل. لا تُغلق أي نتيجة أمنية أو يُسقط أي بند مفتوح اعتمادًا على نجاح CI غير ذي صلة."
+    "السجل الأمني المصدر 2026-11-19 لا يتغير: CI-001 مفتوحة وخارج النطاق؛ وجود digest لـPostgreSQL وفحص pushed range على الفرع لا يغلق CI-002 أو SEC-GIT-001 في هذا العمل. لا تُغلق أي نتيجة أمنية أو يُسقط أي بند مفتوح اعتمادًا على نجاح CI غير ذي صلة.",
+    "مصالحة بعد الدمج 2026-11-23: PR #386 مدمج عند main@74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4؛ run 45134672644 ناجح لكنه يشير إلى PR head 74403009795d79e756b92d05ade3319dbacb7993. تطابق الشجرة مثبت، لكن لا تشغيل على merge SHA نفسه، لذا حُولت الحالة فقط إلى MERGED_UNVERIFIED. base_sha=16c90e48 يبقى خط أساس المطالبة التاريخي ولا يُعاد كتابته. لا نتائج أمنية أُغلقت."
   ],
   "status_history": [
     {
@@ -55,6 +57,18 @@
       "changed_at": "2026-11-23",
       "actor": "manus-ci-integrator",
       "reason": "المرشح جاهز لمراجعة PR #386؛ 41/41 اختبارًا مركزًا و84/84 ملف اختبار جذر (1028/1028) والبناء المحلي مرّت. اختبار PostgreSQL في الـSandbox محجوب بمكتبات نظام مفقودة، لذا تبقى Actions على SHA النهائي بوابة لازمة؛ لا دمج أو نشر ولا إغلاق أمني."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-post-merge-reconciliation",
+      "reason": "وافق المالك على دمج PR #386؛ دمج GitHub عند 74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4. فحص `checks` run 45134672644 نجح على رأس PR 74403009795d79e756b92d05ade3319dbacb7993، وشجرة PR تطابق شجرة الدمج. لا تشغيل على merge SHA نفسه؛ تبقى المطالبة MERGED_UNVERIFIED ولا تتغير حالة أي من النتائج الأمنية الثلاثين."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-control-validator-reconciliation",
+      "reason": "أعاد validate.py على worktree PR #385 خطأين: PR #386 مدمج بينما Workstream نشط بحالة MERGED_UNVERIFIED، وتداخل نشط مع نطاق الوثائق الجاري. نُقل Workstream وحده إلى REVIEW_REQUIRED كي لا يبقى نطاق عمل نشطًا؛ يبقى Item DOC-042 MERGED_UNVERIFIED مع merge_sha ودليل غياب التشغيل على merge SHA. لم تتغير الشيفرة أو أي حالة أمنية."
     }
   ],
   "migration_baseline": false
