@@ -8,9 +8,9 @@
 
 ## ما الذي يثبته هذا المستودع؟
 
-يحتوي المستودع على عقود المجال وDomain Core وPrototype Web في `apps/prototype-web/`، كما يحتوي على كود Manage Online وMarket وDelivery وAsk Micro المدموج على `main`. وجود الكود لا يثبت نشره أو تهيئة خدماته أو جاهزيته لبيانات حقيقية. لا تدّعِ نجاح النشر أو تشغيل مزود Ask Micro أو قبول Pilot إلا بدليل من الحالة الحية والاختبارات ذات الصلة. مصدر الحالة التنفيذية هو [`docs/operations/current-state.md`](docs/operations/current-state.md).
+يحتوي المستودع على عقود المجال وDomain Core وPrototype Web في `apps/prototype-web/`، إضافةً إلى مواد تطويرية للتوسعات. وجود الكود أو الوثائق لا يثبت نشرها أو تهيئة خدماتها أو جاهزيتها لبيانات حقيقية. الحالة التنفيذية ليست ثابتة داخل README؛ مصدرها [`docs/operations/current-state.md`](docs/operations/current-state.md).
 
-توجد PWA وتهيئة Cloudflare Pages في المصدر؛ لكن آخر نشر ناجح معروف ليس رأس `main` الحالي، ولم يثبت قبول Android/iOS أو Offline الإنتاجي أو Pilot ميداني. راجع الحالة الحية قبل وصف ما يعمل للمستخدمين. لا يعتمد Micro على نسخة من Accounting أو zman-app أو كود خارجي منقول.
+توجد PWA وتهيئة Cloudflare Pages ضمن حدود Prototype، لكن قبول Android/iOS أو standalone أو Offline الإنتاجي ميدانيًا ليس افتراضًا. لا يحتوي المستودع SaaS أو استقبال بيانات حقيقية، ولا يعتمد على نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
 ## من أين يبدأ Agent؟
 
