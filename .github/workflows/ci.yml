@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 # المجموعة ٦ (تدقيق A1 — AR-01/AR-03/AR-10): إصدار قابل للتتبع ومهذب.
 # - الوسم v* يشغّل الفحوص نفسها (لا مراجعة خضراء فوق main وحدها بلا أثر محفوظ)،
@@ -131,6 +132,12 @@ jobs:
       # linting as before. No guard was weakened.
       - name: Verify domain and prototype
         run: pnpm check
+
+      - name: Verify Operations Control PR metadata (read-only)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm operations-control:check
 
       - name: Verify no whitespace errors (PR checklist rule automated)
         if: github.event_name == 'pull_request'

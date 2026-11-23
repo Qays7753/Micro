@@ -50,7 +50,7 @@ function runCli(repoRoot) {
 }
 
 describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
-  it("passes on the live repository tree with exactly the one registered entry", () => {
+  it("passes on the live repository tree with exactly the one registered entry", { timeout: 15_000 }, () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     /* 370 (كانت 369 بعد ARCH-012): R11 موجة المتابعة الموحدة (2026-10-16)

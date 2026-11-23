@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 9 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 10 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -42,3 +42,4 @@ python3 scripts/operations-control/validate.py
 | WS-249 | REVIEW_REQUIRED | `zai/micro-market-delivery-handoff-20261111` | — | DOC-033, DOC-034, DOC-035, DOC-036, DOC-037, DOC-038, DOC-039 | بانتظار مراجعة المالك/قرار الدمج للفرع zai/micro-market-delivery-handoff-20261111 عند رأسه النهائي المُتحقق 84f30151 (كل بنوده السبعة IN_REVIEW؛ لا PR ولا دمج ولا main من هذه السلسلة)؛ استكمال السلسلة يجري على الفرع المخصص zai/micro-manage-online-20261114 تحت مطالبة WS-250/DOC-040 المستقلة. |
 | WS-250 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-040 | تنفيذ M1–M6 مكتمل بدليل الدفع النهائي (التشغيل الختامي 43620704296 أخضر كاملًا على الرأس النهائي bf90754b) والبند DOC-040 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main من هذه السلسلة أبدًا؛ لا تنظيف (NO_CLEANUP). استكمال السلسلة على الفرع نفسه يجري الآن تحت مطالبة WS-251/DOC-041 المستقلة بأمر المالك المؤرخ 2026-11-21 (bd242b3e) دون مساس بأدلة مراجعة هذا البند. |
 | WS-251 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-041 | مراجعة المالك لتقرير المرحلة الثانية وdiffs الاستكالة عند بوابة المراجعة؛ القرارات المفتوحة كما هي (MNG-LOCAL-03 المؤجلة، توصيل مزود Ask، الاحتفاظ القانوني، قبول مسح 2026-11-21 لفتح العمل الهيكلي) وخطوات المشغل (G11/G12، MFA، تطبيق الترحيلات حتى 0017) قبل أي بيانات حقيقية. |
+| WS-252 | IN_REVIEW | `zai/micro-manage-online-20261114` | 386 | DOC-042 | دفع المرشح إلى PR #386، تحديث وصفه بالأدلة والقيود الدقيقة، والتحقق من اكتمال Actions على SHA النهائي؛ التوقف قبل الدمج أو النشر. |

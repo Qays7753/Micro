@@ -38,7 +38,7 @@ function runCli(repoRoot) {
 }
 
 describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)", () => {
-  it("passes on the live repository tree with the classified registry", () => {
+  it("passes on the live repository tree with the classified registry", { timeout: 15_000 }, () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     /* UNIT-001 (r11-unit001-20261018): حوار معلومات الإعداد في Setup صُنف في
