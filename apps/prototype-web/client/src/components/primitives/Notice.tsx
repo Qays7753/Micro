@@ -26,10 +26,20 @@ export interface NoticeProps extends HTMLAttributes<HTMLDivElement> {
  * (ReactNode) — لم يمررها أي مستهلك قط، ولو مُرّت لتسربت إلى DOM عبر
  * {...rest} كسمة غير معروفة بدل أن تُعرض علامة كما وعد توثيقها. */
 
+/* R10-B4/F-017 (قاعدة الحزم الموحدة — امتداد جرد R9 إلى الأوليات):
+ * الأخطاء المؤكدة (تعذّر/فشل تحقق/طلب تصحيح) تعلن بـ role="alert" حازمًا؛
+ * والإرشاد/الإتمام/التحميل تبقى status مهذبة. InlineError كانت الوحيدة
+ * التي تخالف القاعدة (status) فصارت alert كإخواتها في كل الأسطح.
+ *
+ * F-10 (مسح S12، Phase E): الدور صار مشتقًا من النبرة داخل Notice نفسها —
+ * tone="error" تعلن alert حازمًا (كانت تفهرس status صامتة حتى في أخطاء
+ * الأسطح المتصلة)؛ بقية النبرات تبقى status. هذا يطبق قاعدة R10 على
+ * الأسطح المتصلة كلها دفعة واحدة بلا تعديل كل مستهلك. */
+
 export function Notice({ tone = "neutral", className, children, ...rest }: NoticeProps) {
   return (
     <div
-      role="status"
+      role={tone === "error" ? "alert" : "status"}
       className={clsx("micro-prim-notice", `micro-prim-notice--${tone}`, className)}
       {...rest}
     >

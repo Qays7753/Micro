@@ -1,0 +1,61 @@
+{
+  "id": "WS-252",
+  "title": "CI closeout for PR #386 — test timeout resilience and scoped read-only PR validation",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-042"
+  ],
+  "branch": "zai/micro-manage-online-20261114",
+  "base_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0",
+  "areas": [
+    ".github/workflows/ci.yml",
+    "scripts/check-label-vocabulary.test.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/check-diagnostics-storage.test.mjs",
+    "scripts/ci-workflow-policy.test.mjs",
+    "docs/operations/control/items/DOC-042.json",
+    "docs/operations/control/workstreams/WS-252.json",
+    "docs/operations/control/generated/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    ".github/pull_request_template.md"
+  ],
+  "agent": "Manus — sole writer/integrator under the owner's current explicit authorization; no parallel writers.",
+  "pr": 386,
+  "started_at": "2026-11-23",
+  "updated_at": "2026-11-23",
+  "next_action": "دفع المرشح إلى PR #386، تحديث وصفه بالأدلة والقيود الدقيقة، والتحقق من اكتمال Actions على SHA النهائي؛ التوقف قبل الدمج أو النشر.",
+  "notes": [
+    "الفرع والرأس عند الإنشاء: zai/micro-manage-online-20261114؛ PR #386 مفتوح Draft؛ main/base عند 16c90e48bdc018939f97f41d05e969c900bc30e0؛ رأس PR عند الإنشاء 5ca1167ebaf998e8316d03a1cced9d78d9e725d6.",
+    "المالك أجاز تحديث المصنف ثم إصلاح CI المحدود على هذا الفرع وPR فقط. ممنوع تعديل main أو الدمج أو النشر أو المعاينة أو أي اتصال حي/بيانات حقيقية. لا تغيير مالي أو دلالي أو هيكلي؛ كل تأكيدات الاختبار تبقى.",
+    "تداخل WS-249/DOC-038 تاريخي وغير نشط (`REVIEW_REQUIRED`، فرع مختلف): كان نطاقه يشمل ci.yml لمعالجة فشل PostgreSQL عبر حاوية خدمة؛ فشل هذه المهمة مستقل ويتعلق بمهل اختبارات مسح حي وقراءة PR في validator. لم يتغير DOC-038 أو WS-249.",
+    "لا تداخل نشط عند إنشاء المطالبة: validator أفاد 0 active claims. WS-251/DOC-041 يظلان `REVIEW_REQUIRED` ومحميين؛ لا تعديل لهما أو لـPR #385. المسارات المحجوزة هنا هي ci.yml وثلاثة اختبارات مسح حي واختبار سياسة CI وملفات هذا السجل والعروض المتولدة فقط.",
+    "الصلاحية الوحيدة الجديدة هي pull-requests: read؛ GH_TOKEN محصور في خطوة PR-only المنفصلة لتشغيل operations-control:check. لا يصل الرمز إلى pnpm check أو dependency install/build/test.",
+    "التشغيل المحلي الكامل `env -u GH_TOKEN pnpm check` كشف اختبارين لمسح حي تجاوزا مهلة 5000ms تحت توازي المجموعة؛ نجح كل منهما منفردًا (7/7 و13/13). لذلك رُفعت المهلة الخاصة بهذين الاختبارين إلى 15000ms، إضافة إلى الاختبار الأصلي الذي فشل في Actions؛ لا تغيير في التأكيدات أو منطق الحراس. هذه توسعة زمنية محدودة داخل جذر مشكلة CI نفسه.",
+    "في إعادة `env -u GH_TOKEN pnpm check` التالية نجحت كل فحوص الجذر و84/84 ملف اختبار و1028/1028 اختبارًا، لكن خطوة `prototype:test` المحلية توقفت قبل الاختبارات لأن libpq.so.5 وlibicuuc.so.60 غير موجودتين ولا توجد خدمة `MICRO_TEST_PG_CONNECTION`. لم يُستخدم اتصال حي أو بيانات؛ `env -u GH_TOKEN pnpm prototype:build` نجح محليًا. لذلك يلزم نجاح Actions الكامل على الرأس النهائي، حيث يهيئ ci.yml خدمة PostgreSQL 17 للاختبار.",
+    "السجل الأمني المصدر 2026-11-19 لا يتغير: CI-001 مفتوحة وخارج النطاق؛ وجود digest لـPostgreSQL وفحص pushed range على الفرع لا يغلق CI-002 أو SEC-GIT-001 في هذا العمل. لا تُغلق أي نتيجة أمنية أو يُسقط أي بند مفتوح اعتمادًا على نجاح CI غير ذي صلة."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-23",
+      "actor": "owner-authorized-ci-2026-11-23",
+      "reason": "حجز DOC-042 على الفرع الحالي بعد فحص PRs وOperations Control وتثبيت base SHA؛ المطالبة منفصلة عن WS-251/DOC-041 وPR #385، والتقاطع التاريخي مع WS-249/DOC-038 غير نشط ومسبب بجذر مختلف."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-23",
+      "actor": "manus-ci-integrator",
+      "reason": "بدء التنفيذ المصرح به بعد إعادة إنتاج الاختبار محليًا وتحديد فشل Actions؛ التغيير محدود إلى اختبار واحد وworkflow وpolicy test، دون بنية أو سلوك منتج."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-23",
+      "actor": "manus-ci-integrator",
+      "reason": "المرشح جاهز لمراجعة PR #386؛ 41/41 اختبارًا مركزًا و84/84 ملف اختبار جذر (1028/1028) والبناء المحلي مرّت. اختبار PostgreSQL في الـSandbox محجوب بمكتبات نظام مفقودة، لذا تبقى Actions على SHA النهائي بوابة لازمة؛ لا دمج أو نشر ولا إغلاق أمني."
+    }
+  ],
+  "migration_baseline": false
+}

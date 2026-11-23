@@ -50,7 +50,7 @@ function runCli(repoRoot) {
 }
 
 describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
-  it("passes on the live repository tree with exactly the one registered entry", () => {
+  it("passes on the live repository tree with exactly the one registered entry", { timeout: 15_000 }, () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     /* 370 (كانت 369 بعد ARCH-012): R11 موجة المتابعة الموحدة (2026-10-16)
@@ -125,7 +125,19 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     /* S16 (UNIT-043): صفحة التوصيل + وحدة حالة الخدمات — 393 -> 395. */
     /* S17 (DOC-026): وحدة حدود موارد الاستيراد + قسم فحص البيانات داخل
      * الإعدادات مقابل تقاعد صفحة ToolsIntegrity — 395 -> 396 (صافي +1). */
-    expect(stdout).toMatch(/396 ملف إنتاج/);
+    /* إغلاق فجوات §17 (WS-249، 2026-11-12): صفحة طابور مراجعة التوصيل
+     * (DeliveryReviewQueue.tsx — OD17/OD22/OD28–OD31) — 415 -> 416؛
+     * (EX-D21/EX-D19 Phase B 2026-11-14: NetworkSessionContext + AskMicro + askMicroService) — 416 -> 419؛
+     * نقية بلا أي وصول تخزين متصفح؛ لا موضع تسجيل جديد ولا استثناء.
+     * (Stage C S13 — أمر المالك 2026-11-14، DOC-038/WS-249): تقاعد وحدة
+     * futureServices.ts الميتة (إعلانات «قريبًا» لخدمات حية بلا مستهلكين —
+     * R5-7) — 419 -> 418؛ لا موضع تسجيل جديد ولا استثناء.
+     * (Workstream A DOC-039/WS-249 — أمر المالك 2026-11-14): وحدة عرض
+     * bookingSummaryText.ts الجديدة (R1-17 — سطرا ملخص القرار على بطاقات
+     * الحجز) — 418 -> 419؛ نقية بلا أي وصول تخزين متصفح. */
+    expect(stdout).toMatch(
+      /437 ملف إنتاج/, /* Post-Group 6 continuous completion (DOC-041، 2026-11-22 — أمر المالك 7593b9c4): 427→436 — وحدة لوحة المشرف المنفصلة (adminPanelService + باب application/admin + AdminPanel/AdminUserSearch/AdminCancelBooking — G02/Q129) وطبقة Ask Micro محايدة المزود (askPolicy + بطاقة المسودة AskDraftCard — §5)؛ كلها قراءات وأوامر خادمية موثقة، لا وصول لتخزين المتصفح إطلاقًا؛ التسجيل يبقى موضعًا واحدًا بالضبط. */
+    ); /* EX-D23 M3+M6 (DOC-040، 2026-11-14): 419→422 — خدمة Manage المتصلة وقسمها وحارس الوضع. Post-Group 6 W1 (DOC-041، 2026-11-21): 422→424 — مكونا ملف الحساب (بطاقة إنشاء المشروع وقسم جلسات الأجهزة). Post-Group 6 W3 (DOC-041، 2026-11-21): 424→425 — قسم تنبيهات Web Push أفضل الجهد في ملف الحساب (G09 د-6؛ لا وصول لتخزين المتصفح — إذن المتصفح واشتراك الخادم فقط). Post-Group 6 continuous completion (DOC-041، 2026-11-22 — أمر المالك 7593b9c4): 425→427 — خدمة دورة الأدوار (accountRolesService) وقسم «أدوارك» في ملف الحساب (RolesSection — G01 دورة الدور)؛ كلاهما أوامر خادمية موثقة فقط، لا وصول لتخزين المتصفح إطلاقًا؛ التسجيل يبقى موضعًا واحدًا بالضبط. */
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

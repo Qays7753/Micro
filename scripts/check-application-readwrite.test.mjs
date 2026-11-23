@@ -51,7 +51,8 @@ function cleanTree() {
   /* (R11 W1A-1 / D-04 — 2026-10-14): جسم القراءة الـ63 صار جزءًا من الشجرة
    * النظيفة المرجعية — بدونه تفشل كل الأشجار التركيبية بنظافة أساس الجسم
    * لغياب المفاتيح الحية (نفس منطق الأساس في R6/R8). */
-  for (const rel of READ_LIKE_CORPUS_BASELINE) write(root, path.join(APP, rel), "export const read = () => 1;\n");
+  for (const rel of READ_LIKE_CORPUS_BASELINE)
+    write(root, path.join(APP, rel), "export const read = () => 1;\n");
   return root;
 }
 
@@ -73,7 +74,10 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
     write(root, path.join(APP, first), "export const read = (store: { saveX(): void }) => store.saveX();\n");
     const result = checkApplicationReadWrite(root);
     expect(result.ok).toBe(false);
-    expect(result.violations).toContainEqual({ rule: "reader-writes", key: expect.stringContaining("saveX()") });
+    expect(result.violations).toContainEqual({
+      rule: "reader-writes",
+      key: expect.stringContaining("saveX()"),
+    });
   });
 
   it("a destructured bare-identifier write call fails (const { commitX } = store)", () => {
@@ -103,14 +107,20 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
     );
     const result = checkApplicationReadWrite(root);
     expect(result.stats.autoEnrolled).toBe(1);
-    expect(result.violations.some(v => v.key.includes("newReadFamily.ts") && v.key.includes("saveFinancialEvent()"))).toBe(
-      true,
-    );
+    expect(
+      result.violations.some(
+        v => v.key.includes("newReadFamily.ts") && v.key.includes("saveFinancialEvent()"),
+      ),
+    ).toBe(true);
   });
 
   it("a PC-4-tagged family file without writes passes (the enrollment is not itself a failure)", () => {
     const root = cleanTree();
-    write(root, path.join(APP, "budgets", "pureRead.ts"), "/* PC-4 read-model: demo */\nexport const r = 1;\n");
+    write(
+      root,
+      path.join(APP, "budgets", "pureRead.ts"),
+      "/* PC-4 read-model: demo */\nexport const r = 1;\n",
+    );
     const result = checkApplicationReadWrite(root);
     expect(result.stats.autoEnrolled).toBe(1);
     expect(result.ok).toBe(true);
@@ -136,7 +146,8 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 });
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
-  it("the live repository passes at the baseline: 66 corpus files, zero violations", () => {
+  /* EX-D21 (DOC-037، Phase B — 2026-11-14): +network/askMicroService.ts — 74 -> 75. */
+  it("the live repository passes at the baseline: 80 corpus files, zero violations (reclassification 2026-11-22)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
@@ -158,17 +169,26 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * تقاعد عائلة المشاركة (share/index.ts وshare/shareMessageService.ts
      * حذفا من الشجرة الحية بقرار إلغاء 040 بلا بديل)؛ 68 ← 66 تضييقًا
      * موثقًا لا توسيعًا (راجع تقرير S15). */
-    expect(result.stats.readLikeCorpus).toBe(66);
-    expect(result.stats.readLikeBaseline).toBe(66);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(66);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(66);
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01+G02،
+     * نفس-الـPR 2026-11-22): +3 — بيت لوحة المشرف الجديد (admin/adminPanelService.ts
+     * + بابه admin/index.ts — قراءة خادمية حصرًا) وخدمة أدوار الحساب
+     * (network/accountRolesService.ts — قراءة وأوامر خادمية مدققة، صفر تخزين
+     * محلي)؛ 75 ← 78 (الاستكمال المستمر) ← 81 بالملحق §10.2 بتصنيف موثق نفس-الـPR ← 80 بإعادة تصنيف مؤرخة 2026-11-22 (استكمال التسجيل DOC-041/WS-251: askHistoryService صارت كاتبة عند منفذ التخزين — saveAskHistoryEntry؛ سابقة EX-D23 نفسها) (قاعدة D-04). */
+    expect(result.stats.readLikeCorpus).toBe(80);
+    expect(result.stats.readLikeBaseline).toBe(80);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(80);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(80);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {
     const root = cleanTree();
     write(root, path.join(APP, "brand-new-house", "freshReads.ts"), "export const listThings = () => 1;\n");
     const result = checkApplicationReadWrite(root);
-    expect(result.violations.some(v => v.rule === "read-like-corpus-growth" && v.key === "brand-new-house/freshReads.ts")).toBe(true);
+    expect(
+      result.violations.some(
+        v => v.rule === "read-like-corpus-growth" && v.key === "brand-new-house/freshReads.ts",
+      ),
+    ).toBe(true);
   });
 
   it("property: a baseline file whose text gains a write-vocabulary definition fails", () => {
@@ -183,14 +203,20 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
       "export function saveActivityLabels() { return 1; }\n",
     );
     const result = checkApplicationReadWrite(root);
-    expect(result.violations.some(v => v.rule === "read-like-corpus-property" && v.key === "activity/activityLabels.ts")).toBe(true);
+    expect(
+      result.violations.some(
+        v => v.rule === "read-like-corpus-property" && v.key === "activity/activityLabels.ts",
+      ),
+    ).toBe(true);
   });
 
   it("stale: a baseline key that left the tree fails (same-PR hygiene)", () => {
     const root = cleanTree();
     fs.rmSync(path.join(root, APP, "time", "clock.ts"));
     const result = checkApplicationReadWrite(root);
-    expect(result.violations.some(v => v.rule === "read-like-corpus-stale" && v.key === "time/clock.ts")).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "read-like-corpus-stale" && v.key === "time/clock.ts"),
+    ).toBe(true);
   });
 
   it("swap is caught: the arriving file is growth AND the departing key is stale", () => {
@@ -198,8 +224,14 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
     fs.rmSync(path.join(root, APP, "cash", "walletLedgerService.ts"));
     write(root, path.join(APP, "cash", "walletReads.ts"), "export const listWallets = () => 1;\n");
     const result = checkApplicationReadWrite(root);
-    expect(result.violations.some(v => v.rule === "read-like-corpus-growth" && v.key === "cash/walletReads.ts")).toBe(true);
-    expect(result.violations.some(v => v.rule === "read-like-corpus-stale" && v.key === "cash/walletLedgerService.ts")).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "read-like-corpus-growth" && v.key === "cash/walletReads.ts"),
+    ).toBe(true);
+    expect(
+      result.violations.some(
+        v => v.rule === "read-like-corpus-stale" && v.key === "cash/walletLedgerService.ts",
+      ),
+    ).toBe(true);
   });
 
   it("a text-writer (defines save*/clear* methods) stays OUTSIDE the corpus by definition", () => {

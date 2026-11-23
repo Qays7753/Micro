@@ -38,7 +38,7 @@ function runCli(repoRoot) {
 }
 
 describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)", () => {
-  it("passes on the live repository tree with the classified registry", () => {
+  it("passes on the live repository tree with the classified registry", { timeout: 15_000 }, () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     /* UNIT-001 (r11-unit001-20261018): حوار معلومات الإعداد في Setup صُنف في
@@ -56,10 +56,19 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
      * في Finance.tsx (dialog غير مودال بنمط لوحات الرئيسية: focus-in +
      * Escape/إلغاء/خلفية + استعادة التركيز لمشغّله) — السجل صار 8 أسطح
      * (7 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
-    expect(stdout).toMatch(/8 سطحًا حواريًا مصنفًا/);
+    /* EX-D21 (Phase B 2026-11-14): لوحة «قريبًا» في AppHeader أُزيلت مع تحول
+     * «اسأل Micro» إلى مدخل حقيقي إلى /ask — السجل صار 7 أسطح (6 ملفات
+     * بتصريح حي)؛ إزالة موثقة نفس-الـPR. */
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01+G02،
+     * نفس-الـPR 2026-11-22): +3 ملفات بتصريح حي — صناديق تأكيد الأدوار
+     * (RolesSection.tsx) وتأكيد إيقاف الهوية في بحث المشرف (AdminUserSearch.tsx)
+     * وتأكيد الإلغاء الإداري (AdminCancelBooking.tsx)، كلها alertdialog
+     * غير مودال بنمط micro-confirm-box القائم؛ السجل صار 10 أسطح (9 ملفات
+     * بتصريح حي)؛ تصنيف موثق نفس-الـPR (قاعدة الحارس). */
+    expect(stdout).toMatch(/10 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(8);
+    expect(stats.classified).toBe(10);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {
@@ -88,13 +97,19 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
     );
     const { ok, violations } = checkA11yDialogSurfaces(dir);
     expect(ok).toBe(false);
-    expect(violations.some(v => v.rule === "unclassified-dialog-surface" && v.key.includes("pages/Probe.tsx"))).toBe(true);
+    expect(
+      violations.some(v => v.rule === "unclassified-dialog-surface" && v.key.includes("pages/Probe.tsx")),
+    ).toBe(true);
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it("rejects role drift against the registry (intended change updates the registry in-PR)", () => {
     const dir = tempRepo();
-    const target = CLASSIFIED_DIALOG_SURFACES.find(s => s.role === "dialog" && s.file.includes("AppHeader"));
+    /* EX-D21 (Phase B): بند AppHeader غادر السجل مع إزالة لوحة «قريبًا» —
+     * هدف اختبار انجراف الدور ينتقل لسطح حوار حي قائم (لوحة وظائف المالية). */
+    const target = CLASSIFIED_DIALOG_SURFACES.find(
+      s => s.role === "dialog" && s.file.includes("FinanceFunctionsBoard"),
+    );
     writeClientFile(
       dir,
       target.file,

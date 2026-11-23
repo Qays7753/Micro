@@ -47,6 +47,7 @@ import {
   balanceObservationStore,
   periodSummaryStore,
   commandReceiptStore,
+  askHistoryStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -334,6 +335,16 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   if (!database.objectStoreNames.contains(commandReceiptStore)) {
     const receipts = database.createObjectStore(commandReceiptStore, { keyPath: "id" });
     receipts.createIndex("commandType", "commandType");
+  }
+  /* Owner supplement §10.2-7-2 (WS-251/DOC-041 — الترقية 41→42، 2026-11-22):
+   * مخزن سجل اسأل Micro المحلي — نص فقط (لا صوت خام في أي مكان)، خارج
+   * اللقطة المؤثرة عمدًا (بيانات راحة عابرة مثل مسودات النماذج — لا تدخل
+   * النسخ الاحتياطي ولا الاستيراد)؛ مُنشئ محروس — لا ترحيل بيانات ولا
+   * تعديل سجل قائم؛ القاعدة القديمة تفتح وتجده فارغًا، والتنقية (٢١ يومًا)
+   * تتم عند القراءة والكتابة في المهايئ نفسه. */
+  if (!database.objectStoreNames.contains(askHistoryStore)) {
+    const history = database.createObjectStore(askHistoryStore, { keyPath: "id" });
+    history.createIndex("askedAt", "askedAt");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

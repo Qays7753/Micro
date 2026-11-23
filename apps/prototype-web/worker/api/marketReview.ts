@@ -1,0 +1,578 @@
+/**
+ * Market review API (admin/reviewer — contract 20 §3.4, contract 22).
+ * Reviewer decisions are administrative only: approve / request changes /
+ * reject / suspend, each with actor, timestamp, reason and status history.
+ * Publication is an ATOMIC gate (spec §7): an ACTIVE supplier (final decision
+ * 2026-11-21 — activation is automatic on profile completion + terms, NO
+ * profile review), the listing content copy, and every attached image must
+ * all be approved; the last approval re-verifies everything before anything
+ * becomes public. The supplier's FIRST listing additionally requires the
+ * reviewer-recorded verification call (final decision ب-قواعد + the approved
+ * counting rule §8-4) — the gate refuses to publish without it.
+ */
+
+import { audit, notify } from "../audit.ts";
+import { nowMs } from "../clock.ts";
+import { effectiveMinQuantityMilli, type ListingVariant } from "../domain/market.ts";
+import type { Db } from "../db/db.ts";
+import { HttpError, jsonResponse } from "../http.ts";
+import { readJsonBody, type RouteContext } from "../router.ts";
+import { LISTING_FRESHNESS_HIDE_MS } from "../env.ts";
+import type { AuthenticatedContext } from "../auth/session.ts";
+
+function db(ctx: RouteContext): Db {
+  return ctx.env.DB;
+}
+
+async function moderationEvent(
+  db: Db,
+  objectType: string,
+  objectId: string,
+  actor: string,
+  action: string,
+  reason: string | null,
+  now: number,
+): Promise<void> {
+  await db
+    .prepare(
+      "INSERT INTO market_moderation_event (object_type, object_id, actor_identity_id, action, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .bind(objectType, objectId, actor, action, reason, now)
+    .run();
+}
+
+/**
+ * F-08 (S12 scan; OD18 parity with the driver path): an admin who also OWNS
+ * the record under review (multi-hat account) must not review their own
+ * record — the same documented no-self-review rule the delivery review path
+ * enforces. The rejection is explicit (403 self_review_forbidden), never a
+ * silent skip; the record stays in the queue for another reviewer.
+ */
+function requireNotOwnRecord(authIdentityId: string, ownerIdentityId: string): void {
+  if (authIdentityId === ownerIdentityId) {
+    throw new HttpError(403, "self_review_forbidden");
+  }
+}
+
+/** GET /api/market/review/queue — pending listings, media, reports + the
+ * active/suspended suppliers (no profile review queue anymore — final
+ * decision Q4/Q28 abolishes profile moderation; the supplier list stays for
+ * the administrative suspend/unsuspend workflow, Q129). */
+export async function reviewQueue(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const profiles = await db(ctx)
+    .prepare(
+      "SELECT id, identity_id, status, public_copy_json, work_copy_json, activated_at FROM supplier_profile WHERE status IN ('active','suspended') ORDER BY activated_at",
+    )
+    .all<Record<string, unknown>>();
+  const listings = await db(ctx)
+    .prepare(
+      "SELECT id, identity_id, title, status, revision_status, work_copy_json, submitted_at FROM supplier_listing " +
+        "WHERE status = 'submitted' OR revision_status IN ('submitted','renewal_requested') ORDER BY submitted_at",
+    )
+    .all<Record<string, unknown>>();
+  const media = await db(ctx)
+    .prepare(
+      "SELECT m.id, m.owner_identity_id, m.status, lm.listing_id FROM media_object m " +
+        "LEFT JOIN listing_media lm ON lm.media_id = m.id " +
+        "WHERE m.status = 'pending' AND m.purpose = 'market_listing_media'",
+    )
+    .all<Record<string, unknown>>();
+  const reports = await db(ctx)
+    .prepare(
+      "SELECT id, object_id, reason, details, status, created_at FROM market_report WHERE status = 'open' ORDER BY created_at",
+    )
+    .all<Record<string, unknown>>();
+  return jsonResponse({
+    profiles: profiles.results,
+    listings: listings.results,
+    media: media.results,
+    reports: reports.results,
+  });
+}
+
+/**
+ * Publication gate: publish iff the supplier is ACTIVE (auto-activation, no
+ * profile review) AND the listing content is approved AND every attached
+ * media is approved — AND, for the supplier's FIRST publication, the
+ * reviewer-recorded verification call exists (final decision: أول إعلان
+ * يرافقه اتصال تحقق). Runs inside one atomic batch.
+ */
+async function tryPublish(db: Db, listingId: string, now: number): Promise<boolean> {
+  const listing = await db
+    .prepare(
+      "SELECT id, supplier_profile_id, status, revision_status, verification_call_at, published_at, work_copy_json, " +
+        "category, price_mode, price_micro_jod, min_quantity_milli, quantity_step_milli FROM supplier_listing WHERE id = ?",
+    )
+    .bind(listingId)
+    .first<Record<string, unknown>>();
+  if (!listing) return false;
+  const profile = await db
+    .prepare("SELECT status FROM supplier_profile WHERE id = ?")
+    .bind(String(listing.supplier_profile_id))
+    .first<Record<string, unknown>>();
+  if (!profile || String(profile.status) !== "active") return false;
+  // Content must be explicitly approved by a reviewer first (spec §7.4).
+  if (String(listing.revision_status) !== "content_approved") return false;
+  // First publication requires the recorded verification call (the gate the
+  // launch-threshold counting rule depends on — prompt §8 decision 4).
+  if (listing.published_at === null) {
+    const otherPublished = await db
+      .prepare(
+        "SELECT 1 AS ok FROM supplier_listing WHERE supplier_profile_id = ? AND id != ? AND status = 'approved_for_publish' AND published_at IS NOT NULL",
+      )
+      .bind(String(listing.supplier_profile_id), listingId)
+      .first();
+    if (otherPublished === null && listing.verification_call_at === null) return false;
+  }
+  const pendingMedia = await db
+    .prepare(
+      "SELECT COUNT(*) AS n FROM listing_media lm JOIN media_object m ON m.id = lm.media_id " +
+        "WHERE lm.listing_id = ? AND m.status != 'approved'",
+    )
+    .bind(listingId)
+    .first<Record<string, unknown>>();
+  if (Number(pendingMedia?.n ?? 0) > 0) return false;
+  // Denormalized columns refresh from the APPROVED work copy (Reviewer 1,
+  // 2026-11-12) — Wave 2 adds category and the variant-aware effective
+  // minimum so the browse filters can never diverge from the reviewed copy.
+  const work = JSON.parse(String(listing.work_copy_json)) as {
+    category?: string;
+    pricing?: { mode?: string; priceMicroJod?: string };
+    quantity?: { minQuantityMilli?: string; stepMilli?: string };
+    variants?: ListingVariant[];
+  };
+  const effectiveMin = effectiveMinQuantityMilli(
+    work.quantity?.minQuantityMilli ?? String(listing.min_quantity_milli),
+    work.variants,
+  );
+  await db
+    .prepare(
+      "UPDATE supplier_listing SET status = 'approved_for_publish', " +
+        "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
+        "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
+        "category = COALESCE(?, category), " +
+        "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
+        "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
+        "min_quantity_milli = ?, " +
+        "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
+        "public_copy_json = work_copy_json, published_at = COALESCE(published_at, ?), freshness_state = 'fresh', " +
+        "revision_status = 'none', reviewed_at = ?, updated_at = ? WHERE id = ?",
+    )
+    .bind(work.category ?? null, effectiveMin, now, now, now, listingId)
+    .run();
+  return true;
+}
+
+/**
+ * POST /api/market/review/profile/:id — administrative supplier actions ONLY
+ * (final decision Q4/Q28: profile moderation is ABOLISHED — the approve /
+ * changes_requested / reject actions are gone; the supplier activates on
+ * profile completion + terms). What remains is the honest administrative
+ * pair: suspend (with a required reason — the supplier's listings disappear
+ * from the public browse immediately because browse requires an ACTIVE
+ * supplier) and unsuspend (back to active — the profile was complete when it
+ * activated; suspension never destroyed the work copy).
+ */
+export async function reviewProfile(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
+  const action = body.action;
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
+  if (!["suspend", "unsuspend"].includes(action ?? "")) {
+    throw new HttpError(400, "bad_request", {
+      field: "action",
+      reason: "profile_review_abolished_admin_actions_only",
+    });
+  }
+  if (action === "suspend" && !reason) {
+    throw new HttpError(400, "bad_request", { field: "reason" });
+  }
+  const now = nowMs();
+  const profile = await db(ctx)
+    .prepare("SELECT id, identity_id, status FROM supplier_profile WHERE id = ?")
+    .bind(ctx.params.id!)
+    .first<Record<string, unknown>>();
+  if (!profile) throw new HttpError(404, "not_found");
+  const profileId = String(profile.id);
+  const vendorIdentityId = String(profile.identity_id);
+  requireNotOwnRecord(auth.identityId, vendorIdentityId);
+  if (action === "suspend") {
+    await db(ctx)
+      .prepare(
+        "UPDATE supplier_profile SET status = 'suspended', review_reason = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(reason, now, now, profileId)
+      .run();
+  } else {
+    await db(ctx)
+      .prepare("UPDATE supplier_profile SET status = 'active', reviewed_at = ?, updated_at = ? WHERE id = ?")
+      .bind(now, now, profileId)
+      .run();
+  }
+  await moderationEvent(db(ctx), "supplier_profile", profileId, auth.identityId, action ?? "", reason, now);
+  await notify(
+    db(ctx),
+    {
+      identityId: vendorIdentityId,
+      type: "vendor_file_decision",
+      targetPath: "/market/vendor",
+      payload: { action },
+      idempotencyKey: `profile-decision:${profileId}:${now}`,
+    },
+    now,
+  ).catch(() => undefined);
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: `review_profile_${action}`,
+      objectType: "supplier_profile",
+      objectId: profileId,
+      result: "success",
+      meta: { reason: reason ?? null },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/review/listing/:id — approve/changes_requested/reject/suspend. */
+export async function reviewListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as {
+    action?: string;
+    reason?: string;
+    verificationCall?: { done?: boolean; note?: string };
+  };
+  const action = body.action;
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
+  if (!["approve", "changes_requested", "reject", "admin_suspend"].includes(action ?? "")) {
+    throw new HttpError(400, "bad_request", { field: "action" });
+  }
+  if ((action === "changes_requested" || action === "reject" || action === "admin_suspend") && !reason) {
+    throw new HttpError(400, "bad_request", { field: "reason" });
+  }
+  const now = nowMs();
+  const listing = await db(ctx)
+    .prepare(
+      "SELECT id, identity_id, supplier_profile_id, status, revision_status, verification_call_at, published_at FROM supplier_listing WHERE id = ?",
+    )
+    .bind(ctx.params.id!)
+    .first<Record<string, unknown>>();
+  if (!listing) throw new HttpError(404, "not_found");
+  const listingId = String(listing.id);
+  const vendorIdentityId = String(listing.identity_id);
+  requireNotOwnRecord(auth.identityId, vendorIdentityId);
+  const status = String(listing.status);
+  const revisionStatus = String(listing.revision_status);
+  if (action === "approve") {
+    // First-listing verification call (final decision ب-قواعد: أول إعلان
+    // يرافقه اتصال تحقق من المشرف): when this approval would be the
+    // supplier's FIRST publication, the reviewer must record the
+    // verification call in the SAME approval — the publication gate refuses
+    // to publish without it, so the honest refusal happens here with a clear
+    // reason instead of a silently stuck queue entry.
+    if (status === "submitted" && listing.published_at === null && listing.verification_call_at === null) {
+      const otherPublished = await db(ctx)
+        .prepare(
+          "SELECT 1 AS ok FROM supplier_listing WHERE supplier_profile_id = ? AND id != ? AND status = 'approved_for_publish' AND published_at IS NOT NULL",
+        )
+        .bind(String(listing.supplier_profile_id), listingId)
+        .first();
+      if (otherPublished === null) {
+        if (body.verificationCall?.done !== true) {
+          throw new HttpError(400, "bad_request", {
+            field: "verificationCall",
+            reason: "verification_call_required_for_first_listing",
+          });
+        }
+        const note =
+          typeof body.verificationCall.note === "string" && body.verificationCall.note.trim().length > 0
+            ? body.verificationCall.note.trim().slice(0, 500)
+            : null;
+        await db(ctx)
+          .prepare(
+            "UPDATE supplier_listing SET verification_call_at = ?, verification_call_note = ?, updated_at = ? WHERE id = ?",
+          )
+          .bind(now, note, now, listingId)
+          .run();
+        await moderationEvent(
+          db(ctx),
+          "supplier_listing",
+          listingId,
+          auth.identityId,
+          "first_listing_verification_call",
+          note,
+          now,
+        );
+      }
+    }
+    if (status === "submitted") {
+      if (revisionStatus === "content_approved") {
+        const published = await tryPublish(db(ctx), listingId, now);
+        if (!published) throw new HttpError(409, "conflict", { reason: "gate_not_satisfied" });
+      } else {
+        // Content approved; publication waits for file + media (spec §7.4).
+        await db(ctx)
+          .prepare(
+            "UPDATE supplier_listing SET revision_status = 'content_approved', reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+          )
+          .bind(auth.identityId, now, now, listingId)
+          .run();
+        // Content approval may itself be the last gate piece — attempt the
+        // atomic publish (a no-op when file/media are still pending).
+        await tryPublish(db(ctx), listingId, now);
+      }
+    } else if (
+      status === "approved_for_publish" &&
+      (revisionStatus === "submitted" || revisionStatus === "renewal_requested")
+    ) {
+      // Content revision approved: promote the work copy atomically. When the
+      // listing was hidden for staleness, this approval IS the OD-11 renewal
+      // (availability re-confirmed through review; published_at is preserved).
+      // Wave 2: category and the variant-aware effective minimum refresh from
+      // the approved copy too.
+      const revisionWork = JSON.parse(
+        String(
+          (
+            await db(ctx)
+              .prepare("SELECT work_copy_json FROM supplier_listing WHERE id = ?")
+              .bind(listingId)
+              .first<Record<string, unknown>>()
+          )?.work_copy_json ?? "{}",
+        ),
+      ) as {
+        category?: string;
+        quantity?: { minQuantityMilli?: string };
+        variants?: ListingVariant[];
+      };
+      const currentRow = await db(ctx)
+        .prepare("SELECT min_quantity_milli FROM supplier_listing WHERE id = ?")
+        .bind(listingId)
+        .first<Record<string, unknown>>();
+      const revisionEffectiveMin = effectiveMinQuantityMilli(
+        revisionWork.quantity?.minQuantityMilli ?? String(currentRow?.min_quantity_milli ?? "0"),
+        revisionWork.variants,
+      );
+      await db(ctx)
+        .prepare(
+          "UPDATE supplier_listing SET public_copy_json = work_copy_json, revision_status = 'none', " +
+            "title = COALESCE(work_copy_json::jsonb ->> 'title', title), " +
+            "description = COALESCE(work_copy_json::jsonb ->> 'description', description), " +
+            "category = COALESCE(?, category), " +
+            "price_mode = COALESCE(work_copy_json::jsonb #>> '{pricing,mode}', price_mode), " +
+            "price_micro_jod = COALESCE(work_copy_json::jsonb #>> '{pricing,priceMicroJod}', price_micro_jod), " +
+            "min_quantity_milli = ?, " +
+            "quantity_step_milli = COALESCE(work_copy_json::jsonb #>> '{quantity,stepMilli}', quantity_step_milli), " +
+            "availability_confirmed_at = CASE WHEN availability_confirmed_at < ? THEN ? ELSE availability_confirmed_at END, " +
+            "freshness_state = 'fresh', reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(
+          revisionWork.category ?? null,
+          revisionEffectiveMin,
+          now - LISTING_FRESHNESS_HIDE_MS,
+          now,
+          auth.identityId,
+          now,
+          now,
+          listingId,
+        )
+        .run();
+    } else {
+      throw new HttpError(409, "conflict", { reason: `listing_status_${status}` });
+    }
+  } else if (action === "changes_requested") {
+    if (status === "approved_for_publish") {
+      await db(ctx)
+        .prepare(
+          "UPDATE supplier_listing SET revision_status = 'changes_requested', review_reason = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(reason, now, now, listingId)
+        .run();
+    } else {
+      await db(ctx)
+        .prepare(
+          "UPDATE supplier_listing SET status = 'changes_requested', review_reason = ?, reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(reason, auth.identityId, now, now, listingId)
+        .run();
+    }
+  } else if (action === "reject") {
+    await db(ctx)
+      .prepare(
+        "UPDATE supplier_listing SET status = 'rejected', review_reason = ?, reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(reason, auth.identityId, now, now, listingId)
+      .run();
+  } else {
+    await db(ctx)
+      .prepare(
+        "UPDATE supplier_listing SET status = 'admin_suspended', review_reason = ?, reviewed_by = ?, reviewed_at = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(reason, auth.identityId, now, now, listingId)
+      .run();
+  }
+  await moderationEvent(db(ctx), "supplier_listing", listingId, auth.identityId, action ?? "", reason, now);
+  await notify(
+    db(ctx),
+    {
+      identityId: vendorIdentityId,
+      type: "moderation_decision",
+      targetPath: "/market/vendor",
+      payload: { action },
+      idempotencyKey: `listing-decision:${listingId}:${now}`,
+    },
+    now,
+  ).catch(() => undefined);
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: `review_listing_${action}`,
+      objectType: "supplier_listing",
+      objectId: listingId,
+      result: "success",
+      meta: { reason: reason ?? null },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/review/media/:mediaId — approve/reject an image. */
+export async function reviewMedia(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
+  if (!["approve", "reject"].includes(body.action ?? "")) {
+    throw new HttpError(400, "bad_request", { field: "action" });
+  }
+  const now = nowMs();
+  const media = await db(ctx)
+    .prepare("SELECT id, owner_identity_id FROM media_object WHERE id = ?")
+    .bind(ctx.params.mediaId!)
+    .first<Record<string, unknown>>();
+  if (!media) throw new HttpError(404, "not_found");
+  requireNotOwnRecord(auth.identityId, String(media.owner_identity_id));
+  await db(ctx)
+    .prepare("UPDATE media_object SET status = ? WHERE id = ?")
+    .bind(body.action === "approve" ? "approved" : "rejected", String(media.id))
+    .run();
+  await moderationEvent(
+    db(ctx),
+    "listing_media",
+    String(media.id),
+    auth.identityId,
+    body.action ?? "",
+    typeof body.reason === "string" ? body.reason : null,
+    now,
+  );
+  // Publication gate for the attached listing (last approval publishes).
+  const attached = await db(ctx)
+    .prepare("SELECT listing_id FROM listing_media WHERE media_id = ?")
+    .bind(String(media.id))
+    .all<Record<string, unknown>>();
+  for (const row of attached.results) {
+    await tryPublish(db(ctx), String(row.listing_id), now);
+  }
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: `review_media_${body.action}`,
+      objectType: "media_object",
+      objectId: String(media.id),
+      result: "success",
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
+}
+
+/**
+ * POST /api/market/review/report/:id — report follow-up decisions
+ * (F-12, S12 scan; contract 22 §2 closed set:
+ * acknowledge / request_information / restrict / close).
+ *
+ * The decision is administrative and always recorded with actor + reason +
+ * time (moderation event + audit + reporter notification). It NEVER
+ * auto-mutates the reported object — a restriction is taken separately by
+ * the admin through the object's own review API, keeping the existing
+ * invariant "reports never auto-mutate the listing" (§38). Only `close`
+ * resolves the report; the other three are recorded follow-ups that keep it
+ * open. The admin who filed the report cannot resolve their own report
+ * (requireNotOwnRecord — F-08 parity).
+ */
+export async function resolveReport(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  if (!auth.isAdmin) throw new HttpError(403, "forbidden", { reason: "admin_only" });
+  const body = (await readJsonBody(ctx.request)) as { action?: string; reason?: string };
+  const action = body.action;
+  const REPORT_ACTIONS = ["acknowledge", "request_information", "restrict", "close"] as const;
+  if (!REPORT_ACTIONS.includes((action ?? "") as (typeof REPORT_ACTIONS)[number])) {
+    throw new HttpError(400, "bad_request", { field: "action" });
+  }
+  const reason =
+    typeof body.reason === "string" && body.reason.trim().length > 0
+      ? body.reason.trim().slice(0, 1000)
+      : null;
+  if (!reason) throw new HttpError(400, "bad_request", { field: "reason" });
+  const now = nowMs();
+  // Phase F (reviewer 4): a non-numeric :id is a plain 404 (never a cast-error 500).
+  const reportIdParam = ctx.params.id!;
+  if (!/^\d{1,18}$/.test(reportIdParam)) throw new HttpError(404, "not_found");
+  const report = await db(ctx)
+    .prepare("SELECT id, reporter_identity_id, status FROM market_report WHERE id = ?")
+    .bind(reportIdParam)
+    .first<Record<string, unknown>>();
+  if (!report) throw new HttpError(404, "not_found");
+  const reportId = String(report.id);
+  requireNotOwnRecord(auth.identityId, String(report.reporter_identity_id));
+  if (String(report.status) === "resolved") {
+    throw new HttpError(409, "conflict", { reason: "report_already_resolved" });
+  }
+  if (action === "close") {
+    // Phase F (reviewer 4): conditional UPDATE + changes check — the house
+    // optimistic-concurrency pattern — so two concurrent closes can never
+    // both succeed (last-writer-wins on the resolver identity is refused).
+    const closed = await db(ctx)
+      .prepare(
+        "UPDATE market_report SET status = 'resolved', resolution_note = ?, resolved_by = ?, resolved_at = ? WHERE id = ? AND status = 'open'",
+      )
+      .bind(reason, auth.identityId, now, reportId)
+      .run();
+    if (Number(closed.meta?.changes ?? 0) !== 1) {
+      throw new HttpError(409, "conflict", { reason: "report_already_resolved" });
+    }
+  }
+  await moderationEvent(db(ctx), "market_report", reportId, auth.identityId, action ?? "", reason, now);
+  await notify(
+    db(ctx),
+    {
+      identityId: String(report.reporter_identity_id),
+      type: "report_replied",
+      targetPath: "/market",
+      payload: { action },
+      idempotencyKey: `report-decision:${reportId}:${now}`,
+    },
+    now,
+  ).catch(() => undefined);
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: `review_report_${action}`,
+      objectType: "market_report",
+      objectId: reportId,
+      result: "success",
+      meta: { reason },
+    },
+    now,
+  );
+  return jsonResponse({ ok: true, action, resolved: action === "close" });
+}

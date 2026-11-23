@@ -445,7 +445,7 @@ describe("Wave 4.4 — P-4.4-1: integrity dead identifiers button removed after 
   });
 });
 
-describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus behavior", () => {
+describe("Wave 4.4 — P-4.4-1 + EX-D21: the Ask Micro menu entry navigates; the logo menu keeps its Escape/focus contract", () => {
   function renderHeader() {
     const navigate = vi.fn();
     mockedUsePrototypeServices.mockImplementation(
@@ -467,40 +467,24 @@ describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus
     return navigate;
   }
 
-  it("opening a soon panel moves focus into it; Escape closes and returns focus to its trigger", async () => {
-    renderHeader();
-    /* S16 (UNIT-043) + DEC-SHELL-01 (UXR-03 — أمر W02): لوحة الإعلان مشغّلها
-     * بند قائمة «مايكرو» — تفتح من القائمة (مالكها زر الشعار). */
-    const menuOwner = screen.getByTestId("micro-logo-menu-button");
-    fireEvent.click(menuOwner);
-    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
-    const panel = await screen.findByTestId("soon-panel");
-    expect(panel.getAttribute("role")).toBe("dialog");
-    /* التركيز يدخل اللوحة عند فتحها. */
-    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true));
-    /* Escape يغلق ويعيد التركيز إلى مالك القائمة (زر الشعار) — كسلوك
-     * القائمة نفسه. */
-    fireEvent.keyDown(document, { key: "Escape" });
-    await waitFor(() => expect(screen.queryByTestId("soon-panel")).toBeNull());
-    expect(document.activeElement).toBe(menuOwner);
+  it("the Ask Micro item is a real navigation entry to /ask with a saved return (no dialog)", () => {
+    /* EX-D21 (Phase B — 2026-11-14): حلّت صفحة /ask الحقيقية محل لوحة
+     * «قريبًا» — البند داخل قائمة «مايكرو» يفتحها بعنوان رجوع محفوظ
+     * (عقد 26 §9)، ولا حوار إعلان بعد الآن (سجل حوار الحارس حُدّث). */
+    const navigate = renderHeader();
+    fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro" }));
+    expect(navigate).toHaveBeenCalledWith(expect.stringMatching(/^\/ask\?returnTo=/));
+    expect(screen.queryByTestId("soon-panel")).toBeNull();
   });
 
-  it("the assistant panel behaves the same, and Tab stays trapped inside the dialog", async () => {
+  it("the logo menu keeps its keyboard contract: Escape closes and returns focus to the logo button", async () => {
     renderHeader();
     const menuOwner = screen.getByTestId("micro-logo-menu-button");
     fireEvent.click(menuOwner);
-    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
-    const panel = await screen.findByTestId("soon-panel");
-    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true));
-    const closeButton = screen.getByRole("button", { name: "إغلاق" });
-    expect(panel.contains(closeButton)).toBe(true);
-    /* حبس التركيز: Tab من آخر عنصر يعود إلى أوله داخل اللوحة. */
-    closeButton.focus();
-    fireEvent.keyDown(document, { key: "Tab" });
-    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true));
-    /* الإغلاق بزر X يعيد التركيز للمشغّل أيضًا. */
-    fireEvent.click(closeButton);
-    await waitFor(() => expect(screen.queryByTestId("soon-panel")).toBeNull());
+    expect(screen.getByTestId("micro-logo-menu")).toBeTruthy();
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("micro-logo-menu")).toBeNull());
     expect(document.activeElement).toBe(menuOwner);
   });
 });

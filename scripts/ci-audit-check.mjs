@@ -3,6 +3,11 @@
  * الخطوة ٢+٣ (برنامج تصحيح ما بعد المسح لPR #316 — 2026-10-06): فاحص خطوة
  * التدقيق الأمني في CI مع سجل الاستثناءات الأمنية الموثق.
  *
+ * CI-001 (Post-Group 6 Wave 5 / DOC-041، 2026-11-21): مستوى الفحص الافتراضي
+ * صار low — التقرير الكامل يُحلّل JSON دائمًا، وكل مكتشف غير مسجل في السجل
+ * يحجب البوابة أيا كانت شدته؛ لا يُتجاهل تحذير أدنى من high بصمت أبدًا.
+ * التسجيل الموثق (بقرار مالك) هو المسار الوحيد لقبول مكتشف.
+ *
  * السياق والعلة الجذرية:
  * - العلة (أ) — عيب bash في خطوة audit بci.yml (D8-a المسجل في Entry 45):
  *   كان `code=$?` يُلتقط بعد جملة `if` كاذبة فلا يرصد إلا خرج الجملة (0)،
@@ -28,7 +33,7 @@
  * يستهلكها غلاف bash.
  *
  * الاستخدام:
- *   node scripts/ci-audit-check.mjs [--audit-level high]
+ *   node scripts/ci-audit-check.mjs [--audit-level low]
  *        [--report-file <path>] [--register <path>]
  * - الافتراضي يشغّل `pnpm audit --json` داخل جذر المستودع.
  * - `--report-file` يقيّم تقريرًا محفوظًا بلا شبكة (مسار الاختبارات وإعادة
@@ -53,17 +58,29 @@ export function loadRegister(registerPath) {
     const raw = fs.readFileSync(registerPath, "utf8");
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.exceptions)) {
-      return { ok: false, register: null, error: "register root must be an object with an `exceptions` array" };
+      return {
+        ok: false,
+        register: null,
+        error: "register root must be an object with an `exceptions` array",
+      };
     }
     for (const [index, entry] of parsed.exceptions.entries()) {
       const missing = ["advisory_id", "package", "status"].filter(k => !(k in entry));
       if (missing.length > 0) {
-        return { ok: false, register: null, error: `exceptions[${index}] missing required keys: ${missing.join(", ")}` };
+        return {
+          ok: false,
+          register: null,
+          error: `exceptions[${index}] missing required keys: ${missing.join(", ")}`,
+        };
       }
     }
     return { ok: true, register: parsed, error: null };
   } catch (error) {
-    return { ok: false, register: null, error: `cannot read/parse register: ${error?.message ?? String(error)}` };
+    return {
+      ok: false,
+      register: null,
+      error: `cannot read/parse register: ${error?.message ?? String(error)}`,
+    };
   }
 }
 
@@ -95,11 +112,16 @@ export function evaluateAuditReport(report, register) {
   const matchedEntryIds = new Set();
 
   for (const advisory of advisories) {
-    const entry = entries.find(e => e.advisory_id === advisory.id || (e.cve && e.cve === (advisory.cve ?? "")));
+    const entry = entries.find(
+      e => e.advisory_id === advisory.id || (e.cve && e.cve === (advisory.cve ?? "")),
+    );
     if (!entry || entry.status === "REJECTED") {
       blocked.push({
         advisory,
-        reason: entry?.status === "REJECTED" ? "exception explicitly REJECTED by owner — finding stands" : "no exception record",
+        reason:
+          entry?.status === "REJECTED"
+            ? "exception explicitly REJECTED by owner — finding stands"
+            : "no exception record",
       });
       continue;
     }
@@ -160,7 +182,9 @@ function render(verdict, toolSummary) {
           `${b.advisory.vulnerableVersions} — ${b.advisory.title} — ${b.reason}`,
       );
     }
-    lines.push(`ci-audit-check: FAIL — ${verdict.blocked.length} blocking finding(s) after applying the exception register`);
+    lines.push(
+      `ci-audit-check: FAIL — ${verdict.blocked.length} blocking finding(s) after applying the exception register`,
+    );
   } else {
     lines.push(
       `ci-audit-check: PASS — 0 blocking finding(s)` +
@@ -178,13 +202,15 @@ function main() {
     const i = args.indexOf(name);
     return i >= 0 ? args[i + 1] : null;
   };
-  const auditLevel = readFlag("--audit-level") ?? "high";
+  const auditLevel = readFlag("--audit-level") ?? "low";
   const registerPath = readFlag("--register") ?? DEFAULT_REGISTER_PATH;
   const reportFile = readFlag("--report-file");
 
   const registerLoad = loadRegister(registerPath);
   if (!registerLoad.ok) {
-    console.error(`ci-audit-check: FAIL — security-exception-register is unreadable/malformed (${registerPath}): ${registerLoad.error}`);
+    console.error(
+      `ci-audit-check: FAIL — security-exception-register is unreadable/malformed (${registerPath}): ${registerLoad.error}`,
+    );
     process.exit(EXIT_BLOCKED);
   }
 
@@ -194,7 +220,9 @@ function main() {
     try {
       report = JSON.parse(fs.readFileSync(reportFile, "utf8"));
     } catch (error) {
-      console.error(`ci-audit-check: TOOL FAILURE — cannot read/parse report file ${reportFile}: ${error?.message ?? String(error)}`);
+      console.error(
+        `ci-audit-check: TOOL FAILURE — cannot read/parse report file ${reportFile}: ${error?.message ?? String(error)}`,
+      );
       process.exit(EXIT_TOOL_FAILURE);
     }
   } else {
@@ -213,7 +241,9 @@ function main() {
         toolSummary = `total ${total} (critical ${meta.critical ?? 0}, high ${meta.high ?? 0}, moderate ${meta.moderate ?? 0}, low ${meta.low ?? 0})`;
       }
     } catch {
-      console.error("ci-audit-check: TOOL FAILURE — pnpm audit exited non-zero with no parseable JSON report (registry/network failure?) — retryable signal for the bash wrapper");
+      console.error(
+        "ci-audit-check: TOOL FAILURE — pnpm audit exited non-zero with no parseable JSON report (registry/network failure?) — retryable signal for the bash wrapper",
+      );
       console.error(ran.stderr.split("\n").slice(0, 5).join("\n"));
       process.exit(EXIT_TOOL_FAILURE);
     }

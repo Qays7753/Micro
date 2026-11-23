@@ -2,11 +2,18 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { pathnameOnly } from "@/app/routeClassifier";
 import { Button } from "@/components/primitives";
 import { requestPersistentStorage } from "@/storage/local/persistentStorage";
 import type { StorageFailure } from "@/storage/local/types";
 
 export const isPublicLocalRecoveryRoute = (path: string) => path === "/setup" || path === "/settings";
+
+/* EX-D19 (Phase B — 2026-11-14): مسارات الطبقة المتصلة (السوق العام/التوصيل/
+ * بوابة السائق/Ask Micro) متاحة للضيف والحساب بلا فرض إعداد Manage المحلي —
+ * إعداد /setup يبقى إلزاميًا لأسطح Manage المحلية فقط (عقد 26 §9). */
+export const isConnectedRoute = (path: string) =>
+  path === "/ask" || path.startsWith("/market") || path.startsWith("/delivery") || path.startsWith("/driver");
 
 export function storageRecoveryCopy(failure: StorageFailure): { title: string; description: string } {
   switch (failure.code) {
@@ -64,7 +71,8 @@ export function StartupGate({ children, onSettled }: { children: ReactNode; onSe
         setState("error");
         return;
       }
-      if (!result.value && !isPublicLocalRecoveryRoute(location)) navigate("/setup", { replace: true });
+      if (!result.value && !isPublicLocalRecoveryRoute(location) && !isConnectedRoute(pathnameOnly(location)))
+        navigate("/setup", { replace: true });
       /* المجموعة ١ (ملف المالك): بعد وجود المشروع تُضمن هوية مالك محلية ثابتة —
        * إنشاء مرة واحدة ثم قراءة؛ فشلها لا يعطل الإقلاع ولا يغير بيانات قائمة. */
       if (result.value) void ownerProfile.ensureLocal();
@@ -80,6 +88,12 @@ export function StartupGate({ children, onSettled }: { children: ReactNode; onSe
         جارٍ فتح مشروعك المحلي…
       </div>
     );
+  if (state === "error" && isConnectedRoute(pathnameOnly(location))) {
+    /* EX-D19: فشل التخزين المحلي لا يحجب الأسطح المتصلة (لا تلمس التخزين
+     * المحلي أصلًا) — شاشة الاستعادة تخص Manage وحده، وأسطحه المحلية هي
+     * التي تعرضها إن دخلها المستخدم. */
+    return <>{children}</>;
+  }
   if (state === "error") {
     const copy = storageRecoveryCopy(storageFailure ?? { ok: false, code: "storage_error", message: "" });
     return (

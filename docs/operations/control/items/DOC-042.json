@@ -1,0 +1,100 @@
+{
+  "id": "DOC-042",
+  "title": "PR #386 — إصلاح مهلة اختبار CI وعزل قراءة حالة PR بصلاحية محدودة",
+  "type": "QUALITY",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "pr386-ci-remediation-20261123",
+  "summary": "إصلاح موثوقية CI لطلب PR #386: التشغيل 45077307685 أخفق عند حد Vitest البالغ 5000ms لاختبار مسح شجرة العميل، كما كشف التشغيل المحلي الكامل اختبارين آخرين لمسح الشجرة تجاوزا الحد فقط تحت التوازي مع نجاح كل منهما منفردًا. تُرفع مهلة الاختبارات الثلاثة المحددة إلى 15000ms دون تغيير أي تأكيد، ويُضاف pull-requests: read وخطوة PR مستقلة تمرر GH_TOKEN لها وحدها؛ يبقى pnpm check بلا GH_TOKEN. هذه شريحة جودة داخلية لا تغيّر سلوك المنتج أو المال أو التخزين. DOC-038/WS-249 تخص إصلاح PostgreSQL التاريخي ولا يعاد فتحها؛ DOC-041/WS-251 وPR #385 محمية ولا تُعدل. سجل الأمن المصدر لم يتغير: CI-001 مفتوحة وخارج النطاق؛ لا إغلاق لـCI-002 أو SEC-GIT-001 أو أي نتيجة أخرى ضمن هذه الشريحة.",
+  "source": {
+    "report": "https://github.com/Qays7753/Micro/actions/runs/45077307685",
+    "discovered_at_sha": "5ca1167ebaf998e8316d03a1cced9d78d9e725d6",
+    "evidence": [
+    "https://github.com/Qays7753/Micro/actions/runs/45077307685",
+    "scripts/check-label-vocabulary.test.mjs",
+    ".github/workflows/ci.yml",
+      "scripts/operations-control/validate.py"
+    ]
+  },
+  "acceptance": [
+    "تستخدم اختبارات المسح الحي المحددة في scripts/check-label-vocabulary.test.mjs وscripts/check-a11y-dialog-surfaces.test.mjs وscripts/check-diagnostics-storage.test.mjs مهلة 15000ms لكل اختبار فقط؛ تبقى أجسامها وتأكيداتها كاملة دون تغيير، وتنجح الاختبارات المركزة.",
+    "تُظهر ci.yml الصلاحيتين contents: read وpull-requests: read فقط، دون أي write/admin.",
+    "تُمرر GH_TOKEN إلى خطوة PR-only منفصلة لتشغيل pnpm operations-control:check وحدها؛ لا يظهر GH_TOKEN في خطوة pnpm check ولا في مستوى workflow/job.",
+    "يثبت اختبار سياسة CI عزل الرمز والصلاحيات الدقيقة؛ وينجح فحص Control المحلي بلا GH_TOKEN، كما ينجح فحص PR المنفصل بقراءة #386.",
+    "يكتمل GitHub Actions CI بالكامل، بما فيه prototype:test والبناء، على SHA النهائي نفسه؛ لا يُوصف الفحص المحلي الجزئي بأنه pnpm check كامل.",
+    "تتطابق Views وبيانات المصنف مع DOC-042/WS-252 وسجلات JSON؛ لا يُستخدم VERIFIED قبل الدمج والتحقق على main."
+  ],
+  "areas": [
+    ".github/workflows/ci.yml",
+    "scripts/check-label-vocabulary.test.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/check-diagnostics-storage.test.mjs",
+    "scripts/ci-workflow-policy.test.mjs",
+    "docs/operations/control/items/DOC-042.json",
+    "docs/operations/control/workstreams/WS-252.json",
+    "docs/operations/control/generated/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    ".github/pull_request_template.md"
+  ],
+  "evidence": [
+    "https://github.com/Qays7753/Micro/actions/runs/45077307685",
+    "scripts/check-label-vocabulary.test.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/check-diagnostics-storage.test.mjs",
+    "scripts/ci-workflow-policy.test.mjs",
+    ".github/workflows/ci.yml",
+    "scripts/operations-control/validate.py"
+  ],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "أجاز المالك مزامنة المصنف ثم متابعة إصلاحات CI على الفرع الحالي وPR #386 فقط. لا يتطلب الإصلاح قرار منتج أو مالي. تبقى نتيجة الأمن CI-001 مفتوحة وخارج النطاق؛ ولم يُعد تقييم CI-002 أو SEC-GIT-001 ولم تُغلق أي نتيجة أمنية. لا دمج أو نشر أو اتصال حي أو بيانات حقيقية.",
+  "root_cause": "مهلة Vitest الافتراضية 5000ms ضيقة لثلاثة اختبارات تمسح شجرة العميل/المستودع كاملة؛ أكد التشغيل المحلي الكامل أن اثنين إضافيين يتجاوزانها فقط تحت توازي المجموعة، بينما نجحا منفردين. كذلك تحتاج قراءة علاقات PR في المدقق إلى اعتماد GitHub read-only غير متاح في خطوة pnpm check الحالية.",
+  "updated_at": "2026-11-23",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-23",
+      "actor": "owner-authorized-ci-2026-11-23",
+      "reason": "تحديد فشل Actions على رأس PR #386 السابق والاتفاق على إصلاح محدود يحافظ على كل تأكيدات الاختبار ويعزل صلاحية قراءة PR عن pnpm check؛ لا تغيير منتج أو مالي أو هيكلي."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-ci-integrator",
+      "reason": "حجز هذا النطاق بمطالبة WS-252 على الفرع الحالي بعد تحقق حي من origin/main وPRs المفتوحة و0 مطالبات نشطة؛ لا تداخل نشط، مع تسجيل التقاطع التاريخي غير النشط WS-249/DOC-038 صراحة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-23",
+      "actor": "manus-ci-integrator",
+      "reason": "بدء التنفيذ بعد التحقق من اعتماديات pnpm 9.15.9 وإعادة الاختبار المركز وتحديد صلاحيات GitHub API المطلوبة؛ لم تُغلق أي نتيجة أمنية."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-23",
+      "actor": "manus-ci-integrator",
+      "reason": "المرشح جاهز للمراجعة على PR #386 Draft بعد نجاح الاختبارات المركزة 41/41 واختبارات الجذر 84/84 (1028/1028) والبناء المحلي. تكامل prototype:test محليًا محجوب بمكتبات PostgreSQL المفقودة؛ لذلك يظل تشغيل Actions الكامل على SHA الذي سيدفع شرطًا غير منجز، ولا يعني هذا الانتقال VERIFIED. لم تتغير حالة أي نتيجة أمنية."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "إنشاء commit المطلوب ودفعه إلى الفرع نفسه، تحديث وصف PR #386 بالأدلة الدقيقة، والتحقق من اكتمال Actions على SHA النهائي قبل التوقف.",
+  "classification": "HARDENING",
+  "gate_classification": "NOT_APPLICABLE",
+  "owner": "Qays (owner authorization) / Manus (sole CI writer and integrator)",
+  "tests_required": [
+    "pnpm exec vitest run scripts/check-label-vocabulary.test.mjs scripts/check-a11y-dialog-surfaces.test.mjs scripts/check-diagnostics-storage.test.mjs scripts/ci-workflow-policy.test.mjs",
+    "env -u GH_TOKEN pnpm check",
+    "GH_TOKEN-scoped pnpm operations-control:check in the dedicated PR validation step; suppress token value",
+    "git diff --check; node scripts/check-secrets.mjs; node scripts/check-test-focus.mjs",
+    "python3 scripts/operations-control/generate_tracker.py --check and validate.py; workbook content/meta/package verification",
+    "GitHub Actions full CI success on the exact final PR #386 head SHA"
+  ],
+  "layers": [
+    "ci",
+    "test-tooling",
+    "operations-control"
+  ]
+}

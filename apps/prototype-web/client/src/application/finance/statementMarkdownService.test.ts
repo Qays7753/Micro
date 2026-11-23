@@ -171,6 +171,81 @@ function reading(overrides: Partial<StatementReading> = {}): StatementReading {
 }
 
 describe("statement markdown service (المجموعة ٥ — عقد ٣٢)", () => {
+  it("WEB-02: user-entered values are escaped — never Markdown/HTML structure in an external viewer", () => {
+    const service = new StatementMarkdownService();
+    const hostile = service.render(
+      reading({
+        blocks: {
+          cashIn: [
+            {
+              id: "in-x",
+              label: "<script>alert(1)</script> **عريض** [رابط](https://evil.test)",
+              amountMinor: 100,
+              qualifier: "`كود` _مائل_",
+              sources: [],
+            },
+          ],
+          cashOut: [],
+          corrections: {
+            lines: [
+              {
+                id: "corr-x",
+                occurredOn: "2026-09-02",
+                familyLabel: "مصروف مدفوع",
+                reason: "<img src=x onerror=alert(2)>",
+                netEffectMinor: -100,
+                sourceHref: "/finance?event=y",
+                sourceLabel: "مصروف",
+              },
+            ],
+            netMinor: -100,
+          },
+          owner: { investedMinor: 0, withdrawnMinor: 0, sources: [] },
+          amanah: {
+            heldInPeriodMinor: 0,
+            releasedInPeriodMinor: 0,
+            heldNowMinor: 0,
+            trustLine: "أمانات بأمانتك",
+          },
+          receivablesPayables: {
+            receivablesNowMinor: 0,
+            payablesNowMinor: 0,
+            collectionsInPeriodMinor: 0,
+            payableEventsInPeriodMinor: 0,
+            supplierPurchasesInPeriodMinor: 0,
+            supplierPaymentsInPeriodMinor: 0,
+          },
+          deepFinance: {
+            depreciationMinor: 0,
+            writeOffLossMinor: 0,
+            disposalResultMinor: 0,
+            retainedDepositRevenueMinor: 0,
+            assetBookValueNowMinor: 0,
+            loansOutstandingNowMinor: 0,
+            borrowedLoansOutstandingNowMinor: 0,
+            pendingRetainedDepositsNowMinor: 0,
+            unresolved: [],
+          },
+        },
+      }),
+    );
+    if (!hostile.ok) throw new Error("render should succeed");
+    const text = hostile.value.markdown;
+    // Raw structure never survives: HTML tags, markdown emphasis, and link
+    // brackets are backslash-escaped in every user-entered value — the full
+    // raw forms (with their closing structure) are gone and the escaped
+    // forms are present.
+    expect(text).not.toContain("<script>alert");
+    expect(text).not.toContain("**عريض**");
+    expect(text).not.toContain("[رابط](https://evil.test)");
+    expect(text).not.toContain("<img src=x onerror=alert(2)>");
+    expect(text).toContain("\\<script\\>alert(1)");
+    expect(text).toContain("\\*\\*عريض\\*\\*");
+    expect(text).toContain("\\[رابط\\]");
+    expect(text).toContain("\\`كود\\`");
+    expect(text).toContain("السبب: \\<img src=x onerror=alert(2)\\>");
+  });
+
   it("renders the full Arabic structure from the canonical reading alone", () => {
     const service = new StatementMarkdownService();
     const rendered = service.render(reading());

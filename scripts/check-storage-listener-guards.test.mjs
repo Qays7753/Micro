@@ -75,7 +75,8 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * الكتابة: قراءة الطلب، وقراءة المسودة المرتبطة عند إعادة الاستخدام،
      * وقراءة الجدول عند وجوده) كلها بguardedSuccessListener الحارس نفسه
      * (نمط failFromListener القائم)؛ إعادة إرساء موثقة نفس-الـPR. */
-    expect(stdout).toMatch(/102 onsuccess listeners/);
+    /* الملحق §10.2-7-2 (DOC-041/WS-251، 2026-11-22): 102 ← 105 — مستمعات سجل اسأل المحلي عند منفذ التخزين (مؤشر الحذف والاستبقاق لحد العناصر) كلها بtry/catch داخلي حسب الحارس؛ إعادة إرساء موثقة نفس-الـPR. */
+    expect(stdout).toMatch(/105 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

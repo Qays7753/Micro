@@ -122,6 +122,23 @@ describe("GuidedOpeningImportService", () => {
     });
   });
 
+  it("MNG-LOCAL-05: an UNEXPECTED exception never leaks its raw message — the fixed safe text only", async () => {
+    const store = new MemoryLocalStore();
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
+    // Broken JSON fails the envelope check with the FIXED safe text — an
+    // unexpected exception's raw message must never reach the user.
+    const result = await service.prepare("{ليس ملفًا صالحًا");
+    expect(result).toMatchObject({ ok: false, code: "validation_error" });
+    if (result.ok) throw new Error("expected rejection");
+    expect(result.message).toContain("بقيت بيانات هذا الجهاز دون تغيير.");
+    expect(result.message).not.toContain("Unexpected");
+    expect(result.message).not.toContain("(");
+    await expect(store.readSnapshot()).resolves.toMatchObject({
+      ok: true,
+      value: { profile: null, cashWallets: [], materials: [] },
+    });
+  });
+
   it("R4-B4: parse-time throws return the structured rejection with the thrown reason, not an escape", async () => {
     const store = new MemoryLocalStore();
     const service = new GuidedOpeningImportService(store, testBackupBuilder(store));

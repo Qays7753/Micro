@@ -34,7 +34,10 @@ const TEST_PAT =
 const SOURCE_EXT = new Set([".ts", ".tsx"]);
 
 /** السجل المصنف — كل سطح حواري معلن في كود الإنتاج يجب أن يكون هنا. */
-export const CLASSIFIED_DIALOG_SURFACES = [
+export /* EX-D21 (Phase B — 2026-11-14): أُزيل بند AppHeader.tsx من السجل — لوحة
+ * «قريبًا» أُزيلت مع تحول «اسأل Micro» إلى مدخل حقيقي إلى /ask؛ لا حوار
+ * في AppHeader بعد الآن (السجل للأسطح المعلنة فقط — قاعدة الحارس نفسها). */
+const CLASSIFIED_DIALOG_SURFACES = [
   /* S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
    * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
    * مع مكوّناتها — لا غطاء قفل ولا بوابة رمز بعد اليوم؛ إزالتها من السجل
@@ -59,13 +62,6 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     model: "TRUE_MODAL",
     focusContract:
       "conformant UNIT-001 — veil + focus-in + Tab-cycle trap + Escape + back-sentinel + restore to trigger",
-  },
-  {
-    file: "components/layout/AppHeader.tsx",
-    role: "dialog",
-    ariaModal: false,
-    model: "NON_MODAL",
-    focusContract: "none by design — لا فخ تركيز للألواح غير المودالة (OD-A11Y)",
   },
   {
     /* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): لوحة «وظائف المالية» —
@@ -120,6 +116,42 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     model: "NON_MODAL",
     focusContract:
       "conformant F-002/UXR-03 — focus-in on open (first choice) + Escape/cancel restore focus to the expense trigger; backdrop closes without restore (pointer user — the standing Home-panels pattern); no trap by design (OD-A11Y non-modal)",
+  },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01، 2026-11-22):
+     * صناديق تأكيد إزالة الدور/إلغاء المسودة داخل قسم «أدوارك» في الملف — أربعة
+     * أسطح inline بنمط micro-confirm-box القائم: role="alertdialog" مصرحة بلا
+     * aria-modal (تأكيد داخل سطح قائم — غير تطبيقي-المودال)، أزرار تراجع/تنفيذ
+     * متاحة دائمًا، ولا فخ تركيز بقرار OD-A11Y لغير المودال؛ مصنفة بنفس الـPR
+     * الذي أدخلها (قاعدة الحارس). */
+    file: "components/profile/RolesSection.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — صناديق تأكيد inline داخل قسم الأدوار (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
+  },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G02، 2026-11-22):
+     * صندوق تأكيد الإيقاف داخل نتائج بحث المشرف — نفس نمط micro-confirm-box:
+     * السبب الإلزامي مكتوب قبل التفعيل وزر التأكيد معطل دونه. */
+    file: "pages/admin/AdminUserSearch.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — تأكيد إيقاف inline داخل نتيجة البحث (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
+  },
+  {
+    /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G02، 2026-11-22):
+     * صندوق تأكيد الإلغاء الإداري للحجز — نفس النمط؛ معرف الحجز والسبب الإلزامي
+     * قبل التفعيل. */
+    file: "pages/admin/AdminCancelBooking.tsx",
+    role: "alertdialog",
+    ariaModal: null,
+    model: "NESTED_CONFIRM",
+    focusContract:
+      "none by design — تأكيد إلغاء إداري inline داخل اللوحة (نمط QuickActionSheet)؛ غير تطبيقي-المودال فلا aria-modal ولا فخ تركيز (OD-A11Y)",
   },
 ];
 

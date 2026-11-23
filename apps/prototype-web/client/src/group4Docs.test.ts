@@ -45,7 +45,7 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     expect(section34).toContain("٣٥/٢٧ بلا تغيير");
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
      * المأذون (نمط D-037 نفسه). */
-    expect(String(localSchemaVersion)).toBe("41");
+    expect(String(localSchemaVersion)).toBe("42");
     expect(String(localExportVersion)).toBe("34");
   });
 
@@ -67,9 +67,12 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     const parsed = JSON.parse(appPackage) as { scripts: Record<string, string> };
     /* W8 (برنامج ما بعد المسح، 2026-10-05): الدبوس يوسَّد عمدًا في نفس PR
      * التوصيل — أمر البناء صار يشغّل حارسي الميزانية والأسطح معًا (تقوية
-     * البوابة لا إضعافها: سطحا lazy/precache كانا بلا حارس قبلاً). */
+     * البوابة لا إضعافها: سطحا lazy/precache كانا بلا حارس قبلاً).
+     * EX-D18 (2026-11-12 — بوابة الكود): أُلحق بناء عامل الشبكة
+     * (scripts/build-worker.mjs → dist/public/_worker.js) بعد الحارسين —
+     * بعد بناء العميل مقصودًا كي لا يدخل العامل مانيست precache للـSW. */
     expect(parsed.scripts.build).toBe(
-      "vite build && node scripts/check-bundle-budget.mjs && node scripts/check-bundle-surfaces.mjs",
+      "vite build && node scripts/check-bundle-budget.mjs && node scripts/check-bundle-surfaces.mjs && node scripts/build-worker.mjs",
     );
   });
 });

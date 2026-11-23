@@ -1,13 +1,21 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4360a92ca4cc4b259b3c88f047ebd37a0a897f2e",
+  "head": "c3666e8f64a6434fe5e2013d19471fbde6cbcdaa",
   "pages": {
-    "total": 62,
+    "total": 76,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
         "evidence": [
           "AgreementEditor.dom.test.tsx"
+        ]
+      },
+      "pages/AskMicro.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/AskMicro.dom.test.tsx",
+          "pages/AskMicro.governance.dom.test.tsx",
+          "pages/SharedShell.phaseE.dom.test.tsx"
         ]
       },
       "pages/AssetDetail.tsx": {
@@ -116,7 +124,28 @@
       "pages/Delivery.tsx": {
         "kind": "direct",
         "evidence": [
-          "Home.unit003.s16.dom.test.tsx"
+          "Home.unit003.s16.dom.test.tsx",
+          "pages/Delivery.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryBookingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.wave3.dom.test.tsx",
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryBookingEditor.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryDrivers.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DeliveryReview.tsx": {
@@ -124,6 +153,12 @@
         "evidence": [
           "G3Delivery.dom.test.tsx",
           "OrdJourneys.dom.test.tsx"
+        ]
+      },
+      "pages/DeliveryReviewQueue.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/DirectSaleEditor.tsx": {
@@ -142,6 +177,20 @@
           "U004.dom.test.tsx",
           "U06.dom.test.tsx",
           "pages/DraftEditor.s09.dom.test.tsx"
+        ]
+      },
+      "pages/DriverBookingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx",
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/DriverPortal.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Delivery.journeys.dom.test.tsx"
         ]
       },
       "pages/EstimateDetail.tsx": {
@@ -298,7 +347,34 @@
         "kind": "direct",
         "evidence": [
           "Clean001.surfaceAudit.test.tsx",
-          "Nav001.dom.test.tsx"
+          "Nav001.dom.test.tsx",
+          "pages/Market.contextualLink.dom.test.tsx",
+          "pages/Market.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/MarketListingDetail.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Market.journeys.dom.test.tsx"
+        ]
+      },
+      "pages/MarketListingEditor.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/MarketReview.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/MarketVendorWorkspace.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/Market.journeys.dom.test.tsx",
+          "pages/MarketDeliverySurfaces.dom.test.tsx"
         ]
       },
       "pages/MaterialEditor.tsx": {
@@ -366,6 +442,9 @@
         "kind": "direct",
         "evidence": [
           "ArabicRtlContent.w44.dom.test.tsx",
+          "pages/Delivery.wave3.dom.test.tsx",
+          "pages/Profile.manageOnline.dom.test.tsx",
+          "pages/Profile.roles.dom.test.tsx",
           "pages/Profile.ui.test.tsx"
         ]
       },
@@ -476,10 +555,31 @@
           "FinancePoliciesWallet.w42.dom.test.tsx",
           "G2.dom.test.tsx"
         ]
+      },
+      "pages/admin/AdminCancelBooking.tsx": {
+        "kind": "named-reference",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/admin/AdminPanel.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/admin/AdminUserSearch.tsx": {
+        "kind": "named-reference",
+        "evidence": [
+          "pages/admin/AdminPanel.dom.test.tsx"
+        ]
       }
     },
     "withoutDirectEvidence": [],
-    "withoutDirectRendering": []
+    "withoutDirectRendering": [
+      "pages/admin/AdminCancelBooking.tsx",
+      "pages/admin/AdminUserSearch.tsx"
+    ]
   },
   "contracts": {
     "total": 49,

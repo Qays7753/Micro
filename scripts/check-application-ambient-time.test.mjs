@@ -42,12 +42,12 @@ function withTree(build, run) {
 }
 
 describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => {
-  it("الجرد الحي: صفر خرق؛ 24 منطقة معتمدة فيها 24 نداء معفى؛ منفذ ساعة واحد؛ التحليل الصريح مسموح", () => {
+  it("الجرد الحي: صفر خرق؛ 25 منطقة معتمدة فيها 25 نداء معفى؛ منفذ ساعة واحد؛ التحليل الصريح مسموح (تصحيح مؤرخ 2026-11-22 DOC-041/WS-251 — إضافة بيت اسأل بأمر المالك الملحق §10.2)", () => {
     const { violations, stats } = classifyAmbientTime(ROOT);
     expect(violations).toEqual([]);
     expect(stats.files).toBeGreaterThan(100);
-    expect(stats.approvedIdFallbackRegions).toBe(24);
-    expect(stats.approvedDateNowCalls).toBe(24);
+    expect(stats.approvedIdFallbackRegions).toBe(25);
+    expect(stats.approvedDateNowCalls).toBe(25);
     expect(stats.clockBoundarySites).toBe(1);
     expect(stats.parseCalls).toBeGreaterThan(0);
   });

@@ -1,5 +1,6 @@
 {
-  "include": ["client/src/**/*"],
+  "include": ["client/src/**/*", "worker/**/*"],
+  /* EX-D18 (2026-11-12): worker/** = Cloudflare-compatible BFF source, typechecked here too. */
   /* NF-020 part 2 (2026-10-13): أُزيل استثناء ملفات الاختبار — كل ملفات
    * الاختبار داخل التدقيق النوعي الآن (226 ملفًا صارت مدققة؛ حراسة التغطية
    * في scripts/check-test-typecheck-coverage.mjs تمنع عودته). */

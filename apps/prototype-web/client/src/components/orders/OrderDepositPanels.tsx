@@ -49,7 +49,9 @@ export type OrderDepositPanelsProps = {
   actualTime: ActualTimeService;
   dataVersion: number;
   notifyDataChanged: () => void;
-  run: (action: () => Promise<FulfillmentResult | AgreementResult>) => Promise<void>;
+  /* Stage C (S13/R4-8): نتيجة صريحة من run — الفاشل false والناجح true؛
+   * من يتجاهلها من المستهلكين القدماء لا يتأثر. */
+  run: (action: () => Promise<FulfillmentResult | AgreementResult>) => Promise<boolean>;
   navigate: (target: string) => void;
   fulfillment: FulfillmentService;
 };

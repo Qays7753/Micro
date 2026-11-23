@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import Market from "@/pages/Market";
 
 function readRepoFile(relative: string): string {
@@ -32,10 +32,16 @@ describe("CLEAN-001 surface honesty guards (WS-180 — Wave 8)", () => {
     }
   });
 
-  it("the honest soon badge renders with no data interactions", () => {
+  it("the market surface renders honestly with no data interactions (EX-D18)", async () => {
     render(<Market />);
-    expect(screen.getByTestId("market-soon-page")).toBeTruthy();
-    expect(screen.getByText("قريبًا")).toBeTruthy();
+    expect(await screen.findByTestId("market-browse-page")).toBeTruthy();
+    /* EX-D18 (بوابة الكود 2026-11-12): السوق تصفح حقيقي ببيانات الخادم —
+     * بلا اتصال تظهر حالة صادقة (تعذر/فراغ) لا موردين وهميين ولا شراء. */
+    await waitFor(() => {
+      expect(screen.getByText(/تعذر تحميل السوق|لا توجد نتائج|جارٍ التحميل/)).toBeTruthy();
+    });
+    expect(screen.queryByText("قريبًا")).toBeNull();
+    expect(screen.queryByRole("button", { name: /شراء/ })).toBeNull();
   });
 
   it("the AppHeader soon panels stay honest announcements that write nothing", () => {

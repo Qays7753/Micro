@@ -1,9 +1,22 @@
 {
   "version": 1,
-  "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
+  "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note. | Dated additions (2026-11-22, Post-Group 6 continuous completion/DOC-041, owner order 7593b9c4): (G01) network door +4 values/+2 types for the account role-lifecycle commands (final decision ب/Q5); (G02) the NEW admin door registered with its exact surface — the Q129 Platform Admin panel unit (pages/admin + application/admin) built as a separate unit for later extraction, zero Manage financial access.",
   "notes": [
     "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
-    "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging."
+    "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
+    "DOC-036 (استكمال المالك 2026-11-12/13، ocRef WS-249): باب التوصيل توسع عمدًا بسبع دوال — موافقة الطرفين الصريحة على retry/hold/return (اقتراح/سحب/قرار؛ OD10)، تعليمات صاحب المشروع من awaiting_instructions (عقد 21 §3.2-3 فاعلها المالك)، والتعديل المؤثر بنسخ مقترح/قبول (OD11). PC-3 تغيير مقصود في نفس الـPR؛ بلا حذف لأي عضو قائم.",
+    "EX-D21/EX-D19 (DOC-037، Phase B — 2026-11-14): توسيع مقصود لباب الشبكة — خدمة Ask Micro (fetchAskStatus/askQuestion وأنواعها) + نوع NetworkWorkspace لعضويات مساحات العمل؛ نفس باب API نفس الأصل بلا أي كتابة محلية؛ موثق في رأس index.ts نفسه (PC-3).",
+    "EX-D23 M3 (DOC-040 — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): باب الشبكة أضاف سطح خدمة Manage المتصلة (حالة الربط/القدرة + القراءات المصرحة + مسار الربط المزدوج بسر يُولَّد داخل Manage) — توسيع مقصود موثق في نفس الالتزام (PC-3)؛ مستهلكه Profile عبر components/profile/ManageOnlineSection.tsx واختباره Profile.manageOnline.dom.",
+    "EX-D23 M4 (DOC-040 — أمر المالك 2026-11-14 §6-M4): باب الشبكة أضاف الكتابة المتصلة saveManageRecord (UPSERT حتمي بCAS — «محفوظ» بعد تأكيد الخادم فقط) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
+    "EX-D23 M5 (DOC-040 — أمر المالك 2026-11-14 §6-M5): باب الشبكة أضاف مسار الترحيل الاصطناعي (تطبيق/حالة/رجوع بالإثبات المزدوج §2-ب) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
+    "EX-D23 M6 (DOC-040 — أمر المالك 2026-11-14 §6-M6): باب الشبكة أضاف قراءة وضع القطع المحروس (معطل افتراضيًا ولا مسار يبدله — قرار مشغل مباشر بعد بوابة المالك النهائية) — توسيع مقصود موثق في نفس الالتزام (PC-3).",
+    "Post-Group 6 W1 (WS-251/DOC-041 — EX-D24 أ-3/أ-7، 2026-11-21): باب الشبكة أضاف جلسات الأجهزة (fetchDeviceSessions/signOutAllDevices — قرار أ-7) وإنشاء المشروع الواحد الصريح (createWorkspace — قرار أ-3/أ-4) والنوع DeviceSession؛ PC-3 توسيع مقصود مؤرخ في نفس الالتزام.",
+    "WS-251/DOC-041 (Post-Group 6 Wave 2 — 2026-11-21، أمر المالك POST-GROUP6-REMEDIATION @ ab08ec74): باب السوق توسع عمدًا بثلاث دوال ونوعين — كشف رقم المورد المدقق revealSupplierPhone (قرار د-1/§8-3)، الأعداد التشغيلية fetchMarketOpsCounts (Q154)، وإدارة التصنيفات الهرمية putMarketCategories (Q49/Q146) مع النوعين ListingVariant وMarketCategoryNode — وحُذف submitVendorProfile لأن مراجعة ملف المورد أُلغيت بقرار المالك النهائي (Q4/Q28: التفعيل بإكمال الملف وقَبول الشروط). PC-3 تغيير مقصود في نفس الـPR.",
+    "Post-Group 6 Wave 3 (DOC-041، 2026-11-21): توسيع سطح باب التوصيل بثلاث وظائف القرار النهائي (إلغاء السائق قبل الاستلام Q106، بلاغ «لم يحضر» Q242، سحب موافقة كشف بيانات المستلم MD-01) وباب الشبكة بوظيفتي اشتراك تنبيهات Web Push أفضل الجهد (G09 د-6) — تعديل مقصود بنفس الـPR بتوثيق مؤرخ.",
+    "الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §5.3، نفس-الـPR 2026-11-22): +نوعان على باب الشبكة (AskDraftField وAskDraftProposal) — نوعا مسودة Ask القابلة للتحرير لمستهلكيهما (AskDraftCard وAskMicro)؛ تصحيح ما فات توصيلهما في الالتزام الأصلي؛ توسيع مقصود PC-3.",
+    "الملحق §10.2-7 (DOC-041/WS-251 — أمر المالك 2026-11-22، نفس-الـPR): باب الشبكة أضاف دالتي موافقة اسأل Micro القابلة للسحب (grantAskConsent/revokeAskConsent) ونوع حالة الحكم AskGovernance (الموافقة + الحدان اليوميان: ٢٠ سؤالًا و١٠٠٠٠ نيورون بلا مسار مدفوع) — توسيع مقصود موثق (PC-3)؛ مستهلكه صفحة AskMicro واختبارات AskMicro.governance.dom.",
+    "الملحق §10.2 (DOC-041/WS-251 — أمر المالك 2026-11-22، نفس-الـPR): باب جديد لبيت اسأل Micro (application/ask) — السجل المحلي النصي وبناء الحدث المالي المقترح؛ تسجيل الباب الجديد بأساسه المضبوط (4 قيم ونوع واحد) كسابقة باب admin المسجل بأمر الاستكمال نفسه (PC-3 مؤرخ).",
+    "الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251، إعادة إرساء موثقة بنفس الـPR): باب اسأل أعيد إرساؤه — الدرجان الحرّان القديمان (loadAskHistory/recordAskExchange) خرجا ودخلت الخدمة القابلة للحقن AskHistoryService تركّبها جذر التركيب كالمعتاد، بعد أن صار السجل المحلي عند منفذ التخزين في المهايئين كليهما (نمط مسودات النماذج — listAskHistory/saveAskHistoryEntry)؛ النوع AskHistoryEntry كما هو."
   ],
   "doors": {
     "activity": {
@@ -419,6 +432,182 @@
       ],
       "type": [
         "PlanningToolsResult"
+      ]
+    },
+    "network": {
+      "value": [
+        "ApiError",
+        "apiDownload",
+        "apiFetch",
+        "apiUpload",
+        "applyManageMigration",
+        "askQuestion",
+        "cancelDriverDraft",
+        "cancelSupplierDraft",
+        "confirmManageLink",
+        "createWorkspace",
+        "fetchAskStatus",
+        "fetchDeviceSessions",
+        "fetchManageFamilies",
+        "fetchManageFamilyRecords",
+        "fetchManageMigrationStatus",
+        "fetchManageMode",
+        "fetchManageOnlineState",
+        "fetchSession",
+        "generateManageProofSecret",
+        "grantAskConsent",
+        "newIdempotencyKey",
+        "registerPushSubscription",
+        "removeDriverRole",
+        "removePushSubscription",
+        "removeSupplierRole",
+        "revokeAskConsent",
+        "rollbackManageMigration",
+        "saveManageRecord",
+        "signOut",
+        "signOutAllDevices",
+        "startGoogleSignIn",
+        "startManageLink",
+        "unlinkManage"
+      ],
+      "type": [
+        "ApiCallOptions",
+        "ApiErrorShape",
+        "AskAnswer",
+        "AskDraftField",
+        "AskDraftProposal",
+        "AskGovernance",
+        "AskStatus",
+        "AskStatusContext",
+        "DeviceSession",
+        "ManageFamilies",
+        "ManageFamilyRecords",
+        "ManageFamilySummary",
+        "ManageLinkStartResult",
+        "ManageMigrationEntry",
+        "ManageMigrationReceipt",
+        "ManageOnlineState",
+        "ManageRecordSaveResult",
+        "ManageRecordView",
+        "ManageWorkspaceOnlineState",
+        "NetworkSession",
+        "NetworkWorkspace",
+        "RoleDraftCancelled",
+        "RoleRemoved"
+      ]
+    },
+    "market": {
+      "value": [
+        "attachListingMedia",
+        "browseMarketListings",
+        "confirmListingAvailability",
+        "createListingDraft",
+        "directUpdateListing",
+        "estimateMaterialValue",
+        "fetchListingDetail",
+        "fetchMarketMeta",
+        "fetchMarketOpsCounts",
+        "fetchVendorListingDraft",
+        "fetchVendorOverview",
+        "formatMicroJodAsJod",
+        "listingLifecycleAction",
+        "putMarketCategories",
+        "reportListing",
+        "revealSupplierPhone",
+        "submitListing",
+        "toggleSavedListing",
+        "updateListingDraft",
+        "uploadListingImage",
+        "upsertVendorProfile"
+      ],
+      "type": [
+        "EstimateInput",
+        "EstimateResult",
+        "ListingDraftInput",
+        "ListingVariant",
+        "MarketCategoryNode",
+        "MarketMeta",
+        "PublicListingDetail",
+        "PublicListingSummary",
+        "VendorListingDraft",
+        "VendorOverview"
+      ]
+    },
+    "delivery": {
+      "value": [
+        "answerContactAttempt",
+        "attachDriverEvidence",
+        "cancelDeliveryRequest",
+        "confirmDeliveryOutcome",
+        "confirmStatement",
+        "createDeliveryRequest",
+        "decideDeliveryChange",
+        "decideDeliveryConsent",
+        "decideDeliveryQuote",
+        "declareCollection",
+        "driverAcceptRequest",
+        "driverCancelBeforePickup",
+        "driverDeclare",
+        "driverDeclineRequest",
+        "driverRequestDetail",
+        "driverSubmitQuote",
+        "fetchBookingDetail",
+        "fetchDriverDirectory",
+        "fetchDriverPortal",
+        "fetchDriverRequests",
+        "fetchDriverStatements",
+        "fetchOwnerOverview",
+        "fetchOwnerStatements",
+        "proposeDeliveryChange",
+        "proposeDeliveryConsent",
+        "rateDeliveryBooking",
+        "recordDeliveryInstructions",
+        "reportNoShow",
+        "revokeRecipientConsent",
+        "setAcceptingNew",
+        "submitDeliveryRequest",
+        "submitDriverApplication",
+        "submitDriverStatement",
+        "toggleSavedDriver",
+        "uploadDriverEvidence",
+        "uploadVehicleProof",
+        "upsertDriverProfileDraft",
+        "upsertDriverVehicleDraft",
+        "withdrawDeliveryChange",
+        "withdrawDeliveryConsent"
+      ],
+      "type": [
+        "BookingDetail",
+        "DriverDirectoryEntryDto",
+        "DriverPortalState",
+        "DriverRequestSummary",
+        "DriverStatementSummary",
+        "OwnerRequestSummary"
+      ]
+    },
+    "admin": {
+      "value": [
+        "adminCancelBooking",
+        "fetchAdminDecisions",
+        "fetchAdminQueues",
+        "searchAdminUsers",
+        "suspendAdminIdentity"
+      ],
+      "type": [
+        "AdminDecision",
+        "AdminQueueItem",
+        "AdminQueues",
+        "AdminUserResult"
+      ]
+    },
+    "ask": {
+      "value": [
+        "constructFinancialEventRecord",
+        "askDraftAmountMinor",
+        "AskHistoryService"
+      ],
+      "type": [
+        "AskHistoryEntry"
       ]
     }
   },

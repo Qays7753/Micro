@@ -563,6 +563,21 @@
       "docs": "current-state.md §35 (حد المسودة العابرة)"
     },
     {
+      "store": "ask-history",
+      "snapshotField": null,
+      "domainType": "AskHistoryEntry",
+      "adapters": [
+        "memory",
+        "indexeddb"
+      ],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/askHistory.test.ts"
+      ],
+      "transferTests": [],
+      "notExportedReason": "الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251): سجل اسأل المحلي النصي — نص فقط بلا صوت خام في أي مكان، عابر خارج اللقطة المؤثرة والتصدير كنمط مسودات النماذج، يُقلَّم إلى ٢١ يومًا عند كل قراءة وحفظ داخل المهايئين كليهما، محلي الجهاز ولا يُرسل إلى الخادم أبدًا؛ ليس حدثًا ماليًا ولا بيانات مالك قابلة للنقل.",
+      "docs": "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md §10.2-7-2 (أمر المالك الملحق — السجل المحلي النصي؛ إعادة إرساء التسجيل بنفس الـPR)"
+    },
+    {
       "store": "local-security",
       "snapshotField": null,
       "domainType": "LocalSecurityRecord",

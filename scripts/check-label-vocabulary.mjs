@@ -111,6 +111,14 @@ function listClientProductionFiles(repoRoot) {
  * في نفس الـPR.
  */
 export const PINNED_LABEL_LITERALS = {
+  /* Post-Group 6 Wave 3 (DOC-041، 2026-11-21 — Q100 «حجز لفترة»): تسميتا
+   * بداية الفترة ونهايتها في محرر حجز التوصيل — عرض لحقل نافذة الحجز
+   * (scheduledStartAt/scheduledEndAt) لا لحقل استحقاق المالك؛ نفس نص المجال
+   * بمعنى واجهة عرض صرف، بتصنيف مؤرخ بنمط R2/STR-106. */
+  "pages/DeliveryBookingEditor.tsx": {
+    "بداية الفترة": "owner-gated display — تسمية حقل بداية نافذة «حجز لفترة» (Q100)؛ Wave 3 DOC-041",
+    "نهاية الفترة": "owner-gated display — تسمية حقل نهاية نافذة «حجز لفترة» (Q100)؛ Wave 3 DOC-041",
+  },
   "components/catalog/CatalogTemplatesSection.tsx": {
     "الكمية": "owner-gated display — تسمية حقل الكمية؛ حافة قيمة جديدة للواجهة→المجال يمنعها R2/STR-106",
     "أجر الساعة": "owner-gated display — aria-label لحقل أجر الساعة؛ R2/STR-106",

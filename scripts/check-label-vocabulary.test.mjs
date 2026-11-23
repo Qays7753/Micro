@@ -44,7 +44,7 @@ function runCli(repoRoot) {
 }
 
 describe("check-label-vocabulary (R11 W3 OD-LABEL duplicate-literal ratchet)", () => {
-  it("passes on the live repository tree with the classified pinned set", () => {
+  it("passes on the live repository tree with the classified pinned set", { timeout: 15_000 }, () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     expect(stdout).toMatch(/45 تسمية دومين كنونية/);

@@ -266,7 +266,7 @@ describe("S12 UNIT-009 §8 — دورة النقل للزوج 33/40 مع بقا�
     expect(exported.value.schemaVersion).toBe(localSchemaVersion);
     /* S14 (DOC-023): 41/34 بعد عائلتي المنسق. */
     expect(localExportVersion).toBe(34);
-    expect(localSchemaVersion).toBe(41);
+    expect(localSchemaVersion).toBe(42);
 
     /* الاستعادة تحفظ الشكل الجديد حرفيًا: مجهول يبقى مجهولًا وnone تبقى none. */
     const target = new MemoryLocalStore();
@@ -287,6 +287,8 @@ describe("S12 UNIT-009 §8 — دورة النقل للزوج 33/40 مع بقا�
     /* S14 (DOC-023 — أمر ba2ce7b4 §5): 33/40 صار زوجًا موروثًا مقبولًا
      * مع عائلتي المنسق في 34/41. */
     expect(RELEASED_LEGACY_EXPORT_PAIRS.has("33/40")).toBe(true);
-    expect(RELEASED_LEGACY_EXPORT_PAIRS.has("34/41")).toBe(false);
+    /* الملحق §10.2-7-2 (2026-11-22 — DOC-041/WS-251): 34/41 صار زوجًا
+     * موروثًا مقبولا مع مخزن سجل اسأل المحلي النصي في 34/42. */
+    expect(RELEASED_LEGACY_EXPORT_PAIRS.has("34/41")).toBe(true);
   });
 });

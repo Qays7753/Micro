@@ -183,11 +183,14 @@ describe("NAV-001 — approved five-seat navigation", () => {
   it("السوق renders an honest قريبًa badge with no records or financial effects", async () => {
     wouterMocks.location = "/market";
     render(<Harness page={<Market />} />);
-    const page = await screen.findByTestId("market-soon-page");
-    expect(page.textContent).toContain("قريبًا");
-    expect(page.textContent).toContain("سوق الموردين");
-    /* لا موردين وهميين ولا زر شراء — والصفحة لا تكتب شيئًا. */
+    const page = await screen.findByTestId("market-browse-page");
+    /* EX-D18 (بوابة الكود 2026-11-12): السوق سطح تصفح حقيقي — لا موردين
+     * وهميين ولا زر شراء، وحالة تعذر الاتصال صادقة، ولا كتابة محلية إطلاقًا. */
+    expect(page.textContent).toContain("السوق");
     expect(screen.queryByRole("button", { name: /شراء/ })).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByText(/تعذر تحميل السوق|لا توجد نتائج|جارٍ التحميل/)).toBeTruthy();
+    });
     const orders = await store.listOrders();
     const events = await store.listFinancialEvents();
     const purchases = await store.listSupplierPurchases();
@@ -196,36 +199,18 @@ describe("NAV-001 — approved five-seat navigation", () => {
     expect(purchases.ok && purchases.value).toHaveLength(0);
   });
 
-  /* EXE-005 (AUD-NEW-13): زر «رجوع لمشروعي» وزر الرجوع في السوق يتنقلان إلى
-   * returnPath المعلن بالآلية المعتمدة — لا window.history.back() الذي يهبط
-   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
-  it("EXE-005: market back buttons navigate to the declared return path, not history.back()", async () => {
-    wouterMocks.navigate.mockClear();
-    /* بدء بارد بلا ?from: الوجهة القانونية هي الرئيسية. */
-    wouterMocks.location = "/market";
-    wouterMocks.search = "";
-    render(<Harness page={<Market />} />);
-    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "رجوع للرئيسية" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
-    /* زر الرجوع العلوي يعد بالوجهة نفسها وينفذها. */
-    wouterMocks.navigate.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "الرئيسية" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
-    cleanup();
-    /* دخول بسياق عودة معتمد: ?from=/tools يعيد إلى الأدوات. */
-    wouterMocks.search = "?from=/tools";
-    render(<Harness page={<Market />} />);
-    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
-    wouterMocks.navigate.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "رجوع" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools");
-  });
+  /* EXE-005 (AUD-NEW-13) — EX-D18 تحديث مؤرخ 2026-11-12: السوق مقعد شريط
+   * سطح بلا زر رجوع بتصميم (عقد 26 §8)؛ قاعدة الوجهة المعلنة تبقى محروسة
+   * على الأسطح العميقة (محرر السوق يعود لمساحة المورد عبر canonicalReturnFor
+   * في navigationContract.test.ts) ولا تحتاج حالة سوق مستقلة بعد الآن. */
 
-  it("the top bar carries transport and assistant قريبًا entries with honest copy", () => {
-    /* Wave 4.3 — P-4.3-1: الترويسة تعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)
+  it("the top bar carries the transport seat and the real Ask Micro menu entry (EX-D21)", () => {
+    /* Wave 4.3 — P-4.3-1: الترويسة أعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)
      * — الإعدادات والوضع الليلي لم يعودا أزرارًا مباشرة هنا (D4/D5)؛
-     * تحديث الاختبار موثق مع تغير القرار المرئي المعتمد. */
+     * تحديث الاختبار موثق مع تغير القرار المرئي المعتمد.
+     * EX-D21 (Phase B — 2026-11-14): «اسأل Micro» صارت مدخلًا حقيقيًا إلى
+     * سطح /ask (لا لوحة إعلان «قريبًا» بعد الآن) — وبند واحد عند الطلب
+     * داخل قائمة «مايكرو» يحفظ مصدر رجوعه (DEC-SHELL-01 يبقى في موضعه). */
     render(
       <Harness
         page={
@@ -236,15 +221,13 @@ describe("NAV-001 — approved five-seat navigation", () => {
       />,
     );
     /* SH-21/S16 (NAV-001 V15 §1): مدخل النقل والتوصيل انتقل إلى مقعده في
-     * الشريط (/delivery) والبديل جاهز قبل الإزالة — وDEC-SHELL-01 (UXR-03 —
-     * أمر W02): «اسأل Micro — قريبًا» بند واحد عند الطلب داخل قائمة
-     * «مايكرو»، لا زرًا دائمًا في الترويسة. */
+     * الشريط (/delivery) ولا زر نقل في الترويسة. */
     expect(screen.queryByRole("button", { name: "النقل والتوصيل — قريبًا" })).toBeNull();
     fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
-    const assistant = screen.getByTestId("soon-panel");
-    expect(assistant.textContent).toContain("قارئًا فقط");
-    expect(assistant.textContent).toContain("لا تُرسل بيانات مشروعك إلى أي خدمة خارجية");
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro" }));
+    /* المدخل الحقيقي: تنقل إلى /ask مع رجوع محفوظ — لا حوار إعلان. */
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringMatching(/^\/ask\?returnTo=/));
+    expect(screen.queryByTestId("soon-panel")).toBeNull();
     /* D4: لا زر وضع ليلي ولا زر إعدادات مباشر في المنطقة العلوية —
      * مدخل الوضع الليلي الوحيد «الإعدادات ← المظهر». */
     expect(screen.queryByRole("button", { name: /المظهر/ })).toBeNull();

@@ -1,0 +1,673 @@
+/**
+ * Market vendor listing CRUD (contract 20): drafts on the work copy (the
+ * single editable source), submissions for review, OD-09 direct updates with
+ * verification+log, vendor lifecycle actions, media attachment, saved items,
+ * and reports (which never auto-mutate the listing).
+ */
+
+import { audit, notify } from "../audit.ts";
+import { nowMs } from "../clock.ts";
+import { randomToken } from "../crypto.ts";
+import { newId, type Db } from "../db/db.ts";
+import { dailyBucket, enforceRate, rateLimits } from "../ratelimit.ts";
+import {
+  effectiveMinQuantityMilli,
+  flattenCategoryIds,
+  JORDAN_GOVERNORATES,
+  MAX_PRICE_MICRO,
+  parsePositiveIntegerString,
+  validatePricing,
+  validateVariants,
+  type ListingPricing,
+  type ListingQuantity,
+  type ListingVariant,
+} from "../domain/market.ts";
+import { activeCategoryTree } from "./market.ts";
+import { LISTING_FRESHNESS_HIDE_MS, MAX_LISTING_MEDIA } from "../env.ts";
+import { HttpError, jsonResponse } from "../http.ts";
+import { readJsonBody, type RouteContext } from "../router.ts";
+import type { AuthenticatedContext } from "../auth/session.ts";
+
+function db(ctx: RouteContext): Db {
+  return ctx.env.DB;
+}
+
+async function requireOwnListing(ctx: RouteContext, auth: AuthenticatedContext, listingId: string) {
+  const row = await db(ctx)
+    .prepare(
+      "SELECT id, supplier_profile_id, identity_id, title, category, governorate, description, work_copy_json, " +
+        "public_copy_json, status, revision_status, price_mode, price_micro_jod, price_basis_json, quantity_unit, " +
+        "min_quantity_milli, quantity_step_milli, availability_status, availability_confirmed_at, freshness_state, " +
+        "contact_channel_json, published_at, hidden_at FROM supplier_listing WHERE id = ?",
+    )
+    .bind(listingId)
+    .first<Record<string, unknown>>();
+  if (!row) throw new HttpError(404, "not_found");
+  if (String(row.identity_id) !== auth.identityId && !auth.isAdmin) {
+    throw new HttpError(404, "not_found");
+  }
+  /* Post-Group 6 continuous completion (G01 — دورة الدور): إعلانات دورٍ
+   * أُزيل لا تُعدَّل — الملف في 'removed' يرفض كل تحوّل إعلان بصمت
+   * (إعادة التفعيل دلالة استرداد غير محددة = قرار مالك). */
+  const profileStatus = await db(ctx)
+    .prepare("SELECT status FROM supplier_profile WHERE id = ?")
+    .bind(String(row.supplier_profile_id))
+    .first<Record<string, unknown>>();
+  if (profileStatus !== null && String(profileStatus.status) === "removed") {
+    throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
+  }
+  return row;
+}
+
+async function loadListing(ctx: RouteContext, listingId: string) {
+  const row = await db(ctx)
+    .prepare(
+      "SELECT id, supplier_profile_id, identity_id, title, category, governorate, description, work_copy_json, " +
+        "public_copy_json, status, revision_status, price_mode, price_micro_jod, price_basis_json, quantity_unit, " +
+        "min_quantity_milli, quantity_step_milli, availability_status, availability_confirmed_at, freshness_state, " +
+        "contact_channel_json, published_at, hidden_at FROM supplier_listing WHERE id = ?",
+    )
+    .bind(listingId)
+    .first<Record<string, unknown>>();
+  if (!row) throw new HttpError(404, "not_found");
+  return row;
+}
+
+/** POST /api/market/vendor/listings — create a listing draft (idempotent).
+ * Wave 2 (Q38/Q49 final decisions): the category must exist in the ACTIVE
+ * tree (main or sub id); optional product variants (1..20) are validated
+ * server-side — each with its own price, minimum quantity and availability —
+ * and the denormalized minimum quantity becomes the smallest of the base and
+ * variant minimums so the browse filter stays honest for variant listings. */
+export async function createListingDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
+  const title = typeof body.title === "string" && body.title.trim().length >= 8 ? body.title.trim() : null;
+  const category = typeof body.category === "string" && body.category.length > 0 ? body.category : null;
+  const governorate =
+    typeof body.governorate === "string" &&
+    (JORDAN_GOVERNORATES as readonly string[]).includes(body.governorate)
+      ? body.governorate
+      : null;
+  const description =
+    typeof body.description === "string" && body.description.trim().length >= 20
+      ? body.description.trim()
+      : null;
+  const contactType =
+    typeof body.contactType === "string" && ["phone", "whatsapp"].includes(body.contactType)
+      ? body.contactType
+      : null;
+  const contactValue =
+    typeof body.contactValue === "string" && /^\+?\d{7,15}$/.test(body.contactValue)
+      ? body.contactValue
+      : null;
+  if (!title || !category || !governorate || !description || !contactType || !contactValue) {
+    throw new HttpError(400, "bad_request", { field: "listing" });
+  }
+  const tree = await activeCategoryTree(db(ctx));
+  if (!flattenCategoryIds(tree).has(category)) {
+    throw new HttpError(400, "bad_request", { field: "category", reason: "unknown_category" });
+  }
+  const pricing = (body.pricing ?? null) as ListingPricing | null;
+  const quantity = (body.quantity ?? null) as ListingQuantity | null;
+  if (!pricing || !quantity) throw new HttpError(400, "bad_request", { field: "pricing/quantity" });
+  validatePricing(pricing);
+  if (BigInt(quantity.minQuantityMilli) < 1n)
+    throw new HttpError(400, "bad_request", { field: "minQuantityMilli" });
+  const variants = Array.isArray(body.variants) ? (body.variants as ListingVariant[]) : undefined;
+  if (variants !== undefined) validateVariants(variants);
+  const effectiveMin = effectiveMinQuantityMilli(quantity.minQuantityMilli, variants);
+  const profile = await db(ctx)
+    .prepare(
+      "SELECT id, status FROM supplier_profile WHERE identity_id = ? ORDER BY created_at DESC, id DESC LIMIT 1",
+    )
+    .bind(auth.identityId)
+    .first<Record<string, unknown>>();
+  if (!profile) throw new HttpError(409, "conflict", { reason: "vendor_profile_required" });
+  if (String(profile.status) === "removed") {
+    throw new HttpError(409, "conflict", { reason: "supplier_role_removed" });
+  }
+  const now = nowMs();
+  const id = newId("lst", randomToken);
+  const workCopy = JSON.stringify({
+    title,
+    category,
+    governorate,
+    description,
+    pricing,
+    quantity,
+    ...(variants !== undefined ? { variants } : {}),
+    notes: typeof body.notes === "string" ? body.notes.slice(0, 500) : null,
+  });
+  await db(ctx)
+    .prepare(
+      "INSERT INTO supplier_listing (id, supplier_profile_id, identity_id, title, category, governorate, description, " +
+        "work_copy_json, status, revision_status, price_mode, price_micro_jod, price_basis_json, quantity_unit, " +
+        "min_quantity_milli, quantity_step_milli, availability_status, availability_confirmed_at, freshness_state, " +
+        "contact_channel_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', 'none', ?, ?, ?, ?, ?, ?, 'available', ?, 'fresh', ?, ?, ?)",
+    )
+    .bind(
+      id,
+      String(profile.id),
+      auth.identityId,
+      title,
+      category,
+      governorate,
+      description,
+      workCopy,
+      pricing.mode,
+      pricing.priceMicroJod ?? null,
+      pricing.mode === "fixed" && pricing.basis
+        ? JSON.stringify(pricing.basis)
+        : pricing.mode === "tiered" && pricing.tiers
+          ? JSON.stringify(pricing.tiers)
+          : null,
+      quantity.unit,
+      effectiveMin,
+      quantity.stepMilli,
+      now,
+      JSON.stringify({ type: contactType, value: contactValue }),
+      now,
+      now,
+    )
+    .run();
+  return jsonResponse({ listing: { id } }, 201);
+}
+
+/** POST /api/market/vendor/listings/:id — edit the work copy (draft/revision).
+ *
+ * The work copy is the single editable source (contract 20): for a published
+ * listing, edits are STAGED in the work copy only — the public columns keep
+ * serving the approved copy until a reviewer approves the revision.
+ */
+export async function updateListingDraft(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
+  const status = String(row.status);
+  const editable = status === "draft" || status === "changes_requested" || status === "rejected";
+  const publishedWithRevision =
+    status === "approved_for_publish" && ["none", "changes_requested"].includes(String(row.revision_status));
+  if (!editable && !publishedWithRevision)
+    throw new HttpError(409, "conflict", { reason: `listing_status_${status}` });
+  const now = nowMs();
+  const work = JSON.parse(String(row.work_copy_json)) as Record<string, unknown>;
+  const stagedColumns: Record<string, string> = {};
+  const textFields: Array<[string, number]> = [
+    ["title", 8],
+    ["description", 20],
+  ];
+  for (const [field, minLength] of textFields) {
+    const value = body[field];
+    if (typeof value === "string") {
+      if (value.trim().length < minLength) throw new HttpError(400, "bad_request", { field });
+      work[field] = value.trim();
+      stagedColumns[field] = value.trim();
+    }
+  }
+  const pricing = body.pricing as ListingPricing | undefined;
+  if (pricing !== undefined) {
+    validatePricing(pricing);
+    work.pricing = pricing;
+  }
+  const quantity = body.quantity as ListingQuantity | undefined;
+  if (quantity !== undefined) {
+    work.quantity = quantity;
+  }
+  // Wave 2 (Q38): variants are review-scope content — a full validated list
+  // replaces the old one (empty array clears them). For a still-editable
+  // draft the denormalized minimum follows the smallest of the base and
+  // variant minimums; for a PUBLISHED listing the public columns stay on the
+  // approved copy until the revision is approved (the publish path refreshes
+  // the column from the approved work copy).
+  if (body.variants !== undefined) {
+    if (!Array.isArray(body.variants)) throw new HttpError(400, "bad_request", { field: "variants" });
+    const variants = body.variants as ListingVariant[];
+    if (variants.length > 0) validateVariants(variants);
+    if (variants.length === 0) delete work.variants;
+    else work.variants = variants;
+    if (editable) {
+      const baseMin =
+        (work.quantity as ListingQuantity | undefined)?.minQuantityMilli ?? String(row.min_quantity_milli);
+      stagedColumns.minQuantityMilli = effectiveMinQuantityMilli(
+        baseMin,
+        variants.length > 0 ? variants : undefined,
+      );
+    }
+  }
+  // Wave 2 (Q49/Q146): a category change must stay inside the ACTIVE tree.
+  if (typeof body.category === "string" && body.category.length > 0) {
+    const tree = await activeCategoryTree(db(ctx));
+    if (!flattenCategoryIds(tree).has(body.category)) {
+      throw new HttpError(400, "bad_request", { field: "category", reason: "unknown_category" });
+    }
+    work.category = body.category;
+    if (editable) stagedColumns.category = body.category;
+  }
+  if (typeof body.notes === "string") work.notes = body.notes.slice(0, 500);
+  // Persist the staged work copy; for a not-yet-published listing the draft
+  // columns may mirror the edits directly (nothing is public yet).
+  const sets = ["work_copy_json = ?", "updated_at = ?"];
+  const values: unknown[] = [JSON.stringify(work), now];
+  if (editable && stagedColumns.title !== undefined) {
+    sets.push("title = ?");
+    values.push(stagedColumns.title);
+  }
+  if (editable && stagedColumns.description !== undefined) {
+    sets.push("description = ?");
+    values.push(stagedColumns.description);
+  }
+  if (editable && stagedColumns.category !== undefined) {
+    sets.push("category = ?");
+    values.push(stagedColumns.category);
+  }
+  if (editable && stagedColumns.minQuantityMilli !== undefined) {
+    sets.push("min_quantity_milli = ?");
+    values.push(stagedColumns.minQuantityMilli);
+  }
+  values.push(String(row.id));
+  await db(ctx)
+    .prepare(`UPDATE supplier_listing SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
+/** GET /api/market/vendor/listings/:id — the owner's own draft (work copy). */
+export async function getVendorListingDraft(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const media = await db(ctx)
+    .prepare("SELECT media_id FROM listing_media WHERE listing_id = ?")
+    .bind(String(row.id))
+    .all<Record<string, unknown>>();
+  const work = JSON.parse(String(row.work_copy_json ?? "{}")) as Record<string, unknown>;
+  return jsonResponse({
+    listing: {
+      id: String(row.id),
+      status: String(row.status),
+      revisionStatus: String(row.revision_status),
+      title: String(row.title),
+      category: String(row.category),
+      governorate: String(row.governorate),
+      description: String(row.description),
+      contact: JSON.parse(String(row.contact_channel_json ?? "{}")),
+      pricing: (work.pricing ?? null) as Record<string, unknown> | null,
+      quantity: (work.quantity ?? null) as Record<string, unknown> | null,
+      // Wave 2 (Q38): the variant options live in the work copy — review scope.
+      variants: (work.variants ?? null) as Record<string, unknown>[] | null,
+      mediaIds: media.results.map(entry => String(entry.media_id)),
+    },
+  });
+}
+
+/** POST /api/market/vendor/listings/:id/submit — submit draft or revision. */
+export async function submitListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const status = String(row.status);
+  const now = nowMs();
+  const limits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("listing-submit", auth.identityId, now),
+    limits.submissionsPerDay,
+    24 * 60 * 60 * 1000,
+    now,
+  );
+  if (status === "draft" || status === "changes_requested" || status === "rejected") {
+    await db(ctx)
+      .prepare(
+        "UPDATE supplier_listing SET status = 'submitted', submitted_at = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(now, now, String(row.id))
+      .run();
+  } else if (
+    status === "approved_for_publish" &&
+    ["none", "changes_requested", "submitted"].includes(String(row.revision_status))
+  ) {
+    // Content revision: the public copy stays live until the new one is
+    // approved. For a listing hidden for staleness this is the OD-11 renewal
+    // request — it goes through review, never a direct unhide.
+    await db(ctx)
+      .prepare(
+        "UPDATE supplier_listing SET revision_status = 'submitted', submitted_at = ?, updated_at = ? WHERE id = ?",
+      )
+      .bind(now, now, String(row.id))
+      .run();
+  } else {
+    throw new HttpError(409, "conflict", { reason: `listing_status_${status}` });
+  }
+  await audit(
+    db(ctx),
+    {
+      actorIdentityId: auth.identityId,
+      action: "listing_submitted",
+      objectType: "supplier_listing",
+      objectId: String(row.id),
+      result: "success",
+    },
+    now,
+  );
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/vendor/listings/:id/confirm-availability (OD-09 direct). */
+export async function confirmAvailability(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const now = nowMs();
+  if (String(row.status) !== "approved_for_publish")
+    throw new HttpError(409, "conflict", { reason: "not_published" });
+  const confirmedAt = Number(row.availability_confirmed_at);
+  if (now - confirmedAt >= LISTING_FRESHNESS_HIDE_MS) {
+    // OD-11: renewal after hiding goes through review — the direct action is closed.
+    throw new HttpError(409, "conflict", { reason: "renewal_requires_review" });
+  }
+  await db(ctx)
+    .prepare(
+      "UPDATE supplier_listing SET availability_confirmed_at = ?, freshness_state = 'fresh', updated_at = ? WHERE id = ?",
+    )
+    .bind(now, now, String(row.id))
+    .run();
+  await db(ctx)
+    .prepare(
+      "INSERT INTO market_moderation_event (object_type, object_id, actor_identity_id, action, reason, created_at) VALUES ('supplier_listing', ?, ?, 'direct_availability_confirmation', NULL, ?)",
+    )
+    .bind(String(row.id), auth.identityId, now)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/vendor/listings/:id/pause | /archive | /resume. */
+export async function vendorListingLifecycle(
+  ctx: RouteContext,
+  auth: AuthenticatedContext,
+  action: string,
+): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const now = nowMs();
+  const status = String(row.status);
+  if (action === "pause" && status === "approved_for_publish") {
+    await db(ctx)
+      .prepare("UPDATE supplier_listing SET status = 'paused', updated_at = ? WHERE id = ?")
+      .bind(now, String(row.id))
+      .run();
+  } else if (action === "archive" && ["approved_for_publish", "paused"].includes(status)) {
+    await db(ctx)
+      .prepare("UPDATE supplier_listing SET status = 'archived', updated_at = ? WHERE id = ?")
+      .bind(now, String(row.id))
+      .run();
+  } else if (action === "resume" && status === "paused") {
+    // OD-11: renewal goes through review. Freshness is COMPUTED from the last
+    // availability confirmation (the stored column lags until a direct
+    // action), so a listing paused past the 60-day hide cannot resume around
+    // the review-based renewal.
+    const confirmedAt = Number(row.availability_confirmed_at);
+    const stale = now - confirmedAt >= LISTING_FRESHNESS_HIDE_MS;
+    if (stale) throw new HttpError(409, "conflict", { reason: "renewal_requires_review" });
+    await db(ctx)
+      .prepare("UPDATE supplier_listing SET status = 'approved_for_publish', updated_at = ? WHERE id = ?")
+      .bind(now, String(row.id))
+      .run();
+  } else {
+    throw new HttpError(409, "conflict", { reason: `action_${action}_invalid_for_${status}` });
+  }
+  await db(ctx)
+    .prepare(
+      "INSERT INTO market_moderation_event (object_type, object_id, actor_identity_id, action, created_at) VALUES ('supplier_listing', ?, ?, ?, ?)",
+    )
+    .bind(String(row.id), auth.identityId, `vendor_${action}`, now)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/vendor/listings/:id/media — attach an owned media object. */
+export async function attachListingMedia(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  const body = (await readJsonBody(ctx.request)) as { mediaId?: string; kind?: string };
+  if (typeof body.mediaId !== "string") throw new HttpError(400, "bad_request", { field: "mediaId" });
+  const kind = body.kind === "cover" ? "cover" : "gallery";
+  const media = await db(ctx)
+    .prepare("SELECT id, owner_identity_id, purpose FROM media_object WHERE id = ?")
+    .bind(body.mediaId)
+    .first<Record<string, unknown>>();
+  if (
+    !media ||
+    String(media.owner_identity_id) !== auth.identityId ||
+    String(media.purpose) !== "market_listing_media"
+  ) {
+    throw new HttpError(404, "not_found");
+  }
+  const count = await db(ctx)
+    .prepare("SELECT COUNT(*) AS n FROM listing_media WHERE listing_id = ?")
+    .bind(String(row.id))
+    .first<Record<string, unknown>>();
+  if (Number(count?.n ?? 0) >= MAX_LISTING_MEDIA)
+    throw new HttpError(409, "conflict", { reason: "media_limit" });
+  await db(ctx)
+    .prepare("INSERT INTO listing_media (listing_id, media_id, kind) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
+    .bind(String(row.id), body.mediaId, kind)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/vendor/listings/:id/direct-update — OD-09 approved direct
+ * fields (contract 20 §3.3): the numeric price WITHIN the same pricing mode
+ * (fixed scalar OR the full tiered price list), the declared quantity figures
+ * (minimum + step), and availability — every change verified and logged as a
+ * moderation event. Content, category, media, the pricing MODE, the unit, and
+ * the contact channel are NOT direct: they stay in review. The work copy and
+ * public copy JSONs are kept coherent with the columns so a later content
+ * revision can never resurrect a stale direct value. */
+export async function directUpdateListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const row = await requireOwnListing(ctx, auth, ctx.params.id!);
+  if (String(row.status) !== "approved_for_publish")
+    throw new HttpError(409, "conflict", { reason: "not_published" });
+  const body = (await readJsonBody(ctx.request)) as Record<string, unknown>;
+  const now = nowMs();
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  const work = JSON.parse(String(row.work_copy_json ?? "{}")) as {
+    pricing?: ListingPricing;
+    quantity?: ListingQuantity;
+  };
+  const publicCopy =
+    row.public_copy_json === null
+      ? null
+      : (JSON.parse(String(row.public_copy_json)) as {
+          pricing?: ListingPricing;
+          quantity?: ListingQuantity;
+        });
+  const nextWork = {
+    ...work,
+    pricing: { ...(work.pricing ?? {}) },
+    quantity: { ...(work.quantity ?? ({} as ListingQuantity)) },
+  } as {
+    pricing: ListingPricing;
+    quantity: ListingQuantity;
+  };
+  const nextPublic =
+    publicCopy === null
+      ? null
+      : ({
+          ...publicCopy,
+          pricing: { ...(publicCopy.pricing ?? {}) },
+          quantity: { ...(publicCopy.quantity ?? ({} as ListingQuantity)) },
+        } as { pricing: ListingPricing; quantity: ListingQuantity });
+
+  if (body.priceMicroJod !== undefined) {
+    // A scalar price is only meaningful for FIXED pricing (same-mode rule).
+    if (String(row.price_mode) !== "fixed") {
+      throw new HttpError(409, "conflict", { reason: "direct_price_requires_fixed_pricing" });
+    }
+    parsePositiveIntegerString(body.priceMicroJod, "priceMicroJod", MAX_PRICE_MICRO);
+    sets.push("price_micro_jod = ?");
+    values.push(String(body.priceMicroJod));
+    nextWork.pricing = { ...nextWork.pricing, mode: "fixed", priceMicroJod: String(body.priceMicroJod) };
+    if (nextPublic !== null) {
+      nextPublic.pricing = {
+        ...nextPublic.pricing,
+        mode: "fixed",
+        priceMicroJod: String(body.priceMicroJod),
+      };
+    }
+  }
+  if (body.tiers !== undefined) {
+    // The tiered price list IS the numeric price in tiered mode (same-mode
+    // rule): the full validated list replaces the old one; unit and content
+    // stay untouched.
+    if (String(row.price_mode) !== "tiered") {
+      throw new HttpError(409, "conflict", { reason: "direct_tiers_require_tiered_pricing" });
+    }
+    const tiers = body.tiers as ListingPricing["tiers"];
+    if (!Array.isArray(tiers)) throw new HttpError(400, "bad_request", { field: "tiers" });
+    validatePricing({ mode: "tiered", tiers });
+    sets.push("price_basis_json = ?");
+    values.push(JSON.stringify(tiers));
+    nextWork.pricing = { ...nextWork.pricing, mode: "tiered", tiers };
+    if (nextPublic !== null) {
+      nextPublic.pricing = { ...nextPublic.pricing, mode: "tiered", tiers };
+    }
+  }
+  if (body.minQuantityMilli !== undefined || body.stepMilli !== undefined) {
+    // Declared quantity figures — same validation as a full listing, plus the
+    // package-fit rule when packages are not split (spec §5.2: the minimum
+    // itself must be an acceptable quantity).
+    const min = body.minQuantityMilli !== undefined ? body.minQuantityMilli : String(row.min_quantity_milli);
+    const step = body.stepMilli !== undefined ? body.stepMilli : String(row.quantity_step_milli);
+    const packageSize = work.quantity?.packageSizeMilli ?? undefined;
+    const unpacked = work.quantity?.unpacked ?? true;
+    const minMilli = parsePositiveIntegerString(min, "minQuantityMilli", 1_000_000_000n * 1000n);
+    parsePositiveIntegerString(step, "stepMilli", 1_000_000_000n * 1000n);
+    if (!unpacked && packageSize !== undefined) {
+      const packageMilli = BigInt(packageSize);
+      if (packageMilli > 0n && minMilli % packageMilli !== 0n) {
+        throw new HttpError(400, "bad_request", {
+          field: "minQuantityMilli",
+          reason: "minimum_must_fit_package",
+        });
+      }
+    }
+    if (body.minQuantityMilli !== undefined) {
+      sets.push("min_quantity_milli = ?");
+      values.push(String(body.minQuantityMilli));
+      nextWork.quantity = { ...nextWork.quantity, minQuantityMilli: String(body.minQuantityMilli) };
+      if (nextPublic !== null) {
+        nextPublic.quantity = { ...nextPublic.quantity, minQuantityMilli: String(body.minQuantityMilli) };
+      }
+    }
+    if (body.stepMilli !== undefined) {
+      sets.push("quantity_step_milli = ?");
+      values.push(String(body.stepMilli));
+      nextWork.quantity = { ...nextWork.quantity, stepMilli: String(body.stepMilli) };
+      if (nextPublic !== null) {
+        nextPublic.quantity = { ...nextPublic.quantity, stepMilli: String(body.stepMilli) };
+      }
+    }
+  }
+  if (body.availabilityStatus !== undefined) {
+    if (
+      !["available", "made_to_order", "temporarily_unavailable"].includes(String(body.availabilityStatus))
+    ) {
+      throw new HttpError(400, "bad_request", { field: "availabilityStatus" });
+    }
+    sets.push("availability_status = ?");
+    values.push(body.availabilityStatus);
+  }
+  if (sets.length === 0) throw new HttpError(400, "bad_request", { reason: "no_direct_fields" });
+  // Availability changes re-anchor freshness (OD-11) only for the available state.
+  if (body.availabilityStatus === "available") {
+    sets.push("availability_confirmed_at = ?", "freshness_state = 'fresh'");
+    values.push(now);
+  }
+  sets.push("work_copy_json = ?", "updated_at = ?");
+  values.push(JSON.stringify(nextWork), now);
+  if (nextPublic !== null) {
+    sets.push("public_copy_json = ?");
+    values.push(JSON.stringify(nextPublic));
+  }
+  values.push(String(row.id));
+  await db(ctx)
+    .prepare(`UPDATE supplier_listing SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+  await db(ctx)
+    .prepare(
+      "INSERT INTO market_moderation_event (object_type, object_id, actor_identity_id, action, reason, created_at) VALUES ('supplier_listing', ?, ?, 'direct_update', ?, ?)",
+    )
+    .bind(String(row.id), auth.identityId, JSON.stringify(Object.keys(body).sort()), now)
+    .run();
+  return jsonResponse({ ok: true });
+}
+
+/** POST /api/market/saved/:listingId — save/unsave (toggle). */
+export async function toggleSavedListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  // Only a currently published listing can be saved (honest data, and no FK
+  // 500 on made-up ids).
+  const listing = await db(ctx)
+    .prepare("SELECT id FROM supplier_listing WHERE id = ? AND status = 'approved_for_publish'")
+    .bind(ctx.params.listingId!)
+    .first();
+  if (!listing) throw new HttpError(404, "not_found");
+  const listingId = ctx.params.listingId!;
+  const existing = await db(ctx)
+    .prepare("SELECT listing_id FROM market_saved_item WHERE identity_id = ? AND listing_id = ?")
+    .bind(auth.identityId, listingId)
+    .first();
+  if (existing) {
+    await db(ctx)
+      .prepare("DELETE FROM market_saved_item WHERE identity_id = ? AND listing_id = ?")
+      .bind(auth.identityId, listingId)
+      .run();
+    return jsonResponse({ saved: false });
+  }
+  await db(ctx)
+    .prepare("INSERT INTO market_saved_item (identity_id, listing_id, created_at) VALUES (?, ?, ?)")
+    .bind(auth.identityId, listingId, nowMs())
+    .run();
+  return jsonResponse({ saved: true });
+}
+
+/** POST /api/market/report — report a listing (never auto-mutates it). */
+export async function reportListing(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  const reportLimits = await rateLimits(db(ctx));
+  await enforceRate(
+    db(ctx),
+    dailyBucket("market-report", auth.identityId, nowMs()),
+    reportLimits.reportsPerDay,
+    24 * 60 * 60 * 1000,
+    nowMs(),
+  );
+  const body = (await readJsonBody(ctx.request)) as { listingId?: string; reason?: string; details?: string };
+  const reasons = ["misleading", "out_of_scope", "spam", "contact_issue", "other"];
+  if (
+    typeof body.listingId !== "string" ||
+    typeof body.reason !== "string" ||
+    !reasons.includes(body.reason)
+  ) {
+    throw new HttpError(400, "bad_request", { field: "report" });
+  }
+  const now = nowMs();
+  await db(ctx)
+    .prepare(
+      "INSERT INTO market_report (reporter_identity_id, object_type, object_id, reason, details, created_at) VALUES (?, 'supplier_listing', ?, ?, ?, ?)",
+    )
+    .bind(
+      auth.identityId,
+      body.listingId,
+      body.reason,
+      typeof body.details === "string" ? body.details.slice(0, 1000) : null,
+      now,
+    )
+    .run();
+  await notify(
+    db(ctx),
+    {
+      identityId: auth.identityId,
+      type: "report_replied",
+      targetPath: "/market",
+      idempotencyKey: `report:${body.listingId}:${auth.identityId}`,
+    },
+    now,
+  ).catch(() => undefined);
+  return jsonResponse({ ok: true }, 201);
+}

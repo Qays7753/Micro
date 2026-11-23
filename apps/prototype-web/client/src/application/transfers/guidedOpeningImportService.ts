@@ -24,7 +24,12 @@ import { errorMessageOf } from "@/application/resultCodes";
 /* UXR-06 (PERF-002): بوابة الحجم عند باب المستورد الافتتاحي نفسه — نفس الحارس
  * القائم (S17/عقد ٠٤٤ B3) قبل JSON.parse: لا تحليل لملف ضخم أبدًا، والرفض
  * قبل أي قراءة/كتابة تخزين وبلا مس أي بيانات. */
-import { IMPORT_SIZE_LIMIT_MESSAGE, isWithinImportSizeLimit } from "./transferResourceLimits";
+import {
+  IMPORT_DEPTH_LIMIT_MESSAGE,
+  IMPORT_SIZE_LIMIT_MESSAGE,
+  isWithinImportDepth,
+  isWithinImportSizeLimit,
+} from "./transferResourceLimits";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
@@ -69,6 +74,11 @@ export type GuidedOpeningImportResult<T> =
   | { ok: false; code: "validation_error" | "non_empty_store" | "storage_error"; message: string };
 
 type GuidedOpeningImportErrorCode = "validation_error" | "non_empty_store" | "storage_error";
+/** MNG-LOCAL-05 (Post-Group 6 Wave 5 / DOC-041): رمي التحقق المتعمد وحده —
+ * نص عربي ثابت كتبه الكود عمدًا لسبب رفض صادق؛ غيره من الاستثناءات لا
+ * يُعرض نصه الخام للمستخدم أبدًا. */
+class GuidedOpeningValidationError extends Error {}
+
 const fail = <T>(code: GuidedOpeningImportErrorCode, message: string): GuidedOpeningImportResult<T> => ({
   ok: false,
   code,
@@ -145,7 +155,7 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
       !walletKinds.has(item.kind as CashWalletKind) ||
       !isInteger(item.openingMinor)
     )
-      throw new Error("بيانات محفظة الكاش الافتتاحية غير صالحة.");
+      throw new GuidedOpeningValidationError("بيانات محفظة الكاش الافتتاحية غير صالحة.");
     walletIds.add(item.id);
     return {
       ...item,
@@ -169,7 +179,9 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
       !isInteger(item.openingValueMinor) ||
       (item.openingQuantityMilli === 0) !== (item.openingValueMinor === 0)
     )
-      throw new Error("بيانات المادة الافتتاحية تحتاج كمية وقيمة موجبتين معًا، أو صفرًا معًا.");
+      throw new GuidedOpeningValidationError(
+        "بيانات المادة الافتتاحية تحتاج كمية وقيمة موجبتين معًا، أو صفرًا معًا.",
+      );
     materialIds.add(item.id);
     return {
       ...item,
@@ -224,6 +236,17 @@ export class GuidedOpeningImportService {
     /* UXR-06 (PERF-002): البوابة قبل التحليل — نفس حد ملف الاستعادة الكامل (باب
      * واحد لكل مستورد)؛ الرفض صادق بأن شيئًا لم يُمسّ. */
     if (!isWithinImportSizeLimit(text)) return fail("validation_error", IMPORT_SIZE_LIMIT_MESSAGE);
+    /* MNG-LOCAL-06 (Post-Group 6 Wave 5 / DOC-041): بوابة العمق بعد التحليل
+     * وقبل أي فحص/كتابة — نفس سقف مسار الاستعادة الكامل. */
+    let depthProbe: unknown;
+    try {
+      depthProbe = JSON.parse(text);
+    } catch {
+      depthProbe = null;
+    }
+    if (depthProbe !== null && !isWithinImportDepth(depthProbe)) {
+      return fail("validation_error", IMPORT_DEPTH_LIMIT_MESSAGE);
+    }
     const current = await this.store.readSnapshot();
     if (!current.ok) return fail("storage_error", "تعذر قراءة الحالة المحلية للتحقق قبل الاستيراد.");
     /* R4-B4 (2026-10-08): دوال الفحص داخل parseFile ترمي Error صريحًا
@@ -236,10 +259,16 @@ export class GuidedOpeningImportService {
     try {
       parsed = parseFile(text, this.now());
     } catch (error) {
-      const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+      /* MNG-LOCAL-05 (Post-Group 6 Wave 5 / DOC-041): رمي التحقق المتعمد
+       * وحده (GuidedOpeningValidationError بنص عربي ثابت) يظهر سببه الصادق؛
+       * أي استثناء آخر غير متوقع لا يُعرض نصه الخام أبدًا — رسالة ثابتة
+       * آمنة بلا أي تفاصيل داخلية. قرار القبول/الرفض لم يتغير. */
+      if (error instanceof GuidedOpeningValidationError) {
+        return fail("validation_error", `${error.message} بقيت بيانات هذا الجهاز دون تغيير.`);
+      }
       return fail(
         "validation_error",
-        `بيانات الاستيراد الافتتاحي غير صالحة${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
+        "بيانات الاستيراد الافتتاحي غير صالحة. بقيت بيانات هذا الجهاز دون تغيير.",
       );
     }
     if (!parsed.ok) return parsed;
