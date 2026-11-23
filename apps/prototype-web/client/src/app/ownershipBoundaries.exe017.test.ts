@@ -168,15 +168,27 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     }
   });
 
-  it("السوق والنقل (قريبًا): لا خدمة ولا كتابة — إعلان صادق بلا أثر", () => {
+  it("السوق: خدمات شبكة فقط — بلا أي لمس لخدمات Manage أو تخزينه المحلي (EX-D18)", () => {
     const market = readRepoFile("../pages/Market.tsx");
     expect(market.includes("usePrototypeServices")).toBe(false);
-    expect(market.includes("@/application/")).toBe(false);
     expect(market.includes("@/storage/local/")).toBe(false);
+    /* Post-Group 6 Wave 2 (DOC-041، 2026-11-21): أُضيف @/application/input —
+     * منقّط الأرقام ASCII الصرف (بلا تخزين ولا خدمة Manage) لفلتر «أقصى حد
+     * أدنى للطلب» (Q49/Q146)؛ حد الملكية نفسه بلا مساس. */
+    const allowedNetworkHomes = [
+      "@/application/market",
+      "@/application/network",
+      "@/application/delivery",
+      "@/application/input",
+    ];
+    const applicationImports = [...market.matchAll(/from "(@\/application\/[^"]+)"/g)].map(match => match[1]);
+    for (const imported of applicationImports) {
+      expect(allowedNetworkHomes.some(home => imported.startsWith(home))).toBe(true);
+    }
     /* مدخل النقل والتوصيل الحالي: حوار الترويسة — بلا خدمات أو كتابة. */
     const header = readRepoFile("../components/layout/AppHeader.tsx");
     expect(header.includes("usePrototypeServices")).toBe(false);
-    expect(header.includes("@/application/")).toBe(false);
+    expect(header.includes("@/storage/local/")).toBe(false);
   });
 
   it("النسخ الاحتياطي والاستعادة: خدمات النقل محصورة في وحدة الإعدادات وجذر التركيب", () => {

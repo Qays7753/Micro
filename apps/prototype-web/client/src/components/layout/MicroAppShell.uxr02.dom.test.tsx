@@ -55,6 +55,8 @@ function renderShellAt(location: string) {
   wouterMocks.location = location;
   mockedUsePrototypeServices.mockReturnValue({
     ownerProfile: { read: async () => ({ ok: true, value: null }) },
+    /* DOC-039 (NAV-001/R1-15): القشرة تقرأ وجود المشروع المحلي لمقاعد الضيف. */
+    profiles: { load: async () => ({ ok: true, value: null }) },
     preferences: {
       load: async () => ({ ok: true, preference: { theme: "light" } }),
       save: async () => ({ ok: true }),

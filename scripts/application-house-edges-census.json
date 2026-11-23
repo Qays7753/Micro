@@ -7,8 +7,8 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 124,
-    "value": 82,
+    "edges": 126,
+    "value": 84,
     "type": 42,
     "governedEdges": 56,
     "governedPairs": 36
@@ -73,6 +73,16 @@
       "key": "application/agreements/orderDetailViewModel.ts -> application/parties/partyLedgerService.ts",
       "kind": "type",
       "exemptTarget": false
+    },
+    {
+      "key": "application/ask/askFinancialDraftService.ts -> application/time/clock.ts",
+      "kind": "value",
+      "exemptTarget": true
+    },
+    {
+      "key": "application/ask/askHistoryService.ts -> application/time/clock.ts",
+      "kind": "value",
+      "exemptTarget": true
     },
     {
       "key": "application/assets/assetService.ts -> application/time/clock.ts",
@@ -842,6 +852,7 @@
     "S13 (DOC-022, order 2158b0fc 2026-11-01): one new exempt-target edge added visibly in the same PR — follow-up/unifiedFollowUpService.ts -> time/clock.ts (systemClock, the documented single ambient-clock port, per the 53-site AT-3 pattern). No new governed pair: the unified 018 reader receives the scheduling house structurally (ActiveDeliveriesReader lens wired page-side from the scheduling door) so no follow-up->scheduling edge exists.",
     "2026-11-03 (S15 / DOC-024 / UNIT-021 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): the value cycle [finance, financial-analysis] dissolved — financialAnalysisService's import of finance/shortCashHorizon left with the deferred forecast read family (module deleted with the capability); financeState keeps only its type-only import of G5Decision. The stale value-SCC anchor and the dead census edge were removed with totals updated in the same PR per the guard's own instruction.",
     "2026-11-03 (S15 / DOC-024 / UNIT-040 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): the census rows whose endpoints left the live tree with the cancelled sharing capability (application/share/* deleted) were removed with totals updated in the same PR per the guard's own instruction.",
-    "S15 (DOC-024 / UNIT-013 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): -4 type edges — تقاعد قراءات المالية عديمة المستهلك (جرد القارئين): financeState لم يعد يستورد assetService/retainedDepositService/fulfillmentService/loanService (كل وصوله كان أنواعًا؛ صفوف الجرد الأربعة أزيلت والأغلف والتوتيلات أعيد اشتقاقها من القائمة نفسها) — 133/84/49 صار 129/84/45؛ تضييق لا توسيع."
+    "S15 (DOC-024 / UNIT-013 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): -4 type edges — تقاعد قراءات المالية عديمة المستهلك (جرد القارئين): financeState لم يعد يستورد assetService/retainedDepositService/fulfillmentService/loanService (كل وصوله كان أنواعًا؛ صفوف الجرد الأربعة أزيلت والأغلف والتوتيلات أعيد اشتقاقها من القائمة نفسها) — 133/84/49 صار 129/84/45؛ تضييق لا توسيع.",
+    "الملحق §10.2 (قرار المالك 2026-11-22 — DOC-041/WS-251، إعادة إرساء موثقة بنفس الـPR): حافتا قيمة جديدتان على الهدف الورقي المعفى time/clock.ts من بيت اسأل (askFinancialDraftService: اللحظة المسجلة عبر منفذ الساعة بعد إصلاح OD-TIME؛ askHistoryService: ساعة الخدمة المحقونة) — النمو على الأهداف المعفاة مسموح ومسجل هنا لا صامتًا."
   ]
 }

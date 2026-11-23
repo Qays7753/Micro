@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 # المجموعة ٦ (تدقيق A1 — AR-01/AR-03/AR-10): إصدار قابل للتتبع ومهذب.
 # - الوسم v* يشغّل الفحوص نفسها (لا مراجعة خضراء فوق main وحدها بلا أثر محفوظ)،
@@ -28,6 +29,37 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Stage B (S13/M-F3، 2026-11-14): حاوية خدمة PostgreSQL تحل محل إقلاع
+    # PostgreSQL المدمج داخل `pnpm prototype:test`. الثنائيات المدمجة
+    # (@embedded-postgres/linux-x64@17.5.0-beta.15) مترابطة مع libicuuc.so.60
+    # التي لم تعد صورة ubuntu-latest تحملها — وهو السبب الجذري الوحيد لفشل
+    # التشغيلين 43491920672 (رأس 52b3030e) و43519977749 (رأس 4c93e04c) عند
+    # خطوة initdb نفسها. `MICRO_TEST_PG_CONNECTION` هي مسار التجاوز المدعوم
+    # في الكود أصلًا (apps/prototype-web/scripts/pg-test-server.mjs) — لا اختبار
+    # يُتخطى أو يُضعف أو يُعاد إرساؤه: المجموعات نفسها تعمل فوق PostgreSQL 17
+    # حقيقي بنسخة مطابقة للمدمجة (17.5). المصادقة trust على localhost فقط —
+    # نفس وضع الخادم المدمج نفسه (initdb --auth=trust)، وسلسلة الاتصال بلا
+    # كلمة مرور فلا تلمس حراسة الأسرار (db-url-with-credentials تلتقط
+    # user:pass@ حصرًا).
+    services:
+      postgres:
+        # CI-002 (Post-Group 6 Wave 5 / DOC-041): the service image is pinned
+        # by IMMUTABLE digest (postgres:17.5 @
+        # sha256:aadf2c0696f5ef357aa7a68da995137f0cf17bad0bf6e1f17de06ae5c769b302)
+        # — a moving tag can silently change the CI database under us; the
+        # digest cannot. The tag stays for human readability.
+        image: postgres:17.5@sha256:aadf2c0696f5ef357aa7a68da995137f0cf17bad0bf6e1f17de06ae5c769b302
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MICRO_TEST_PG_CONNECTION: postgres://postgres@localhost:5432/postgres
     steps:
       - name: Checkout
         # R10-B5/F-025 (2026-10-13): تثبيت الإصدار بالبصمة الكاملة (SHA) لا
@@ -39,6 +71,31 @@ jobs:
           # يحسب قاعدة الدمج (base...HEAD) فلا يصلح مع الجلب السطحي (no merge base).
           fetch-depth: 0
           persist-credentials: false
+
+      # SEC-GIT-001 (Post-Group 6 Wave 5 / DOC-041، 2026-11-21): فحص أسرار
+      # المدى الجديد لكل دفعة — السر الذي دُفع ثم أُزيل في التزام لاحق لا
+      # يراه فحص الشجرة الحية أبدًا؛ هذا الفحص يسحب كل التزامات المدى
+      # الجديد ويفحص محتوى ملفاته بأنماط حارس الأسرار الحي نفسها،
+      # بمخرجات منقّحة (نمط/ملف/سطر/التزام — لا نص مطابق أبدًا).
+      # المدى: push = before..sha (وعند إنشاء فرع: main...HEAD)؛
+      # pull_request = قاعدة الدمج...HEAD؛ dispatch = main...HEAD.
+      - name: Scan the pushed range for secrets (SEC-GIT-001)
+        run: |
+          set -eu
+          BEFORE=""
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            case "$BEFORE" in
+              ""|0000000000000000000000000000000000000000) BEFORE="origin/main" ;;
+            esac
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.event.pull_request.base.ref }}"
+            BEFORE="origin/${{ github.event.pull_request.base.ref }}"
+          else
+            BEFORE="origin/main"
+          fi
+          echo "scanning range: $BEFORE..HEAD"
+          node scripts/check-secrets-range.mjs "$BEFORE" HEAD
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -75,6 +132,12 @@ jobs:
       # linting as before. No guard was weakened.
       - name: Verify domain and prototype
         run: pnpm check
+
+      - name: Verify Operations Control PR metadata (read-only)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm operations-control:check
 
       - name: Verify no whitespace errors (PR checklist rule automated)
         if: github.event_name == 'pull_request'

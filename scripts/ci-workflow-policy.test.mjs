@@ -125,10 +125,31 @@ describe("ci-workflow-policy (Step 4 — intended event/branch behavior)", () =>
     expect(ci).not.toMatch(/node-version:\s*22\s*$/m);
   });
 
-  it("workflow permissions stay least-privilege (contents: read only)", () => {
+  it("workflow permissions stay least-privilege (contents and pull-requests read only)", () => {
     const ci = readCi();
     const permBlock = ci.split("permissions:")[1].split("concurrency:")[0];
-    expect(permBlock).toContain("contents: read");
+    const scopes = [...permBlock.matchAll(/^\s{2}([a-z-]+):\s*(read|write|none|admin)\s*$/gm)]
+      .map(match => `${match[1]}: ${match[2]}`);
+    expect(scopes).toEqual(["contents: read", "pull-requests: read"]);
+    expect(permBlock).not.toMatch(/read-all|write-all/);
     expect(permBlock.match(/:\s*(write|admin)/g) ?? []).toEqual([]);
+  });
+
+  it("only the PR-only Control validation step receives GH_TOKEN; pnpm check stays isolated", () => {
+    const ci = readCi();
+    const prStep = ci
+      .split("- name: Verify Operations Control PR metadata (read-only)")[1]
+      ?.split(/\n      - name:/)[0] ?? "";
+    expect(prStep).not.toBe("");
+    expect(prStep).toContain("if: github.event_name == 'pull_request'");
+    expect(prStep).toContain("GH_TOKEN: ${{ github.token }}");
+    expect(prStep).toContain("run: pnpm operations-control:check");
+    expect(ci.match(/^\s*GH_TOKEN:\s*.*$/gm) ?? []).toHaveLength(1);
+
+    const aggregateCheck = ci
+      .split("- name: Verify domain and prototype")[1]
+      ?.split(/\n      - name:/)[0] ?? "";
+    expect(aggregateCheck).toContain("run: pnpm check");
+    expect(aggregateCheck).not.toContain("GH_TOKEN");
   });
 });

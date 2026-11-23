@@ -9521,6 +9521,3179 @@
         "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
         "ocRef": "DOC-032"
       }
+    },
+    {
+      "id": "reanchor-network-expansion-1-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "reason": "إضافة مسارات السوق الخمسة ثم مسارات التوصيل الخمسة وبوابة السائق المستقلة بمكوناتها الكسولة (عقد 26 §8/OD01) — إضافي صرف فوق القيم السابقة بلا تحريك أي مسطر قائم؛ النمو الكلي للمسار موثق بسجل واحد من قيمة قاعدة الدمج إلى القياس النهائي",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-2-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 53,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "reason": "تسميات سياقية لمسارات السوق ثم التوصيل وبوابة السائق فوق مقعد الشريط نفسه (عقد 26 §8)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-3-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 202,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "reason": "بدائل الرجوع القانونية وقاعدة البادئات لمسارات السوق ثم التوصيل وبوابة السائق (عقد 26 §8)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-4-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 100,
+        "band": "NORMAL"
+      },
+      "reason": "أنماط عمق محررات السوق ثم محرر الحجز وبوابة السائق المستقلة (عقد 26 §8/OD01)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-5-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 197,
+        "band": "NORMAL"
+      },
+      "reason": "استبدال إعلان «قريبًا» بسطح التصفح الحقيقي Listing-first: بحث وفلاتر وقائمة وحدود صادقة ومدخل مساحة المورد (OD-03/OD-04) — سوق فقط دون أي نمو لاحق",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-6-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "reason": "تسجيل أبواب الشبكة والسوق والتوصيل الثلاثة في أساس الأبواب المولد (31 بابًا) — تسجيل أبواب الشبكة والسوق والتوصيل الثلاثة في أساس الأبواب المولد مع توسيع سطحي التوصيل والسوق بوظائف الكشوف والمسودات بعد المراجعة الخماسية (PC-3)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-7-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل بيوت الشبكة والسوق والتوصيل في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيوت تطبيق جديدة بلا أفعال كتابة (بروتوكول الجسم الموثق بنفس الـPR)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-8-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): تنفيذ محاور التفيذ/التأكيد/التواصل/الأغراض للتوصيل الموجه (OD07/OD14/OD15/OD16) وحدثَي الكشف اليومي الكامل التأكيد (OD13) — أحداث الاستئناف الثمانية (تعذر الاستلام ومسارات المتابعة — عقد 21 §3.2-3) وحرس النافذة للعرض النهائي والتحديث الشرطي وقيد التقدم الأمامي لمحور المال؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-9-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): دورة الطلب الموجه من المسودة إلى التأكيد بنسخة الاتفاق المجمدة (OD02/OD03/OD05/OD11) — تحديثات شرطية لسباق القرار المتزامن (قبول/سحب/إلغاء) وتحقق نتيجة التواصل؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-10-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 490,
+        "band": "WATCH"
+      },
+      "reason": "وحدة جديدة في شجرة العامل الإضافية (EX-D18): دورة حياة إعلانات السوق من المسودة إلى النشر مع البوابة الذرية والتحديث الرقمي المباشر الموثق (OD-09/OD-11) — بوابة السائق تُقرأ بعملية GET ومسودة المورد مع تحديث مباشر مقيد بنمط التسعير الثابت وحساب الحداثة عند الاستئناف وتحقق المحفوظات؛ القيمة النهائية بعد إصلاحات المراجعة الخماسية",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-033/DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-11-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "reason": "صفحة بوابة السائق الجديدة (OD01/OD21) بعد إصلاحات المراجعة الخماسية: حالات تحميل/خطأ صادقة بدل وميض نموذج التقديم، اختيار مناطق الخدمة الحقيقي بدل التثبيت الصلب، سجل الكشوف اليومية، وتسميات الحالات الكانونية — دخول WATCH موثق من الصفر؛ لا سقف رُفع لملف قائم",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Delivery v1 بمطالبة WS-249 (DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-12-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 967,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "تسجيل أسطح التوسعة العشرة في سياكة كثافة النص بأول قياس موثق وأسقف معلنة (تعديل بيانات سياسة موثق لا كودًا) — نمو إلزامي فرضه الحارس نفسه عند إضافة أسطح جديدة",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-13-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 434,
+        "band": "WATCH"
+      },
+      "reason": "صفحة تفاصيل الحجز لدى السائق بعد إصلاحات المراجعة الخماسية: سبب إلزامي لتصريح التعذر مع اختيار نتيجة التواصل، أزرار أحداث الاستئناف الثمانية، التصريح بالتحصيل وإرسال بند الكشف اليومي، وحالات الدور الصادقة — دخول WATCH موثق من الصفر؛ لا سقف رُفع لملف قائم",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Delivery v1 بمطالبة WS-249 (DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-14-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 6778,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "كتلة أنماط أسطح التوسعة (السوق/التوصيل/بوابة السائق): بطاقات قائمة بلا نقاط، شبكات المحررات، أهداف لمس بارتفاع التحكم، وصور بحد أقصى للعرض — الرموز القائمة حصرًا بلا أي لون خام (حارس الرموز أخضر)؛ كانت الأسطح الجديدة كلها بلا أنماط (المراجعة ٢ — عيب حرج)",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) الذي يأذن تنفيذ Market/Delivery إضافيًا فوق هذه الشجرة — لا ترخيص موجب هنا غير هذا الترخيص وطلب Control الحي WS-249",
+        "trigger": "تنفيذ Market/Delivery v1 بمطالبة WS-249 (DOC-034/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-network-expansion-15-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "reason": "عزل كروم بوابة السائق (عقد ٢٦ §8/OD01): ترويسة المالك (قائمة الشعار → الحساب/البيانات/الإعدادات) لا تظهر فوق /driver إطلاقًا — شريط هوية السائق وحده؛ وتوسيع مجموعة «الترويسة تكرر h1» بالأسطح الجديدة — إصلاح عيب حرج من المراجعة ٢",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك نفسه (MASTER-PROMPT-EN.md، التزام ce21b786 على فرع التسليم) — تنفيذ Delivery v1",
+        "trigger": "عزل بوابة السائق وفق عقد 26 §8 (مطالبة WS-249/DOC-035)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-MicroRouter.tsx-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 303,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل مسار /delivery/review (طابور مراجعة التوصيل للمراجع المخول — OD17/OD22/OD28–OD31): استيراد lazy واحد + مسار سطح قارئ واحد كطابور مراجعة السوق (عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-navigation.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 65,
+        "band": "NORMAL"
+      },
+      "reason": "تسمية «مراجعة التوصيل» للمسار الجديد /delivery/review فوق مقعد الشريط نفسه — سطر تصنيف سياقي واحد.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-navigationContract.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 228,
+        "band": "NORMAL"
+      },
+      "reason": "بديل رجوع /delivery/review إلى بيت التوصيل (عقد 26 §2.2/§8) — سطر عقد واحد بتعليق سطره.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-index.css-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7367,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "صندوق إجابة محاولة الاتصال (OD15) وصندوق تحديث السعر المباشر (OD-09) ينضمان لمجموعة الصناديق المصممة القائمة (micro-contact-answer وmicro-vendor-price-edit) — اسمان في قائمة محدد قائمة واحدة.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-application-door-surfaces-baseline.json-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 520,
+        "band": "WATCH"
+      },
+      "reason": "توسيعان مقصودان موثقان ببابي التطبيق (PC-3): answerContactAttempt في باب التوصيل (OD15) وdirectUpdateListing في باب السوق (OD-09) — سطر تسجيل لكل رمز جديد.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-text_density_policy.py-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 967,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 980,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "إغلاق فجوات §17: أول قياس لسطح طابور مراجعة التوصيل (21) + رفع موثق بثلاثة أسطح وارثة لخريطة تسميات الاتصال الكاملة (DeliveryBookingDetail 80→84 وDriverBookingDetail 90→92 وDriverPortal 100→103) — أسطر سجل الأسقف بأسلافها المؤرخة.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-gap-closure-routeTemplate.ts-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 60,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل قالب المسار الآمن /delivery/review (طابور مراجعة التوصيل للمراجع المخول — OD17/OD22/OD28–OD31) في جدول ROUTE_GROUPS المضغوط (سطر تعليق موثق + الذيل ,review داخل مجموعة delivery) — مسار حي بلا قالب كان يؤول إلى /unknown في أي سجل تشخيصي.",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 (جلسة إغلاق الفجوات فوق فرع التسليم): «أكمل الفجوات المتبقية داخل النطاق ب القرارات الكانونية المعتمدة… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "إغلاق فجوات §17 (طابور مراجعة التوصيل، إجابة الاتصال OD15، التحديث المباشر للسعر OD-09)",
+        "ocRef": "WS-249"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-01",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "reason": "صفحة تفاصيل الحجز لدى صاحب المشروع: أسطح قرار الموافقة الصريحة على retry/hold/return بشروطها المعروضة (OD10)، تعليمات المشروع من awaiting_instructions، اقتراح/قرار التعديل المؤثر بنسخة اتفاق مرقمة (OD11)، ورقم إصدار الاتفاق — دخول WATCH موثق من 323 (NORMAL) بلا حذف أي نص قائم",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-02",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "reason": "مساحة المورد: لوحة التحديث المباشر الموسعة (OD-09/عقد 20 §3.3) — سعر ثابت أو محرر شرائح كامل + حقلا الكمية + حالة التوفر، معبأة من نسخة العمل — دخول WATCH موثق من 347 (NORMAL) بلا حذف",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-03",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "reason": "باب تطبيق التوصيل للعميل: دوال خدمة الموافقة (اقتراح/سحب/قرار) والتعليمات والتعديل المؤثر — دخول WATCH موثق من 298 (NORMAL)",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-04",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 434,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "reason": "صفحة السائق: نموذج اقتراح الموافقة بشروطه لكل نوع (محاولة/احتفاظ/إرجاع أغراض) + سحب الاقتراح + اقتراح التعديل المؤثر وقراره من جهة السائق + إشعار انتظار تعليمات المشروع — نمو داخل WATCH موثق",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-05",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "reason": "تصفح السوق: عنصر تحميل أكثر بمؤشر مستقر مع حالات تحميل/خطأ صادقة (§17-7) — نمو داخل NORMAL موثق — القيمة القديمة عند قاعدة الدمج مع main كانت 58 (كعب مبكر؛ نما عبر جلسات التسليم الموثقة سابقًا ومن ثم هذه الجلسة)",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-06",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 489,
+        "band": "WATCH"
+      },
+      "reason": "إغلاق مسار إعلان السائق المنفرد لretry/hold/return وتعليمات المشروع (انتقلت لمسار الموافقة/التعليمات) + طابع وقت طلب التأكيد للتذكير — نمو داخل WATCH موثق",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-07",
+      "date": "2026-11-13",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 490,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "reason": "التحديث المباشر الموسع (OD-09): شرائح بنفس نمط التسعير + حقلا الكمية + مزامنة نسختي العمل/العامة في العبارة نفسها — نمو داخل WATCH موثق",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-08",
+      "date": "2026-11-13",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "إعادة إرساء سقوف كثافة النص لأسطح التوصيل الثلاثة بإثبات مؤرخ — نمو داخل الشريط موثق — القيمة عند قاعدة الدمج كانت 859",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f على فرع التسليم): «أكمل كل العمل المتبقي داخل النطاق من مراجعة الجاهزية الأخيرة بعد التحقق من كل ملاحظة قبل الإصلاح… واحترم بوابة البنية» — تنفيذ تحت مطالبة WS-249 الحية",
+        "trigger": "استكمال DOC-036 (جلسة 2026-11-13): موافقة الطرفين الصريحة (OD10) + تعليمات المشروع + التعديل المؤثر (OD11) + ترقيم صفحات السوق + التحديث المباشر للشرائح/الكمية (OD-09) + التذكيرات داخل التطبيق + مراجعة UX مرسومة",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-continuation-2026-11-13-09",
+      "date": "2026-11-13",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 528,
+        "band": "WATCH"
+      },
+      "reason": "إعادة إرساء سطح باب التوصيل بسبع دوال الموافقة/التعليمات/التعديل المؤثر (DOC-036) مع ملاحظة مؤرخة — بيانات حرس مقصودة داخل الراتشة لأن ملف هذا الحارس ليس من ملفات الإعفاء",
+      "authorization": {
+        "ownerReview": "أمر المالك المؤرخ 2026-11-12 للاستكمال (MASTER-PROMPT-EN.md §CURRENT OWNER-APPROVED CONTINUATION، الالتزامان 405d56e3 و6488282f): «أكمل كل العمل المتبقي داخل النطاق… واحترم بوابة البنية»",
+        "trigger": "استكمال DOC-036: توسيع باب التوصيل الموثق",
+        "ocRef": "DOC-036"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-01",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/App.tsx",
+      "from": {
+        "nbLoc": 23,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 28,
+        "band": "NORMAL"
+      },
+      "reason": "تركيب مزوّد الجلسة القشرية NetworkSessionProvider (جلب واحد مشترك للحساب) حول الموجّه",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-02",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل مسار /ask لمدخل Ask Micro الشامل مع تحميله الكسول",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-03",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/StartupGate.tsx",
+      "from": {
+        "nbLoc": 96,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 109,
+        "band": "NORMAL"
+      },
+      "reason": "إعفاء مسارات الطبقة المتصلة (السوق/التوصيل/بوابة السائق/Ask Micro) من فرض إعداد Manage المحلي — الضيف والسائق أولاً",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-04",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "reason": "تسمية كنونية لمسار /ask (اسأل Micro)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-05",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 232,
+        "band": "NORMAL"
+      },
+      "reason": "بديل رجوع قانوني لمسار /ask مع قاعدة البادئة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-06",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 100,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 103,
+        "band": "NORMAL"
+      },
+      "reason": "تصنيف /ask عمقًا موحدًا للسياقين (مالك/سائق) بلا شريط سفلي",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-07",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "reason": "مدخل Ask Micro داخل ترويسة بوابة السائق المستقلة + تمرير حالة دور السائق للترويسة (بند بوابة صريح لحاملي الدور)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-08",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "reason": "قسم جسر الحساب المشترك (EX-D22): حالة حساب Micro المتصل بقراءة صادقة مع حدود الربط — بلا أي كتابة أو ربط بيانات محلية",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-09",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 430,
+        "band": "WATCH"
+      },
+      "reason": "حلّ سؤال Workspace عند إنشاء الحجز (ضمان مساحة العمل + فحص قدرة التوصيل فاشلًا مغلقًا)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §1/§6-Phase B): «نفّذ الحساب المشترك، تسجيل الدخول/الجلسة، قشرة التطبيق ونقاط دخول Manage وMarket وDelivery وAsk Micro الآن؛ واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق… ثم تابع كل أطوار التنفيذ المعتمدة دون انتظار بين المعالم»",
+        "trigger": "Phase B (DOC-037): أساس PostgreSQL/الهوية/القشرة المشتركة/Ask Micro/جسر Manage",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-10",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 535,
+        "band": "WATCH"
+      },
+      "reason": "إعادة إرساء سطح باب الشبكة بخدمة Ask Micro ونوع Workspace (DOC-037) مع ملاحظة مؤرخة — بيانات حرس مقصودة داخل الراتشة لأن ملف هذا الحارس ليس من ملفات الإعفاء",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): توسيع باب الشبكة الموثق لخدمة Ask Micro وWorkspaces",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-11",
+      "date": "2026-11-14",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل network/askMicroService.ts في سجل الفحوص القرائية (DOC-037) — بيانات حرس مقصودة داخل الراتشة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): تسجيل خدمة Ask Micro في حارس القراءة/الكتابة",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-12",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 388,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 394,
+        "band": "NORMAL"
+      },
+      "reason": "إعادة إرساء أسطح الحزم المحلية لأساس Phase B (صفحة /ask + مزوّد الجلسة القشرية + جسر الحساب — DOC-037) بقياس موثق؛ بيئتا السحابة تُسوّيان بعد الدفع من تشغيل CI وفق البروتوكول",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «نفّذ الحساب المشترك… واجعل Ask Micro متاحة في كل سياق مصرح بما فيه السائق»",
+        "trigger": "Phase B (DOC-037): أسطح حزم أساس القشرة المشتركة/Ask Micro",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-b-2026-11-14-13",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "تسجيل صفحة AskMicro الجديدة في PAGES/CAPS (DOC-037) بقياس موثق 13 وسقف 16 — بيانات حرس مقصودة داخل الراتشة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md عند 0d4ae258 §6-Phase B): «ضع مدخل Ask Micro المشترك في القشرة العامة وكل سياق داخل النطاق بما فيه بوابة السائق»",
+        "trigger": "Phase B (DOC-037): تسجيل كثافة نص صفحة Ask Micro",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-01",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/primitives/Notice.tsx",
+      "from": {
+        "nbLoc": 91,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "reason": "اشتقاق دور الإعلان من النبرة داخل Notice (F-10): tone=error تعلن role=alert — تطبيق قاعدة R10-B4/F-017 على الأسطح المتصلة كلها",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-02",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 602,
+        "band": "WATCH"
+      },
+      "reason": "عزل bdi كنوني للمبالغ المعروضة (F-11): الأجرة والتحصيل في عرض الاتفاق",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-03",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 739,
+        "band": "WATCH"
+      },
+      "reason": "عزل bdi كنوني للمبالغ المعروضة (F-11): الأجرة والتحصيل في تفاصيل حجز السائق",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-04",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 459,
+        "band": "WATCH"
+      },
+      "reason": "حالة «تعذر التحقق» الصادقة المستقلة قبل بوابة الدخول (F-15) + عزل bdi للمبالغ (F-11)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-05",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 243,
+        "band": "NORMAL"
+      },
+      "reason": "حالة «تعذر التحقق» الصادقة لمدخل المورد (F-15) + عزل bdi لسعر البطاقة (F-11)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-06",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 371,
+        "band": "NORMAL"
+      },
+      "reason": "خطأ التحقق المؤكد يعلن بـ role=alert لا status (R10-B4/F-017)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-07",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 436,
+        "band": "WATCH"
+      },
+      "reason": "فحص مفتاح التعطيل الإداري الشامل قبل إنشاء الحجز (F-25: 503 module_globally_disabled فاشلًا مغلقًا)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-08",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/marketReview.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 454,
+        "band": "WATCH"
+      },
+      "reason": "حرس عدم المراجعة الذاتية للأدمن متعدد القبعات (F-08) + API قرار البلاغ المغلق acknowledge/request_information/restrict/close بفاعل وسبب (F-12) — ملف الشبكة الجديد يعبر عتبة WATCH",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة» مع موجات مسح S12 المرخصة (W6)",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-09",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1002,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "إرساء سقفي كثافة DriverPortal (114→117) وDelivery (22→23) بمرجع موثق (F-15/F-11، Phase E) — نمو تعليقات الإثبات فقط لا قيم سقف صامتة",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase E): تفويض التنفيذ المتواصل — «أكمل تصحيحات المستودع والاختبارات والتوثيق والأدلة اللازمة»",
+        "trigger": "Phase E (DOC-037): أمن/عمليات/تجربة عربية عبر الميزات — مكتشفات مسح S12 FIX_NOW (F-11/F-15)",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-e-2026-11-14-10",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7386,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "نمط زر «اسأل Micro» في ترويسة بوابة السائق (كان بلا نمط 27px) بعد اكتشافه في مراجعة RTL المرسومة (Phase E/F-UX): حد لمس ≥36px + بصمة هادئة + تركيز مرئي — 21 سطرًا موثقة المصدر",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §6-Phase E): «راجع الواجهة العربية RTL المرسومة… وصحح العيوب المؤكدة داخل النطاق»",
+        "trigger": "Phase E (DOC-037): مراجعة UX عربية مرسومة — عيب هدف لمس مؤكد وُصلح بالجلسة",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-f-2026-11-14-01",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 248,
+        "band": "NORMAL"
+      },
+      "reason": "المراجعة الختامية ٢ (RTL/وصول): إعلان تحميل القائمة بـ role=status وخطأ «تحميل المزيد» المؤكد بـ role=alert لا status (R10-B4/F-017) — وسم صادق لكل حالة؛ لا نص محذوف",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase F): «إن أُتيحت الدعم فشغّل خمس مراجعات قراءة فقط غير متداخلة على مرشح متكامل… ومُدمج رئيس واحد للإصلاحات» — تفويض التنفيذ المتواصل المعرّف في §1",
+        "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-f-2026-11-14-02",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 377,
+        "band": "NORMAL"
+      },
+      "reason": "المراجعة الختامية ٢: زر «إعادة المحاولة» عند تعذر التحقق مع refresh() كنفس نمط الأسطح الشقيقة (EX-D22 — قراءة حساب فقط، لا كتابة ولا ربط بيانات محلية)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase F): «إن أُتيحت الدعم فشغّل خمس مراجعات قراءة فقط غير متداخلة على مرشح متكامل… ومُدمج رئيس واحد للإصلاحات» — تفويض التنفيذ المتواصل المعرّف في §1",
+        "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-f-2026-11-14-03",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 741,
+        "band": "WATCH"
+      },
+      "reason": "المراجعة الختامية ٢ تصحح F-11: المبلغ داخل placeholder لا يمكن عزله بـbdi، فصار المثال نصًا ساكنًا بلا رقم بدل قالب ديناميكي بالقيمة + تعليق توثيق المصدر",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase F): «إن أُتيحت الدعم فشغّل خمس مراجعات قراءة فقط غير متداخلة على مرشح متكامل… ومُدمج رئيس واحد للإصلاحات» — تفويض التنفيذ المتواصل المعرّف في §1",
+        "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-f-2026-11-14-04",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/marketReview.ts",
+      "from": {
+        "nbLoc": 454,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 469,
+        "band": "WATCH"
+      },
+      "reason": "المراجعان الختاميان ٣+٤: تقليم reason إلى 1000 محرف في مراجعة الملف والإعلان، و:id الرقمي يعيد 404 صريحًا لا 500، وإغلاق البلاغ بتحديث شرطي AND status='open' مع فحص changes — رفض صريح بدل آخر-كاتب-يفوز",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase F): «إن أُتيحت الدعم فشغّل خمس مراجعات قراءة فقط غير متداخلة على مرشح متكامل… ومُدمج رئيس واحد للإصلاحات» — تفويض التنفيذ المتواصل المعرّف في §1",
+        "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "reanchor-phase-f-2026-11-14-05",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1006,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "إرساء سقف DriverBookingDetail 123→124 بمرجع موثق (F-11 — المراجعة الختامية Phase F): تعليقات الإثبات فقط لا قيم سقف صامتة — نفس التزام Phase E (114→117 و22→23)",
+      "authorization": {
+        "ownerReview": "أمر المالك المنقح المؤرخ 2026-11-13 (MASTER-PROMPT-EN.md §1/§6-Phase F): تفويض التنفيذ المتواصل المعرّف في §1",
+        "trigger": "Phase F (DOC-037): المراجعة الختامية الخماسية على المرشح المتكامل وتكامل إصلاحاتها",
+        "ocRef": "DOC-037"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-navigationts",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 69,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إزالة تسمية مسار المشاركة الملغى (R5-8) وتعليق التوثيق المكافئ — لا نمو وظيفي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MicroAppShelltsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 167,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ضم /delivery/review لمجموعة CONTEXT_REPEATS_H1 (R5-10) مع التعليق الموثق — منع تكرار العنوان في الترويسة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-OrderDepositPanelstsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 530,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ترقية نوع run إلى Promise<boolean> (R4-8) — إعادة نتيجة صادقة ليحفظ المتصل حالته بعد نجاح مؤكد فقط.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-Fieldtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/primitives/Field.tsx",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 82,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): الربط البرمجي التلقائي للتسمية عبر useId (R3-1 — WCAG 2.2 AA SC 3.3.2): كل حقل بلا controlId يحصل على اسم برمجي؛ 71 موقعًا يُصلَح دفعة واحدة من المصدر الواحد.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-indexcss",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7456,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): أنماط سطح Ask Micro المفقودة (R5-4) + تمرير قائمة أفعال الورقة (R5-5) + التفاف الرموز الطويلة في العناوين وبطاقات الإعلان (R5-11) + حز السائقين الآمن (R5-12) + سطران بسقف لسجل العمليات (R5-14).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DeliveryBookingDetailtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 720,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): شروط الموافقة وتغييرات التعديل صفوفًا عربية مسماة (R1-2/R1-3/R2-1/R2-2)، إلغاء بتأكيد بخطوتين ومتاح للمسودة (R1-5/R1-6)، مهلة رد السائق للمالك (R4-12)، حالة التحقق المستقلة (S12/F-15)، مرجع دعم bdi (R2-11)، حارس الفعل الواحد (R4-1).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DeliveryBookingEditortsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ملف جديد نسبيًا للأساس (Phase B) يدخل WATCH بقراءة كثيفة: حالة التحقق المستقلة (S12/F-15)، معرف المسودة المحفوظ لإعادة المحاولة بلا ازدواج (R4-13)، تعطيل السائق غير المستقبل (R1-23)، ورسالة الفشل الصادقة. new-file-enters-band موثق لا صامت.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DriverBookingDetailtsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 845,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): خريطة حالات الطلب الكاملة بلا كود خام (R2-4)، الموعد والحمولة أمام قرار القبول (R1-1)، تغييرات التعديل صفوفًا عربية (R1-4)، فصل حقلي المبلغ (R4-17)، إعادة تعيين النموذج بعد النجاح (R4-18)، حالة التحقق المستقلة (S12/F-15)، مرجع دعم bdi (R2-11)، حارس الفعل الواحد (R4-2). التصعيد إلى SPLIT_CANDIDATE موثق هنا ويُعرض على المالك في بوابة المراجعة — التقسيم الهيكلي نفسه خلف البوابة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-DriverPortaltsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): خريطة الحالات من المصدر المشترك (R2-5)، الأجرة على بطاقة الوارد (R1-18)، إعادة محاولة فشل جلب الكشوف (R4-9)، إعلان التحميل أثناء التحقق (R1-25)، إزالة الاسم الداخلي (R2-13).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-Markettsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 267,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إعلان فشل جلب الميتا داخل لوحة الفلاتر مع إعادة المحاولة (R4-14) — لا قائمة تصنيفات فارغة صامتة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MarketListingEditortsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/MarketListingEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): ملف جديد نسبيًا للأساس يدخل WATCH: حماية إعلان الشرائح من التحويل الصامت (R1-10)، رفع الصور بفشل معلن باسم الملف ونجاح تزايدي (R4-4)، حفظ كمسودة صريح (R1-12)، حارس المغادرة يحفظ المسودة لا الإرسال (R1-11)، معرف المسودة المحفوظ (R4-13)، حالة التحقق المستقلة (S12/F-15)، إعلان فشل الميتا (R4-14). (تضمين تنسيق prettier النهائي: 493)",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-MarketVendorWorkspacetsx",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 590,
+        "band": "WATCH"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): حالة التحقق المستقلة (S12/F-15)، فشل تعبئة التحديث المباشر معطل للحفظ ومع إعادة محاولة (R4-10)، حارس الفعل الواحد (R4-3)، فعل التجديد الظاهر للإعلان المخفي (R1-13)، الإرسال متاح للمرفوض (R1-13).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-text_density_policypy",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1031,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): إرساء كثافة النص الموثق لأربعة أسطح Stage C (DeliveryBookingDetail 145، DriverBookingDetail 148، DriverPortal 140، DeliveryReviewQueue 23) بتعليقات مؤرخة ومرجع DOC-038 — نفس مسار الإرساء المعتمد من الموجات السابقة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): مراجعة UX شاملة وتنفيذ التحسينات غير الهيكلية المؤكدة على الفرع المصرح نفسه",
+        "trigger": "تنفيذ Stage C — خمس مراجعات قراءة-فقط (R1-R5) ثم تنفيذ المكتشفات المؤكدة غير الهيكلية",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "stage-c-2026-11-14-image-policy-baseline",
+      "date": "2026-11-14",
+      "path": "scripts/check-image-policy.mjs",
+      "from": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 175,
+        "band": "NORMAL"
+      },
+      "reason": "Stage C (S13 — أمر المالك 2026-11-14 «جاهزية Manage + إغلاق CI/UX»): توسيع خط أساس صور المستودع بقرار المالك المؤرخ 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6 يوجب إرفاق لقطات الأدلة المرسومة بالتقرير) — قاعدة واحدة محصورة بمجلد أدلة هذه المهمة فقط (8 لقطات after-*.png) والعدد 36→44؛ سياسة «لا لقطات تقريرية تاريخية» خارج المجلد باقية كما هي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-READINESS-CI-UX-PROMPT-EN.md §6): إرفاق لقطات الشاشة المرسومة بالتقرير النهائي",
+        "trigger": "تنفيذ Stage C — حارس سياسة الصور يشترط قرار مالك موثق في نفس الـPR لتغيير خط الأساس",
+        "ocRef": "DOC-038"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-deliveryservice-guest-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 408,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: تمديد واجهتي ملخص البطاقة (OwnerRequestSummary/DriverRequestSummary) بحقلي المسار/الموعد واسم السائق المعين من الاستجابة الخادمية الجديدة — حقول عرض فقط لا منطقًا جديدًا.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-microappshell-nav001",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 195,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-039/NAV-001/R1-15: إخفاء مقاعد المالية/الطلبات عن الضيف غير الموثق بلا مشروع محلي — قراءة وجود المشروع مرة عند الإقلاع بقرار فتحًا لا غلقًا (لا يومض إخفاء أمام المالك)؛ المقاعد الخمسة كاملة للمالك المحلي والموثق.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-indexcss-r17-cards",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 7365,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 7465,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "DOC-039/R1-17: قاعدة واحدة لسطر ملخص القرار على بطاقتي الوارد/النظرة (micro-driver-request-card__route/micro-delivery-card__route) بمقياس نص البطاقة الثانوي — لا رموز تصميم جديدة.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-driverportal-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 502,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: سطر المسار/الموعد على بطاقة الوارد قبل فتح التفاصيل — الحد الأدنى لقرار قبول الأجرة؛ من الملخص الخادمي الآمن (المحافظتان والموعد فقط).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-deliveryexecution-r17",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 489,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 494,
+        "band": "WATCH"
+      },
+      "reason": "DOC-039/R1-17: جلب payload_json في استعلام وارد السائق ونشر ملخص المحافظتين/الموعد عبر bookingPayloadSummary المشترك — لا حقول خاصة تنكشف.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5): المتابعات المعتمدة على الفرع القائم — NAV-001/R1-15 مقاعد الضيف وR1-17 حقول قرار السائق",
+        "trigger": "Workstream A (DOC-039) — نمو موثق محصور في المتابعات المأذونة بلا رفع سقف ولا تغيير شريط",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-text-density-policy-r17",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1039,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DOC-039 (Workstream A — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.2/R1-17): رفعان موثقان بسقف كثافة النص بواقع سلسلة واحدة لكل من Delivery 23→24 وDriverPortal 140→141 لسطر ملخص القرار (المسار/الموعد) المأذون بهذا الأمر — بنمط الإرساء المؤرخ نفسه؛ لا نص محذوف ولا سقف آخر مُمس.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.2): R1-17 — تفاصيل القرار الحدّية قبل قبول السائق للعرض",
+        "trigger": "Workstream A (DOC-039) — سقفا كثافة بسجل مؤرخ بقرار مالك في نفس الـPR",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc039-2026-11-14-image-policy-workstream-a",
+      "date": "2026-11-14",
+      "path": "scripts/check-image-policy.mjs",
+      "from": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 180,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-039 (Workstream A — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.3): توسيع موثق لعدد صور خط الأساس 44→50 بست لقطات workstream-a-*.png للتدفقين المتغيرين في مجلد أدلة المهمة نفسه — نمط Stage C نفسه؛ سياسة «لا لقطات تقريرية» خارج المجلد باقية كما هي.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §5.3): لقطات قبل/بعد للتدفقين المتغيرين عند العروض المدعومة",
+        "trigger": "Workstream A (DOC-039) — حارس سياسة الصور يشترط قرار مالك موثق في نفس الـPR لتغيير خط الأساس",
+        "ocRef": "DOC-039"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m3-profile-manage-online",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 378,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-040 (M3 — أمر المالك 2026-11-14 MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): توصيل الشاشة القائمة (ملف الحساب) بأصغر حد تطبيقي متوافق — استيراد قسم «ربط Manage المتصل» (مكون مستقل components/profile/ManageOnlineSection.tsx) وتحديث سطر حدود الربط إلى الحالة الحية بدل الوعد المستقبلي الساقط؛ لا مسؤولية جديدة داخل الصفحة نفسها (القسم كله في المكون المستقل).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3): «connect the existing screens through the smallest compatible application boundary»",
+        "trigger": "Workstream B M3 (DOC-040) — راتشة الحجم تشترط إرساء موثقًا لأي نمو فوق الأساس",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m3-density-policy-profile-cap",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1043,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DOC-040 (M3 — أمر المالك 2026-11-14 §6-M3): رفع سقف كثافة Profile 30→40 بتوثيق مؤرخ كامل — الحالات الصادقة العشر لقسم «ربط Manage المتصل» ومسار الربط المزدوج (تسميات مفروضة بالأمر: حالات صدق لغير مربوط/غير مهيأ/غير متاح)؛ الذهبي الكثيف أُعيد توليده في نفس الالتزام والفحص الخصائصي 7/7 أخضر.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3 + قرارات الربط الملزمة §4)",
+        "trigger": "Workstream B M3 (DOC-040) — سقف الكثافة يُرفع بسجل مؤرخ بمرجع مالك لا بصمت",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m3-network-door-surface",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 550,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-040 (M3 — أمر المالك 2026-11-14 §6-M3): إرساء موثق لسطح باب الشبكة بعد توسيعه المقصود بخدمة Manage المتصلة (7 قيم + 8 أنواع) بملاحظة مؤرخة PC-3 في نفس الالتزام — نمط توسيع باب Ask Micro نفسه (EX-D21).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3)",
+        "trigger": "Workstream B M3 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق لأي توسيع سطح",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m3-readlike-corpus",
+      "date": "2026-11-14",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 350,
+        "band": "NORMAL"
+      },
+      "reason": "DOC-040 (M3 — أمر المالك 2026-11-14 §6-M3): إضافة network/manageOnlineService.ts إلى جسم القراءة المحروس بتصنيف مؤرخ (خدمة Manage المتصلة: قراءات مصرحة + مسار ربط خادمي + توليد سر في الذاكرة فقط) — نمط إضافة Ask Micro نفسه (EX-D21).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M3)",
+        "trigger": "Workstream B M3 (DOC-040) — حارس جسم القراءة يشترط تصنيف الملفات الجديدة في نفس الالتزام",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m4-network-door-surface",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 553,
+        "band": "WATCH"
+      },
+      "reason": "DOC-040 (M4 — أمر المالك 2026-11-14 §6-M4): إرساء موثق ثانٍ لسطح باب الشبكة بعد إضافة saveManageRecord/ManageRecordSaveResult (الكتابة المتصلة الحتمية بCAS) بملاحظة PC-3 مؤرخة — يستكمل إرساء M3 (518→550).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M4)",
+        "trigger": "Workstream B M4 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m5-network-door-surface",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 559,
+        "band": "WATCH"
+      },
+      "reason": "DOC-040 (M5 — أمر المالك 2026-11-14 §6-M5): إرساء موثق ثالث لسطح باب الشبكة بعد إضافة مسار الترحيل الاصطناعي (تطبيق/حالة/رجوع) بملاحظة PC-3 مؤرخة — يستكمل إرساءَي M3 (518→550) وM4 (518→553).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M5)",
+        "trigger": "Workstream B M5 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m6-services-context-online-guard",
+      "date": "2026-11-14",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 657,
+        "band": "WATCH"
+      },
+      "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): تغليف المخزن الوحيد بوكيل حارس الوضع المتصل-فقط (commit* وحدها تُفحص؛ القراءة والاستبدال المحمي والمسودات تمر كما هي) + قراءة الوضع مرة عند الإقلاع بفشل مفتوح نحو المحلي — معطل بنيويًا حتى قرار المشغل فسلوك اليوم مطابق حرفيًا (يستكمل سلسلة إرساءات الملف حتى 651).",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6: guarded online-only mode مع بقاء التصدير/الاسترداد المحلي)",
+        "trigger": "Workstream B M6 (DOC-040) — راتشة الحجم تشترط إرساء موثقًا لأي نمو",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m6-module-boundaries-type-edge",
+      "date": "2026-11-14",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 822,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 840,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): توثيق حافة النوع الجديدة app/manageOnlineGuard.ts -> @/storage/local/types في أساس R8 (النوع وحده لتغليف المخزن الوحيد بوكيل الحارس — نفس نمط ملفَي app-shell الموثقين) — يستكمل سلسلة إرساءات الحارس حتى 836.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+        "trigger": "Workstream B M6 (DOC-040) — حارس الحدود يشترط تحديث الأساس الموثق في نفس الالتزام",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m6-density-policy-mode-line",
+      "date": "2026-11-14",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1045,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): رفع سقف كثافة Profile 40→42 بتوثيق مؤرخ — سطر وضع العمل المتصل-فقط المحروس (محلي افتراضيًا / متصل فقط بقرار مشغل)؛ الذهبي الكثيف أُعيد توليده في نفس الالتزام — يستكمل سلسلة إرساءات الملف حتى 1043.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+        "trigger": "Workstream B M6 (DOC-040) — سقف الكثافة يُرفع بسجل مؤرخ بمرجع مالك لا بصمت",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "doc040-2026-11-14-m6-network-door-surface",
+      "date": "2026-11-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 561,
+        "band": "WATCH"
+      },
+      "reason": "DOC-040 (M6 — أمر المالك 2026-11-14 §6-M6): إرساء موثق رابع لسطح باب الشبكة بعد إضافة fetchManageMode (قراءة وضع القطع المحروس) بملاحظة PC-3 مؤرخة — يستكمل إرساءات M3/M4/M5.",
+      "authorization": {
+        "ownerReview": "أمر المالك 2026-11-14 (MANAGE-ONLINE-IMPLEMENTATION-PROMPT-EN.md §6-M6)",
+        "trigger": "Workstream B M6 (DOC-040) — حارس أسطح الأبواب يشترط الإرساء الموثق",
+        "ocRef": "DOC-040"
+      }
+    },
+    {
+      "id": "F-592",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 410,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05): createDeliveryRequest carries the explicit active workspace context (workspaceId) — the server verifies it; no implicit project selection anywhere.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "F-594",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 409,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05): the booking creation sends the explicit workspace context with an honest no-project message instead of a silent implicit creation.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "F-596",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 605,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05): vendor profile save/submit send the explicit workspace context with an honest no-project guard (+19 nbLOC over the pre-W1 branch head; the remainder is the branch series growth since the merge-base baseline).",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "F-598",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 386,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24 أ-3/أ-7 — G01/G06): the account bridge renders the explicit single-project creation card when no project exists and the device-sessions section (list + server-side revoke-all).",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "F-600",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 438,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05): createRequestDraft requires the explicit workspace context (workspace_context_required 400), verifies membership+capability, and refuses the admin identity.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "F-602",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05/G01): saveVendorProfile/submitVendorProfile require the explicit workspace context (no implicit workspace creation — removed with the pre-W1 auto-creation) and refuse the admin identity; the file enters the WATCH band register with this authorization.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 explicit context/identity/sessions; growth within band, no ceiling raised",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-market-api-watch-entry",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24/AUTHZ-05/G01): market.ts enters the WATCH register with the explicit-context requirements on vendor profile save/submit (workspace_context_required, admin refusal) replacing the removed implicit auto-creation; the file existed below the band at the 2026-10-10 seed and the branch series growth plus W1 brings it into WATCH with this authorization row.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1; register row per the documented new-file-enters-band path",
+        "trigger": "post-group6-w1-explicit-context",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-door-baseline-growth",
+      "date": "2026-11-21",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 566,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 W1 (EX-D24 أ-3/أ-7): the network door baseline gains the documented PC-3 surface entries (createWorkspace/fetchDeviceSessions/signOutAllDevices + DeviceSession type) with the dated note — the baseline file itself grows within its band.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — Wave 1 PC-3 dated door extension",
+        "trigger": "post-group6-w1-sessions-and-project-creation-door",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-surfaces-baseline-growth",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 132,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 W1/hardening: the surfaces baseline's provenance blocks for the three environments re-anchored from the directly measured local build + the proven environment-class derivation (the documented bf90754b pattern) — the baseline file itself grows within band.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-market-watch-formatting",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 416,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 PUBLIC-DRIVER-PROFILE follow-up formatting within the authorized WATCH band (the 413 register row was authorized earlier in this series; 416 is the prettier-formatted shape).",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-w1-density-policy-growth",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1049,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 W1: the Profile density cap provenance entry (42→47 — sessions/project-creation mandated labels) grows the policy data file within its band.",
+      "authorization": {
+        "ownerReview": "Owner order bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md, 2026-11-21) — W1/hardening documented baseline re-anchors (post-push evidence run 44893086732 surfaced them; the documented same-PR protocol)",
+        "trigger": "post-group6-w1-baseline-growth",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 376,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 2 (Q49/Q146): the final-decision browse filters (supplier type, delivery vs pickup-only, max minimum-quantity) and the two-level category picker grow the filters panel within the band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketListingEditor.tsx",
+      "from": {
+        "nbLoc": 493,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 683,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q38/Q146): the variant options editor (label/price/min-quantity/availability per option, cap 20) and the hierarchical main/sub category picker.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketReview.tsx",
+      "to": {
+        "nbLoc": 584,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q4/Q28/Q129/Q146/Q154): profile review is abolished — the page gains the supplier suspend/unsuspend administrative pair, the first-listing verification-call recording, the category-tree management screen, and the operational counts panel.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      },
+      "from": {
+        "nbLoc": 574,
+        "band": "WATCH"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-04",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 664,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (ب-قواعد/Q49): the profile form gains supplier type, delivery option, and the versioned terms acceptance with automatic activation; the profile-review submit path is removed.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-05",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 688,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2: the audited supplier phone reveal endpoint (د-1/§8-3 — 10 distinct suppliers/day server window), auto-activation on profile completion + terms (Q4/Q28), the final-decision browse filters, the hierarchical meta tree, and the Q154 operational counts endpoint.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-06",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 643,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (Q38/Q49): variant validation at create/update with the variant-aware effective minimum, and category validation against the active admin-managed tree.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-07",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/marketReview.ts",
+      "from": {
+        "nbLoc": 454,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 568,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2: the first-listing verification-call gate (ب-قواعد), the ACTIVE-supplier publication gate, and the suspend/unsuspend-only profile actions (profile review abolished).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-market-08",
+      "date": "2026-11-21",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 571,
+        "band": "WATCH"
+      },
+      "reason": "Wave 2 (PC-3): the market door gains revealSupplierPhone/fetchMarketOpsCounts/putMarketCategories + ListingVariant/MarketCategoryNode and drops submitVendorProfile — the dated note entry grows the data file.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave2-density-policy-growth",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1061,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 2: the four Market density-cap provenance entries (Market/Detail/Editor/VendorWorkspace — final-decision-mandated labels Q38/Q49/Q146/د-1/د-8/د-10) grow the policy data file within its band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 2 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol as the W1 entries)",
+        "trigger": "post-group6-wave2-market-decisions",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-delivery-watch-register",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "reason": "Wave 3 privacy slice (ج-بيانات المستلم/د-8/MD-02): the recipient-privacy rules (48h post-declaration cutoff, immediate cancellation cutoff, open-case-gated administrative read) and the delivery-case endpoints (file/list/close) grow the file into the WATCH band — register row per the documented pattern.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-delivery-privacy",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 422,
+        "band": "WATCH"
+      },
+      "reason": "Wave 4 (G08/Q168/Q176): the honest order-context hint line when the booking is opened from an order (?context=order:) — a display hint only, no data copy, no financial effect.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/InventoryMaterials.tsx",
+      "from": {
+        "nbLoc": 842,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 863,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Wave 4 (G08/Q175): the «ابحث في السوق» contextual link on the open-shortage chip — a search navigation only, no purchase, no financial effect (in-market purchase stays deferred by the owner decision).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 4 (G08/Q175): the browse initializes the search from the contextual ?search= link (the inventory shortage → market journey) on top of the Wave 2 filters.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-04",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "from": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1838,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Wave 4 (G08/Q168/Q176): the «اطلب توصيلًا لهذا الطلب» contextual button in the delivery-terms panel — navigation with the order context only; no record copy, no automatic financial effect.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave4-link-05",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 583,
+        "band": "WATCH"
+      },
+      "reason": "Wave 4: prettier-formatted shape of the Wave 3 privacy slice (582 -> 583 nbLOC within the WATCH band).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 4 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave4-contextual-links",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts",
+      "from": {
+        "nbLoc": 231,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 264,
+        "band": "NORMAL"
+      },
+      "reason": "Wave 5 (WEB-02): escapeMarkdownValue + the narrowed escaping scope in line() — user-entered values (labels/qualifiers/reasons) are escaped before entering the exported Markdown.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-02",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 428,
+        "band": "WATCH"
+      },
+      "reason": "Wave 5 (MNG-LOCAL-05): the GuidedOpeningValidationError typed class — deliberate validation throws keep their honest Arabic reason while unexpected exceptions get the fixed safe message; the branch evolution plus the new class crosses the WATCH threshold.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-hardening-03",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 537,
+        "band": "WATCH"
+      },
+      "reason": "Wave 5 (MNG-LOCAL-05): the import catch drops the raw exception text for the fixed safe message; the branch evolution plus the dated comment lands at 537 in the WATCH band.",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-safe-hardening",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-621",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryChange.ts",
+      "from": {
+        "nbLoc": 408,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the atomic same-transaction proposal resolution + agreement effect (SRV-05) — the file enters WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-622",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/routes.delivery.ts",
+      "from": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — registering the no-show, consent-revoke, and driver-cancel routes plus the required-key option on booking creation (SRV-03) — the file enters WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-623",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/delivery/deliveryService.ts",
+      "from": {
+        "nbLoc": 400,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 474,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — coversRoute, period-booking and load-field DTOs and inputs, the server-derived statement call (MD-04), no-show/consent-revoke/driver-cancel functions, and the stable create key option",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-624",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+      "from": {
+        "nbLoc": 596,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 777,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the other-bookings notice, the consent revoke button, the no-show report button, and the explicit «احجز سائقًا آخر» button on expired/declined bookings",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-625",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+      "from": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 602,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the load-class/weight-band selects, the period-booking type with its mandatory start/end window, the recipient-consent checkbox, the route-aware ordered directory with the coverage badge and outside-coverage notice, and the stable create idempotency key",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-626",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+      "from": {
+        "nbLoc": 731,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 846,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the written-reason cancel-before-pickup section and the server-derived daily-statement submission replacing the manual item form; the WATCH→SPLIT_CANDIDATE crossing is reanchored with this dated entry",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-627",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 390,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — mounting the best-effort push-notifications section (G09)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-628",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 757,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — route-ordered directory with the honest coverage badge (Q73/Q93), the no-show report endpoint with the manual-review threshold (Q242), the scoped recipient-consent read gate (MD-01), and the other-bookings flag (Q268)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-629",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryExecution.ts",
+      "from": {
+        "nbLoc": 489,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 618,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the advisory-lock capacity-gated acceptance (Q268), the CAS decline with the requester notice (MD-03/Q215), the driver cancel-before-pickup endpoint (Q106), and the server-derived statement with the unique-violation mapping (MD-04/MD-05)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-product-630",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 600,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the load-field/window/period validation at creation (Q75/Q97/Q100), the scoped recipient-consent capture (MD-01), the capacity-gated quote confirmation (Q268), and the consent revoke endpoint",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-product",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-guards-631",
+      "date": "2026-11-21",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 577,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the dated PC-3 re-anchor rows for the Wave 3 door-surface additions (delivery +3 functions, network +2 push functions)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave3-guards-632",
+      "date": "2026-11-21",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1075,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 3 (final decisions 2026-11-21) — the dated ceiling raises for the Wave 3 final-decision labels (DeliveryBookingDetail 145→147, DeliveryBookingEditor 60→70, Profile 47→50)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 3 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave3-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-633",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 444,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-05 typed validation class and the MNG-LOCAL-06 depth gate — the file crosses into WATCH and is registered with this dated row",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-634",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 550,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-05 safe import messages and the MNG-LOCAL-06 depth/count gates after parsing, before any migration or write",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-635",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "from": {
+        "nbLoc": 704,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 981,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — the MNG-LOCAL-04 honest export-fingerprint labeling in the export completion notice",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-wave5-guards-636",
+      "date": "2026-11-21",
+      "path": "scripts/ci-audit-check.mjs",
+      "from": {
+        "nbLoc": 214,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 244,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 Wave 5 (final decisions 2026-11-21) — CI-001: the default audit level low + the dated decision header (the full report feeds the register gate; unregistered findings of ANY severity block)",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — Post-Group 6 Wave 5 documented baseline re-anchors under WS-251/DOC-041 (the same documented same-PR protocol)",
+        "trigger": "post-group6-wave5-guards",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-21-badge-decision-01",
+      "date": "2026-11-21",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 385,
+        "band": "NORMAL"
+      },
+      "reason": "The approved 2026-11-21 supplier-badge decision (order §8-1): the public Market hero no longer describes suppliers as «معتمدين» nor claims nationwide coverage — only the listing is described as published after listing review. +3 nbLOC is the in-code decision reference comment on the rephrased hero line (commit 39414309).",
+      "authorization": {
+        "ownerReview": "Owner order ab08ec74 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md update, 2026-11-21) — the approved supplier-badge decision §8-1 applied under WS-251/DOC-041 with this same-PR documented re-anchor",
+        "trigger": "post-group6-w2-badge-decision",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 582,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 769,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the driver status joins the request-detail SELECT and the owner-overview query, and the «مستخدم سابق» former-user mask replaces the removed driver's name/phone in the two requester-facing views (his own view keeps his identity)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-02",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 694,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the removed-profile guard in saveVendorProfile: a removed supplier role is never silently revived by a profile save (409 supplier_role_removed)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-03",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 656,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — the removed-supplier guard at the single listing-mutation choke points: createListingDraft refuses a removed profile and requireOwnListing (every listing mutation path) refuses a removed supplier",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-04",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion G01 (final decision ب — دورة الدور Q5) — mounting the RolesSection (the account's own role lifecycle: statuses, immediate draft cancellation, activated-role removal with the decision's protections) inside the account section; the section itself lives in its own component file",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g01-roles-05",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1082,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 continuous completion G01 — the dated Profile cap ledger entry 50 → 70 for the mandated role-lifecycle labels (the eight role states, the confirm-box facts, and the undecided owner-project-delete boundary note)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-roles",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 313,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion G02 (Q129) — the lazy route registration for the /admin panel (the separate admin unit) with its dated comment",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-02",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion G02 (Q129) — the contextual navigation label for the /admin panel route («لوحة الإشراف»)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-admin-03",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 518,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 598,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion (G01+G02, same PR) — the dated PC-3 surface changes: the network door +4 values/+2 types for the account role-lifecycle commands and the NEW admin door registered with its exact surface (the Q129 separate unit)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-admin",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g03-ask-01",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 989,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1089,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "Post-Group 6 continuous completion G03 (owner order 7593b9c4 §5 — BINDING) — the dated AskMicro cap ledger entry 16 → 50 for the answer-with-sources rendering and the typed editable draft card (the mandated §5.3-§5.5 labels: the eight required booking fields, the fixed enum options, the confirm/cancel buttons, and the honest not-saved/server-accepted/failure states)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g03-ask",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-readwrite-01",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 343,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 363,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4/§7 — the final CI gate 44938559449 failed the guards chain at registry-coverage and the chain never reached this guard's own growth rule) — the three new read-like files from the authorized G01/G02 work (admin/adminPanelService.ts + its door admin/index.ts and network/accountRolesService.ts) join READ_LIKE_CORPUS_BASELINE with dated classification comments in the same PR, exactly as the guard's documented D-04 protocol requires; corpus 75 → 78 (the guard's own test expectation updated in the same PR)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-testmap-01",
+      "date": "2026-11-22",
+      "path": "scripts/generate-test-map.mjs",
+      "from": {
+        "nbLoc": 291,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4/§7 — the final gate's test step failed the test-map drift pin because the two admin sub-surfaces had no direct-import tests) — the two /admin sections (AdminUserSearch/AdminCancelBooking) are pinned in PINNED_WITHOUT_DIRECT_RENDERING with a dated decision note per the ratchet's own documented RV3-NF-7/D-15 protocol (Q129's single separate admin unit; both flows tested through AdminPanel.dom.test.tsx whose test titles now name each section — real name mentions, no padding); test-map.json regenerated (76 pages)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-gate-fix-routetemplate-01",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion gate fix (owner order 7593b9c4 §4 G02 — the third gate run's routeTemplateSync pin caught the /admin route collapsing to /unknown in diagnostics) — the ROUTE_GROUPS table gains the admin section (a single flat route, no sub-paths) with the dated header note; the safe route-template contract stays exact (unknown routes still fully masked)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-21/22) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-gate-fix",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-g02-lift-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/adminPanel.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10) — the admin panel module enters the WATCH register: the audited Admin lift of an identity suspension (§10.1-2: reason + Admin identity + timestamp recorded atomically with its audit; restores access only through still-active/approved roles, never removed roles, never bookings; the already-lifted vs never-suspended distinction 409/404), the queue ages for driver evidence and vehicles (§10.3-9 «كل الطوابير مع عمر كل عنصر»), and the atomic state/event/notification/audit batch for the administrative cancel (§10.3-10 — one PostgreSQL transaction, the evidence rows ride the cancellation marker, never a silent partial state)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g02-lift",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-recheck-submit-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 424,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 616,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.3-11) — the driver eligibility RECHECK when submitting an existing draft: the draft may have sat while the driver was removed or otherwise left 'approved'; a stale draft never submits silently to a driver who can no longer take it (an honest 409 driver_no_longer_eligible with the Arabic reason, mirroring the creation-time gate exactly)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-recheck-submit",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-readd-market-catchup",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 710,
+        "band": "WATCH"
+      },
+      "reason": "Honest catch-up anchoring the already-committed G01 re-add growth (commit c80a2fe1, owner supplement §10.1-1) that the 694 row did not cover: every by-identity supplier profile read now deterministically picks the NEWEST row (ORDER BY created_at DESC, id DESC) so an archived removed row is never the current state, and saveVendorProfile falls through to the fresh-application insert branch when the newest row is removed (audit supplier_role_reapplied) instead of refusing — the same-PR protocol applied in the immediately following commit, exactly like the documented W1 post-push catch-up precedent",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-readd-catchup",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-readd-listings-catchup",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/marketListings.ts",
+      "from": {
+        "nbLoc": 585,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 658,
+        "band": "WATCH"
+      },
+      "reason": "Honest catch-up anchoring the already-committed G01 re-add growth (commit c80a2fe1, owner supplement §10.1-1) that the 656 row did not cover: the by-identity supplier lookup behind the listing choke points picks the NEWEST profile row so a re-applied supplier's fresh row governs listing mutations while the archived row stays archived — the same-PR protocol applied in the immediately following commit",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-g01-readd-catchup",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-card-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/components/ask/AskDraftCard.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 588,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-5/§10.2-7-6) — the draft card enters the WATCH register with its second registered kind: the card splits into the per-kind typed components (the delivery-booking card as before + the new manage-financial-event card whose confirm CONSTRUCTS the record canonically through the domain's own createFinancialEvent and saves it through the EXISTING single-record connected write with the explicit workspace context — no new write path, no schema duplication; zero writes before the user's explicit completion and confirmation)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-worker-watch-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/ask.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 541,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7) — the ask module enters the WATCH register with the governance layer: the revocable per-user consent (grant/revoke endpoints, audited atomically), the two daily caps (the 20-question cap and the separate 10,000-Neurons/day free-quota stop with no paid fallback — the same honest «المساعد غير متاح الآن»), the explicit active workspace validation scoping the owner facts to one workspace, and the provider-reported Neurons usage recording",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-migrations-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+      "from": {
+        "nbLoc": 561,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 611,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7-2) — the guarded schema upgrade 41→42 adds the ask-history store (the local TEXT-only Q&A history, deliberately OUTSIDE the influential snapshot like the form-drafts/local-security precedent — it never enters backup/export/import); no data migration, no existing record touched; the 21-day purge lives in the adapter",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-stores-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
+      "from": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 111,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7-2) — the stores registry gains the ask-history store constant with its dated design note (text-only, ephemeral, outside the snapshot; the guarded creator lives in the 41→42 upgrade)",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-door-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 617,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.2-7) — the door-surfaces guard data row for the network door's PC-3 dated additions (grantAskConsent/revokeAskConsent + the AskGovernance type + the dated note): a guard-data growth row exactly like the documented precedent (3aa9e046's guard-data rows); the guard itself verifies the surfaces match the registered baseline",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-readwrite-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "reason": "The readwrite guard's corpus list gains the three ask/ house files with the dated classification comment (the documented same-PR rule the guard itself instructs); guard data growth, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-textdensity-guarddata",
+      "date": "2026-11-22",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1093,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "The text-density policy gains the dated AskMicro 50→61 cap raise with its provenance comment (the §10.2-7-mandated consent card, the honest daily caps line, and the local text-history line — every string imposed by the owner's own decision text); guard data growth within the existing SPLIT_CANDIDATE band, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-door-registration",
+      "date": "2026-11-22",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 617,
+        "band": "WATCH"
+      },
+      "reason": "The ask house's new DOOR registration (application/ask — 4 values + 1 type with the dated PC-3 note, exactly like the admin door precedent): the door census test moves 33 → 34 with this same-PR row; guard-data growth only, no guard logic change",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-ask-governance",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-projlife-delivery-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/delivery.ts",
+      "from": {
+        "nbLoc": 413,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 785,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.1-3) — the booking detail's requester block gains the deleted-project «مستخدم سابق» mask (the counterparty's view of a former project owner on a retained shared record — the same honest masking pattern the removed-driver lifecycle uses; the owner's own view keeps his name) and the detail SELECT carries workspace_id for the tombstone lookup",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-project-lifecycle",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-projlife-module-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/projectLifecycle.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 301,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 (owner supplement §10.1-3) — the NEW project export-before-deletion module: the owner-only export (the full owner-accessible bundle — settings, every connected financial family, his bookings, file metadata — recorded + audited with a content digest) and the explicit export-first deletion (the confirmation token, the ongoing-booking honest block, the atomic tombstone + private-data deletion + membership removal + audit, the retained shared counterparty records with the declared backup-retention note); synthetic local tests only — no live data deletion",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-continuous-project-lifecycle",
+        "ocRef": "DOC-041"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-port-context-wiring",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 663,
+        "band": "WATCH"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the ask-history service wiring at the composition root (the AskHistoryService constructor row + the interface field + the door import) — the history moved to the storage port in BOTH adapters (the form-drafts pattern), so the root mounts it like every store-backed service. +6 lines, no behavior change beyond the documented port move.",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-port-types-entry",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1384,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the AskHistoryEntry record type + the two storage-port methods (listAskHistory/saveAskHistoryEntry) with their governance comments — the entity-touchpoints registration requires the domain type at the port and both adapters implementing the store (the form-drafts pattern). +18 lines; no store split (the OD-PRESERVE boundary stands; the file was already SPLIT_NOW).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-adminpanel-prettier-compliance",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/worker/api/adminPanel.ts",
+      "from": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 491,
+        "band": "WATCH"
+      },
+      "reason": "Prettier compliance fix at the committed g02+recheck head (63aeb86e left the file unformatted — the full-suite prettier check failed): prettier --write only, zero behavior change (line re-wrapping of existing statements).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "prettier-compliance-gate-fix"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-readwrite-reclassification",
+      "date": "2026-11-22",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 374,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 registration completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the dated reclassification of ask/askHistoryService.ts out of the read-like corpus (it now carries the persistent local write saveAskHistoryEntry at the storage port — the EX-D23 precedent), documented in the same PR.",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "ocRef": "DOC-041",
+        "trigger": "post-group6-ask-port-registration"
+      }
+    },
+    {
+      "id": "doc041-2026-11-22-askgov-released-pair-34-41",
+      "date": "2026-11-22",
+      "path": "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts",
+      "from": {
+        "nbLoc": 71,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 76,
+        "band": "NORMAL"
+      },
+      "reason": "Post-Group 6 continuous completion phase 2 pair-protocol completion (owner supplement §10.2-7-2 — DOC-041/WS-251): the outgoing current pair 34/41 registered in RELEASED_LEGACY_EXPORT_PAIRS with its dated comment (the ask-history schema advance 41→42 releases the S14 pair as a legacy-import-accepted pair — the same documented protocol every prior advance followed).",
+      "authorization": {
+        "ownerReview": "Owner order 7593b9c4 §10 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md, 2026-11-22 owner-confirmed supplement) — documented same-PR baseline re-anchor under WS-251/DOC-041 (the same documented protocol)",
+        "trigger": "post-group6-ask-pair-protocol",
+        "ocRef": "DOC-041"
+      }
     }
   ]
 }

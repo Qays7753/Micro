@@ -337,6 +337,11 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
    * يستورد نوع ActivityProfile الكنوني وحده (نفس نمط قسمَي الإعدادات
    * القائمين)؛ الصف المقابل في سجل الملكية §5. */
   "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
+  /* EX-D23 M6 (DOC-040، 2026-11-14، نفس-الالتزام): +1 موثقة — حارس الوضع
+   * المتصل-فقط يحتاج نوع PrototypeLocalStore وحده ليغلف المخزن الوحيد
+   * بوكيل الحارس (نفس نمط ملفَي app-shell الموثقين)؛ النوع وحده لا قيمة
+   * تخزينية، والغلاف معطل بنيويًا حتى قرار المشغل. */
+  "apps/prototype-web/client/src/app/manageOnlineGuard.ts -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
   /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): +4 موثقة —

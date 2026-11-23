@@ -1,55 +1,309 @@
 /**
- * UNIT-043 (تنفيذ S16 بالأمر الموحد §4): التوصيل — المقعد الرابع في الشريط
- * السفلي (NAV-01 §1: المالية، الطلبات، الرئيسية، التوصيل، السوق). إعلان
- * «قريبًا» صادق للخدمة المستقبلية: لا حجز ولا شركة ولا دفع ولا ارتباط
- * تلقائي بالطلبات؛ ولا أي سجل أو أثر مالي يُنشأ من هذه الصفحة إطلاقًا
- * (SDF-060: حالة صادقة ووصول معلن دون طلب سيارة أو أثر مالي).
+ * التوصيل — تجربة صاحب المشروع (OD01/OD02): ما ينتظر تأكيده أولًا ثم الجاري
+ * ثم الحجز ثم سائقوني، مع الكشوف اليومية — كله عرض لبيانات الخادم بلا أي
+ * أثر مالي (OD12). بوابة السائق منفصلة تمامًا عند /driver.
  */
-import { ArrowRight, Truck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useReturnPath } from "@/app/useReturnNavigation";
-import { futureServiceAnnouncements } from "@/app/futureServices";
-import { Button } from "@/components/primitives";
+import { Truck } from "lucide-react";
+import { useNetworkSession } from "@/app/useNetworkSession";
+import {
+  fetchOwnerOverview,
+  fetchOwnerStatements,
+  confirmStatement,
+  type OwnerRequestSummary,
+} from "@/application/delivery";
+import { Button, EmptyState, Field, Notice } from "@/components/primitives";
+import { bookingRouteText, bookingScheduleText } from "@/presentation/bookingSummaryText";
+import { formatLocalDate } from "@/presentation/formatters";
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة",
+  awaiting_driver_response: "بانتظار قبول السائق",
+  awaiting_requester_decision: "بانتظار موافقتك على العرض",
+  confirmed: "الحجز مؤكد",
+  driver_declined: "رفضه السائق",
+  quote_rejected: "رفضتَ العرض",
+  withdrawn: "مسحوب",
+  response_expired: "انتهت مهلة الرد",
+  cancelled: "ملغى",
+};
+
+const PENDING_FIRST = ["awaiting_requester_decision", "confirmed"];
+
+function minorToJod(minor: string | null): string | null {
+  if (minor === null) return null;
+  const value = BigInt(minor);
+  return `${(value / 100n).toString()}.${(value % 100n).toString().padStart(2, "0")}`;
+}
 
 export default function Delivery() {
-  const returnPath = useReturnPath();
-  /* EXE-005 (AUD-NEW-13): الزر يعد بوجهة معلنة فيتنقل إليها بالآلية المعتمدة
-   * نفسها التي تستعملها بقية الأسطح — لا window.history.back() الذي يهبط
-   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
   const [, navigate] = useLocation();
-  const announcement = futureServiceAnnouncements.delivery;
+  const { session, signIn, loading: sessionLoading, failed: sessionFailed, refresh } = useNetworkSession();
+  const [requests, setRequests] = useState<OwnerRequestSummary[]>([]);
+  const [statements, setStatements] = useState<
+    {
+      id: string;
+      driverName: string;
+      date: string;
+      totalMinor: string;
+      status: string;
+      items: { description: string; amountMinor: string }[];
+    }[]
+  >([]);
+  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [notice, setNotice] = useState<{ tone: "neutral" | "error" | "success"; text: string } | null>(null);
+  /* Stage C (S13/R4-20): تأكيد واحد قيد التنفيذ لكشف واحد — لا إدارة مزدوجة
+   * متطلبة تنتهي بصراح 409 بعد إعلام النجاح. */
+  const [confirmingStatementId, setConfirmingStatementId] = useState<string | null>(null);
+  const [differenceFor, setDifferenceFor] = useState<string | null>(null);
+  const [differenceNote, setDifferenceNote] = useState("");
+
+  const load = useCallback(async () => {
+    setState("loading");
+    try {
+      const overview = await fetchOwnerOverview();
+      setRequests(overview.requests);
+      const statementData = await fetchOwnerStatements();
+      setStatements(statementData.statements);
+      setState("ready");
+    } catch {
+      setState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session.authenticated) void load();
+    else if (!sessionLoading) setState("ready");
+  }, [session.authenticated, sessionLoading, load]);
+
+  const sorted = [...requests].sort((left, right) => {
+    const leftPending = PENDING_FIRST.includes(left.status) ? 0 : 1;
+    const rightPending = PENDING_FIRST.includes(right.status) ? 0 : 1;
+    if (leftPending !== rightPending) return leftPending - rightPending;
+    return right.updatedAt - left.updatedAt;
+  });
+  const awaitingStatements = statements.filter(statement => statement.status === "awaiting_confirmation");
+
   return (
-    <section className="micro-page micro-delivery-page" data-testid="delivery-soon-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
-      </button>
+    <section className="micro-page micro-delivery-page" data-testid="delivery-owner-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">خدمة قادمة</span>
+        <span className="micro-overline">تبويب صاحب المشروع</span>
         <h1>التوصيل</h1>
-        <p>خدمة Micro Delivery مستقبلية — إعلان صادق الآن، ولا نعرض ما لا يعمل.</p>
+        <p>حجز موجه لسائق معروف تختاره — بلا بث ولا تعيين عشوائي.</p>
       </div>
-      <section className="micro-soon-card" data-testid="delivery-soon-card">
-        <span className="micro-soon-badge">قريبًا</span>
-        <Truck aria-hidden="true" />
-        <div>
-          <strong>Micro Delivery</strong>
-          <p>{announcement.body}</p>
-          <p>{announcement.footer}</p>
+      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
+
+      {!session.authenticated && sessionFailed ? (
+        /* F-15/S12 (Phase E): انقطاع التحقق حالة مستقلة — لا تُعرض كبوابة دخول. */
+        <Notice tone="error">
+          تعذر التحقق من جلستك الآن — انقطاع الشبكة لا يعني أنك غير مسجل. تحقق من اتصالك ثم أعد المحاولة.
+          <Button action="quiet" onClick={() => void refresh()}>
+            إعادة المحاولة
+          </Button>
+        </Notice>
+      ) : !session.authenticated ? (
+        /* Stage C (S13/R1-16): الزر المذكور للضيف يظهر فعلًا — الدليل العام
+         * مسار عام لا يحتاج جلسة، فلا يُخفى المدخل العام عن الجمهور. */
+        <div className="micro-delivery-guest">
+          <Notice tone="neutral">
+            حجز التوصيل وكشوفه يحتاجان تسجيل الدخول بهوية Micro.
+            <Button action="quiet" onClick={() => signIn("/delivery")}>
+              الدخول عبر Google
+            </Button>
+          </Notice>
+          <Button action="outline" onClick={() => navigate("/delivery/drivers")}>
+            سائقوني والبحث عن سائق
+          </Button>
         </div>
-      </section>
-      <p className="micro-local-truth">
-        لا يُنشئ فتح هذه الصفحة أي سجل أو أثر مالي — إعلان خدمة معلن لا وظيفة وهمية.
-      </p>
-      <div className="micro-form-actions">
-        <Button
-          action="secondary"
-          onClick={() => {
-            navigate(returnPath);
-          }}
-        >
-          رجوع للرئيسية
-        </Button>
-      </div>
+      ) : (
+        <div className="micro-delivery-actions">
+          <Button action="create" onClick={() => navigate("/delivery/booking/new")}>
+            احجز توصيلًا
+          </Button>
+          <Button action="outline" onClick={() => navigate("/delivery/drivers")}>
+            سائقوني والبحث عن سائق
+          </Button>
+          {session.isAdmin ? (
+            <>
+              <Button action="quiet" onClick={() => navigate("/delivery/review")}>
+                طابور مراجعة التوصيل
+              </Button>
+              {/* G02 (Q129): مدخل لوحة المشرف — وحدة منفصلة بمسار خاص. */}
+              <Button action="quiet" onClick={() => navigate("/admin")}>
+                لوحة الإشراف
+              </Button>
+            </>
+          ) : null}
+        </div>
+      )}
+
+      {awaitingStatements.length > 0 ? (
+        <section className="micro-delivery-statements" data-testid="delivery-statements">
+          <h2>كشوف تنتظر تأكيدك (كاملًا فقط — لا تسوية جزئية)</h2>
+          {awaitingStatements.map(statement => (
+            <article key={statement.id} className="micro-statement-card">
+              <p>
+                {statement.driverName} — {formatLocalDate(statement.date)} —{" "}
+                {/* F-11 (S12/Phase E): عزل bidi كنوني للمبالغ عند المساس. */}
+                <bdi dir="ltr">{minorToJod(statement.totalMinor)}</bdi> د.أ
+              </p>
+              <ul className="micro-statement-card__items">
+                {(statement.items ?? []).map((item, index) => (
+                  <li key={index}>
+                    {item.description} — <bdi dir="ltr">{minorToJod(item.amountMinor)}</bdi> د.أ
+                  </li>
+                ))}
+              </ul>
+              {differenceFor === statement.id ? (
+                <div className="micro-statement-card__difference">
+                  <Field label="الفرق الملاحظ" controlId="difference-note">
+                    <input
+                      id="difference-note"
+                      value={differenceNote}
+                      onChange={event => setDifferenceNote(event.target.value)}
+                      placeholder="ما الذي اختلف عن الكشف؟"
+                    />
+                  </Field>
+                  <div className="micro-form-actions">
+                    <Button
+                      action="save"
+                      disabled={differenceNote.trim().length === 0 || confirmingStatementId !== null}
+                      onClick={async () => {
+                        try {
+                          setConfirmingStatementId(statement.id);
+                          await confirmStatement(statement.id, "difference", differenceNote.trim());
+                          setNotice({
+                            tone: "success",
+                            text: "سُجل الفرق — الكشف يظل بانتظار معالجة كاملة.",
+                          });
+                          setDifferenceFor(null);
+                          setDifferenceNote("");
+                          await load();
+                        } catch (error) {
+                          setNotice({
+                            tone: "error",
+                            text: error instanceof Error ? error.message : "تعذر تسجيل الفرق.",
+                          });
+                        } finally {
+                          setConfirmingStatementId(null);
+                        }
+                      }}
+                    >
+                      حفظ الفرق
+                    </Button>
+                    <Button
+                      action="quiet"
+                      onClick={() => {
+                        setDifferenceFor(null);
+                        setDifferenceNote("");
+                      }}
+                    >
+                      رجوع
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="micro-form-actions">
+                  <Button
+                    action="save"
+                    disabled={confirmingStatementId !== null}
+                    onClick={async () => {
+                      try {
+                        setConfirmingStatementId(statement.id);
+                        await confirmStatement(statement.id, "full");
+                        setNotice({ tone: "success", text: "أُكد استلام الكشف كاملًا." });
+                        await load();
+                      } catch (error) {
+                        setNotice({
+                          tone: "error",
+                          text: error instanceof Error ? error.message : "تعذر التأكيد.",
+                        });
+                      } finally {
+                        setConfirmingStatementId(null);
+                      }
+                    }}
+                  >
+                    استلام كامل
+                  </Button>
+                  <Button action="outline" onClick={() => setDifferenceFor(statement.id)}>
+                    تسجيل فرق
+                  </Button>
+                </div>
+              )}
+            </article>
+          ))}
+        </section>
+      ) : null}
+
+      {state === "loading" ? (
+        <p className="micro-delivery-status" role="status">
+          جارٍ التحميل…
+        </p>
+      ) : null}
+      {state === "error" ? (
+        <EmptyState
+          title="تعذر تحميل حجوزاتك"
+          description="أعد المحاولة — بياناتك المحلية سليمة."
+          action={
+            <Button action="secondary" onClick={() => void load()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : null}
+      {state === "ready" && sorted.length === 0 && session.authenticated ? (
+        <EmptyState
+          symbol={<Truck aria-hidden="true" />}
+          title="لا حجوزات بعد"
+          description="ابدأ بحجز موجه لسائق تعرفه — تختار السائق وتحدد المهمة والموعد."
+          action={
+            session.authenticated ? (
+              <Button action="create" onClick={() => navigate("/delivery/booking/new")}>
+                احجز توصيلًا
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : null}
+
+      <ul className="micro-delivery-results" data-testid="delivery-requests">
+        {sorted.map(request => (
+          <li key={request.id}>
+            <button
+              type="button"
+              className="micro-delivery-card"
+              onClick={() => navigate(`/delivery/booking/${request.id}`)}
+            >
+              <strong>{STATUS_LABELS[request.status] ?? request.status}</strong>
+              {/* R1-17 (أمر المالك 2026-11-14): المسار والموعد واسم السائق
+               * المعيّن (إن وجد) على البطاقة نفسها — القرار قبل الفتح؛ من
+               * الملخص الخادمي الآمن والنسخة العامة المعتمدة وحدها. */}
+              <span className="micro-delivery-card__route">
+                المسار: {bookingRouteText(request.route)} · الموعد: {bookingScheduleText(request.schedule)}
+                {request.driverName != null ? ` · السائق: ${request.driverName}` : ""}
+              </span>
+              <span>
+                {request.pricingMode === "prepriced" ? (
+                  <>
+                    أجرة معروضة <bdi dir="ltr">{minorToJod(request.offeredFareMinor) ?? "—"}</bdi> د.أ
+                  </>
+                ) : (
+                  "طلب تسعير موجه"
+                )}
+                {request.collectionMinor !== null ? (
+                  <>
+                    {" · تحصيل "}
+                    <bdi dir="ltr">{minorToJod(request.collectionMinor)}</bdi> د.أ
+                  </>
+                ) : (
+                  ""
+                )}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

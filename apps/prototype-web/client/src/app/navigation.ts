@@ -47,8 +47,26 @@ export function getNavigationLabel(pathname: string) {
   /* N-06 (Wave 4.2 — F-09/قرار المالك): الاسم الموحد للسطح «منتجاتي وخدماتي»
    * في كل المواضع الظاهرة — «الكتالوج» مصطلح نظام لا اسم ملكية. */
   if (pathname.startsWith("/catalog")) return "منتجاتي وخدماتي";
-  if (pathname.startsWith("/share")) return "معاينة المشاركة";
+  /* Stage C (S13/R5-8): مسار المشاركة أزيل بقرار UNIT-040 — لا تسمية
+   * حية لمسار ملغى؛ رابطه القديم يسقط إلى 404 الصادقة بتسميتها. */
   if (pathname.startsWith("/foundation")) return "صفحة الأساس";
+  /* EX-D21 (Phase B): مدخل Ask Micro الشامل — سطح عمق واحد بلا شريط سفلي،
+   * يُدخل من القائمة (سياق المالك) أو من ترويسة بوابة السائق (سياق السائق). */
+  if (pathname === "/ask" || pathname.startsWith("/ask/")) return "اسأل Micro";
+  /* EX-D18 (عقد 26 §8): تسميات سياقية لمسارات السوق فوق مقعد الشريط نفسه. */
+  if (pathname === "/market/vendor" || pathname.startsWith("/market/vendor/")) return "مساحة المورد";
+  if (pathname.startsWith("/market/listing/")) return "تفاصيل الإعلان";
+  if (pathname.startsWith("/market/review")) return "مراجعة السوق";
+  if (pathname === "/market" || pathname.startsWith("/market")) return "السوق";
+  /* EX-D18 (عقد 26 §8): تسميات التوصيل وبوابة السائق المستقلة (OD01). */
+  if (pathname.startsWith("/delivery/booking/")) return "تفاصيل الحجز";
+  if (pathname.startsWith("/delivery/drivers")) return "سائقوني";
+  if (pathname.startsWith("/delivery/review")) return "مراجعة التوصيل";
+  if (pathname.startsWith("/delivery")) return "التوصيل";
+  if (pathname.startsWith("/driver")) return "Micro — السائق";
+  /* Post-Group 6 continuous completion (G02 — Q129): لوحة المشرف — مسار
+   * وتخطيط خاصان لوحدة منفصلة. */
+  if (pathname.startsWith("/admin")) return "لوحة الإشراف";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

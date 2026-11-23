@@ -86,10 +86,16 @@ export const CLOCK_BOUNDARY_FILE = "application/time/clock.ts";
 export const CLOCK_BOUNDARY_SHAPE = "new Date().toISOString()";
 
 /**
- * الجرد المثبت للـ22 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
+ * الجرد المثبت للـ25 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
+ * (تصحيح مؤرخ 2026-11-22 DOC-041/WS-251: 25 = 21 شكل-أ + 4 شكل-ب بعد
+ * إضافة بيت اسأل بأمر المالك الملحق §10.2؛ كان العدد الحي 24 = 20+4)
  * أي تغيير يتطلب إعادة إرساء موثقة في نفس الـPR مع مرجع مراجعة مالك).
  */
 export const APPROVED_ID_FALLBACK_SITES = [
+  /* الملحق §10.2 (قرار المالك المعتمد 2026-11-22 — DOC-041/WS-251، إعادة
+   * إرساء موثقة بنفس الـPR): مولّد معرف مسودة الحدث المالي المقترح في بيت
+   * اسأل — النمط المعتمد نفسه (مساعد واحد لكل ملف). */
+  { file: "application/ask/askFinancialDraftService.ts", shape: "nullish" },
   { file: "application/assets/assetService.ts", shape: "nullish" },
   { file: "application/budgets/expenseBudgetService.ts", shape: "nullish" },
   { file: "application/cash/cashContinuityService.ts", shape: "nullish" },
@@ -336,7 +342,7 @@ export function classifyAmbientTime(repoRoot) {
       violations.push({
         rule: "AT-new-id-fallback-site",
         key: `${file}: ${live.nullish}أ/${live.ternary}ب`,
-        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (23 موقعًا) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
+        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (25 موقعًا — تصحيح مؤرخ 2026-11-22) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
       });
     }
   }
@@ -360,7 +366,7 @@ function main() {
     `application-ambient-time: PASS — ${stats.files} ملف إنتاج تطبيقي؛ ` +
       `${stats.approvedIdFallbackRegions} منطقة ID-fallback معتمدة فيها ${stats.approvedDateNowCalls} نداء Date.now() معفى؛ ` +
       `${stats.parseCalls} تحليلًا صريحًا (مسموح)؛ منفذ الساعة الموثق ${stats.clockBoundarySites} موقعًا؛ ` +
-      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 23 موقعًا: 19 شكل-أ + 4 شكل-ب)`,
+      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 25 موقعًا: 21 شكل-أ + 4 شكل-ب — تصحيح مؤرخ 2026-11-22 DOC-041/WS-251)`,
   );
 }
 

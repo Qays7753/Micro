@@ -99,6 +99,23 @@ export const READER_FILES = [
  * القراءة يُرفض. الملف الـ63 (inventory/materialUnitLabels.ts — شريحة
  * R10-B3) مدقق أدناه: مفردات تسميات صرفة بلا أي فعل كتابة. */
 export const READ_LIKE_CORPUS_BASELINE = [
+  /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01+G02، 2026-11-22):
+   * بيت لوحة المشرف الجديد — قراءة من الخادم حصرًا عبر /api/admin/* (الطوابير
+   * والبحث وسجل القرارات) بلا أي كتابة تخزين محلي؛ كل أوامر الإيقاف/الإلغاء
+   * أوامر خادمية مدققة عبر الباب نفسه. صنّف في نفس الـPR الذي أدخله (قاعدة الحارس). */
+  "admin/adminPanelService.ts",
+  "admin/index.ts",
+  /* الملحق §10.2 (DOC-041/WS-251 — أمر المالك 2026-11-22): بيت اسأل Micro
+   * الجديد — بناء سجل الحدث المالي المقترح بدالة إنشاء المجال (بناء قيمة
+   * صِرفة — لا كتابة تخزين محلي ولا أي حفظ قبل تأكيد المستخدم الصريح عبر
+   * المسار الكنوني). صنّف في نفس الـPR الذي أدخله.
+   * (إعادة تصنيف مؤرخة 2026-11-22 — استكمال بروتوكول التسجيل DOC-041/WS-251،
+   * سابقة EX-D23 نفسها: askHistoryService خرجت من جسم القراءة — صارت تحمل
+   * كتابة محلية مقصودة عند منفذ التخزين (saveAskHistoryEntry — سجل اسأل
+   * النصي في المهايئين كليهما) فلم تبق «قارئة» بالمعجم المحروس؛ القراءة
+   * تبقى عبر الباب ask/index.ts.) */
+  "ask/askFinancialDraftService.ts",
+  "ask/index.ts",
   "activity/activityLabels.ts",
   "activity/activityService.ts",
   "activity/index.ts",
@@ -109,6 +126,26 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "agreements/orderDetailViewModel.ts",
   "assets/index.ts",
   "cash/cashCountMessages.ts",
+  /* EX-D18 (2026-11-12): بيت الشبكة — عميل BFF نفس الأصل بلا أي كتابة تخزين محلي.
+   * EX-D21 (DOC-037، Phase B — 2026-11-14): خدمة Ask Micro تُضاف للسجل —
+   * قراءة حالة/سياق وإرسال سؤال عبر الباب نفسه؛ لا كتابة محلية إطلاقًا.
+   * EX-D23 M3→M4 (DOC-040، 2026-11-14): خدمة Manage المتصلة أُضيفت للسجل في M3
+   * ثم أُخرجت منه في M4 بإعادة تصنيف موثقة: صارت تحمل كتابة خادمية مقصودة
+   * (saveManageRecord — UPSERT حتمي بCAS على الخادم حصرًا) فلم تبق «قارئة»
+   * بالمعجم المحروس؛ لا كتابة تخزين محلي في أي حال (بيت الشبكة كله). */
+  "network/apiClient.ts",
+  "network/index.ts",
+  "network/sessionService.ts",
+  "network/askMicroService.ts",
+  /* الاستكمال المستمر (DOC-041/WS-251 — أمر المالك 7593b9c4 §4 G01، 2026-11-22):
+   * خدمة أدوار الحساب — قراءة الحالة وتوجيه أوامر الخادم المدققة
+   * (إلغاء المسودة/إزالة الدور) عبر باب الشبكة؛ صفر تخزين محلي. */
+  "network/accountRolesService.ts",
+  "market/marketService.ts",
+  "market/marketEstimate.ts",
+  "market/index.ts",
+  "delivery/deliveryService.ts",
+  "delivery/index.ts",
   "cash/index.ts",
   "cash/walletLedgerService.ts",
   "catalog/index.ts",
@@ -292,7 +329,10 @@ export function checkReadLikeCorpus(repoRoot) {
       });
     }
   }
-  return { violations, stats: { baseline: READ_LIKE_CORPUS_BASELINE.length, liveReadLike: liveReadLike.length } };
+  return {
+    violations,
+    stats: { baseline: READ_LIKE_CORPUS_BASELINE.length, liveReadLike: liveReadLike.length },
+  };
 }
 
 /** الفحص الكامل: يعيد الخروق والإحصاءات. */

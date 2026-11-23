@@ -56,6 +56,8 @@ import type {
 type HomeState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
+  /* Stage C (S13/R5-1): لا مشروع بعد — دعوة إعداد صادقة لا شاشة خطأ. */
+  | { phase: "no_project" }
   | { phase: "ready"; model: HomeControlCenterViewModel; refreshError: string | null };
 
 /* UXR-01 (أمر UXR-W01 — قبول A01): رفض وعد القراءة (استثناء غير متوقع)
@@ -192,6 +194,8 @@ export default function Home() {
           /* Z1.4: فشل التحديث الخلفي مع جهوزية قائمة لا يستبدلها. */
           if (current.phase === "ready")
             return { phase: "ready", model: current.model, refreshError: result.message };
+          /* Stage C (S13/R5-1): لا مشروع ≠ خطأ قراءة — دعوة إعداد صادقة. */
+          if (result.code === "no_project") return { phase: "no_project" };
           return { phase: "error", message: result.message };
         });
       },
@@ -236,6 +240,22 @@ export default function Home() {
   const setupFailure = homeSetup?.status === "failed" ? homeSetup : null;
   /* ترتيب صادق: فشل التجهيز يحجب القراءة أصلًا؛ ورسالة القراءة لا تُعرض
    * إلا عند غيابه — فالحالتان لا تتنازعان السطح أبدًا. */
+  /* Stage C (S13/R5-1): ضيف/حساب متصل بلا إعداد Manage يرى دعوة تأسيس
+   * صادقة — لا شاشة «تعذر تحميل مشروعك» التي لا تنجح إعادتها أبدًا. */
+  if (state.phase === "no_project") {
+    return (
+      <section className="micro-page micro-not-found" data-testid="home-no-project">
+        <h1>ابدأ مشروعك في Micro</h1>
+        <p role="status">
+          هذه الصفحة بيت أدوات صاحب المشروع — الأساس يُنشأ خطوة واحدة قصيرة، والسوق والتوصيل متاحان لك الآن من
+          شريط التنقل بلا إعداد.
+        </p>
+        <Button action="create" onClick={() => navigate("/setup")}>
+          أنشئ مشروعي الآن
+        </Button>
+      </section>
+    );
+  }
   if (setupFailure || state.phase === "error") {
     const failureMessage = setupFailure
       ? "تعذر تجهيز مشروعك."

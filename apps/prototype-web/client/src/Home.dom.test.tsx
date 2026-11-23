@@ -196,8 +196,32 @@ describe("Home journeys (Group 11-E)", () => {
     expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
   });
 
+  it("offers the honest setup CTA when there is no project yet (guest/connected-only account)", async () => {
+    /* Stage C (S13/R5-1 — أمر المالك 2026-11-14): بلا ملف مالك القراءة ترجع
+     * no_project — دعوة تأسيس صادقة، لا شاشة «تعذر تحميل مشروعك» التي لا
+     * تنجح إعادتها أبدًا (الضيف من السوق يهبط هنا من مقعد الرئيسية). */
+    renderHome();
+    expect(await screen.findByTestId("home-no-project")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "ابدأ مشروعك في Micro" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "أنشئ مشروعي الآن" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "تعذر تحميل مشروعك" })).not.toBeTruthy();
+  });
+
   it("fails honestly with the retry affordance when the read model fails (no click)", async () => {
-    /* بلا ملف مالك: القراءة ترجع ok:false — سطح الخطأ الصادق يظهر. */
+    /* فشل قراءة حقيقي (وليس غياب المشروع) — سطح الخطأ الصادق يظهر كما هو. */
+    const failingControlCenter = {
+      read: async () => ({
+        ok: false as const,
+        code: "storage_error" as const,
+        message: "تعذر قراءة بيانات مشروعك المحلية.",
+      }),
+    } as unknown as HomeControlCenterService;
+    mockedUsePrototypeServices.mockReturnValue({
+      homeControlCenter: failingControlCenter,
+      projectFinance: new ProjectFinancialService(store, () => NOW),
+      dataVersion: 0,
+      notifyDataChanged: () => {},
+    } as unknown as ReturnType<typeof usePrototypeServices>);
     renderHome();
     expect(await screen.findByRole("heading", { name: "تعذر تحميل مشروعك" })).toBeTruthy();
     expect(screen.getByText("تعذر قراءة بيانات مشروعك المحلية.")).toBeTruthy();

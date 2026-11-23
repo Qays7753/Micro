@@ -196,6 +196,26 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
    * بيت قسم «منتجاتي وخدماتي» المعلن بعد تنظيف أدواتي (تحديث موثق واحد مع
    * عقد ٢٦ §2.2 واختباره). */
   "/catalog": "/",
+  /* EX-D18 (عقد 26 §8 — بوابة الكود 2026-11-12): بدائل رجوع السوق —
+   * المحررات تعود لمساحة المورد، والتفاصيل للسوق؛ عقد 26 §2.2. */
+  "/market/vendor": "/market",
+  "/market/review": "/market",
+  "/market/listing/:id": "/market",
+  "/market/vendor/new": "/market/vendor",
+  "/market/vendor/:id": "/market/vendor",
+  /* EX-D18 (عقد 26 §8): بدائل رجوع التوصيل وبوابة السائق. */
+  "/delivery/booking/new": "/delivery",
+  "/delivery/booking/:id": "/delivery",
+  "/delivery/drivers": "/delivery",
+  /* طابور مراجعة التوصيل (OD17/OD22/OD28–OD31) يعود إلى بيت التوصيل. */
+  "/delivery/review": "/delivery",
+  /* جذر بوابة السائق وجهتها نفسها؛ البديل هنا للبدء البارد بلا سياق فقط
+   * (رابط خارجي) — داخل البوابة كل رجوع يعود لأصلها /driver. */
+  "/driver": "/",
+  "/driver/booking/:id": "/driver",
+  /* EX-D21 (Phase B): Ask Micro تعود لأصل سياقها عبر ?returnTo القياسي؛
+   * بديل البدء البارد بلا سياق هو الرئيسية. */
+  "/ask": "/",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */
@@ -215,6 +235,11 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/assets/")) return "/assets";
   if (pathname.startsWith("/loans/")) return "/loans";
   if (pathname.startsWith("/catalog")) return "/catalog";
+  if (pathname.startsWith("/market/vendor/")) return "/market/vendor";
+  if (pathname.startsWith("/market/listing/")) return "/market";
+  if (pathname.startsWith("/delivery/")) return "/delivery";
+  if (pathname.startsWith("/driver")) return "/driver";
+  if (pathname.startsWith("/ask")) return "/";
   if (pathname.startsWith("/tools")) return "/tools";
   if (pathname === "/profile") return "/";
   return "/";

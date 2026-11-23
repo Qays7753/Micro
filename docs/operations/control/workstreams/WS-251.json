@@ -1,0 +1,126 @@
+{
+ "id": "WS-251",
+ "title": "ما بعد المجموعة ٦ — معالجة فجوات القرارات النهائية 2026-11-21 والنتائج الأمنية المفتوحة القابلة للتنفيذ (أمر المالك POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e)",
+ "status": "REVIEW_REQUIRED",
+ "items": [
+  "DOC-041"
+ ],
+ "branch": "zai/micro-manage-online-20261114",
+ "base_sha": "e4ad90518c304ee09571e14c68186add2c40bcc9",
+ "areas": [
+  "docs/expansion/DECISIONS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/auth/",
+  "apps/prototype-web/worker/api/",
+  "apps/prototype-web/worker/commands.ts",
+  "apps/prototype-web/worker/idempotency.ts",
+  "apps/prototype-web/worker/ratelimit.ts",
+  "apps/prototype-web/worker/http.ts",
+  "apps/prototype-web/worker/routes.ts",
+  "apps/prototype-web/worker/routes.market.ts",
+  "apps/prototype-web/worker/routes.delivery.ts",
+  "apps/prototype-web/worker/routes.manage.ts",
+  "apps/prototype-web/worker/domain/",
+  "apps/prototype-web/worker/db/migrations-pg/",
+  "apps/prototype-web/worker/tests/",
+  "apps/prototype-web/client/src/application/network/",
+  "apps/prototype-web/client/src/pages/",
+  "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/05-financial-p0-policies.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/22-network-moderation-consent-audit-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+  "docs/contracts/25-network-money-representation-contract.md",
+  "docs/expansion/ROLE-ACCESS-MATRIX.md",
+  "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md"
+ ],
+ "agent": "ZAI — sole implementation writer per owner prompt bd242b3e (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md); one writer/integrator only, no parallel writers, no agent fan-out",
+ "pr": null,
+ "started_at": "2026-11-21",
+ "updated_at": "2026-11-22",
+ "next_action": "مراجعة المالك لتقرير المرحلة الثانية وdiffs الاستكالة عند بوابة المراجعة؛ القرارات المفتوحة كما هي (MNG-LOCAL-03 المؤجلة، توصيل مزود Ask، الاحتفاظ القانوني، قبول مسح 2026-11-21 لفتح العمل الهيكلي) وخطوات المشغل (G11/G12، MFA، تطبيق الترحيلات حتى 0017) قبل أي بيانات حقيقية.",
+ "notes": [
+  "Hard boundaries from the owner order bd242b3e: read-only owner-decision branch docs/micro-final-decisions-20261121 (PR #385 open — do not edit/retarget/approve/merge); the 2026-11-21 final decisions supersede earlier D1–D8 and EX-D19..D23 where they conflict; no Ask Micro AI provider wiring; no spending/paid providers; no Cloudflare/Neon/R2/OAuth writes; no live DB/migration application/real-data transfer/backup/deployment; repository migration files + ephemeral/local PostgreSQL tests with synthetic data are permitted; no structural refactoring/bulk moves/module reorganization/file splitting/new generic architecture layer (the Post-Group 6 scan/owner-review gate stays in force — structural proposals are DEFER); no dark mode; no global token/color redesign; every pushed commit starts with [CF-Pages-Skip] so no Cloudflare Pages preview is created; preserve the untracked Post-Group 6 scan report untouched.",
+  "The claim continues the WS-250 branch series at the owner's bd242b3e order after WS-250's M1–M6 implementation closed at its owner-review gate (DOC-040 stays IN_REVIEW with its evidence intact).",
+  "Wave 0 live verification (2026-11-21): target branch head bd242b3e (local == origin, fast-forward); main at 16c90e48 == merge-base; PR #385 open (head b04ba6ef = the decision branch, unmerged); latest CI on branch 43620704296 success on bf90754b; scan report preserved untracked at docs/architecture/refactoring/post-group6-scan-20261121/ with SHA-256 a4c0dc78a18c5c755a414828e804ad9bff5f9c60b87d6637882d90858bff4784; the shared security-audit source file is NOT available in the Z AI project context — gap-analysis.md §4 (30 findings) is the accessible mirror per the order §3.",
+  "قاعدة المطاللة انتقلت إلى رأس أمر الاستكمال المستمر 7593b9c4 (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md)؛ أدلة التسليم السابق (efa5df84 وما قبله) تبقى كما هي ولا تُمس."
+ ],
+ "evidence": [
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/MANAGE-ONLINE-IMPLEMENTATION-REPORT-2026-11-14.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMEDIATION-REPORT-2026-11-21.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-REMAINING-WAVES-REPORT-2026-11-21.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22.md",
+  "docs/expansion/handoffs/zai-micro-manage-online-2026-11-14/POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22-PHASE2.md"
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-21",
+   "actor": "zai-claim-2026-11-21",
+   "reason": "أنشئت المطالبة بأمر المالك المؤرخ 2026-11-21 (POST-GROUP6-REMEDIATION-EXECUTION-PROMPT-EN.md عند bd242b3e) لتنفيذ معالجة ما بعد المجموعة ٦ على الفرع نفسه zai/micro-manage-online-20261114 من رأس أمر المالك bd242b3e، بعد تحرير مطالبة WS-250 قانونيًا إلى REVIEW_REQUIRED بنمط WS-249→WS-250 نفسه (تنفيذ M1–M6 مكتمل عند بوابة مراجعة المالك وبند DOC-040 باقٍ في IN_REVIEW بأدلته سليمة). بند DOC-041 ضمن هذه المطالبة؛ لا تداخل مع أي مطالبة نشطة أخرى."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-21",
+   "actor": "zai-implementation-writer",
+   "reason": "W0 (الخط القاعدي والتتبع) منجزة في هذا الالتزام نفسه (توثيق/تحكم فقط — صفر كود): الفحص المسبق الحي (الفروع/PR #385/Actions/Control) وتوثيق حفظ تقرير المسح غير المتتبَّع وبصمته وEX-D24 في DECISIONS.md (تسجيل حاكمية قرارات المالك النهائية 2026-11-21 فوق D1–D8/EX-D19..D23 عند التعارض) ومصالحة G01–G14 والنتائج الأمنية الثلاثين المسجلة في بطاقة البند DOC-041؛ يليها W1 (الهوية/السياق/Admin/الجلسات) بترتيب الموجات المرخص."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-21",
+   "actor": "zai-implementation-writer",
+   "reason": "التسليم الختامي عند بوابة مراجعة المالك: الموجات W0..W5 كاملة (W2 a414e92b/39414309، W3 ca6e99ac/f7d28835/3aa9e046، W4 58aa13fe/1d838706، W5 eefd798f/926e45d6/b8eb5b79 + تصحيحا البوابة b3ef9b67/f9c13d74) والتقريران العربيان (نقطة الفحص + الختامي POST-GROUP6-REMAINING-WAVES-REPORT-2026-11-21.md) مسلَّمان والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-claim-2026-11-22",
+   "reason": "أمر المالك للاستكمال المستمر (POST-GROUP6-CONTINUOUS-COMPLETION-EXECUTION-PROMPT-EN.md عند 7593b9c4) يعيد فتح المطالبة عند بوابة المراجعة لاستكمال البرمجيات المحددة المتبقية على الفرع نفسه (قاعدة المطالبة تنتقل إلى رأس الأمر 7593b9c4 فوق رأس التسليم efa5df84 الذي يبقى بدليله)؛ لا يعني الفتح قبول W0..W5 المسلّمة ولا قبول الجديد."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "تنفيذ الاستكمال المستمر تحت البند DOC-041 المفتوح: موجات صغيرة مستقلة غير هيكلية (Ask Micro محايدة المزود، G13، دورة الأدوار غير الإتلافية، لوحة المشرف Q129) مع بوابة ci.yml غير الناشرة على مرشح الكود النهائي وتقرير عربي ختامي مؤرخ ثم العودة إلى بوابة المالك."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "التسليم الختامي للاستكمال المستمر عند بوابة مراجعة المالك: G01/G02/G03/G13 كاملة بإصلاحات البوابة الأربعة (549afd5b وf689854e و81d2abfc وe8d9c1c8) والتقرير العربي الختامي POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22.md مسلَّم والبند DOC-041 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية أبدًا؛ NO_CLEANUP."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-claim-2026-11-22-phase2",
+   "reason": "ملحق المالك المؤكد 2026-11-22 (القسم 10 من أمر الاستكمال المستمر نفسه عند رأس التسليم e4ad9051) يعيد فتح المطالبة لمرحلة ثانية: قرارات دورة الدور والحساب (إعادة الإضافة كطلب جديد، رفع الإيقاف المدقق، التصدير قبل الحذف المؤكد)، وتوسيع مسودات Ask المالية الكنونية وحوكمتها الكاملة، وإصلاحات فجوات مراجعة المصدر المحددة — نقل الأساس إلى رأس الملحق. لا قبول لأي عمل سابق."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "تنفيذ المرحلة الثانية تحت البند DOC-041 المفتوح: موجات صغيرة مستقلة غير هيكلية مع اختبارات انحدار مركزة، وبوابة ci.yml غير الناشرة على مرشح الكود النهائي مرة واحدة، وتقرير ختامي مؤرخ جديد، ثم العودة إلى بوابة مراجعة المالك."
+  },
+  {
+   "status": "REVIEW_REQUIRED",
+   "changed_at": "2026-11-22",
+   "actor": "zai-implementation-writer",
+   "reason": "تسليم المرحلة الثانية كاملة عند بوابة مراجعة المالك: أربعة التزامات منتج §10 (c80a2fe1 إعادة الدور كطلب جديد، 63aeb86e رفع الإيقاف المدقَّق + إعادة فحص الأهلية، 093928cf حوكمة Ask والمسودة المالية الكنسية، c3666e8f التصدير قبل الحذف) فوق رأس الملحق a69a63f0، ثلاثة التزامات استكمال بروتوكول (85a3c132 منفذ تخزين سجل اسأل، 0300f31f الزوج 41→42 بdiff مزدوج، 09d626c9 حارس المستمعات) وملف بيانات الختم 3f995bba — كلها مدفوعة fast-forward على الفرع zai/micro-manage-online-20261114 ولم يُمس main ولا PR #385؛ البوابة الختامية غير الناشرة 45002061919 خضراء بالكامل على 3f995bba (الجذر 84 ملفًا 1027/1027 والنموذج 474 ملفًا 3779/3779 وكل الحراس خضراء) مع أمانة التشغيل الفاشل الأول 45000696324 وإغلاقه بإعادة الإرساء الموثقة؛ تقرير POST-GROUP6-CONTINUOUS-COMPLETION-REPORT-2026-11-22-PHASE2.md مسلَّم مفهرسًا 12V؛ تقرير المسح غير المتتبَّع محفوظ في مساحة عمل Z AI غير منشور كما يفرض الأمر؛ لا PR ولا دمج ولا main ولا مزود ولا بيانات حقيقية ولا حذف حي ولا هيكلة ولا نشر."
+  }
+ ],
+ "migration_baseline": false
+}

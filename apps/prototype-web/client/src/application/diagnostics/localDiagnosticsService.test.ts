@@ -52,7 +52,7 @@ describe("local diagnostics ring buffer (group 5 — bounded, private, local-onl
       errorId,
       appVersion: "test-identity",
       /* S14 (DOC-023): المخطط 41 بعد عائلتي المنسق. */
-      schemaVersion: 41,
+      schemaVersion: 42,
       routeTemplate: "/orders/:id",
       operation: "errorBoundary",
       errorCode: "render_crash",
@@ -119,7 +119,7 @@ describe("local diagnostics ring buffer (group 5 — bounded, private, local-onl
           errorId: "MIC-0000000000",
           appVersion: "x",
           /* S05 (DOC-014): المخطط 40. */
-          schemaVersion: 41,
+          schemaVersion: 42,
           routeTemplate: "/",
           operation: "o",
           errorCode: "unknown_error",
