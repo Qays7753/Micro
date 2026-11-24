@@ -42,11 +42,12 @@ export function command(seed: string, handler: RouteHandler, options: CommandOpt
     // different accounts can never replay each other's responses.
     const sessionToken = readSessionCookie(ctx.request);
     const scopedKey = `${key}:${sessionToken === null ? "anon" : await sha256Hex(sessionToken)}`;
-    /* SRV-02 (2026-11-23): the request body is hashed for replay detection —
-     * the byte cap is enforced by the SAME two layers as every other body
-     * reader (declared length before buffering, hard cap after reading a
-     * lying/chunked body), so an oversized command body is refused before it
-     * is ever buffered, whatever the route below it does. */
+    /* SRV-02 (follow-up remediation 2026-11-24): the request body is hashed
+     * for replay detection — the byte cap is enforced by the SAME streaming
+     * door as every other body reader (declared length refused early, then
+     * the stream byte-capped DURING consumption with the reader cancelled at
+     * the cap), so an oversized command body is refused while streaming,
+     * whatever the route below it does. */
     const bodyText = await readBodyTextWithin(ctx.request.clone(), maxBodyBytes);
     const requestHash = await hashRequest(
       `${ctx.url.pathname}${ctx.url.search}`,

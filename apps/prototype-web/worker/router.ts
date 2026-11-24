@@ -103,20 +103,72 @@ export class ApiRouter {
  * documented cap (the Manage migration envelope). */
 export const JSON_BODY_MAX_BYTES = 256 * 1024;
 
-/** SRV-02 (2026-11-23): read a request body as text with BOTH size layers —
- * the DECLARED content-length is refused BEFORE the body is buffered (an
- * oversized request never reaches `text()`), and the post-read cap stays for
- * the lying or missing header case (chunked bodies). The Manage routes and
- * the idempotency command wrapper share this one helper so no body-reading
- * path can bypass the limit anymore. */
-export async function readBodyTextWithin(request: Request, maxBytes: number): Promise<string> {
+/* SRV-02 (follow-up remediation 2026-11-24 — WS-254/DOC-044): القارئ أصبح
+ * تدفقيًّا — السقف الصارم يُفرَض على البايتات أثناء استهلاك مجرى الطلب نفسه
+ * (قبل أن يكتمل أي تجميع في الذاكرة)، والمجرى يُلغى فور تجاوز السقف، ولا
+ * يبقى أي مسار يجمّع الجسم كاملًا ثم يفحص حجمه بعد التحميل. الطول المعلن
+ * (Content-Length) يبقى تلميحًا للرفض المبكر فقط؛ والعدّ بالبايتات لا بعد
+ * المحارف — جسم متعدد البايتات لا يمكن أن يتجاوز السقف البايتي بصمت. */
+
+/** Read the request body as bytes with the hard streaming byte cap.
+ *
+ * The single canonical bounded body door (SRV-02):
+ *  - the DECLARED content-length is refused BEFORE the stream is touched (an
+ *    oversized request never starts reading — early-rejection hint only);
+ *  - the body stream is consumed chunk-by-chunk with a running BYTE count;
+ *    the moment the count would exceed the cap the reader is CANCELLED (the
+ *    stream is stopped and closed — no further bytes are pulled or buffered)
+ *    and the honest `body_too_large` refusal is thrown;
+ *  - a body-less request (GET/HEAD/empty) returns an empty byte array — no
+ *    second unbounded clone/read path exists anywhere.
+ */
+export async function readBodyBytesWithin(request: Request, maxBytes: number): Promise<Uint8Array> {
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     throw new HttpError(400, "bad_request", { reason: "body_too_large", maxBytes });
   }
-  const text = await request.text();
-  if (text.length > maxBytes) throw new HttpError(400, "bad_request", { reason: "body_too_large", maxBytes });
-  return text;
+  const body = request.body;
+  if (body === null) return new Uint8Array(0);
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      /* Cancel the stream as soon as the byte cap would be exceeded — stop
+       * pulling, stop buffering; the excess bytes are never read. */
+      try {
+        await reader.cancel();
+      } catch {
+        /* cancellation is best-effort; the refusal below is the guarantee. */
+      }
+      throw new HttpError(400, "bad_request", { reason: "body_too_large", maxBytes });
+    }
+    chunks.push(value);
+  }
+  if (chunks.length === 1) return chunks[0];
+  const total = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    total.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return total;
+}
+
+/** SRV-02: read a request body as text through the ONE streaming byte-capped
+ * door (`readBodyBytesWithin`) — the cap is enforced on BYTES while the stream
+ * is consumed (Content-Length stays an early-rejection hint; the lying or
+ * missing header and chunked streams are capped mid-stream and cancelled).
+ * The Manage routes and the idempotency command wrapper share this one
+ * helper so no body-reading path can bypass the limit anymore. */
+export async function readBodyTextWithin(request: Request, maxBytes: number): Promise<string> {
+  const bytes = await readBodyBytesWithin(request, maxBytes);
+  /* Same UTF-8 decoding semantics as `request.text()` (non-fatal — invalid
+   * sequences become replacement characters, never a throw). */
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 /** Read and parse a JSON request body (max 256 KB). */
@@ -125,10 +177,10 @@ export async function readJsonBody(request: Request): Promise<unknown> {
   if (!contentType.includes("application/json")) {
     throw new HttpError(400, "bad_request", { field: "content-type" });
   }
-  /* SRV-02 (Post-Group 6 — order bd242b3e): the declared length is checked
-   * BEFORE the body is read — an oversized request is refused early instead
-   * of being buffered first. The post-read cap below stays for the lying or
-   * missing header case (chunked bodies). */
+  /* SRV-02 (follow-up 2026-11-24): the body is read through the ONE
+   * streaming byte-capped door — the declared length is refused early, and
+   * missing/lying lengths and chunked streams are byte-capped DURING the
+   * stream with the reader cancelled at the cap (never buffered whole). */
   const text = await readBodyTextWithin(request, JSON_BODY_MAX_BYTES);
   try {
     return JSON.parse(text) as unknown;

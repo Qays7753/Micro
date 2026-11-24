@@ -22,7 +22,13 @@ import type { AuthenticatedContext } from "./auth/session.ts";
 import { command } from "./commands.ts";
 import { errorResponse, HttpError, jsonResponse } from "./http.ts";
 import { isGlobalModuleEnabled } from "./db/db.ts";
-import { ApiRouter, type RouteContext, type RouteHandler } from "./router.ts";
+import {
+  ApiRouter,
+  JSON_BODY_MAX_BYTES,
+  readBodyTextWithin,
+  type RouteContext,
+  type RouteHandler,
+} from "./router.ts";
 import { registerMarketRoutes } from "./routes.market.ts";
 import {
   cancelDriverDraft,
@@ -116,13 +122,23 @@ export function buildRouter(): ApiRouter {
     command(
       "push-subscription-register",
       authedRoute(async (ctx, auth) => {
-        const body = (await ctx.request
-          .clone()
-          .json()
-          .catch(() => ({}))) as {
+        /* SRV-02 (follow-up remediation 2026-11-24): this was the last body
+         * read outside the canonical bounded doors — a raw `clone().json()`
+         * with no cap at all when no idempotency key was sent (the command
+         * wrapper only reads the body when a key IS present). It now reads
+         * through the ONE streaming byte-capped door, preserving the
+         * historical lenient empty-object fallback byte-for-byte. */
+        const text = await readBodyTextWithin(ctx.request, JSON_BODY_MAX_BYTES);
+        let body: {
           endpoint?: unknown;
           keys?: unknown;
         };
+        try {
+          body = JSON.parse(text) as { endpoint?: unknown; keys?: unknown };
+        } catch {
+          body = {}; /* the historical lenient empty-object fallback (only the
+           * PARSE fails leniently — the byte cap above refuses honestly). */
+        }
         await registerPushSubscription(ctx.env.DB, auth.identityId, body);
         return jsonResponse({ ok: true }, 201);
       }),

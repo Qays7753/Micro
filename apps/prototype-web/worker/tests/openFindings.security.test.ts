@@ -14,11 +14,21 @@
  *    buffering (including through the idempotency command wrapper), while
  *    the migration apply route keeps its own documented larger envelope
  *    ceiling so an honest export-sized body still reaches its auth gate.
+ *  - SRV-02 (follow-up remediation 2026-11-24 — the owner's
+ *    FOLLOW-UP-REMEDIATION-PROMPT-EN): the bounded body door is now
+ *    STREAMING — the byte cap is enforced while the request stream is
+ *    consumed (the reader is CANCELLED at the cap so the excess bytes are
+ *    never pulled or buffered), the byte count is correct for multi-byte
+ *    text (a body whose character count fits but whose UTF-8 byte count
+ *    exceeds the cap is refused), lying/missing content-length and chunked
+ *    streams are capped mid-stream, and every body-read surface (JSON,
+ *    command/idempotency, migration, media, push-subscription) goes through
+ *    the one door — no second unbounded clone/read path remains.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { apiPost, createWorkspace, rawDb, signInAs, startWorker, type WorkerInstance } from "./harness.ts";
 import { createApprovedDriver } from "./delivery.helpers.ts";
-import { readBodyTextWithin } from "../router.ts";
+import { readBodyBytesWithin, readBodyTextWithin } from "../router.ts";
 
 let worker: WorkerInstance;
 let adminCookie: string;
@@ -164,15 +174,19 @@ describe("SRV-02 — the Manage command surfaces read bodies through the bounded
   it("readBodyTextWithin refuses an oversized DECLARED length before the body is ever read (unit)", async () => {
     const oversized = {
       headers: new Headers({ "content-length": String(300 * 1024) }),
-      text: () => {
-        throw new Error("the body must never be read when the declared length is over the cap");
-      },
+      body: new ReadableStream({
+        pull(controller) {
+          throw new Error("the stream must never be read when the declared length is over the cap");
+        },
+      }),
     } as unknown as Request;
     await expect(readBodyTextWithin(oversized, 256 * 1024)).rejects.toMatchObject({
       status: 400,
       details: { reason: "body_too_large" },
     });
-    // The post-read cap stays for the lying/chunked case.
+    // A lying stream (chunked, no usable content-length) with a body over the
+    // cap is capped DURING streaming — the refusal fires while the stream is
+    // being consumed, not after the whole body is buffered.
     const lying = new Request("http://mf.local/x", {
       method: "POST",
       body: "x".repeat(300 * 1024),
@@ -184,6 +198,93 @@ describe("SRV-02 — the Manage command surfaces read bodies through the bounded
     // An honest small body still reads normally.
     const honest = new Request("http://mf.local/x", { method: "POST", body: "صغير" });
     await expect(readBodyTextWithin(honest, 256 * 1024)).resolves.toBe("صغير");
+  });
+
+  it("SRV-02 follow-up: the stream is CANCELLED at the byte cap — the excess is never pulled or buffered (unit)", async () => {
+    let pulledBytes = 0;
+    let cancelled = false;
+    const chunk = new Uint8Array(64 * 1024).fill(0x61); // 64 KB chunks
+    const totalChunks = 8; // 512 KB total — double the cap below
+    let enqueued = 0;
+    const finite = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (enqueued >= totalChunks) {
+          controller.close();
+          return;
+        }
+        enqueued += 1;
+        pulledBytes += chunk.byteLength;
+        controller.enqueue(chunk);
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const request = new Request("http://mf.local/x", {
+      method: "POST",
+      body: finite,
+      duplex: "half",
+    } as RequestInit);
+    // A stream body carries no usable content-length: only the STREAMING cap
+    // can refuse this body — and the refusal must arrive BEFORE the whole
+    // 512 KB is consumed (the old buffered-read would consume it all first).
+    await expect(readBodyBytesWithin(request, 256 * 1024)).rejects.toMatchObject({
+      status: 400,
+      details: { reason: "body_too_large", maxBytes: 256 * 1024 },
+    });
+    // The reader was cancelled (closed at the limit)…
+    expect(cancelled).toBe(true);
+    // …and the source produced AT MOST the cap plus two chunks of overshoot
+    // (the chunk that crossed the cap and at most one prefetched chunk) — a
+    // bounded prefix, never the whole 512 KB, and never an unbounded read.
+    expect(pulledBytes).toBeGreaterThan(256 * 1024);
+    expect(pulledBytes).toBeLessThanOrEqual(256 * 1024 + 2 * 64 * 1024);
+  });
+
+  it("SRV-02 follow-up: byte-counting is correct for MULTI-BYTE text — the cap counts UTF-8 bytes, not characters (unit)", async () => {
+    const twoByteChar = "ص"; // 1 UTF-16 unit, 2 UTF-8 bytes
+    // 100 characters = 100 UTF-16 units BUT 200 UTF-8 bytes: refused at a
+    // 100-byte cap even though a character-count check would pass it.
+    const charHeavy = new Request("http://mf.local/x", {
+      method: "POST",
+      body: twoByteChar.repeat(100),
+    });
+    await expect(readBodyTextWithin(charHeavy, 100)).rejects.toMatchObject({
+      status: 400,
+      details: { reason: "body_too_large", maxBytes: 100 },
+    });
+    // EXACTLY at the byte boundary passes: 50 characters = 100 bytes.
+    const atBoundary = new Request("http://mf.local/x", {
+      method: "POST",
+      body: twoByteChar.repeat(50),
+    });
+    await expect(readBodyTextWithin(atBoundary, 100)).resolves.toBe(twoByteChar.repeat(50));
+    // One byte over the boundary is refused.
+    const oneOver = new Request("http://mf.local/x", {
+      method: "POST",
+      body: `${twoByteChar.repeat(50)}x`, // 102 bytes
+    });
+    await expect(readBodyTextWithin(oneOver, 100)).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("SRV-02 follow-up: a chunked multi-chunk stream under the cap reads correctly (ordinary valid body, unit)", async () => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode("الجزء الأول"));
+        controller.enqueue(encoder.encode(" — الجزء الثاني"));
+        controller.enqueue(encoder.encode(" — الجزء الثالث"));
+        controller.close();
+      },
+    });
+    const request = new Request("http://mf.local/x", {
+      method: "POST",
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    await expect(readBodyTextWithin(request, 1024)).resolves.toBe(
+      "الجزء الأول — الجزء الثاني — الجزء الثالث",
+    );
   });
 
   it("an oversized Manage command body is refused before buffering THROUGH the idempotency wrapper (integration)", async () => {
@@ -232,5 +333,109 @@ describe("SRV-02 — the Manage command surfaces read bodies through the bounded
     expect(response.status).toBe(403);
     const body = (await response.json()) as { error: { code: string } };
     expect(body.error.code).toBe("workspace_forbidden");
+  });
+
+  it("SRV-02 follow-up: an oversized raw MEDIA upload is refused with the route's documented size error (integration)", async () => {
+    // The raw-bytes path (arrayBuffer → now the streaming door) with a body
+    // one byte over MAX_MEDIA_BYTES (5 MiB): workerd derives content-length
+    // from the fixed body, so the declared-length hint fires early; the
+    // route's documented {field:"size", maxBytes} shape is preserved.
+    const tooBig = new Uint8Array(5 * 1024 * 1024 + 1);
+    const response = await worker.fetch("/api/media?purpose=driver_evidence", {
+      method: "POST",
+      headers: {
+        "content-type": "image/png",
+        origin: worker.origin,
+        "x-micro-api": "1",
+        cookie: ownerCookie,
+      },
+      body: tooBig,
+    });
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as {
+      error: { code: string; details?: { field?: string; maxBytes?: number } };
+    };
+    expect(body.error.code).toBe("bad_request");
+    expect(body.error.details?.field).toBe("size");
+    expect(body.error.details?.maxBytes).toBe(5 * 1024 * 1024);
+  });
+
+  it("SRV-02 follow-up: a chunked/lying media upload is capped DURING streaming — never buffered whole (integration)", async () => {
+    // No usable content-length (a raw stream body): only the STREAMING byte
+    // cap can refuse it; the refusal surfaces with the media route's own
+    // documented shape, and the source is cancelled at the cap — never fully
+    // consumed. 40 chunks of 256 KB = 10 MiB total (double the 5 MiB cap).
+    let produced = 0;
+    const chunk = new Uint8Array(256 * 1024).fill(0x89); // 256 KB chunks
+    const totalChunks = 40;
+    let enqueued = 0;
+    const finite = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (enqueued >= totalChunks) {
+          controller.close();
+          return;
+        }
+        enqueued += 1;
+        produced += chunk.byteLength;
+        controller.enqueue(chunk);
+      },
+    });
+    const response = await worker.fetch("/api/media?purpose=driver_evidence", {
+      method: "POST",
+      headers: {
+        "content-type": "image/png",
+        origin: worker.origin,
+        "x-micro-api": "1",
+        cookie: ownerCookie,
+      },
+      body: finite,
+      duplex: "half",
+    } as RequestInit);
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as {
+      error: { code: string; details?: { field?: string; maxBytes?: number } };
+    };
+    expect(body.error.code).toBe("bad_request");
+    expect(body.error.details?.field).toBe("size");
+    expect(body.error.details?.maxBytes).toBe(5 * 1024 * 1024);
+    /* The transport (undici) wraps the source in its own pipe, so the
+     * worker-side reader.cancel() reaches my probe as STOPPED production rather
+     * than a cancel() callback (the direct cancel() proof is the unit test
+     * above). What the integration layer must prove is the resource bound:
+     * the source produced a BOUNDED PREFIX — far below the full 10 MiB, and
+     * strictly less than the whole body — so the upload was never buffered
+     * whole; the streaming cap stopped it mid-transfer. */
+    expect(produced).toBeLessThan(40 * 256 * 1024);
+    expect(produced).toBeLessThanOrEqual(8 * 1024 * 1024);
+    expect(produced).toBeGreaterThanOrEqual(5 * 1024 * 1024);
+  });
+
+  it("SRV-02 follow-up: an oversized push-subscription body is refused even WITHOUT an idempotency key (integration)", async () => {
+    // The push-subscription register handler reads the body itself when no
+    // idempotency-key header is sent (the command wrapper only reads the body
+    // when a key IS present) — its read is now through the ONE bounded door,
+    // so an oversized body without a key is still refused (body_too_large),
+    // and the historical lenient empty-object fallback survives for honest
+    // small non-JSON bodies.
+    const oversized = JSON.stringify({
+      endpoint: "https://push.example.test/x",
+      keys: "k".repeat(300 * 1024),
+    });
+    const response = await worker.fetch("/api/auth/push-subscriptions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: worker.origin,
+        "x-micro-api": "1",
+        cookie: ownerCookie,
+      },
+      body: oversized,
+    });
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as {
+      error: { code: string; details?: { reason?: string } };
+    };
+    expect(body.error.code).toBe("bad_request");
+    expect(body.error.details?.reason).toBe("body_too_large");
   });
 });

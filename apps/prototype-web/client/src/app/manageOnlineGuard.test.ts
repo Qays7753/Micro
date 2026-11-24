@@ -1,12 +1,15 @@
 /** @vitest-environment jsdom */
 /**
- * EX-D23 (M6) + MNG-LOCAL-02 (إصلاح 2026-11-23 — WS-254/DOC-044): حارس
- * الوضع المتصل-فقط بثلاث حالات — «local» المؤكَد، «online_only» المقطوع،
- * و«unknown» غير القابل للتحقق. الكتابة المالية الحساسة:
+ * EX-D23 (M6) + MNG-LOCAL-02 (إصلاح 2026-11-23 — WS-254/DOC-044) + متابعة
+ * 2026-11-24 (أمر المالك FOLLOW-UP-REMEDIATION): حارس الوضع المتصل-فقط بثلاث
+ * حالات — «local» المؤكَد، «online_only» المقطوع، و«unknown» غير القابل
+ * للتحقق. الكتابة المالية الحساسة:
  *  - تُرفض رفضًا صادقًا في وضع القطع (كما كان M6)؛
  *  - وتُرفض الآن أيضًا في الوضع المجهول (الفشل المغلق الذي تطلبه النتيجة
  *    المفتوحة MNG-LOCAL-02 وقرار المالك Q270: «لم يُحفظ» وتبقى البيانات في
- *    النموذج) — لا فتحًا صامتًا نحو المحلي عند أي فشل بعد الآن؛
+ *    النموذج) — لا فتحًا صامتًا نحو المحلي عند أي فشل بعد الآن، وبما فيه
+ *    صراحةً 503 network_not_configured (خادم البيانات غائب — لا يُشتق منه
+ *    إذن كتابة مالية محلية)؛
  *  - والرفض نتيجة تخزين موحدة {ok:false} فلا يسقط زر ولا تُبتلع رسالة؛
  *  - والقراءة والاستبدال المحمي والمسودات والتصدير لا تُمس في أي وضع.
  */
@@ -75,10 +78,20 @@ describe("manage online mode guard (M6 + MNG-LOCAL-02)", () => {
     expect(await refreshManageOnlineMode()).toBe("local");
   });
 
-  it("the documented unconfigured backend (503 network_not_configured) confirms local — today's production posture keeps working", async () => {
+  it("MNG-LOCAL-02 follow-up (Q270 enforced exactly): the unconfigured backend (503 network_not_configured) leaves the mode UNKNOWN — an absent backend never permits local financial writes", async () => {
     mockedFetchMode.mockRejectedValue(apiError(503, "network_not_configured"));
-    expect(await refreshManageOnlineMode()).toBe("local");
-    expect(currentManageOnlineMode()).toBe("local");
+    expect(await refreshManageOnlineMode()).toBe("unknown");
+    expect(currentManageOnlineMode()).toBe("unknown");
+    // The honest Q270 refusal: «لم يُحفظ» and the data stays in the form —
+    // no silent fail-open to a local financial write when the data backend
+    // is absent (the owner's follow-up remediation order 2026-11-24).
+    const fakeStore = { saveOrder: vi.fn(() => "saved") } as unknown as PrototypeLocalStore;
+    const guarded = guardLocalStoreForOnlineMode(fakeStore);
+    await expect((guarded.saveOrder as unknown as () => Promise<unknown>)()).resolves.toMatchObject({
+      ok: false,
+      message: MANAGE_MODE_UNKNOWN_MESSAGE,
+    });
+    expect(fakeStore.saveOrder).not.toHaveBeenCalled();
   });
 
   it("MNG-LOCAL-02: a NON-definitive failure (network down / other 5xx) leaves the mode UNKNOWN — no silent fail-open to local", async () => {
