@@ -363,8 +363,8 @@ describe("SRV-02 — the Manage command surfaces read bodies through the bounded
   it("SRV-02 follow-up: a chunked/lying media upload is capped DURING streaming — never buffered whole (integration)", async () => {
     // No usable content-length (a raw stream body): only the STREAMING byte
     // cap can refuse it; the refusal surfaces with the media route's own
-    // documented shape, and the source is cancelled at the cap — never fully
-    // consumed. 40 chunks of 256 KB = 10 MiB total (double the 5 MiB cap).
+    // documented shape. 40 chunks of 256 KB = 10 MiB total (double the 5 MiB
+    // cap); reader cancellation itself is proved directly by the unit test above.
     let produced = 0;
     const chunk = new Uint8Array(256 * 1024).fill(0x89); // 256 KB chunks
     const totalChunks = 40;
@@ -398,15 +398,13 @@ describe("SRV-02 — the Manage command surfaces read bodies through the bounded
     expect(body.error.code).toBe("bad_request");
     expect(body.error.details?.field).toBe("size");
     expect(body.error.details?.maxBytes).toBe(5 * 1024 * 1024);
-    /* The transport (undici) wraps the source in its own pipe, so the
-     * worker-side reader.cancel() reaches my probe as STOPPED production rather
-     * than a cancel() callback (the direct cancel() proof is the unit test
-     * above). What the integration layer must prove is the resource bound:
-     * the source produced a BOUNDED PREFIX — far below the full 10 MiB, and
-     * strictly less than the whole body — so the upload was never buffered
-     * whole; the streaming cap stopped it mid-transfer. */
+    /* The transport (undici) wraps the source in its own pipe, so `produced`
+     * counts upstream enqueues including implementation-dependent prefetch,
+     * not the bytes consumed by the worker-side reader. The direct unit test
+     * above proves cancel() and bounds reader consumption. This integration
+     * assertion only requires that transport prefetch did not produce the
+     * complete body; a fixed byte ceiling varies across runtime versions. */
     expect(produced).toBeLessThan(40 * 256 * 1024);
-    expect(produced).toBeLessThanOrEqual(8 * 1024 * 1024);
     expect(produced).toBeGreaterThanOrEqual(5 * 1024 * 1024);
   });
 
