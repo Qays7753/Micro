@@ -18,7 +18,7 @@ import {
   storeMedia,
   type MediaPurpose,
 } from "../media.ts";
-import type { RouteContext } from "../router.ts";
+import { readBodyBytesWithin, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 
 const PURPOSES: readonly MediaPurpose[] = ["market_listing_media", "driver_evidence", "driver_vehicle_proof"];
@@ -40,22 +40,33 @@ export async function uploadMedia(ctx: RouteContext, auth: AuthenticatedContext)
     now,
   );
   const contentType = ctx.request.headers.get("content-type") ?? "";
-  /* SRV-02 (Post-Group 6 — order bd242b3e): the declared length is refused
-   * BEFORE the body is buffered; the post-read store check stays for the
-   * lying/chunked case. */
-  const declaredLength = Number(ctx.request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_MEDIA_BYTES) {
-    throw new HttpError(400, "bad_request", { field: "size", maxBytes: MAX_MEDIA_BYTES });
+  /* SRV-02 (follow-up remediation 2026-11-24): the raw upload body is now read
+   * through the ONE streaming byte-capped door (`readBodyBytesWithin`) — the
+   * declared length stays an early-rejection hint, and a lying/missing length
+   * or chunked stream is byte-capped DURING streaming with the reader
+   * cancelled at the cap. The upload is never buffered whole and then checked
+   * afterwards anymore; the route's documented error shape is preserved. */
+  let bytes: Uint8Array;
+  try {
+    bytes = await readBodyBytesWithin(ctx.request, MAX_MEDIA_BYTES);
+  } catch (error) {
+    if (
+      error instanceof HttpError &&
+      error.status === 400 &&
+      error.details !== null &&
+      typeof error.details === "object" &&
+      (error.details as { reason?: unknown }).reason === "body_too_large"
+    ) {
+      throw new HttpError(400, "bad_request", { field: "size", maxBytes: MAX_MEDIA_BYTES });
+    }
+    throw error;
   }
-  const bytes = await ctx.request.arrayBuffer();
-  if (bytes.byteLength > MAX_MEDIA_BYTES) {
-    throw new HttpError(400, "bad_request", { field: "size", maxBytes: MAX_MEDIA_BYTES });
-  }
+  const uploadBuffer = bytes.byteLength === bytes.buffer.byteLength ? bytes.buffer : bytes.slice().buffer;
   const media = await storeMedia(
     ctx.env,
     db(ctx),
     { identityId: auth.identityId, purpose },
-    { bytes, contentType },
+    { bytes: uploadBuffer, contentType },
     now,
     randomToken,
   );

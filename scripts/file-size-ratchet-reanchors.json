@@ -12694,6 +12694,101 @@
         "trigger": "post-group6-ask-pair-protocol",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "doc044-2026-11-23-authz-role-dimension",
+      "date": "2026-11-23",
+      "path": "apps/prototype-web/worker/authorization.ts",
+      "from": {
+        "nbLoc": 391,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 410,
+        "band": "WATCH"
+      },
+      "reason": "Open-findings remediation AUTHZ-04/05 (WS-254/DOC-044): requireWorkspaceContext gains the requiredRole dimension (an honest 403 workspace_role_forbidden for an active non-owner membership) and the misleading dead canCreateRequests helper is removed; the file was created after the 2026-10-10 baseline seed (never inventoried) and now crosses into WATCH — the inventory row and the ledger entry are registered together in the same PR per the guard's documented protocol.",
+      "authorization": {
+        "ownerReview": "Owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md (2026-11-23, branch manus/zai-prompt-open-findings-20261123) — documented same-PR baseline re-anchor under WS-254/DOC-044 (the same documented protocol)",
+        "trigger": "open-findings-authz-role-dimension",
+        "ocRef": "DOC-044"
+      }
+    },
+    {
+      "id": "doc044-2026-11-23-authz04-delivery-owner-gate",
+      "date": "2026-11-23",
+      "path": "apps/prototype-web/worker/api/deliveryRequest.ts",
+      "from": {
+        "nbLoc": 616,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 621,
+        "band": "WATCH"
+      },
+      "reason": "Open-findings remediation AUTHZ-04 (WS-254/DOC-044): delivery-request creation now names the required owner role at its requireWorkspaceContext call with the dated rationale (contract 21 binds delivery_request to the project owner).",
+      "authorization": {
+        "ownerReview": "Owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md (2026-11-23, branch manus/zai-prompt-open-findings-20261123) — documented same-PR baseline re-anchor under WS-254/DOC-044 (the same documented protocol)",
+        "trigger": "open-findings-authz04-owner-role",
+        "ocRef": "DOC-044"
+      }
+    },
+    {
+      "id": "doc044-2026-11-23-authz05-market-owner-gate",
+      "date": "2026-11-23",
+      "path": "apps/prototype-web/worker/api/market.ts",
+      "from": {
+        "nbLoc": 710,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 720,
+        "band": "WATCH"
+      },
+      "reason": "Open-findings remediation AUTHZ-05 (WS-254/DOC-044): the supplier-profile save names the required owner role at its requireWorkspaceContext call with the dated rationale (one owner per project, no team roles — the owner's final decisions).",
+      "authorization": {
+        "ownerReview": "Owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md (2026-11-23, branch manus/zai-prompt-open-findings-20261123) — documented same-PR baseline re-anchor under WS-254/DOC-044 (the same documented protocol)",
+        "trigger": "open-findings-authz05-owner-role",
+        "ocRef": "DOC-044"
+      }
+    },
+    {
+      "id": "doc044-2026-11-23-mng-local-05-06-guided-import",
+      "date": "2026-11-23",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 462,
+        "band": "WATCH"
+      },
+      "reason": "Open-findings remediation MNG-LOCAL-05/06 (WS-254/DOC-044): the canonical count gate (family/total caps, one door per importer) lands on the guided opening import's wallet/material sections before any per-item mapping or write, and the last raw-exception passthrough (the domain-object/snapshot build catch) becomes the fixed safe message.",
+      "authorization": {
+        "ownerReview": "Owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md (2026-11-23, branch manus/zai-prompt-open-findings-20261123) — documented same-PR baseline re-anchor under WS-254/DOC-044 (the same documented protocol)",
+        "trigger": "open-findings-mng-local-05-06",
+        "ocRef": "DOC-044"
+      }
+    },
+    {
+      "id": "doc044-2026-11-23-mng-local-04-restore-preview-honesty",
+      "date": "2026-11-23",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+      "from": {
+        "nbLoc": 583,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 638,
+        "band": "WATCH"
+      },
+      "reason": "Open-findings remediation MNG-LOCAL-04 (WS-254/DOC-044): the restore preview now states the honest checksum-capacity guarantee at the trust-decision moment (verification detects accidental corruption only, never origin/authenticity — no digital signature in this release) alongside the existing export notice.",
+      "authorization": {
+        "ownerReview": "Owner order OPEN-FINDINGS-AND-PROTOTYPE-CODE-PROMPT-EN.md (2026-11-23, branch manus/zai-prompt-open-findings-20261123) — documented same-PR baseline re-anchor under WS-254/DOC-044 (the same documented protocol)",
+        "trigger": "open-findings-mng-local-04",
+        "ocRef": "DOC-044"
+      }
     }
   ]
 }

@@ -22,7 +22,7 @@ import type { ManageOwnerContext } from "../authorization.ts";
 import { rowString, type Db } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
-import type { RouteContext } from "../router.ts";
+import { readJsonBody, type RouteContext } from "../router.ts";
 import { requireManageOwnerAudited } from "./manageReads.ts";
 
 /** Per-record payload bound — generous for any real record, small enough to gate abuse. */
@@ -40,7 +40,11 @@ export async function saveManageRecord(ctx: RouteContext, auth: AuthenticatedCon
   if (typeof id !== "string" || id.length === 0 || id.length > RECORD_ID_MAX) {
     throw new HttpError(400, "bad_request", { field: "id" });
   }
-  const body = (await ctx.request.json()) as {
+  /* SRV-02 (2026-11-23): the record-save body is read through the canonical
+   * bounded JSON reader — the declared length is refused BEFORE buffering and
+   * the lying/chunked case is capped after reading; the per-record
+   * DATA_JSON_MAX check below stays as the tighter semantic gate. */
+  const body = (await readJsonBody(ctx.request)) as {
     data?: unknown;
     expectedUpdatedAt?: unknown;
     workspaceId?: unknown;

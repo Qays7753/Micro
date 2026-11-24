@@ -1,0 +1,143 @@
+{
+  "id": "DOC-044",
+  "title": "إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص — تنفيذ ZAI على الفرع الجديد",
+  "type": "DEFECT",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "private-prototype-open-findings-2026-11-23",
+  "summary": "تنفيذ إصلاحات الجذر للنتائج الأمنية الثماني المفتوحة في المراجعة المباشرة عند 74d74c، مع إبقاء كل النتائج الثلاثين مرئية ومصالحة بالدليل على المرشح النهائي، وإصلاح العيوب البرمجية الواضحة ضمن الرحلات المتأثرة دون إعادة عمل مكتمل أو تغييرات هيكلية/مالية/سلوكية غير مأذونة. تُحفظ MNG-LOCAL-03 مفتوحة تقنيًا ومؤجلة بقرار المالك. يقرأ ZAI الأمر الكنسي من الفرع manus/zai-prompt-open-findings-20261123 ويواصل التنفيذ على الفرع نفسه.",
+  "source": {
+    "report": "docs/expansion/security-findings-status.md plus the owner-provided source-pinned security audit dated 2026-11-19 and direct review dated 2026-11-23",
+    "discovered_at_sha": "74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4",
+    "evidence": [
+      "docs/expansion/security-findings-status.md",
+      "docs/00-document-index.md"
+    ]
+  },
+  "acceptance": [
+    "ZAI verifies the live repository, main SHA, remote/local state, open PRs and Control claims; it preserves the existing branch/worktree and continues only on manus/zai-prompt-open-findings-20261123.",
+    "Every finding remains represented with exactly one justified state on the final candidate: open, fixed-verified, deferred-by-owner, or not-applicable. The eight currently open IDs are directly rechecked; unchanged findings may carry forward only with path-level evidence that the reviewed code is unchanged. CI alone closes no finding.",
+    "MNG-LOCAL-03 remains technically open and deferred-by-owner. No encryption, key lifecycle/recovery, storage/export-format change, or policy reinterpretation is introduced without an explicit owner decision.",
+    "Each implemented fix has focused regression evidence on the final code SHA; final repository checks and GitHub Actions results are reported against their exact SHA. No successful checks are claimed from a different tree.",
+    "Concrete additional defects in affected journeys are fixed only when the remedy is clear, non-structural, and behaviorally/financially safe; all others are recorded with evidence and disposition.",
+    "The Arabic execution report is committed on the same branch, the safe security-status mirror and Control records are updated as required, and all 30 findings remain visible.",
+    "No direct main change, PR creation, merge, branch deletion, manual deployment/retry, Cloudflare/Neon/R2 setting or data change, provider call, credential exposure, or real-data operation occurs. The owner-approved automatic Pages preview from ordinary branch pushes is reported separately and is not treated as release readiness."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/components/profile/ManageOnlineSection.tsx",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/resultCodes.ts",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/worker/router.ts",
+    "apps/prototype-web/worker/api/media.ts",
+    "apps/prototype-web/worker/media.ts",
+    "apps/prototype-web/worker/env.ts",
+    "apps/prototype-web/worker/authorization.ts",
+    "apps/prototype-web/worker/api/deliveryRequest.ts",
+    "apps/prototype-web/worker/tests/",
+    "docs/expansion/security-findings-status.md",
+    "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/",
+    "docs/00-document-index.md",
+    "docs/operations/control/items/DOC-044.json",
+    "docs/operations/control/workstreams/WS-254.json",
+    "docs/operations/control/generated/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/current-state.md",
+    "docs/operations/control/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/security-findings-status.md",
+    "docs/quality/security-boundaries.md",
+    "docs/contracts/04-limited-sync-contract.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md"
+  ],
+  "evidence": [
+    "docs/expansion/security-findings-status.md",
+    "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/EXECUTION-REPORT-AR.md",
+    "apps/prototype-web/worker/tests/openFindings.security.test.ts",
+    "apps/prototype-web/client/src/app/manageOnlineGuard.test.ts",
+    "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.openFindings.test.ts",
+    "apps/prototype-web/client/src/application/transfers/transferResourceLimits.wave5.test.ts",
+    "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/FOLLOW-UP-REMEDIATION-REPORT-2026-11-24.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "DOC-041",
+    "DOC-042",
+    "DOC-043"
+  ],
+  "owner_decision": "أجاز المالك فتح فرع جديد من main، ووضع أمر ZAI عليه ليواصل الوكيل التنفيذ على الفرع نفسه. أُجيز دفع الفرع مع احتمال إنشاء معاينة Pages تلقائية. لا يشمل ذلك PR أو دمجًا أو نشرًا يدويًا أو تعديل إعدادات Cloudflare/Neon/R2 أو استخدام بيانات حقيقية أثناء التنفيذ. يبقى MNG-LOCAL-03 مفتوحًا تقنيًا ومؤجلًا بقرار المالك.",
+  "tests_required": [
+    "اختبارات مركزة لانحدار كل إصلاح فعلي على شجرة/التزام الإصلاح نفسه",
+    "بوابة المستودع النهائية المعتمدة على المرشح النهائي ورأس CI الدقيق بعد اكتمال الإصلاحات",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "python3 scripts/operations-control/validate.py",
+    "node scripts/check-doc-index-coverage.mjs",
+    "git diff --check",
+    "unzip -t docs/operations/control/generated/MASTER-TRACKER.xlsx"
+  ],
+  "classification": "HARDENING",
+  "gate_classification": "EVIDENCE_RECONCILIATION_REQUIRED",
+  "owner": "Qays7753 (explicit authorization) / ZAI (sole code writer and integrator) / Manus (prompt and evidence review)",
+  "layers": [
+    "client",
+    "worker",
+    "security",
+    "testing",
+    "documentation",
+    "operations-control"
+  ],
+  "updated_at": "2026-11-24",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-23",
+      "actor": "owner-authorized-open-findings-task",
+      "reason": "أمر المالك يطلب معالجة النتائج الأمنية المفتوحة ونواقص الشيفرة الواضحة على فرع جديد من main، مع تقرير ختامي كامل، وبحدود النشر والبيانات المسجلة."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-23",
+      "actor": "manus-zai-handoff-integrator",
+      "reason": "حُجز DOC-044 تحت WS-254 على الفرع manus/zai-prompt-open-findings-20261123 من main@5a9064e بعد فحص المطالبات المفتوحة وعدم وجود Claim تنفيذ نشط متداخل."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-23",
+      "actor": "manus-zai-handoff-integrator",
+      "reason": "بدء إعداد الأمر الكنسي لـZAI وتثبيت حدود المالك وسجل الأمن قبل متابعة الإصلاحات البرمجية على الفرع نفسه."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-23",
+      "actor": "zai-open-findings-executor",
+      "reason": "اكتمل تنفيذ إصلاح جذور النتائج المفتوحة السبع على الفرع manus/zai-prompt-open-findings-20261123 بالالتزامات c707b279 (AUTHZ-04/05), ea3f52e1 (SRV-02), ec4c8928 (MNG-LOCAL-02), f0b31877 (MNG-LOCAL-04/05/06), fe2b1b5a (same-PR protocol registrations): AUTHZ-04/05 (بُعد الدور مفروضًا خادميًا في بوابة السياق الصريح — عضوية فعالة غير مالك = 403 صادق في إنشاء طلب التوصيل وربط ملف المورد)، SRV-02 (كل قراءات أجسام Manage عبر القارئ المحروس بطبقتيه بما فيها غلاف الأوامر، بسقف المظروف الموثق لمسار الترحيل)، MNG-LOCAL-02 (الوضع الثلاثي الفاشل-المغلق مع رسالة Q270 وتصنيف النفي القاطع وتعداد مالي كامل موكد وقت الترجمة)، MNG-LOCAL-04 (التسمية الصادقة للبصمة عند معاينة الاستعادة)، MNG-LOCAL-05 (آخر مرور لنص الاستثناء الخام مغلق)، MNG-LOCAL-06 (بوابة العد الكنونية على الاستيراد الافتتاحي + اختبارات الحافة بالضبط)؛ MNG-LOCAL-03 بقيت مفتوحة تقنيًا مؤجلة بقرار المالك؛ البوابة الختامية على الرأس النهائي: typecheck/lint/format خضراء، الحراس كلهم خضراء (باستثناء دبوس doc-index المعروف محليًا للملف غير المنشور — CI يراه أخضر)، مجموعة الجذر 1027/1028، ومجموعة النموذج 476 ملفًا/3796 اختبارًا كلها خضراء، والبناء والميزانية وأسطح الحزمة الخضراء بالبيئات الثلاث بعد الإرساء الموثق نفس-الـPR؛ سجل الأمن الآمن محدث 29 fixed-verified + 1 open."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-24",
+      "actor": "owner-follow-up-order",
+      "reason": "أمر المالك المتابعة (FOLLOW-UP-REMEDIATION-PROMPT-EN.md 2026-11-24) بعد مراجعته للفرع: مراجعة المالك على fe2b1b5a صنفت SRV-02 وMNG-LOCAL-02 وMNG-LOCAL-06 ما تزال مفتوحة (تحقق ZAI من كلٍّ منها على الشجرة الحية: قراءات الأجسام تجمّع ثم تفحص بعد التحميل، وتصنيف 503 network_not_configured يسمح بالكتابة المالية المحلية خلافًا لـQ270، وبوابة قياس الجهاز الفعلي غائبة) وأشارت إلى فشلة Pages عند e2b82afd — الاختلاف بدليل يعيد فتح البند للتنفيذ المتابَع على الفرع نفسه."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-24",
+      "actor": "zai-follow-up-remediation-executor",
+      "reason": "بدء تنفيذ أمر المتابعة على الفرع نفسه: SRV-02 التدفق الصارم بالبايتات، MNG-LOCAL-02 بتطبيق Q270 حرفيًا، MNG-LOCAL-06 مراجعة بالدليل فقط، وتشخيص عطب قياس أسطح الحزمة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-24",
+      "actor": "zai-follow-up-remediation-executor",
+      "reason": "اكتمل تنفيذ أمر المتابعة على الفرع manus/zai-prompt-open-findings-20261123 (الالتزام الحامل للكود 38bd825c ثم التسليم): SRV-02 أصبح تدفقيًا فعلًا (السقف البايتي مفروض أثناء استهلاك مجرى الطلب والمجرى يُلغى عند السقف والعد بالبايتات صادق للنص متعدد البايت) عبر كل أسطح قراءة الجسم — القارئ الكنوني وغلاف الأوامر ومظروف الترحيل ورفع الوسائط الخام (زال تجميع arrayBuffer الكامل) وقراءة push-subscription غير المحروسة سابقًا؛ MNG-LOCAL-02 يطبق Q270 حرفيًا: 503 network_not_configured (خادم البيانات غائب) لم يبق نفيًا قاطعًا — الوضع يبقى unknown فتُرفض الكتابة المالية المحلية برسالة «لم يُحفظ» وتبقى البيانات في النموذج، والنفي القاطع هو 401/403 فقط من خادم حاضر مقر؛ MNG-LOCAL-06 بقيت مفتوحة بصدق (قياس الجهاز الفعلي NOT_EXECUTED — أعيدت للسجل الآمن open مع إبقاء أبواب العد/الحجم/العمق قائمة بأدلتها)؛ عطب قياس أسطح الحزمة شُخص وعولج بإرساء يمثل الواقع (إرساء 2026-11-23 للـCI/Pages استخدم هوية قصيرة 8 محارف بينما كل بناء Actions/Pages حقيقي يحمل SHA كاملًا 40 محرفًا — +32 بايت فاتت الأساس، وهي بعينها فشلة Pages عند e2b82afd: 3,151,638 = 3,151,606 + 32؛ أُعيد الإرساء بقياسات من بناءات طازجة على الشجرة النهائية بالهوية التمثيلية الكاملة — local 3,151,495 وGH/CF 3,151,585 — بلا أي رفع سقوف أو توسيع سماحيات أو تغيير كود الحارس)؛ البوابة الختامية على الشجرة النهائية: النموذج 476 ملفًا/3802 اختبارًا كلها خضراء، والسجل الآمن محّدن 28 fixed-verified + 2 open (MNG-LOCAL-03 مؤجلة بالقرار + MNG-LOCAL-06 بلا قياس جهاز)."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة المالك/Manus لتقرير المتابعة العربي FOLLOW-UP-REMEDIATION-REPORT-2026-11-24.md على رأس الفرع النهائي وdiffs الالتزامين؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (مؤجلة بقرار المالك المصرح) وMNG-LOCAL-06 (أبواب العد/الحجم/العمق قائمة بأدلتها لكن قياس الجهاز الفعلي الأدنى مدعومًا لم يُنفَّذ بعد — NOT_EXECUTED)؛ لا PR ولا دمج ولا نشر يدوي ولا إعدادات ولا بيانات حقيقية من هذه السلسلة.",
+  "root_cause": "ثماني نتائج أمنية ظلت مفتوحة عند مرساة المراجعة المباشرة، مع حاجة إلى إعادة مصالحتها على رأس التنفيذ الحالي وعدم الخلط بين أدلة CI العامة وإغلاق نتيجة محددة."
+}

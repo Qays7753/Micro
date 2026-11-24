@@ -65,6 +65,55 @@ describe("MNG-LOCAL-06: import depth/count resource limits", () => {
     expect(IMPORT_COUNT_LIMIT_MESSAGE).toContain("قبل أي كتابة");
     expect(MAX_IMPORT_TOTAL_RECORDS).toBeGreaterThan(MAX_IMPORT_FAMILY_RECORDS);
   });
+
+  /* MNG-LOCAL-06 (إصلاح النتيجة المفتوحة 2026-11-23 — WS-254/DOC-044):
+   * اختبارا الحافة بالضبط عند السقفين — عند السقف تمامًا يمر الفحص (رفضُ
+   * ملف صادق عند حده الأعلى خطأ منعٌ لمشروع مشروع)، وفوقه بواحد فقط يُرفض.
+   * هذا استكمال «واختبار الحدود» التي بقيت ناقصة في الموجة ٥. */
+  it("the EXACT family boundary: a family at exactly the cap passes, one record over is refused", () => {
+    const atCap: Record<string, unknown> = {
+      orders: Array.from({ length: MAX_IMPORT_FAMILY_RECORDS }, (_, index) => ({ id: `o-${index}` })),
+    };
+    expect(importFamilyCountVerdict(atCap)).toEqual({ ok: true });
+    const oneOver: Record<string, unknown> = {
+      orders: Array.from({ length: MAX_IMPORT_FAMILY_RECORDS + 1 }, (_, index) => ({ id: `o-${index}` })),
+    };
+    expect(importFamilyCountVerdict(oneOver)).toEqual({ ok: false, reason: "family", family: "orders" });
+  });
+
+  it("the EXACT total boundary: a total at exactly the cap passes, one record over is refused", () => {
+    // Three families (each at or under the family cap) summing to exactly the
+    // total cap: 20_000 + 20_000 + 10_000 = MAX_IMPORT_TOTAL_RECORDS.
+    const filler = (family: string, count: number) => ({
+      [family]: Array.from({ length: count }, (_, index) => ({ id: `${family}-${index}` })),
+    });
+    const atCapTotal: Record<string, unknown> = {
+      ...filler("orders", MAX_IMPORT_FAMILY_RECORDS),
+      ...filler("materials", MAX_IMPORT_FAMILY_RECORDS),
+      ...filler("assets", MAX_IMPORT_TOTAL_RECORDS - 2 * MAX_IMPORT_FAMILY_RECORDS),
+    };
+    expect(importFamilyCountVerdict(atCapTotal)).toEqual({ ok: true });
+    const oneOverTotal: Record<string, unknown> = {
+      ...filler("orders", MAX_IMPORT_FAMILY_RECORDS),
+      ...filler("materials", MAX_IMPORT_FAMILY_RECORDS),
+      ...filler("assets", MAX_IMPORT_TOTAL_RECORDS - 2 * MAX_IMPORT_FAMILY_RECORDS + 1),
+    };
+    expect(importFamilyCountVerdict(oneOverTotal)).toEqual({ ok: false, reason: "total" });
+  });
+
+  it("the EXACT depth boundary: nesting at exactly the cap passes, one level over is refused", () => {
+    const atCap: Record<string, unknown> = { level: 1 };
+    let node: Record<string, unknown> = atCap;
+    for (let index = 1; index < MAX_IMPORT_JSON_DEPTH; index += 1) {
+      node.nested = { level: index + 1 };
+      node = node.nested as Record<string, unknown>;
+    }
+    expect(measureJsonDepth(atCap)).toBe(MAX_IMPORT_JSON_DEPTH);
+    expect(isWithinImportDepth(atCap)).toBe(true);
+    node.nested = { oneMore: true };
+    expect(measureJsonDepth(atCap)).toBe(MAX_IMPORT_JSON_DEPTH + 1);
+    expect(isWithinImportDepth(atCap)).toBe(false);
+  });
 });
 
 describe("MNG-LOCAL-04: the export-authenticity honest labeling", () => {
@@ -77,5 +126,22 @@ describe("MNG-LOCAL-04: the export-authenticity honest labeling", () => {
     expect(settings).toContain("تكشف التلف العرضي");
     expect(settings).toContain("لا تثبت أصالة الملف");
     expect(settings).toContain("MNG-LOCAL-04");
+  });
+
+  /* MNG-LOCAL-04 (إصلاح النتيجة المفتوحة 2026-11-23 — WS-254/DOC-044):
+   * التسمية الصادقة نفسها عند لحظة قرار الثقة في الاستيراد — معاينة
+   * الاستعادة داخل قسم حماية البيانات، لا في إشعار التصدير وحده. */
+  it("the restore preview ALSO states the accidental-corruption-only guarantee at the trust-decision moment", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const section = fs.readFileSync(
+      path.resolve(import.meta.dirname, "../../components/settings/SettingsDataProtectionSection.tsx"),
+      "utf8",
+    );
+    expect(section).toContain("MNG-LOCAL-04");
+    expect(section).toContain("يكشف التلف العرضي");
+    expect(section).toContain("ولا يثبت مصدر الملف أو أصالته");
+    expect(section).toContain("لا توقيعًا رقميًّا");
+    expect(section).toContain("مصدرك الموثوق");
   });
 });

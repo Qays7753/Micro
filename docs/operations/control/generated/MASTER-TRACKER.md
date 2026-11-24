@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 9 · MERGED_UNVERIFIED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 86 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 10 · MERGED_UNVERIFIED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 86 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -19,6 +19,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 9 · MERGED_UNVERIFIED: 1 · BACKLOG:
 | DOC-039 | IN_REVIEW | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | manage-online-20261114 | مهمة المالك 2026-11-14 (المرحلة أ): المتابعات المعتمدة على فرع Market/Delivery القائم — مقاعد الضيف NAV-001/R1-15، حقول قرار السائق R1-17، تحديث مصفوفة KPI، R3-2 غير منطقي بقرار المالك، وتصحيح كتابة اختبار الجلسة | Micro owner (Qays7753); ZAI sole implementation writer per owner prompt cf9ac194 | presentation, application, worker-api, documentation, operations-control | DOC-038 |
 | DOC-040 | IN_REVIEW | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | manage-online-20261114 | مهمة المالك 2026-11-14 (المرحلة ب): تنفيذ Manage Online M1–M6 على الفرع المخصص — العقود والسيناريوهات ثم الأساس الخادمي (قدرة manage + مالك واحد + ربط موثق + حارس requireManageOwner) ثم القراءات ثم الكتابات المؤكدة ثم مسار الترحيل الاصطناعي ثم وضع المتصل-فقط المحروس غير المفعّل | Micro owner (Qays7753); ZAI sole implementation writer per owner prompt cf9ac194 | documentation, worker-api, application, presentation, operations-control | DOC-038, DOC-039 |
 | DOC-041 | IN_REVIEW | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | post-group6-continuous-completion-phase2-20261122 | مهمة المالك 2026-11-21 (ما بعد المجموعة ٦): مصالحة الكود الحي مع القرارات النهائية وتنفيذ الفجوات الكودية الآمنة وإصلاحات الأمن القابلة للتطبيق وتحسين الرحلات المتأثرة — بالموجات المرخصة W1..W5 على فرع Manage Online | Product owner (Qays) / Z AI implementation writer per bd242b3e | worker-api, application, presentation, documentation, operations-control | DOC-040 |
+| DOC-044 | IN_REVIEW | HARDENING | EVIDENCE_RECONCILIATION_REQUIRED | P1 | private-prototype-open-findings-2026-11-23 | إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص — تنفيذ ZAI على الفرع الجديد | Qays7753 (explicit authorization) / ZAI (sole code writer and integrator) / Manus (prompt and evidence review) | client, worker, security, testing, documentation, operations-control | — |
 | DOC-042 | MERGED_UNVERIFIED | HARDENING | NOT_APPLICABLE | P1 | pr386-ci-remediation-20261123 | PR #386 — إصلاح مهلة اختبار CI وعزل قراءة حالة PR بصلاحية محدودة | Qays (owner authorization) / Manus (sole CI writer and integrator) | ci, test-tooling, operations-control | — |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |

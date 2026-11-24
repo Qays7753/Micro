@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "c3666e8f64a6434fe5e2013d19471fbde6cbcdaa",
+  "head": "f0b31877b50f2eec8253c9b6d8a5901cb14daa7f",
   "pages": {
     "total": 76,
     "map": {
@@ -795,6 +795,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.openFindings.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts"
         ]
@@ -846,6 +847,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.openFindings.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts",
           "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx"

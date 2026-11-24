@@ -198,15 +198,17 @@ describe("SRV-02 — declared body size is refused before reading", () => {
   it("refuses an oversized declared body BEFORE reading it (unit — the transport forbids a lying header)", async () => {
     // A real transport recomputes content-length from the body, so the precheck
     // is exercised directly with a request whose DECLARED length lies — exactly
-    // the early-refusal behavior SRV-02 adds before any buffering.
+    // the early-refusal behavior SRV-02 adds before any streaming begins.
     const oversized = {
       headers: new Headers({
         "content-type": "application/json",
         "content-length": String(300 * 1024),
       }),
-      text: () => {
-        throw new Error("the body must never be read when the declared length is over the cap");
-      },
+      body: new ReadableStream({
+        pull() {
+          throw new Error("the body must never be read when the declared length is over the cap");
+        },
+      }),
     } as unknown as Request;
     await expect(readJsonBody(oversized)).rejects.toMatchObject({
       status: 400,

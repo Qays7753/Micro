@@ -405,7 +405,17 @@ export async function saveVendorProfile(ctx: RouteContext, auth: AuthenticatedCo
       reason: "admin_account_holds_no_business_roles",
     });
   }
-  const workspace = await requireWorkspaceContext(db(ctx), auth.identityId, body.workspaceId, "market");
+  /* AUTHZ-05 (2026-11-23): the supplier profile binds to the caller's own
+   * project workspace — the membership ROLE is enforced server-side too (the
+   * owner's final decisions: one owner per project, no team roles), not just
+   * the membership status and module capability. */
+  const workspace = await requireWorkspaceContext(
+    db(ctx),
+    auth.identityId,
+    body.workspaceId,
+    "market",
+    "owner",
+  );
   const workCopy = JSON.stringify({
     displayName,
     contactPhone: phone,
