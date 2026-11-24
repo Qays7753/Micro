@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 9 · MERGED_UNVERIFIED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 86 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 10 · MERGED_UNVERIFIED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 86 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -43,4 +43,4 @@ python3 scripts/operations-control/validate.py
 | WS-250 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-040 | تنفيذ M1–M6 مكتمل بدليل الدفع النهائي (التشغيل الختامي 43620704296 أخضر كاملًا على الرأس النهائي bf90754b) والبند DOC-040 في IN_REVIEW؛ بانتظار مراجعة المالك/قرار الدمج — لا PR ولا دمج ولا main من هذه السلسلة أبدًا؛ لا تنظيف (NO_CLEANUP). استكمال السلسلة على الفرع نفسه يجري الآن تحت مطالبة WS-251/DOC-041 المستقلة بأمر المالك المؤرخ 2026-11-21 (bd242b3e) دون مساس بأدلة مراجعة هذا البند. |
 | WS-251 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | — | DOC-041 | مراجعة المالك لتقرير المرحلة الثانية وdiffs الاستكالة عند بوابة المراجعة؛ القرارات المفتوحة كما هي (MNG-LOCAL-03 المؤجلة، توصيل مزود Ask، الاحتفاظ القانوني، قبول مسح 2026-11-21 لفتح العمل الهيكلي) وخطوات المشغل (G11/G12، MFA، تطبيق الترحيلات حتى 0017) قبل أي بيانات حقيقية. |
 | WS-252 | REVIEW_REQUIRED | `zai/micro-manage-online-20261114` | 386 | DOC-042 | يتطلب WS-252 مراجعة الدليل المباشر على main قبل إغلاق DOC-042. يبقى DOC-042 MERGED_UNVERIFIED عند 74d74cbedf63d6f3ae07b8ca26a229b07cdfaec4؛ نجاح checks على رأس PR 74403009795d79e756b92d05ade3319dbacb7993 مع تطابق الشجرة لا يثبت تشغيلًا على merge SHA نفسه. لا تُغلق أي نتيجة أمنية؛ أبقِ PR #386 مرجعًا تاريخيًا. |
-| WS-254 | IN_PROGRESS | `manus/mng-local-03-06-remediation-20261124` | — | DOC-044 | تنفيذ أمر MNG-LOCAL-03/06 على الفرع manus/mng-local-03-06-remediation-20261124 ثم تقرير التنفيذ العربي عند بوابة مراجعة المالك؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (لا تُغلق إلا بدليلها المباشر) وMNG-LOCAL-06 (قياس الجهاز الفعلي الأدنى مدعومًا NOT_EXECUTED — بوابة DEVICE خارجية)؛ لا PR ولا دمج ولا نشر ولا معاينة ولا إعدادات ولا بيانات حقيقية من هذه السلسلة. |
+| WS-254 | IN_REVIEW | `manus/mng-local-03-06-remediation-20261124` | — | DOC-044 | مراجعة المالك لتقرير التنفيذ العربي (12AB) وdiffs الالتزامين (الكود 2cfdf286 ثم التسليم) على رأس الفرع النهائي manus/mng-local-03-06-remediation-20261124؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (شطر سجلات المخزن بانتظار إقرار المالك بموجات المسح A→D — الأمر §5) وMNG-LOCAL-06 (قياس أضعف جهاز فعلي مدعوم NOT_EXECUTED — بوابة DEVICE خارجية بيد المالك، الإجراء في §٦ من التقرير)؛ لا PR ولا دمج ولا نشر ولا معاينة ولا إعدادات ولا بيانات حقيقية ولا حذف/تنظيف فروع من هذه السلسلة. |
