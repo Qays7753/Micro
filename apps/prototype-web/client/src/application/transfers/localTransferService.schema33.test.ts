@@ -43,7 +43,8 @@ describe("schema 33 export round-trip with product-sale links", () => {
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
     expect(exported.value.version).toBe(34);
-    expect(exported.value.schemaVersion).toBe(42);
+    /* MNG-LOCAL-03 (أمر 12AA 2026-11-24): الزوج الحي صار 43/34 بعد مخزن فتحة المفتاح */
+    expect(exported.value.schemaVersion).toBe(43);
     const text = JSON.stringify(exported.value);
 
     /* الاستيراد في جهاز جديد: الهوية تعبر حرفيًا لا تُخترع ولا تُفقد. */

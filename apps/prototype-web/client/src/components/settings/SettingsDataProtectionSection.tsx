@@ -230,7 +230,7 @@ export function SettingsDataProtectionSection({
           ref={inputRef}
           className="micro-visually-hidden"
           type="file"
-          accept="application/json,.json"
+          accept=".mbak,.json,application/json,application/octet-stream"
           onChange={chooseImport}
         />
         {preview ? (
@@ -239,6 +239,14 @@ export function SettingsDataProtectionSection({
               <FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة
             </span>
             <h2>لم نغير بياناتك بعد</h2>
+            {!preview.sourceEncrypted ? (
+              <p className="micro-warning-copy" role="alert">
+                هذا الملف القديم غير مشفّر — محتواه مقروء لكل من يصل إلى الملف نفسه. استورده إن كان ملفك، ثم
+                أنشئ نسخة جديدة من هذا التطبيق لتكون مشفّرة؛ التطبيق لا يُنزّل ملفًا غير مشفّر أبدًا.
+              </p>
+            ) : (
+              <p>ملف مشفّر — فُتح بمفتاح هذا الجهاز بعد تأكيدك، وسيعاد ختمه مشفّرًا في أي نسخة تنشئها.</p>
+            )}
             <p>
               الملف صادر في <DateTimeValue value={preview.summary.exportedAt} /> ويحتوي على:
             </p>
@@ -407,7 +415,7 @@ export function SettingsDataProtectionSection({
               ref={guidedInputRef}
               className="micro-visually-hidden"
               type="file"
-              accept="application/json,.json"
+              accept=".mbak,.json,application/json,application/octet-stream"
               onChange={chooseGuidedOpeningImport}
             />
           </section>
@@ -417,6 +425,14 @@ export function SettingsDataProtectionSection({
                 <FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة
               </span>
               <h2>لم نغير بياناتك بعد</h2>
+              {!guidedPreview.sourceEncrypted ? (
+                <p className="micro-warning-copy" role="alert">
+                  هذا الملف القديم غير مشفّر — محتواه مقروء لكل من يصل إلى الملف نفسه. أدخله إن كان ملفك، ثم
+                  أنشئ تصديرًا جديدًا من التطبيق ليكون مشفّرًا.
+                </p>
+              ) : (
+                <p>ملف مشفّر — فُتح بمفتاح هذا الجهاز بعد تأكيدك.</p>
+              )}
               <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
               <ul>
                 <li>

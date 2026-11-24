@@ -48,6 +48,7 @@ import {
   IMPORT_DEPTH_LIMIT_MESSAGE,
   IMPORT_SIZE_LIMIT_MESSAGE,
   importFamilyCountVerdict,
+  isWithinImportBytesLimit,
   isWithinImportDepth,
   isWithinImportSizeLimit,
 } from "./transferResourceLimits";
@@ -62,6 +63,16 @@ import {
 } from "./transferTopLevelDataKeys";
 import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+/* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): مظروف النسخ المشفّر ومراسم
+ * مفتاح الجهاز — كل التشفير AES-256-GCM من Web Crypto بلا أي تشفير مخصص،
+ * والمفتاح من مصادقة المنصة (WebAuthn-PRF) بلا أي كلمة مرور مكتوبة. */
+import {
+  isSealedBackupFile,
+  openSealedBackup,
+  parseSealedBackupHeader,
+  sealBackupFile,
+} from "./encryptedBackupEnvelope";
+import { ceremonyKeyProvider, type BackupKeyProvider } from "./backupKeyCeremony";
 
 export type TransferSummary = {
   profile: boolean;
@@ -110,7 +121,14 @@ export type TransferSummary = {
   events: number;
   exportedAt: string;
 };
-export type TransferPreview = { file: LocalExportFile; summary: TransferSummary };
+export type TransferPreview = {
+  file: LocalExportFile;
+  summary: TransferSummary;
+  /* MNG-LOCAL-03 (12AA): هل ملف المصدر نفسه كان مظروفًا مشفّرًا؟ false = ملف
+   * وارث نصي — الواجهة تعرض التحذير العربي الصريح أن الملف القديم غير
+   * مشفّر (لا يُدّعى أن ملفًا منزّلًا نصيًا صار مشفّرًا). */
+  sourceEncrypted: boolean;
+};
 /* S-2 (R11 W1b / D-10 — R10B-NF-012، قرار المالك OPAQUE_PREPARED_IMPORT):
  * عقد مصدر الاستيراد المُحضّر. `PreparedImport` نوع شفاف (phantom brand):
  * البصمة الرمزية معلنة ambient ولا وجود لها في زمن التشغيل إطلاقًا، والرمز
@@ -200,6 +218,9 @@ export class LocalTransferService {
   constructor(
     private readonly store: PrototypeLocalStore,
     private readonly now: Clock = systemClock,
+    /* MNG-LOCAL-03 (12AA): مزوّد مراسم مفتاح الجهاز — قابل للحقن للاختبارات
+     * المركزية؛ الإنتاج يستخدم مراسم WebAuthn-PRF الحقيقية. */
+    private readonly keyProvider: BackupKeyProvider = ceremonyKeyProvider,
   ) {}
 
   async createExport(): Promise<TransferResult<LocalExportFile>> {
@@ -312,7 +333,10 @@ export class LocalTransferService {
     /* السكّة الوحيدة للسكّ (S-2): هذا الـcast إلى النوع الموسوم هو نقطة الختم
      * الوحيدة في الإنتاج — ممنوع أي cast آخر إلى النوع نفسه خارج prepareImport
      * (يُحرس باختبار مسح المصدر في preparedImport.provenance.test.ts). */
-    return { ok: true, value: { file, summary: summary(file) } as PreparedImport };
+    return {
+      ok: true,
+      value: { file, summary: summary(file), sourceEncrypted: false } as PreparedImport,
+    };
   }
 
   async confirmImport(preview: BoundRestoreIntent): Promise<TransferResult<RestoreResult>> {
@@ -366,7 +390,46 @@ export class LocalTransferService {
   async prepareRestore(text: string): Promise<TransferResult<BoundRestoreIntent>> {
     const prepared = this.prepareImport(text);
     if (!prepared.ok) return prepared;
-    return this.bindRestoreIntent(prepared.value, "restore");
+    return this.bindRestoreIntent(prepared.value, "restore", undefined, false);
+  }
+
+  /* MNG-LOCAL-03 (أمر 12AA — 2026-11-24): مدخل استيراد البايتات — المظروف
+   * المشفّر (سحر MCR1) يُفتح بمراسم مفتاح الجهاز المقيدة بمعرّف الاعتماد
+   * والملح من رأس المظروف نفسه (وصف-ذاتي — لا حالة مطلوبة على الجهاز)، ثم
+   * تمر كل بوابات النص القائمة نفسها على النص المفكوك (حجم/عمق/عدد/بنية)
+   * قبل أي كتابة. الملفات النصية الوارثة تُقبل كما كانت عبر مسار النص القائم
+   * وتعلم المعاينة أن المصدر غير مشفّر (التحذير العربي في الواجهة). بوابة
+   * الحجم تُطبّق على بايتات المظروف قبل أي فك — المظروف الثنائي يزيد الملف
+   * نحو ٥١ بايتًا فقط فلا يُرفع سقف ولا يُلَيّن أي حد قائم. */
+  async prepareRestoreFromBytes(bytes: Uint8Array): Promise<TransferResult<BoundRestoreIntent>> {
+    if (!isWithinImportBytesLimit(bytes)) return fail(IMPORT_SIZE_LIMIT_MESSAGE);
+    if (isSealedBackupFile(bytes)) {
+      let header;
+      try {
+        header = parseSealedBackupHeader(bytes);
+      } catch {
+        return fail(
+          "ملف النسخ المشفّر ناقص أو غير صالح — لم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح.",
+        );
+      }
+      const key = await this.keyProvider.obtainEnvelopeKey(header.credentialId, header.prfSalt);
+      if (!key.ok) return fail(key.message);
+      let text: string;
+      try {
+        text = await openSealedBackup(bytes, key.value.key);
+      } catch {
+        return fail(
+          "ملف النسخ المشفّر تالف أو مفتاحه غير مطابق لهذا الجهاز — لم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح ومفتاحه.",
+        );
+      }
+      const prepared = this.prepareImport(text);
+      if (!prepared.ok) return prepared;
+      return this.bindRestoreIntent(prepared.value, "restore", undefined, true);
+    }
+    const text = new TextDecoder().decode(bytes);
+    const prepared = this.prepareImport(text);
+    if (!prepared.ok) return prepared;
+    return this.bindRestoreIntent(prepared.value, "restore", undefined, false);
   }
 
   /* S02-A (عقد ٠٤٤ B4.4): تجهيز استرجاع النسخة السابقة الدائمة — من قاعدة
@@ -400,6 +463,7 @@ export class LocalTransferService {
     prepared: PreparedImport,
     commandType: ReplacementCommandType,
     restoreFormDrafts?: readonly FormDraftEnvelope[],
+    sourceEncrypted = false,
   ): Promise<TransferResult<BoundRestoreIntent>> {
     const live = await this.store.readSnapshot();
     if (!live.ok) return storageFailure(live.message);
@@ -409,6 +473,7 @@ export class LocalTransferService {
       ok: true,
       value: {
         ...prepared,
+        sourceEncrypted,
         intent: {
           commandType,
           expectedGeneration: protection.value.generation,
@@ -452,6 +517,37 @@ export class LocalTransferService {
     return { ok: true, value: protection.value.activeRollback };
   }
 
+  /* MNG-LOCAL-03 (أمر 12AA — 2026-11-24): تنزيل النسخة السابقة الدائمة مشفّرًا
+   * — نفس مفتاح تصدير الجهاز ومراسمه (تأكيد المنصة عند الحاجة)، وفشل مغلق
+   * لا يُنزّل معه أي ملف نصي. السجل المخزّن داخل قاعدة الحماية المنفصلة
+   * يبقى كما هو (تشفير السجلات في المخزن نفسها متوقف على بوابة المسح الهيكلي
+   * الموثقة)؛ ما ينزل إلى الملف حصريًا المظروف المشفّر. */
+  async readActiveRollbackSealed(): Promise<
+    TransferResult<{ sealed: Uint8Array; exportedAt: string } | null>
+  > {
+    const rollback = await this.readActiveRollback();
+    if (!rollback.ok) return rollback;
+    if (rollback.value === null) return { ok: true, value: null };
+    const session = await this.keyProvider.obtainExportKey(this.store, this.now);
+    if (!session.ok) return { ok: false, code: VALIDATION_ERROR, message: session.message };
+    try {
+      const serialized = JSON.stringify(rollback.value.file, null, 2);
+      const sealed = await sealBackupFile(
+        serialized,
+        session.value.key,
+        session.value.credentialId,
+        session.value.prfSalt,
+      );
+      return { ok: true, value: { sealed, exportedAt: rollback.value.file.exportedAt } };
+    } catch {
+      return {
+        ok: false,
+        code: VALIDATION_ERROR,
+        message: "تعذر تشفير ملف النسخة السابقة — لم يُنشأ أي ملف ولم تُمس بياناتك؛ أعد المحاولة بعد لحظة.",
+      };
+    }
+  }
+
   /** نسخة مُتحقق منها (P-01): يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
   async createVerifiedExport(): Promise<TransferResult<{ file: LocalExportFile; summary: TransferSummary }>> {
     const created = await this.createExport();
@@ -466,6 +562,57 @@ export class LocalTransferService {
           "أنشئ الملف لكن التحقق منه فشل؛ لا تعتمد عليه نسخة احتياطية. أنشئ نسخة جديدة قبل أي خطوة مدمّرة.",
       };
     return { ok: true, value: { file: roundTrip.value.file, summary: roundTrip.value.summary } };
+  }
+
+  /* MNG-LOCAL-03 (أمر 12AA — 2026-11-24): التصدير المنزّل الجديد مشفّر دائمًا —
+   * دورة تحقق كاملة على النص قبل الختم (نمط P-01 نفسه) ثم ختمه في مظروف
+   * AES-256-GCM عبر مراسم مفتاح الجهاز، ثم فكّ المظروف مرة أخرى ومطابقة
+   * النص بايتًا-بايتًا قبل إعلان النجاح (صدق الجهوزية للمظروف نفسه لا للنص
+   * وحده). فشل أي ركن = لا ملف أبدًا: إلغاء المستخدم/غياب المصادق/فشل
+   * التشفير كلها فاشلة-مغلقة برسالة عربية صادقة — لا ملف نصي ولا ادعاء
+   * نجاح. النص الصافي لا يغادر الخدمة إلى الواجهة؛ الواجهة تنزّل البايتات
+   * المشفّرة وحدها. */
+  async createSealedVerifiedExport(): Promise<
+    TransferResult<{ sealed: Uint8Array; summary: TransferSummary; exportedAt: string }>
+  > {
+    const created = await this.createExport();
+    if (!created.ok) return created;
+    const serialized = JSON.stringify(created.value, null, 2);
+    const roundTrip = this.prepareImport(serialized);
+    if (!roundTrip.ok)
+      return {
+        ok: false,
+        code: VALIDATION_ERROR,
+        message: "أنشئ الملف لكن التحقق منه فشل؛ لم يُنشأ أي ملف. أنشئ نسخة جديدة قبل أي خطوة مدمّرة.",
+      };
+    const session = await this.keyProvider.obtainExportKey(this.store, this.now);
+    if (!session.ok) return { ok: false, code: VALIDATION_ERROR, message: session.message };
+    try {
+      const sealed = await sealBackupFile(
+        serialized,
+        session.value.key,
+        session.value.credentialId,
+        session.value.prfSalt,
+      );
+      const reopened = await openSealedBackup(sealed, session.value.key);
+      if (reopened !== serialized)
+        return {
+          ok: false,
+          code: VALIDATION_ERROR,
+          message:
+            "تعذر التحقق من النسخة المشفّرة بعد إنشائها — لم يُنشأ أي ملف ولم تُمس بياناتك؛ أعد المحاولة.",
+        };
+      return {
+        ok: true,
+        value: { sealed, summary: roundTrip.value.summary, exportedAt: created.value.exportedAt },
+      };
+    } catch {
+      return {
+        ok: false,
+        code: VALIDATION_ERROR,
+        message: "تعذر تشفير ملف النسخة — لم يُنشأ أي ملف ولم تُمس بياناتك؛ أعد المحاولة بعد لحظة.",
+      };
+    }
   }
 
   /** لقطة فارغة معلنة — تُستخدم حصرًا من بوابة «ابدأ من جديد» بعد نسخة مُتحقق منها. */

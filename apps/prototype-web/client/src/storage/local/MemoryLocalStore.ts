@@ -99,6 +99,7 @@ import type {
   LocalPreferences,
   LocalPreferencesPatch,
   LocalSecurityRecord,
+  LocalDataKeySlot,
   LocalStoreSnapshot,
   OrderDraft,
   OwnerProfile,
@@ -205,6 +206,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
    * حالة الذاكرة المستقلة ككل مخازن المحوّل الذاكري؛ خارج اللقطة والتصدير. */
   private askHistory = new Map<string, AskHistoryEntry>();
   private security: LocalSecurityRecord | null = null;
+  private dataKeySlot: LocalDataKeySlot | null = null;
   /* S02-A (SH-02/SH-03): حالة حماية الاستبدال في الذاكرة — تطابق قاعدة
    * الحماية المنفصلة في المتصفح سلوكًا وعقدًا (قراءة واحدة، وعمليات ذرّية
    * ببنية أحادية الخيط)؛ للتوافق الاختباري للمهايئين لا للاستمرار. */
@@ -348,6 +350,19 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   }
   async deleteLocalSecurity(): Promise<StorageResult<null>> {
     this.security = null;
+    return { ok: true, value: null };
+  }
+  /* MNG-LOCAL-03 (أمر المالك 12AA): فتحة مفتاح تشفير النسخ في مهايئ الذاكرة —
+   * نفس عقد المهايئ المفهرس؛ لا مادة مفتاح في السجل أبدًا. */
+  async getLocalDataKeySlot(): Promise<StorageResult<LocalDataKeySlot | null>> {
+    return { ok: true, value: this.dataKeySlot ? clone(this.dataKeySlot) : null };
+  }
+  async saveLocalDataKeySlot(slot: LocalDataKeySlot): Promise<StorageResult<LocalDataKeySlot>> {
+    this.dataKeySlot = clone(slot);
+    return { ok: true, value: clone(slot) };
+  }
+  async deleteLocalDataKeySlot(): Promise<StorageResult<null>> {
+    this.dataKeySlot = null;
     return { ok: true, value: null };
   }
   /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة في الذاكرة — نفس عقد قاعدة

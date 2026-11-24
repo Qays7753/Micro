@@ -48,6 +48,7 @@ import {
   periodSummaryStore,
   commandReceiptStore,
   askHistoryStore,
+  localDataKeySlotStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -345,6 +346,14 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   if (!database.objectStoreNames.contains(askHistoryStore)) {
     const history = database.createObjectStore(askHistoryStore, { keyPath: "id" });
     history.createIndex("askedAt", "askedAt");
+  }
+  /* MNG-LOCAL-03 (أمر المالك 12AA — الترقية 42→43، 2026-11-24): فتحة مفتاح
+   * تشفير النسخ بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛ القاعدة
+   * القديمة تفتح وتجده فارغًا، والفتحة تُنشأ عند أول تصدير/استيراد مشفّر فقط
+   * (لا عند الإقلاع) فلا مراسم مصادقة جهاز في مسار الإقلاع أبدًا. لا فهارس —
+   * سجل واحد بمعرّف ثابت. */
+  if (!database.objectStoreNames.contains(localDataKeySlotStore)) {
+    database.createObjectStore(localDataKeySlotStore, { keyPath: "id" });
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

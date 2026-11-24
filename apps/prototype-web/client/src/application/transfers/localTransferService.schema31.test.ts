@@ -52,7 +52,8 @@ describe("schema 31 export round-trip with expense category labels", () => {
     /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
      * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
     expect(verified.value.file.version).toBe(34);
-    expect(verified.value.file.schemaVersion).toBe(42);
+    /* MNG-LOCAL-03 (أمر 12AA 2026-11-24): الزوج الحي صار 43/34 بعد مخزن فتحة المفتاح */
+    expect(verified.value.file.schemaVersion).toBe(43);
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);

@@ -91,7 +91,11 @@ import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
  * المعنى) و`command-receipts` (إيصالات الأوامر: استرداد نتيجة المعاملة المنسقة
  * متعددة المصادر) — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القاعدة
  * القديمة تفتح وتجدهما فارغين، وكل الأزواج الموروثة تُقبل كما كانت. */
-export const localSchemaVersion = 42;
+/* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): المخطط ٤٣ يضيف مخزن فتحة مفتاح
+ * تشفير النسخ المحلية بُمنشئ محروس — لا حقول جديدة على سجل قائم ولا ترحيل
+ * بيانات؛ القاعدة القديمة تفتح وتجده فارغًا، والفتحة تُنشأ عند أول
+ * تصدير/استيراد مشفّر فقط لا عند الإقلاع. لا مادة مفتاح في السجل إطلاقًا. */
+export const localSchemaVersion = 43;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -130,6 +134,8 @@ export const localExportFormat = "micro-prototype-local-export";
  * ملخص ولا إيصال. */
 export const localExportVersion = 34;
 export const localSecurityId = "local-security";
+/* MNG-LOCAL-03 (أمر 12AA): معرّف فتحة مفتاح تشفير النسخ — سجل واحد ثابت. */
+export const localDataKeySlotId = "local-data-key-slot";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
  * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما.
@@ -199,6 +205,26 @@ export type LocalSecurityRecord = {
   lastFailedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+/* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): فتحة مفتاح تشفير النسخ —
+ * سجل واحد ثابت بلا أي مادة مفتاح: الملح الذي يُغذّى لمراسم WebAuthn-PRF
+ * (يُحفظ لاستعادة المفتاح نفسه عند كل مراسم)، معرّف الاعتماد (bytes
+ * base64url كما أعاده المتصفح)، ومظروف تحقق (AES-256-GCM لسطر علامة ثابت)
+ * يُفكّ للمقارنة بعد الاشتقاق — نجاح فكّه وحده يثبت أن الخرج المشتق هو
+ * المفتاح نفسه؛ فشله = الاعتماد أُعيد إنشاؤه/أُفرِغ والمفاتيح القديمة
+ * بُدّلت، فتُعلن الحقيقة ولا يُفكّ شيء. خارج اللقطة والتصدير كنمط سجل
+ * الأمن؛ لا يُهجر عند الإقلاع (يتغذى أول تصدير/استيراد مشفّر فقط). */
+export type LocalDataKeySlot = {
+  id: typeof localDataKeySlotId;
+  /** ملح PRF (16 bytes عشوائية عند الإنشاء — سداسية عشرية). */
+  prfSalt: string;
+  /** معرّف اعتماد المنصة — base64url لـ rawId كما أعاده المتصفح. */
+  credentialId: string;
+  /** وقت إنشاء الفتحة — ISO. */
+  createdAt: string;
+  /** مظروف التحقق: nonce + ciphertext (base64) لسطر العلامة الثابتة. */
+  verification: { nonce: string; ciphertext: string };
 };
 
 /* S02-A (SH-02/SH-03 — عقد ٠٤٤ §16 والسجل المشترك §14): سجلات حماية الاستبدال
@@ -1176,6 +1202,12 @@ export interface PrototypeLocalStore {
   saveLocalSecurity(security: LocalSecurityRecord): Promise<StorageResult<LocalSecurityRecord>>;
   /** تعطيل القفل يحذف سجل الأمان نهائيًا — لا أثر يبقى في الجهاز. */
   deleteLocalSecurity(): Promise<StorageResult<null>>;
+  /* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): فتحة مفتاح تشفير النسخ —
+   * سجل واحد بمعرّف ثابت، خارج اللقطة والتصدير كنمط سجل الأمن المتقاعد؛
+   * المفتاح نفسه لا يُخزن أبدًا — الملح ومعرّف الاعتماد ومظروف التحقق فقط. */
+  getLocalDataKeySlot(): Promise<StorageResult<LocalDataKeySlot | null>>;
+  saveLocalDataKeySlot(slot: LocalDataKeySlot): Promise<StorageResult<LocalDataKeySlot>>;
+  deleteLocalDataKeySlot(): Promise<StorageResult<null>>;
   /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة — قاعدة منفصلة خارج نطاق
    * الاستبدال؛ القراءات الأربعة في حد قراءة واحد، والعمليات الثلاث ذرّية
    * داخل قاعدة الحماية نفسها (لا نية بلا نسخة رجوع معلقة، ولا ترقية نسخة

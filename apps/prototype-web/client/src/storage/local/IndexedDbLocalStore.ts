@@ -46,6 +46,7 @@ import {
   localInventoryActivationId,
   localOwnerProfileId,
   localSecurityId,
+  localDataKeySlotId,
   type ActivityProfile,
   type AskHistoryEntry,
   type CostEstimate,
@@ -54,6 +55,7 @@ import {
   type LocalPreferences,
   type LocalPreferencesPatch,
   type LocalSecurityRecord,
+  type LocalDataKeySlot,
   type LocalStoreSnapshot,
   type OrderDraft,
   type OwnerProfile,
@@ -182,6 +184,7 @@ import {
   recurringExpenseSeriesStore,
   scheduleStore,
   securityStore,
+  localDataKeySlotStore,
   shortCashDeclarationStore,
   supplierPurchaseStore,
   receivedLoanStore,
@@ -559,6 +562,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   deleteLocalSecurity() {
     return deleteOne(securityStore, localSecurityId);
+  }
+  /* MNG-LOCAL-03 (أمر المالك 12AA): فتحة مفتاح تشفير النسخ — السجل الواحد
+   * عبر المنفذ نفسه (المعاملات المفردة للـprimitives)، بلا مادة مفتاح
+   * في السجل أبدًا. */
+  getLocalDataKeySlot() {
+    return readOne<LocalDataKeySlot>(localDataKeySlotStore, localDataKeySlotId);
+  }
+  saveLocalDataKeySlot(slot: LocalDataKeySlot) {
+    return writeOne(localDataKeySlotStore, slot);
+  }
+  deleteLocalDataKeySlot() {
+    return deleteOne(localDataKeySlotStore, localDataKeySlotId);
   }
   listDrafts() {
     return listAll<OrderDraft>(draftStore, (left, right) => right.updatedAt.localeCompare(left.updatedAt));

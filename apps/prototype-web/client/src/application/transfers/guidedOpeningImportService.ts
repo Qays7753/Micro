@@ -28,10 +28,16 @@ import {
   IMPORT_DEPTH_LIMIT_MESSAGE,
   IMPORT_SIZE_LIMIT_MESSAGE,
   importFamilyCountVerdict,
+  isWithinImportBytesLimit,
   isWithinImportDepth,
   isWithinImportSizeLimit,
 } from "./transferResourceLimits";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
+/* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): مظروف النسخ المشفّر ومراسم
+ * مفتاح الجهاز — ملف الإدخال الافتتاحي الموجّه يدعم المظروف نفسه الذي
+ * تنزّله الاستعادة الكاملة، بلا أي كلمة مرور مكتوبة (تأكيد المنصة فقط). */
+import { isSealedBackupFile, openSealedBackup, parseSealedBackupHeader } from "./encryptedBackupEnvelope";
+import { ceremonyKeyProvider, type BackupKeyProvider } from "./backupKeyCeremony";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
 export const guidedOpeningImportVersion = 1 as const;
@@ -69,6 +75,9 @@ export type GuidedOpeningImportPreview = {
   file: GuidedOpeningImportFile;
   summary: GuidedOpeningImportSummary;
   snapshot: LocalStoreSnapshot;
+  /* MNG-LOCAL-03 (12AA): هل ملف المصدر كان مظروفًا مشفّرًا — الوارث النصي
+   * يُعلَم بالتحذير العربي الصريح في الواجهة. */
+  sourceEncrypted: boolean;
 };
 export type GuidedOpeningImportResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -240,9 +249,49 @@ export class GuidedOpeningImportService {
     private readonly store: PrototypeLocalStore,
     private readonly buildVerifiedBackup: VerifiedBackupBuilder,
     private readonly now: Clock = systemClock,
+    /* MNG-LOCAL-03 (12AA): مزوّد مراسم مفتاح الجهاز — قابل للحقن للاختبارات
+     * المركزية؛ الإنتاج يستخدم مراسم WebAuthn-PRF الحقيقية. */
+    private readonly keyProvider: BackupKeyProvider = ceremonyKeyProvider,
   ) {}
 
-  async prepare(text: string): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {
+  /* MNG-LOCAL-03 (أمر 12AA — 2026-11-24): مدخل بايتات الإدخال الافتتاحي —
+   * مظروف النسخ المشفّر (سحر MCR1) يُفتح بمراسم مفتاح الجهاز المقيدة
+   * بمعرّف الاعتماد والملح من رأس المظروف نفسه، ثم بوابات النص القائمة
+   * نفسها؛ الملف النصي الوارث يُقبل كما كان عبر مسار النص القائم مع
+   * التحذير العربي الصادق في الواجهة. الفشل (إلغاء/غياب المصادق/عبث)
+   * مغلق قبل أي كتابة ولا يُمس أي بيانات. */
+  async prepareFromBytes(bytes: Uint8Array): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {
+    if (!isWithinImportBytesLimit(bytes)) return fail("validation_error", IMPORT_SIZE_LIMIT_MESSAGE);
+    if (!isSealedBackupFile(bytes)) {
+      return this.prepare(new TextDecoder().decode(bytes), false);
+    }
+    let header;
+    try {
+      header = parseSealedBackupHeader(bytes);
+    } catch {
+      return fail(
+        "validation_error",
+        "ملف النسخ المشفّر ناقص أو غير صالح — لم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح.",
+      );
+    }
+    const key = await this.keyProvider.obtainEnvelopeKey(header.credentialId, header.prfSalt);
+    if (!key.ok) return fail("validation_error", key.message);
+    let text: string;
+    try {
+      text = await openSealedBackup(bytes, key.value.key);
+    } catch {
+      return fail(
+        "validation_error",
+        "ملف النسخ المشفّر تالف أو مفتاحه غير مطابق لهذا الجهاز — لم تُمس بيانات هذا الجهاز؛ تأكد من اختيار ملف النسخة الصحيح ومفتاحه.",
+      );
+    }
+    return this.prepare(text, true);
+  }
+
+  async prepare(
+    text: string,
+    sourceEncrypted = false,
+  ): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {
     /* UXR-06 (PERF-002): البوابة قبل التحليل — نفس حد ملف الاستعادة الكامل (باب
      * واحد لكل مستورد)؛ الرفض صادق بأن شيئًا لم يُمسّ. */
     if (!isWithinImportSizeLimit(text)) return fail("validation_error", IMPORT_SIZE_LIMIT_MESSAGE);
@@ -301,7 +350,7 @@ export class GuidedOpeningImportService {
     if (alreadyImported)
       return {
         ok: true,
-        value: { file, summary: this.summary(file), snapshot: current.value },
+        value: { file, summary: this.summary(file), snapshot: current.value, sourceEncrypted },
         reused: true,
       };
     try {
@@ -395,7 +444,7 @@ export class GuidedOpeningImportService {
         assets: [],
         loans: [],
       };
-      return { ok: true, value: { file, summary: this.summary(file), snapshot } };
+      return { ok: true, value: { file, summary: this.summary(file), snapshot, sourceEncrypted } };
     } catch {
       /* MNG-LOCAL-05 (إصلاح النتيجة المفتوحة 2026-11-23 — WS-254/DOC-044): نص
        * الاستثناء الخام لا يُعرض للمستخدم أبدًا في أي موضع من مسار الاستيراد
