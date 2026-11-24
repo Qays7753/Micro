@@ -43,14 +43,15 @@
   "agent": "Manus — prompt and documentation integrator; ZAI — sole code writer and integrator under the owner's explicit authorization; no parallel writers",
   "pr": null,
   "started_at": "2026-11-23",
-  "updated_at": "2026-11-23",
-  "next_action": "مراجعة المالك/Manus لتقرير التنفيذ العربي EXECUTION-REPORT-AR.md على رأس الفرع النهائي (fe2b1b5a) وdiffs الالتزامات الخمسة؛ القرار المفتوح الوحيد المتبقي تقنيًا هو MNG-LOCAL-03 (مؤجلة بقرار المالك المصرح) — لا PR ولا دمج ولا نشر يدوي ولا إعدادات ولا بيانات حقيقية من هذه السلسلة؛ معاينة Pages التلقائية المحتملة تُقرأ قراءة أدلة فقط ولا تعني جاهزية إطلاق.",
+  "updated_at": "2026-11-24",
+  "next_action": "مراجعة المالك/Manus لتقرير المتابعة العربي FOLLOW-UP-REMEDIATION-REPORT-2026-11-24.md على رأس الفرع النهائي وdiffs الالتزامين (الكود 38bd825c ثم التسليم)؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (مؤجلة بقرار المالك المصرح) وMNG-LOCAL-06 (قياس الجهاز الفعلي الأدنى مدعومًا NOT_EXECUTED — البوابة DEVICE خارجية)؛ لا PR ولا دمج ولا نشر يدوي ولا إعدادات ولا بيانات حقيقية من هذه السلسلة.",
   "notes": [
     "This claim begins from main@5a9064e657a40041ebe63c8f107d57a802f6b93f. The ZAI execution must verify the live base and branch; the recorded SHA is a hint until checked.",
     "The owner expressly authorized ordinary pushes to this branch and accepts the possibility of an automatic Cloudflare Pages preview. This does not authorize a manual deployment/retry, production promotion, or Cloudflare/Neon/R2 configuration or data writes. Do not use [CF-Pages-Skip].",
     "Keep all 30 security findings visible. The eight open findings are in scope; MNG-LOCAL-03 remains technically open and deferred-by-owner unless the owner changes that decision. Do not invent encryption, key recovery, or a new export/storage format.",
     "No structural refactoring, bulk moves, architecture-layer changes, semantic/financial changes, live migrations, provider calls, credentials, or real-data use. Synthetic fixtures are for automated tests only; the owner's eventual private partner trial is not being redefined as synthetic-only.",
-    "Production Pages was last documented without DB/MEDIA bindings and /api/* returning 503. An automatic preview is not proof of connected services, release readiness, or permission to use data."
+    "Production Pages was last documented without DB/MEDIA bindings and /api/* returning 503. An automatic preview is not proof of connected services, release readiness, or permission to use data.",
+    "Update 2026-11-24 (owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md, section «Prevent a separate Preview»): the owner's latest decision is NO separate Preview, and the Preview binding was found to point at the only Neon branch named production — therefore every commit pushed to THIS feature branch must now carry the [CF-Pages-Skip] prefix so no Cloudflare Pages preview is created or refreshed. This explicitly supersedes the earlier note on this claim that said not to use the prefix; no Cloudflare setting is changed by us, no manual deploy/retry, and if a Pages run nevertheless appears it is reported (URL/ID/source SHA) and no operation reaching its bindings is attempted."
   ],
   "evidence": [
     "docs/expansion/security-findings-status.md",
