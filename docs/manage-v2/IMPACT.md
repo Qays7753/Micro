@@ -288,12 +288,13 @@
 | Infrastructure (سيرفر) | `worker/api/manage/` + `worker/db/migrations-pg/` | مسارات HTTP، مستودعات، هجرات، فرض append-only | أي منطق مالي |
 | UI (عميل) | `client/src/pages/manage/{now,orders,finance}/` + `client/src/components/manage/` | P-01…P-80 تعرض ما يرجعه السيرفر | **أي حساب أو تحويل وحدة** |
 | Client API | `client/src/application/manage/api/` | عميل رفيع: طلب/استجابة، رموز أخطاء، لا رياضيات | أي منطق أعمال |
+| Presentation (عميل) | `client/src/application/manage/presentation/` | تنسيق عرض R-20…R-22 وتحويل نص الإدخال إلى عدد صحيح بالفلوس **للإرسال فقط** | أي رقم محسوب أو معادلة §8 |
 | Cache | `client/src/storage/manage-cache/` | كاش قراءة فقط يُحدَّث من السيرفر | أن يكون مصدر حقيقة |
 | Strings | `client/src/application/manage/strings/` | كتالوج مفاتيح §10/§11 | نص حرفي خارج الكتالوج |
 
 **قاعدة الحدود:** لا يستورد `src/domain/manage` أو `worker/application/manage` أي شيء من `craft-order`/`financial-event`/`cash-continuity`/…، ولا يستورد التوصيل/السوق/أدواتي منه. `check-module-boundaries` يُحدَّث ليفرض الاتجاه: `worker/api/manage → worker/application/manage → src/domain/manage`، والعميل لا يستورد الدومين إطلاقًا.
 
-**أثر التصحيح:** لا يوجد `client/src/application/manage` كطبقة تنفيذ. العميل لا يحمل معادلة واحدة من §8؛ أي رقم معروض جاء جاهزًا من السيرفر (وهذا يجعل فحص R-3 في المراجعة أقوى: بحث آلي عن أي رياضيات مالية في مجلدات العميل).
+**أثر التصحيح:** لا توجد طبقة تنفيذ في العميل إطلاقًا؛ ما في `client/src/application/manage` هو عميل API + تنسيق عرض/إدخال + كتالوج نصوص فقط. العميل لا يحمل معادلة واحدة من §8؛ أي رقم معروض جاء جاهزًا من السيرفر (وهذا يجعل فحص R-3 في المراجعة أقوى: بحث آلي عن أي رياضيات مالية في مجلدات العميل).
 
 ## 13. «لازم يصير قبل الحذف» — حالات الفصل التي تحتاج موافقتك
 

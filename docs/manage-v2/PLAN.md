@@ -43,7 +43,7 @@
 | M1.4 | مظروف نقل v2 يرفض القديم صراحةً | S6، لا ترحيل | `application/transfers/*` | اختبار رفض مظروف v1 | تطبيقي |
 | M1.5 | تكييف تصدير/حذف المشروع | S5، §14.6 | `worker/api/projectLifecycle.ts` | اختبار تصدير/حذف + SRV-07 | تطبيقي |
 | M1.6 | تأسيس مجلدات §14 وحدود الوحدات (دومين + سيرفر + عميل رفيع) | §14.1–14.3 | `src/domain/manage/*`, `worker/application/manage/*`, `worker/api/manage/*`, `client/src/application/manage/api/*`, `client/src/pages/manage/*` | حارس حدود يفرض اتجاه الاعتماد | — |
-| M1.7 | وحدة الفلس (دومين + تنسيق عرض/إدخال للعميل) | §9، R-20…R-22 | `src/domain/manage/money/*`, `client/src/application/manage/format/*` | عرض/إدخال/تقريب | — |
+| M1.7 | وحدة الفلس: النوع والتقريب في الدومين، وتنسيق العرض/الإدخال في العميل **للعرض والإرسال فقط** | §9، R-20…R-22 | `src/domain/manage/money/*`, `client/src/application/manage/presentation/*` | عرض/إدخال/تقريب + اختبار أن العميل لا يحسب رقمًا | — |
 | M1.8 | كتالوج نصوص مانج (مفاتيح §10/§11) + حارس نص حرفي | §10، §11، قرار ٧ | `application/manage/strings/*`, `scripts/check-manage-literal-text.mjs` | تغطية المفاتيح + فشل النص الحرفي | — |
 | M1.9 | جرد الحذف + حارس «لا استيراد من مسار محذوف» | لا كود ميت | `docs/manage-v2/DELETION-MANIFEST.md`, `scripts/check-deleted-imports.mjs` | الحارس يفشل عند استيراد محذوف | CI |
 | M1.10 | تحديث حراس CI المطلوبة | — | `scripts/check-{registry-coverage,module-boundaries,file-size-ratchet,money-minor-casts}.mjs` | `pnpm guards` أخضر | CI |
