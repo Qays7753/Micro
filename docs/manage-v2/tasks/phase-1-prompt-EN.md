@@ -256,6 +256,7 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 **Rules:** §14.3, IMPACT S1, owner decision 26/11/2026.
 
 **Do (exactly three things):**
+
 1. `docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`:
    - Add one row for the new domain area `costing`: concept `costing`, authoritative source `§14.3 + src/domain/costing/`, implementation owner `domain/costing`, main consumers `domain/planning (أدواتي)؛ domain/craft-order (إعادة تصدير توافق)`, storage owner `— (نقي بلا تخزين)`, export/import `لا يوجد`, tests `tests/domain/costing.test.ts`, documentation `docs/manage-v2/PLAN.md §14.3؛ IMPACT S1`, status `PRESERVE — نواة تكلفة محايدة مشتركة (M1.1)`.
    - Update the `planning` row so it no longer says it consumes the cost core **from `craft-order`**: it now consumes `src/domain/costing/`.
@@ -266,6 +267,7 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 **Allowed files:** the three files above, plus `docs/manage-v2/TRACKER.md` and `docs/manage-v2/reports/M1.1a-report-AR.md`.
 
 **Tests first / verification order:**
+
 1. Run `corepack pnpm guards` and paste the `registry-coverage` failure (it is the failing state).
 2. Make the three changes.
 3. Run `corepack pnpm guards` → every check `PASS`, zero `FAIL`.
