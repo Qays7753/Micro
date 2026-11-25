@@ -111,7 +111,15 @@
 - **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.3 — إزالة المسودة المالية من «اسأل Micro»
-- **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات:
+- **ZAI:** `DONE` — 26/11/2026
+  - الحالة: نُفِّذت كاملة بالاختبارات أولًا: أُزيل استيراد `AskDraftCard` وعرضه من `AskMicro.tsx`، وحُذف الملف `client/src/components/ask/AskDraftCard.tsx` كاملًا (بما فيه مسارا الحجز والحدث المالي — الأمر نصّ على حذف الملف). حقل `draft` في نوع نتيجة الصفحة المحلي حُذف هو الآخر («remove only the page's unused variable») — عقد الخدمة (`application/network`/`askMicroService`) لم يُمسّ، و`application/ask/**` لم يُمسّ (`git diff --stat` فارغ عليه)، والمحادثة و`ask-history` كما هما.
+  - commit: التزام المهمة يحمل الكود والاختبارات وتحديث المتتبّع هذا (رقمه يُثبَّت في الالتزام التوثيقي الملاصق — النمط المعتمد).
+  - الاختبارات (أمر + نتيجة):
+    - أولًا فشلًا مقصودًا (قبل أي كود): `corepack pnpm --filter @micro/prototype-web exec vitest run AskMicro.noFinancialDraft` → **فشل الاختباران**: الدخاني (بطاقة المسودة المالية تُعرض رغم النفي) والمسح المصدر (٥ مخالفات: البطاقة وبنّاء الحدث المالي وعائلة `financialEvents` في المكون، والاستيراد في الصفحة).
+    - بعد التنفيذ: الأمر نفسه → ٢/٢ ناجحة، ومعه `AskMicro.dom.test.tsx` و`AskMicro.governance.dom.test.tsx` → ١٣/١٣.
+    - نطاق القبول: `corepack pnpm --filter @micro/prototype-web test` → **٤٧٧ ملفًا / ٣٧٨١ اختبارًا كلها ناجحة**؛ `corepack pnpm test` (الجذر) → **٨٦ ملفًا / ١٠٣١ اختبارًا كلها ناجحة** (بعد مصالحة أدلة الحراس — بند الملاحظات)؛ `corepack pnpm typecheck` ناجح؛ `pnpm --filter @micro/prototype-web exec tsc --noEmit` ناجح؛ `corepack pnpm guards` → كل الفحوص PASS (exit 0)؛ `corepack pnpm lint` → ٠ أخطاء / ٣٥ تحذيرًا (= الأساس).
+    - قبول النص الحرفي: `grep -R "AskDraftCard\|constructFinancialEventRecord" client/src/pages/AskMicro.tsx client/src/components/ask` → لا شيء.
+  - ملاحظات: الاختبارات الشاهدة: `AskMicro.noFinancialDraft.dom.test.tsx` (جديد: اقتراح حدث مالي من الخادم لا يعرض بطاقة ولا يكتب إلى `/api/manage/records`) و`AskMicro.noFinancialDraft.scan.test.ts` (جديد: مسح مصدر الصفحة + `components/ask` بلا أي إشارة للبطاقة/البنّاء/العائلة) و`AskMicro.dom.test.tsx` (استُبدلت اختبارات بطاقة حجز التوصيل الثلاثة بواحد يشهد على الغياب: لا بطاقة ولا جلب سائقين ولا كتابة) و`AskMicro.governance.dom.test.tsx` (قُلبت اختبارات §10.2-5 إلى نفيها). `scripts/check-diagnostics-storage.test.mjs`: دبوس عدّ الملفات ٤٣٧→٤٣٦ (اختبار يذكر البطاقة صراحة وتغيّره مفروض بالحذف — بروتوكول التوثيق نفسه المتبع تاريخيًا). مصالحة أدلة الحراس الأخرى التي فرضها نطاق الموجة (صفوف الجرد الجانحة لـM1.2، خريطة الاختبارات، الذهبي لكثافة النص لـM1.3) في الالتزام الملاصق الموثق — نمط «gate-fix» المعتمد (سابقة f689854e). `result.draft` بقيت في عقد الخادم دون استهلاك عند الصفحة عمدًا حتى إعادة التصميم.
 - **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.4 — (نُقلت إلى M2.12)

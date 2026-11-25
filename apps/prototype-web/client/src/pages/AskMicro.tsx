@@ -20,12 +20,10 @@ import {
   grantAskConsent,
   revokeAskConsent,
   type AskAnswer,
-  type AskDraftProposal,
   type AskStatus,
 } from "@/application/network";
 import { ApiError } from "@/application/network";
 import { Button, EmptyState, Notice } from "@/components/primitives";
-import { AskDraftCard } from "@/components/ask/AskDraftCard";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { AskHistoryEntry } from "@/application/ask";
@@ -40,7 +38,6 @@ const ASK_HISTORY_PREVIEW = 10;
 type AskResult = {
   answer: string;
   sources: { id: string; label: string; value: string | number | boolean; source: string }[];
-  draft: AskDraftProposal | null;
 } | null;
 
 export default function AskMicro() {
@@ -139,12 +136,12 @@ export default function AskMicro() {
        * context (his active project) — never a merged cross-project scope. */
       const workspaceId = status?.context?.workspaces?.[0]?.id;
       const answer = await askQuestion(question.trim(), workspaceId);
-      /* §5: الإجابة تأتي مع مصادرها الموثقة فقط، والمسودة — إن وجدت — بطاقة
-       * قابلة للتحرير لا معاملة محفوظة. */
+      /* §5: الإجابة تأتي مع مصادرها الموثقة فقط — ملاحظة M1.3 (حدود النطاق /
+       * IMPACT S3): اقتراحات المسودة من الخادم تُهمل هنا حتى يُعاد تصميم
+       * المسار على النظام الجديد؛ لا سطح كتابة من «اسأل Micro» أبدًا. */
       setResult({
         answer: answer.answer ?? answer.answerText ?? "تم إرسال السؤال.",
         sources: answer.sources ?? [],
-        draft: answer.draft ?? null,
       });
       setMessage({ tone: "success", text: "" });
       /* §10.2-7-2: the served Q&A pair lands in the local text history
@@ -332,9 +329,6 @@ export default function AskMicro() {
                     ))}
                   </ul>
                 </div>
-              ) : null}
-              {result.draft ? (
-                <AskDraftCard draft={result.draft} session={session} onDismissed={() => setResult(null)} />
               ) : null}
             </div>
           ) : null}

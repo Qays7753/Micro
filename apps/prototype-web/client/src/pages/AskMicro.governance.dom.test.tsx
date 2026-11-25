@@ -3,9 +3,10 @@
  * Ask Micro governance — the client-side rules (owner supplement §10.2-7,
  * 2026-11-22 — WS-251/DOC-041): the revocable consent UI, the honest daily
  * caps line, the local TEXT-ONLY history (≤21 days, no raw audio anywhere),
- * and the manage-financial-event draft card (§10.2-5) — the canonical write
- * through the existing single-record path with zero writes before the user's
- * explicit confirmation.
+ * and the M1.3 cut (scope boundary / IMPACT S3, 2026-11-26): a served
+ * manage-financial-event proposal renders no draft card and triggers no
+ * write to the manage-records family until the path is redesigned on the
+ * new system.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -203,7 +204,7 @@ describe("§10.2-7-3/4: the honest daily caps line", () => {
   });
 });
 
-describe("§10.2-5: the manage-financial-event draft card (the canonical write path)", () => {
+describe("M1.3 (IMPACT S3): the manage-financial-event proposal has no surface and no write", () => {
   const financialDraft = {
     kind: "manage-financial-event" as const,
     title: "مسودة حدث مالي",
@@ -231,7 +232,7 @@ describe("§10.2-5: the manage-financial-event draft card (the canonical write p
     ],
   };
 
-  it("completing the card and confirming writes through the EXISTING canonical record path — and nothing before that", async () => {
+  it("a served financial-draft proposal renders the answer only — no card, no record write at all", async () => {
     fetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === "/api/auth/session") return jsonResponse(OWNER_SESSION);
       if (path === "/api/ask/status") {
@@ -246,80 +247,6 @@ describe("§10.2-5: the manage-financial-event draft card (the canonical write p
         posted.push({ path, init });
         return jsonResponse({ answer: "جاهز لتسجيل الحدث.", sources: [], draft: financialDraft });
       }
-      if (path.startsWith("/api/manage/records/financialEvents/") && init?.method === "PUT") {
-        posted.push({ path, init });
-        return jsonResponse(
-          { saved: true, family: "financialEvents", id: "new-id", updatedAt: 1, created: true },
-          201,
-        );
-      }
-      return jsonResponse({});
-    });
-    render(
-      <ThemeProvider>
-        <AskMicro />
-      </ThemeProvider>,
-    );
-    const textarea = await screen.findByPlaceholderText("اكتب سؤالك عن أعمالك داخل سياقك…");
-    fireEvent.change(textarea, { target: { value: "سجّل لي مصروف تشغيل نقدي" } });
-    fireEvent.click(screen.getByRole("button", { name: "اسأل" }));
-    // The draft card renders with every required field visibly blank.
-    const card = await screen.findByTestId("ask-draft-card");
-    expect(card.textContent).toContain("ليست محفوظة");
-    // ZERO writes so far — the ask itself wrote nothing.
-    expect(posted.filter(call => call.path.startsWith("/api/manage/records/"))).toHaveLength(0);
-    // The confirm button stays disabled until the user completes the fields.
-    const confirmButton = screen.getByRole("button", { name: "تسجيل الحدث عبر المسار المالي المعتمد" });
-    expect(confirmButton.hasAttribute("disabled")).toBe(true);
-    fireEvent.change(screen.getByLabelText("نوع الحدث المالي (إلزامي)"), {
-      target: { value: "operating_expense_cash" },
-    });
-    fireEvent.change(screen.getByLabelText("المبلغ (دينار) (إلزامي)"), { target: { value: "12.5" } });
-    fireEvent.change(screen.getByLabelText("تاريخ الوقوع (إلزامي)"), { target: { value: "2026-11-22" } });
-    fireEvent.change(screen.getByLabelText("البيان (إلزامي)"), { target: { value: "صيانة آلة الخياطة" } });
-    expect(confirmButton.hasAttribute("disabled")).toBe(false);
-    fireEvent.click(confirmButton);
-    // The ONE write: the existing canonical record path with the
-    // domain-constructed record and the explicit workspace context.
-    await waitFor(() => {
-      expect(
-        posted.filter(call => call.path.startsWith("/api/manage/records/financialEvents/")),
-      ).toHaveLength(1);
-    });
-    const write = posted.find(call => call.path.startsWith("/api/manage/records/financialEvents/"))!;
-    expect(write.init?.method).toBe("PUT");
-    const body = JSON.parse(String(write.init?.body)) as {
-      data: Record<string, unknown>;
-      workspaceId?: string;
-    };
-    expect(body.workspaceId).toBe("ws_1");
-    // The record is the DOMAIN-constructed financial event (canonical shape).
-    expect(body.data.type).toBe("operating_expense_cash");
-    expect(body.data.amountMinor).toBe(1250);
-    expect(body.data.occurredOn).toBe("2026-11-22");
-    expect(body.data.note).toBe("صيانة آلة الخياطة");
-    expect(typeof body.data.idempotencyKey).toBe("string");
-    expect(typeof body.data.id).toBe("string");
-    // Success shows only after the server acceptance.
-    const saved = await screen.findByTestId("ask-draft-saved");
-    expect(saved.textContent).toContain("سُجّل الحدث المالي بعد قبول الخادم");
-  });
-
-  it("cancelling the draft sends NO write at all", async () => {
-    fetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path === "/api/auth/session") return jsonResponse(OWNER_SESSION);
-      if (path === "/api/ask/status") {
-        return jsonResponse(
-          statusWith({
-            consent: "granted",
-            daily: { questionsUsed: 0, questionCap: 20, neuronsUsed: 0, neuronsCap: 10000 },
-          }),
-        );
-      }
-      if (path === "/api/ask" && init?.method === "POST") {
-        posted.push({ path, init });
-        return jsonResponse({ answer: "جاهز.", sources: [], draft: financialDraft });
-      }
       if (path.startsWith("/api/manage/records/")) {
         posted.push({ path, init });
         return jsonResponse({ saved: true });
@@ -332,19 +259,14 @@ describe("§10.2-5: the manage-financial-event draft card (the canonical write p
       </ThemeProvider>,
     );
     const textarea = await screen.findByPlaceholderText("اكتب سؤالك عن أعمالك داخل سياقك…");
-    fireEvent.change(textarea, { target: { value: "سجّل لي مصروفًا" } });
+    fireEvent.change(textarea, { target: { value: "سجّل لي مصروف تشغيل نقدي" } });
     fireEvent.click(screen.getByRole("button", { name: "اسأل" }));
-    await screen.findByTestId("ask-draft-card");
-    fireEvent.change(screen.getByLabelText("نوع الحدث المالي (إلزامي)"), {
-      target: { value: "owner_investment_cash" },
-    });
-    fireEvent.change(screen.getByLabelText("المبلغ (دينار) (إلزامي)"), { target: { value: "50" } });
-    fireEvent.change(screen.getByLabelText("تاريخ الوقوع (إلزامي)"), { target: { value: "2026-11-22" } });
-    fireEvent.change(screen.getByLabelText("البيان (إلزامي)"), { target: { value: "إيداع افتتاحي" } });
-    fireEvent.click(screen.getByRole("button", { name: "إلغاء (لا يُرسَل شيء)" }));
-    await waitFor(() => {
-      expect(screen.queryByTestId("ask-draft-card")).toBeNull();
-    });
+    const answer = await screen.findByTestId("ask-answer");
+    expect(answer.textContent).toContain("جاهز لتسجيل الحدث.");
+    await waitFor(() => expect(screen.queryByTestId("ask-draft-card")).toBeNull());
+    expect(screen.queryByTestId("ask-draft-saved")).toBeNull();
+    expect(screen.queryByRole("button", { name: /تسجيل الحدث/ })).toBeNull();
+    /* عائلة سجلات مانج لم تُلمس إطلاقًا — السؤال وحده ذهب إلى الخادم. */
     expect(posted.filter(call => call.path.startsWith("/api/manage/records/"))).toHaveLength(0);
   });
 });

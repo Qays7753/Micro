@@ -171,9 +171,10 @@ describe("ask micro page (EX-D21)", () => {
     expect(posted[0]!.init?.body as string).toContain("قرارات بانتظاري");
   });
 
-  /* ── Post-Group 6 continuous completion (§5.3–§5.5): الإجابة بمصادرها
-   * والمسودة القابلة للتحرير — لا كتابة قبل التأكيد الصريح، ولا نجاح
-   * كاذب عند فشل الخادم. ── */
+  /* ── M1.3 (حدود النطاق / IMPACT S3 — أمر تنفيذ المرحلة ١): الإجابة
+   * بمصادرها الموثقة فقط — اقتراح المسودة من الخادم يُهمل ولا يعرض أي
+   * بطاقة ولا يجلب بياناتها ولا يكتب شيئًا حتى يُعاد تصميم المسار على
+   * النظام الجديد. ── */
 
   const CONFIGURED_STATUS = {
     ...UNCONFIGURED_STATUS,
@@ -281,113 +282,25 @@ describe("ask micro page (EX-D21)", () => {
     expect(sources.textContent).toContain("سجل حجوزاتك في التوصيل");
   });
 
-  it("the draft card writes NOTHING until every required field is completed and confirmed (§5.3/§5.4)", async () => {
+  it("a proposed delivery-booking draft renders NO card — no driver lookup, no write, no false state (M1.3/§5.3–§5.5)", async () => {
     mockConfiguredAsk();
     render(<AskMicro />);
     await screen.findByTestId("ask-context");
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "سجّل لي حجز توصيلة للزبون غدًا" } });
     fireEvent.click(screen.getByRole("button", { name: "اسأل" }));
-    const card = await screen.findByTestId("ask-draft-card");
-    expect(card.textContent).toContain("ليست محفوظة");
-    /* كل الحقول الإلزامية فارغة عمدًا — القيم التي لم تذكرها في السؤال */
-    const confirmButton = screen.getByRole("button", { name: "أنشئ مسودة الحجز" });
-    expect(confirmButton.hasAttribute("disabled")).toBe(true);
-    /* إكمال الحقول الإلزامية واحدة واحدة ثم التأكيد */
-    const driverSelect = await screen.findByLabelText("السائق (إلزامي — تختاره بنفسك)");
-    fireEvent.change(driverSelect, { target: { value: "drv-1" } });
-    fireEvent.change(screen.getByLabelText("نوع الطلب (إلزامي)"), {
-      target: { value: "deliver_to_customer" },
-    });
-    fireEvent.change(screen.getByLabelText("محافظة الاستلام (إلزامي)"), { target: { value: "عمان" } });
-    fireEvent.change(screen.getByLabelText("محافظة التسليم (إلزامي)"), { target: { value: "الزرقاء" } });
-    fireEvent.change(screen.getByLabelText("حجم الحمل (إلزامي)"), { target: { value: "small" } });
-    fireEvent.change(screen.getByLabelText("شريحة الوزن (إلزامي)"), { target: { value: "under_10kg" } });
-    fireEvent.change(screen.getByLabelText("عدد القطع (إلزامي)"), { target: { value: "2" } });
-    fireEvent.change(screen.getByLabelText("نمط التسعير (إلزامي)"), { target: { value: "prepriced" } });
-    fireEvent.change(screen.getByLabelText("الأجر المعروض (دينار) (إلزامي)"), { target: { value: "5.5" } });
-    expect(confirmButton.hasAttribute("disabled")).toBe(false);
-    /* لم تُرسل أي كتابة قبل التأكيد الصريح */
-    expect(posted.filter(call => call.path.startsWith("/api/delivery/requests"))).toHaveLength(0);
-    fetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/api/auth/session")) return jsonResponse(OWNER_SESSION);
-      if (path.startsWith("/api/ask/status")) return jsonResponse(CONFIGURED_STATUS);
-      if (path.startsWith("/api/delivery/drivers")) {
-        return jsonResponse({ drivers: [{ driverProfileId: "drv-1", displayName: "سائق الاختبار" }] });
-      }
-      if (path.startsWith("/api/delivery/requests")) {
-        posted.push({ path, init });
-        return jsonResponse({ request: { id: "req-ask-1" } }, 201);
-      }
-      return jsonResponse({ error: { code: "not_found", message: "غير موجود" } }, 404);
-    });
-    fireEvent.click(confirmButton);
-    const saved = await screen.findByTestId("ask-draft-saved");
-    expect(saved.textContent).toContain("بعد قبول الخادم");
-    /* الكتابة الوحيدة: المسار الكنوني نفسه بسياق المشروع الصريح */
-    const writes = posted.filter(call => call.path.startsWith("/api/delivery/requests"));
-    expect(writes).toHaveLength(1);
-    const body = JSON.parse(String(writes[0]!.init?.body)) as {
-      driverProfileId: string;
-      workspaceId: string;
-      needType: string;
-      offeredFareMinor: string;
-      pieceCount: number;
-    };
-    expect(body.driverProfileId).toBe("drv-1");
-    expect(body.workspaceId).toBe("ws_1");
-    expect(body.needType).toBe("deliver_to_customer");
-    expect(body.offeredFareMinor).toBe("550");
-    expect(body.pieceCount).toBe(2);
-  });
-
-  it("cancelling the draft card sends NO write at all (§5.4)", async () => {
-    mockConfiguredAsk();
-    render(<AskMicro />);
-    await screen.findByTestId("ask-context");
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "سجّل لي حجز توصيلة للزبون غدًا" } });
-    fireEvent.click(screen.getByRole("button", { name: "اسأل" }));
-    await screen.findByTestId("ask-draft-card");
-    fireEvent.click(screen.getByRole("button", { name: "إلغاء المسودة" }));
+    /* الإجابة ومصادرها يُعرضان كما هما — اقتراح المسودة يُهمل كاملًا. */
+    const answer = await screen.findByTestId("ask-answer");
+    expect(answer.textContent).toContain("مسودة حجز توصيل");
+    const sources = await screen.findByTestId("ask-sources");
+    expect(sources.textContent).toContain("حجوزات مؤكدة جارية");
     await waitFor(() => expect(screen.queryByTestId("ask-draft-card")).toBeNull());
-    expect(posted.filter(call => call.path.startsWith("/api/delivery/requests"))).toHaveLength(0);
-  });
-
-  it("a server failure on confirm shows the honest error — no false saved state (§5.4/§5.5)", async () => {
-    mockConfiguredAsk();
-    render(<AskMicro />);
-    await screen.findByTestId("ask-context");
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "سجّل لي حجز توصيلة للزبون غدًا" } });
-    fireEvent.click(screen.getByRole("button", { name: "اسأل" }));
-    await screen.findByTestId("ask-draft-card");
-    const driverSelect = await screen.findByLabelText("السائق (إلزامي — تختاره بنفسك)");
-    fireEvent.change(driverSelect, { target: { value: "drv-1" } });
-    fireEvent.change(screen.getByLabelText("نوع الطلب (إلزامي)"), { target: { value: "fetch_ready_goods" } });
-    fireEvent.change(screen.getByLabelText("محافظة الاستلام (إلزامي)"), { target: { value: "عمان" } });
-    fireEvent.change(screen.getByLabelText("محافظة التسليم (إلزامي)"), { target: { value: "إربد" } });
-    fireEvent.change(screen.getByLabelText("حجم الحمل (إلزامي)"), { target: { value: "medium" } });
-    fireEvent.change(screen.getByLabelText("شريحة الوزن (إلزامي)"), { target: { value: "10_to_50kg" } });
-    fireEvent.change(screen.getByLabelText("عدد القطع (إلزامي)"), { target: { value: "3" } });
-    fireEvent.change(screen.getByLabelText("نمط التسعير (إلزامي)"), { target: { value: "quote_request" } });
-    fetchMock.mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/api/auth/session")) return jsonResponse(OWNER_SESSION);
-      if (path.startsWith("/api/ask/status")) return jsonResponse(CONFIGURED_STATUS);
-      if (path.startsWith("/api/delivery/drivers")) {
-        return jsonResponse({ drivers: [{ driverProfileId: "drv-1", displayName: "سائق الاختبار" }] });
-      }
-      if (path.startsWith("/api/delivery/requests")) {
-        posted.push({ path, init });
-        return jsonResponse(
-          { error: { code: "conflict", message: "تعذر الإنشاء — السائق غير متاح الآن." } },
-          409,
-        );
-      }
-      return jsonResponse({ error: { code: "not_found", message: "غير موجود" } }, 404);
-    });
-    fireEvent.click(screen.getByRole("button", { name: "أنشئ مسودة الحجز" }));
-    await waitFor(() => expect(screen.getByText(/تعذر الإنشاء — السائق غير متاح الآن/)).toBeTruthy());
-    /* لا نجاح كاذب: البطاقة باقية والحالة المحفوظة لم تظهر */
     expect(screen.queryByTestId("ask-draft-saved")).toBeNull();
-    expect(screen.getByTestId("ask-draft-card")).toBeTruthy();
+    /* لا جلب لقائمة السائقين ولا أي كتابة إلى مسار الطلبات — البطاقة
+     * وآثارها الشبكية لم تعد موجودة أصلًا. */
+    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith("/api/delivery/"))).toHaveLength(
+      0,
+    );
+    expect(posted.filter(call => call.path.startsWith("/api/delivery/requests"))).toHaveLength(0);
   });
 });
 
