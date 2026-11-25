@@ -8,8 +8,8 @@ export {
   standingDepositMinorOf,
   unclassifiedRetainedDepositMinorOf,
 } from "./depositDerivations.js";
+export { calculateCostSnapshot } from "../costing/index.js";
 export {
-  calculateCostSnapshot,
   expandGroupedCostBasis,
   cancelOrder,
   DELIVERY_RESPONSIBILITY_AR,

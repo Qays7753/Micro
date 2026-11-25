@@ -15,7 +15,7 @@
  *  - T02–T05 نقية بالكامل؛ المجهول يظل مجهولًا والمقام الصفري أو المساهمة
  *    غير الموجبة نتيجة غير قابلة للحساب بصدق (لا صفر ولا نسبة ملفقة).
  */
-import { calculateCostSnapshot, type CostSnapshot, type MaterialCostItem } from "../craft-order/index.js";
+import { calculateCostSnapshot, type CostSnapshot, type MaterialCostItem } from "../costing/index.js";
 import { ceilRatio, localDateInAmman, quantityMilliExact, roundHalfUp } from "../shared/index.js";
 import type {
   HourValueInput,
@@ -91,7 +91,7 @@ function validateGroupShape(group: PlanningGroup): void {
  *
  * R1-N1 (مراجعة S10): هذا التفصيل *عرضي* لمجموعة واحدة (groupResults) —
  * البدائيّات المشتركة quantityMilliExact/roundHalfUp (من ../shared) هي مالكة
- * التقريب نفسه الذي تستخدمه النواة (materialItemCostMinor في craft-order)،
+ * التقريب نفسه الذي تستخدمه النواة (materialItemCostMinor في costing)،
  * فالتقريب لا يمكن أن يتباعد؛ والفارق المقصود أن النواة ترفض البند غير
  * الصالح وهنا يُستبعد «غير المحدد بعد» بمعرفة ناقصة. المجاميع الكلية
  * (productsCostMinor وكل ما يُحفظ) من لقطة النواة وحدها لا من هنا. */
