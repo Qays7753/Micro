@@ -646,7 +646,12 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 126 edges (84 value + 42 type) — ask port registration 124/82/42 -> 126/84/42 (2026-11-22)", () => {
+  it("the live repository passes on the recorded census: 124 edges (84 value + 40 type) — M1.2 cut the estimate->order link 126/84/42 -> 124/84/40 (2026-11-26)", () => {
+    /* M1.2 (manage-v2 phase 1، IMPACT S2، 2026-11-26): -2 type edges —
+     * orderDetailViewModel.ts لم يعد يستورد draftService ولا
+     * costEstimateService (قطع ربط التقدير بتكلفة الطلب)؛ الزوجان
+     * agreements->drafts وagreements->estimates تقاعدا (type 1→0 لكلًّا)
+     * والأغلف أعيد اشتقاقها — إعادة إرساء موثقة نفس-الـPR. */
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -687,10 +692,15 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * S16 (DOC-025, 2026-11-03 — UNIT-003): الجرد 129/84/45 صار 124/82/42 —
      * قارئ الرئيسية حذف حوافه عديمة المستهلك (activity ×2، agreements،
      * formatting، inventory، suppliers) وكسب حافة القارئ الموحد للمتابعة
-     * (type)؛ تضييق لا توسيع (راجع تقرير S16). */
-    expect(result.stats.houseEdges).toBe(126);
+     * (type)؛ تضييق لا توسيع (راجع تقرير S16).
+     * M1.2 (manage-v2 phase 1، IMPACT S2، 2026-11-26): الجرد 126/84/42 صار
+     * 124/84/40 — orderDetailViewModel.ts فقد استيرادَي draftService
+     * وcostEstimateService (قطع رابط التقدير بتكلفة الطلب)؛ الزوجان
+     * agreements->drafts/agreements->estimates تقاعدا والأغلف أعيد
+     * اشتقاقها؛ تضييق لا توسيع (راجع تقرير الموجة A). */
+    expect(result.stats.houseEdges).toBe(124);
     expect(result.stats.houseEdgesValue).toBe(84);
-    expect(result.stats.houseEdgesType).toBe(42);
+    expect(result.stats.houseEdgesType).toBe(40);
   });
 
   it("fail-closed: a missing census file is a violation, never a pass", () => {

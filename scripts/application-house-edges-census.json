@@ -3,15 +3,15 @@
   "provenance": {
     "base_sha": "5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd",
     "measured_at": "2026-10-14",
-    "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded counts; R11 Lock Remediation 2026-10-15: +1 type edge pinOperations.ts -> time/clock (lazy PIN-operations module, exempt OD-10 target) -> 129/80/49) S04 (DOC-013, 2026-10-28): +cashCountService -> time/clock (exempt target OD-10; the count service follows the lazy-service precedent); same-PR documented census growth 128/79 -> 129/80. S16 (DOC-025, 2026-11-03): home census re-anchored with UNIT-003 — the home reader retired its consumer-less edges (activity x2, agreements, formatting, inventory, suppliers) and gained the unified follow-up reader edge (type) for the S16 brief; 129/84/45 -> 124/82/42 with caps re-derived (home->follow-up type 1 -> 2; home->activity/agreements/inventory/suppliers pairs retired).",
+    "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded counts; R11 Lock Remediation 2026-10-15: +1 type edge pinOperations.ts -> time/clock (lazy PIN-operations module, exempt OD-10 target) -> 129/80/49) S04 (DOC-013, 2026-10-28): +cashCountService -> time/clock (exempt target OD-10; the count service follows the lazy-service precedent); same-PR documented census growth 128/79 -> 129/80. S16 (DOC-025, 2026-11-03): home census re-anchored with UNIT-003 — the home reader retired its consumer-less edges (activity x2, agreements, formatting, inventory, suppliers) and gained the unified follow-up reader edge (type) for the S16 brief; 129/84/45 -> 124/82/42 with caps re-derived (home->follow-up type 1 -> 2; home->activity/agreements/inventory/suppliers pairs retired). M1.2 (manage-v2 phase 1، IMPACT S2، 2026-11-26): -2 type edges — orderDetailViewModel.ts لم يعد يستورد draftService ولا costEstimateService (قطع ربط التقدير بتكلفة الطلب)؛ الجرد 126/84/42 صار 124/84/40 والأغلف أعيد اشتقاقها (agreements->drafts وagreements->estimates type 1→0) — إعادة إرساء موثقة نفس-الـPR.",
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 126,
+    "edges": 124,
     "value": 84,
-    "type": 42,
-    "governedEdges": 56,
-    "governedPairs": 36
+    "type": 40,
+    "governedEdges": 54,
+    "governedPairs": 34
   },
   "edges": [
     {
@@ -46,16 +46,6 @@
     },
     {
       "key": "application/agreements/orderDetailViewModel.ts -> application/cash/cashContinuityService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/drafts/draftService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/estimates/costEstimateService.ts",
       "kind": "type",
       "exemptTarget": false
     },
@@ -656,14 +646,6 @@
       "value": 0,
       "type": 1
     },
-    "agreements->drafts": {
-      "value": 0,
-      "type": 1
-    },
-    "agreements->estimates": {
-      "value": 0,
-      "type": 1
-    },
     "agreements->inventory": {
       "value": 0,
       "type": 2
@@ -793,17 +775,13 @@
     {
       "path": "application/time/clock.ts",
       "role": "leaf",
-      "importAllowlist": [
-        "@micro-domain/shared/index.js"
-      ],
+      "importAllowlist": ["@micro-domain/shared/index.js"],
       "notes": "The clock port (STR-618): the ONLY active ambient clock (systemClock) + todayInAmman. 50 census edges target it. Frozen behind OD-10; additions require a new owner decision."
     },
     {
       "path": "application/formatting/formatters.ts",
       "role": "leaf",
-      "importAllowlist": [
-        "@micro-domain/shared/index.js"
-      ],
+      "importAllowlist": ["@micro-domain/shared/index.js"],
       "notes": "The canonical display-formatting kernel (ADR-011 §2). 14 census edges target it. const Intl.NumberFormat initializers are declarations (syntactic purity proxy passes)."
     },
     {
@@ -815,32 +793,15 @@
     {
       "path": "application/resultCodes.ts",
       "role": "root-file",
-      "importAllowlist": [
-        "@/storage/local/resultCodes"
-      ],
+      "importAllowlist": ["@/storage/local/resultCodes"],
       "notes": "Legal-by-definition ROOT file (imports targeting it are outside the census by the house-interior rule). Its single import is the ADR-012 single-sourcing of two pure string constants from @/storage/local/resultCodes (STORAGE_ERROR/STORAGE_STALE) — a dated, documented allowance recorded with this census entry, not a storage-machinery dependency."
     }
   ],
   "sccBaselines": {
-    "value": [
-      [
-        "preferences",
-        "time"
-      ]
-    ],
-    "type": [
-      [
-        "collections",
-        "finance",
-        "financial-analysis",
-        "fulfillment",
-        "recurring"
-      ]
-    ]
+    "value": [["preferences", "time"]],
+    "type": [["collections", "finance", "financial-analysis", "fulfillment", "recurring"]]
   },
-  "reviewCandidates": [
-    "inventory/materialUnitLabels"
-  ],
+  "reviewCandidates": ["inventory/materialUnitLabels"],
   "notes": [
     "inventory/materialUnitLabels (review candidate, OD-10): pure MaterialUnit label vocabulary created by the documented R10-B3 slice; target of 1 cross-house edge (fulfillment/deliveryReviewService.ts). NOT exempted and NOT moved (OD-10 prohibition) — reported for a future owner review only.",
     "House-level SCC baselines are recorded as the LIVE state at 5ef4ce08: 2 value cycles ({finance,financial-analysis} and {preferences,time}) and 1 type cycle ({collections,finance,financial-analysis,fulfillment,recurring}). Any NEW cycle fails; a RESOLVED cycle also fails until the census is re-anchored in the same PR (nothing changes silently).",

@@ -26,11 +26,7 @@ import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewS
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
-import {
-  calculateCostSnapshot,
-  createCraftOrder,
-  type CraftOrder,
-} from "@micro-domain/craft-order/index.js";
+import { calculateCostSnapshot, createCraftOrder, type CraftOrder } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import OrderDetail from "@/pages/OrderDetail";
@@ -104,9 +100,7 @@ async function seedOrderWithLinkedDraftAndEstimate(): Promise<void> {
 
   const estimate = await costEstimates.save({
     title: "تقدير فستان ليلى",
-    materialItems: [
-      { name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, confidence: "known" },
-    ],
+    materialItems: [{ name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, confidence: "known" }],
     time: null,
     packagingMinor: 0,
     deliveryMinor: 0,

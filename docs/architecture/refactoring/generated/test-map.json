@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "c1875676d6000e57a19482eac81e393757cb5d3e",
+  "head": "96a4a7221206ae7f14dc2249eca5a79d35cdbf34",
   "pages": {
     "total": 76,
     "map": {
@@ -13,6 +13,7 @@
       "pages/AskMicro.tsx": {
         "kind": "direct",
         "evidence": [
+          "AskMicro.noFinancialDraft.dom.test.tsx",
           "pages/AskMicro.dom.test.tsx",
           "pages/AskMicro.governance.dom.test.tsx",
           "pages/SharedShell.phaseE.dom.test.tsx"
@@ -405,6 +406,7 @@
           "G4RetainedDeposit.dom.test.tsx",
           "G6.dom.test.tsx",
           "OrdJourneys.dom.test.tsx",
+          "OrderDetail.noEstimateLink.dom.test.tsx",
           "OrderDetail.ui.test.tsx",
           "OrderShare.exe015.dom.test.tsx",
           "R1.orderDetailVoid.test.tsx",
@@ -932,6 +934,8 @@
       "36-form-drafts-local-boundary-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/AskMicro.noFinancialDraft.dom.test.tsx",
+          "apps/prototype-web/client/src/AskMicro.noFinancialDraft.scan.test.ts",
           "apps/prototype-web/client/src/application/drafts/draftService.s09.test.ts",
           "apps/prototype-web/client/src/application/drafts/draftService.test.ts",
           "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts",
