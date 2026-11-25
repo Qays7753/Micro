@@ -1,7 +1,6 @@
 import { OrderDepositPanels } from "@/components/orders/OrderDepositPanels";
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
 import {
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   CircleDollarSign,
@@ -37,7 +36,7 @@ import { ActualMaterialPanel, type MaterialState } from "@/components/order/Actu
 import { OrderEventLog } from "@/components/order/OrderEventLog";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import {
   hasDeliveredEvent,
   hasDeliveryReversal,
@@ -54,7 +53,6 @@ import {
   readAvailableWalletOptions,
   readOrderDetail,
   readPartyNameSuggestions,
-  readSourceEstimate,
 } from "@/application/agreements/orderDetailViewModel";
 
 import { Button } from "@/components/primitives";
@@ -100,8 +98,6 @@ export default function OrderDetail() {
     fulfillment,
     deliveryReview,
     inventory,
-    drafts,
-    costEstimates,
     collectionReversal,
     retainedDeposits,
     cashContinuity,
@@ -119,8 +115,6 @@ export default function OrderDetail() {
   /* R1: إعادة المحاولة بعد فشل قراءة — تكرار القراءة نفسه لا إنشاء شيء. */
   const [reloadNonce, setReloadNonce] = useState(0);
   const [materialState, setMaterialState] = useState<MaterialState>({ phase: "loading" });
-  /* المجموعة ٣ (Scope E — §11.3): التقدير المصدر — وصلة أثر فقط؛ إن حُذف لا تُعرض. */
-  const [sourceEstimate, setSourceEstimate] = useState<CostEstimate | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
   /* G-003 (عقد §31): تعارض قدم التخزين يُعرض بطاقة صريحة لا نصًا عابرًا —
@@ -255,18 +249,6 @@ export default function OrderDetail() {
       active = false;
     };
   }, [agreements, inventory, dataVersion, params.id, reloadNonce]);
-
-  /* المجموعة ٣ (§11.3): «المصدر: تقدير» — المسودة المرتبطة تحمل معرّف التقدير؛
-   * العرض وصلة قراءة لا تغيّر شيئًا، والتقدير المحذوف يُغيب بصدق لا بخطأ. */
-  useEffect(() => {
-    let active = true;
-    void readSourceEstimate({ drafts, costEstimates }, params.id).then(estimate => {
-      if (active && estimate !== null) setSourceEstimate(estimate);
-    });
-    return () => {
-      active = false;
-    };
-  }, [drafts, costEstimates, params.id, dataVersion]);
 
   /* عقد الإغلاق العميق (WF-01/FC-04): عربون إضافي أثناء الرحلة — المبلغ
    * ووجهة الكاش صريحة قبل الحفظ، والعربون دَين مرتبط بالطلب لا إيران.
@@ -1828,29 +1810,6 @@ export default function OrderDetail() {
             ) : null}
           </section>
 
-          {sourceEstimate ? (
-            <section className="micro-form-card" aria-label="المصدر: تقدير">
-              <h2 className="micro-section-title">المصدر: تقدير</h2>
-              <p className="micro-muted-copy">
-                بدأ هذا الطلب من تقديرك «{sourceEstimate.title}» — نُسخت منه اقتراحات وقتها؛ لا يربط السعر
-                الحالي بشيء الآن.
-              </p>
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() =>
-                  navigate(
-                    withReturnTo(
-                      `/tools/estimate/${encodeURIComponent(sourceEstimate.id)}`,
-                      `/orders/${stored.id}`,
-                    ),
-                  )
-                }
-              >
-                افتح التقدير <ArrowLeft aria-hidden="true" />
-              </button>
-            </section>
-          ) : null}
           <AgreementContextPanel
             stored={stored}
             service={agreementContext}

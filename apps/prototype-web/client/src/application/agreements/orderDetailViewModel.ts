@@ -14,13 +14,11 @@
  *  - لا حساب مال إطلاقًا (يثبته moneyLayerGuard عند الصفر).
  */
 
-import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { hasDeliveredEvent, hasDeliveryReversal } from "@micro-domain/craft-order/index.js";
 import type { AgreementService } from "./agreementService";
 import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
 import type { OrderActualMaterialComparison } from "../inventory/inventoryMaterialModel";
-import type { DraftService } from "../drafts/draftService";
-import type { CostEstimateService } from "../estimates/costEstimateService";
 import type { CashContinuityService } from "../cash/cashContinuityService";
 import type { PartyDirectoryService } from "../parties/partyLedgerService";
 
@@ -57,21 +55,6 @@ export async function readOrderDetail(deps: OrderDetailQueryDeps, orderId: strin
   } catch {
     return { phase: "error" };
   }
-}
-
-/** «المصدر: تقدير» (المجموعة ٣ §11.3): المسودة المرتبطة تحمل معرّف التقدير —
- *  العرض وصلة قراءة لا تغيّر شيئًا، والتقدير المحذوف يُغيب بصدق لا بخطأ. */
-export async function readSourceEstimate(
-  deps: { drafts: DraftService; costEstimates: CostEstimateService },
-  orderId: string,
-): Promise<CostEstimate | null> {
-  const draftsResult = await deps.drafts.list();
-  if (!draftsResult.ok) return null;
-  const draft = draftsResult.value.find(candidate => candidate.linkedOrderId === orderId) ?? null;
-  if (!draft?.sourceEstimateId) return null;
-  const estimateResult = await deps.costEstimates.get(draft.sourceEstimateId);
-  if (!estimateResult.ok || !estimateResult.value) return null;
-  return estimateResult.value;
 }
 
 /** وجهات العربون الإضافي (WF-01/FC-04): كاش متاح فعلًا — تُقرأ عند فتح اللوحة. */

@@ -377,8 +377,11 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     expect((screen.getByLabelText("إجمالي البيع — د.أ") as HTMLInputElement).value).toBe("0.00");
   });
 
-  it("order detail: source estimate link and real correction-event labels in the order log", async () => {
-    /* جسر كامل: تقدير → مسودة → اتفاق → طلب؛ ثم تصحيح سعر موثق. */
+  it("order detail: no source-estimate link (M1.2 cut) and real correction-event labels in the order log", async () => {
+    /* جسر كامل: تقدير → مسودة → اتفاق → طلب؛ ثم تصحيح سعر موثق. معرّف
+     * التقدير المصدر يبقى على المسودة (أثر سجل) لكن ربط عرضه بتكلفة الطلب
+     * مقطوع (M1.2 §14.3 / IMPACT S2): لا مقطع «المصدر: تقدير» ولا وصلة
+     * فتح التقدير من تفاصيل الطلب. */
     const savedEstimate = await costEstimates.save(estimateInput);
     if (!savedEstimate.ok) throw new Error(savedEstimate.message);
     const draftCreated = await drafts.create("customer_order", {
@@ -420,15 +423,14 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     );
     render(<G3Harness page={<OrderDetail />} />);
     await screen.findByRole("heading", { name: /طقم مطرز/ });
-    /* §11.3: تفاصيل إضافية تحمل المصدر والتسميات الحقيقية للتصحيحات. */
+    /* §11.3: تفاصيل إضافية تحمل التسميات الحقيقية للتصحيحات — وبلا رابط
+     * التقدير بعد القطع (M1.2). */
     fireEvent.click(screen.getByText("تفاصيل إضافية"));
-    await waitFor(() => expect(screen.getByText("المصدر: تقدير")).toBeTruthy());
-    expect(screen.getByText(/بدأ هذا الطلب من تقديرك «كيكة مناسبة صغيرة»/)).toBeTruthy();
-    expect(screen.getByText("تعديل السعر بعد الاتفاق")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /افتح التقدير/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/tools/estimate/${savedEstimate.value.id}?returnTo=%2Forders%2F${orderId}`,
-    );
+    await waitFor(() => expect(screen.getByText("تعديل السعر بعد الاتفاق")).toBeTruthy());
+    await waitFor(() => expect(screen.queryByText("المصدر: تقدير")).toBeNull());
+    expect(screen.queryByText(/بدأ هذا الطلب من تقديرك/)).toBeNull();
+    expect(screen.queryByRole("button", { name: /افتح التقدير/ })).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 });
 

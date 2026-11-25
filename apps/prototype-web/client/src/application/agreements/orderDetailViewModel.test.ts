@@ -66,8 +66,23 @@ describe("R7/P01 — قرارات الاستعلام (أنواع العقد)", (
   it("الأنواع المصدرة تشكل الفصل الصادق R1 (error/not_found/ready)", async () => {
     const mod = await import("./orderDetailViewModel");
     expect(typeof mod.readOrderDetail).toBe("function");
-    expect(typeof mod.readSourceEstimate).toBe("function");
     expect(typeof mod.readAvailableWalletOptions).toBe("function");
     expect(typeof mod.readPartyNameSuggestions).toBe("function");
+  });
+});
+
+describe("M1.2 (§14.3 / IMPACT S2) — قطع ربط التقدير بتكلفة الطلب", () => {
+  it("سطح تصدير نموذج تفصيل الطلب لا يحوي أي قارئ للتقدير المصدر", async () => {
+    /* الرابطة المقطوعة: لا دالة تتبع مسودة الطلب إلى تقدير المصدر —
+     * سطح التصدير الكامل يُقارن بالقائمة النهائية بعد القطع. */
+    const mod = await import("./orderDetailViewModel");
+    expect(Object.keys(mod).sort()).toEqual(
+      [
+        "deriveOrderSectionDecisions",
+        "readAvailableWalletOptions",
+        "readOrderDetail",
+        "readPartyNameSuggestions",
+      ].sort(),
+    );
   });
 });
