@@ -27,6 +27,7 @@
 - No sub-agents, no parallel edits, no branch or PR per task.
 - Every path outside the current task's allowed list is read-only.
 - Unspecified state or a spec contradiction → stop and report `BLOCKED` with the exact question. No product decisions.
+- Credentials: none are needed. Never put a token, password, cookie, or key in a file, commit, log, URL, or report; if the platform ever asks for authentication, use its secure credential field only.
 - `NO_REPOSITORY_WRITES` beyond the wave's commits; `NO_CLEANUP` (no deletions, formatting sweeps, dependency updates) unless a task authorizes it.
 
 ## 0. Preflight (every wave)
