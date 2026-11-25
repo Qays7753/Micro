@@ -4,6 +4,18 @@
 > Canonical sources: `docs/manage-v2/micro-manage-spec-final.md` (v1.1, binding), `docs/manage-v2/micro-manage-ux-final.md`, `docs/manage-v2/IMPACT.md`, `docs/manage-v2/PLAN.md`, `docs/manage-v2/REVIEW.md`.
 > Branch: `feature/manage-v2` only. **`main` is forbidden.** No merge, no force-push, no history rewrite.
 
+## Execution model, transitions, and resume
+
+- **One task per run.** The launcher names exactly one task id; that task's **Allowed files** list is the only authorized write scope. Do not prepare, refactor, or write anything for a later task.
+- **No pre-authorized transitions.** At the end of the task: commit, push to `feature/manage-v2`, report in Arabic, and stop. The next task begins only with a new launcher from the owner.
+- **Execution is not acceptance.** A finished task and green tests do not mean the task is accepted, the phase is closed, or merge/deploy is authorized. Manus reviews each task against `docs/manage-v2/REVIEW.md` after the commit; only the owner accepts.
+- **Resume:** if a run is interrupted mid-task, inspect the real workspace (branch, `HEAD`, dirty/untracked files, running processes) and continue the **same** task from its first incomplete action. Never reset, clean, drop stashes, or reclone over work. If the tree holds work the tracker does not explain, report `STATE_DRIFT` and stop.
+- **One writer, one branch.** No sub-agents and no parallel edits in this phase; no branch or PR per task. Small commits on `feature/manage-v2`, each carrying its task id and rule ids.
+- **Test timing:** tests-first inside every task (write, run, paste the failure, implement, run again). The full gate `pnpm check` runs in M1.10 (shared guards change) and again at the phase gate.
+- **Read-only outside the task:** every path not in the current task's **Allowed files** is read-only for that run. Inspecting is allowed; editing is not.
+- **Credentials:** none are needed. Never put a token, password, cookie, or key in a file, commit, log, or report; if the platform ever asks for authentication, use its secure credential field only.
+- **Stop point:** end of the named task, after the commit, the push, and the Arabic report. Then stop: `NO_REPOSITORY_WRITES` beyond that commit and `NO_CLEANUP` (no deletions, no formatting sweeps, no dependency updates) unless a later task explicitly authorizes them.
+
 ## 0. Preflight (every task, report it before writing code)
 
 1. `git fetch`, then report: branch, `git log -1 --format=%H`, `git status --short`, untracked files.
