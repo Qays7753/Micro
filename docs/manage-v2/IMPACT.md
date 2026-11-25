@@ -174,7 +174,7 @@
 | الصفحات | `pages/*.tsx` (73) | يبقى منها: `Home`→«مشروعي الآن»، `Orders`/`OrderDetail`→«الطلبات»، `Finance`→«المالية»، `Setup`→P-01، `Settings`/`Profile`، وأدواتي `Tools`+`CostCalculator`+`HourValue`+`SalesQuantity`+`InvoiceShare`+`IdeaReview`+`EstimateDetail`، والتوصيل والسوق كما هي |
 | الشريط السفلي | `components/layout/BottomNav.tsx` + `app/navigation.ts::primaryNavigation` | تطبيقي: يبقى 5 تبويبات؛ تتغير تسمية «الرئيسية» إلى «مشروعي الآن» إن لزم |
 | التسميات | `app/navigation.ts::getNavigationLabel` | تُقلَّم |
-| النصوص العربية | لا كتالوج؛ **190 ملف TSX** بنصوص مضمّنة (قياس سابق)، وحارس `scripts/check-label-vocabulary.mjs` | يُبنى كتالوج مفاتيح §10/§11 لأسطح مانج فقط |
+| النصوص العربية | لا كتالوج؛ **155 ملف TSX** فيه نص عربي حرفي (قياس على `grep -P` لنطاق U+0600–U+06FF`، بلا اختبارات)، وحارس `scripts/check-label-vocabulary.mjs` | يُبنى كتالوج مفاتيح §10/§11 لأسطح مانج فقط |
 | مكوّنات قابلة لإعادة الاستخدام | `components/primitives/{Button,Field,ChoiceRow,EmptyState,StatusChip,Notice}`, `components/forms/{EnglishNumberInput,LocalDateField,useFormDirty,UnsavedChangesGuard,useFormDraft}`, `components/presentation/{DisplayValue,MoneyValue}` | تبقى؛ يُضاف `FilsInput`/`FilsValue` لمانج |
 | التقويم | لا مكوّن مستقل؛ الشبكة داخل `pages/Schedule.tsx` و`pages/Orders.tsx` | يُستخرج مكوّن «متتبّع الطلبات» (أسبوع الأحد–السبت) |
 | القدرات | `application/preferences/preferenceService.ts` (`CAPABILITY_IDS`), `app/CapabilityRouteGate.tsx` | تُقلَّص إلى ما يخص مانج v2، وإلا بقيت بوابات لمسارات محذوفة |
@@ -324,7 +324,7 @@
 | ٧ | لقطة بنود ثابتة | `costSnapshot` موجود في `craft-order/types.ts` | متوافق | يُعاد استخدام المبدأ في `sale_line` |
 | ٨ | لا كيانات زبائن | `party/*` + `counterparties` | مباشر | الاسم نص |
 | ٩ | التكلفة المتوقعة لا تدخل الربح | تُخصم اليوم في `projectFinancialPeriodReads.ts` | مباشر | الربح من القيود فقط |
-| ١٠ | نصوص من كتالوج | 190 ملفًا بنصوص مضمّنة | جذري | كتالوج لأسطح مانج + حارس للنص الحرفي في الملفات الجديدة |
+| ١٠ | نصوص من كتالوج | 155 ملفًا فيه نص عربي حرفي | جذري | كتالوج لأسطح مانج + حارس للنص الحرفي في الملفات الجديدة |
 | ١١ | أدواتي منفصلة | `planning → craft-order` | مباشر | S1/S2 |
 | ١٢ | أربع عمليات | 19 نوع حدث + بيع مباشر + عربون | جذري | Q1–Q20 |
 | ١٣ | صندوقان كحد أقصى | `cash-wallets` متعدد | مباشر | قيد `UNIQUE(project_id, kind)` |
