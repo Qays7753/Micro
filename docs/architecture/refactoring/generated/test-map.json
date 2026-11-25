@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "c3666e8f64a6434fe5e2013d19471fbde6cbcdaa",
+  "head": "c1875676d6000e57a19482eac81e393757cb5d3e",
   "pages": {
     "total": 76,
     "map": {
@@ -620,7 +620,8 @@
           "apps/prototype-web/client/src/application/cost/costService.test.ts",
           "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts",
           "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
-          "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts"
+          "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts",
+          "tests/domain/costing.test.ts"
         ]
       },
       "04-limited-sync-contract.md": {
@@ -1035,6 +1036,7 @@
       "tests/domain/cash-continuity.test.ts",
       "tests/domain/catalog.test.ts",
       "tests/domain/complex-six.characterization.test.ts",
+      "tests/domain/costing.test.ts",
       "tests/domain/craft-order-corrections.test.ts",
       "tests/domain/craft-order-d031.test.ts",
       "tests/domain/craft-order-d15-settlement.test.ts",
@@ -1055,6 +1057,7 @@
       "tests/domain/localDateValidityBoundaries.characterization.test.ts",
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
+      "tests/domain/planning-independence.test.ts",
       "tests/domain/planning.test.ts",
       "tests/domain/public-surface.test.ts",
       "tests/domain/quantity-characterization.test.ts",

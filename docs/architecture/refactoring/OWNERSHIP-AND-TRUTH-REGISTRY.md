@@ -10,7 +10,7 @@
 
 ---
 
-## 1. خريطة ملكية مفاهيم المجال (20 منطقة + صف توزيعات مكمّل = 21 صفًا)
+## 1. خريطة ملكية مفاهيم المجال (21 منطقة + صف توزيعات مكمّل = 22 صفًا)
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
 
@@ -18,6 +18,7 @@
 |---|---|---|---|---|---|---|---|---|
 | shared (مال/وقت/كمية) | `src/domain/shared/` + عقد المقياس (قرش=1/100، بمنزلتين) | domain/shared | كل مناطق المجال؛ presentation formatters | — (نقي) | عبر القيم في العائلات | `tests/domain/shared.test.ts` | AGENTS §10؛ plan §3 | PRESERVE (Shared Kernel بحكم الواقع) |
 | craft-order | عقد 02/10/12 + `src/domain/craft-order/` | domain/craft-order | orders/schedule/collect؛ fulfillment؛ collections؛ integrity؛ transfers | storage (stores orders/schedules) | `craftOrder` family | `tests/domain/craft-order*.test.ts` (7 ملفات) | عقد التنفيذ 02-coverage | PRESERVE — STR-204c عمليات مستقبلية فقط |
+| costing | §14.3 + `src/domain/costing/` | domain/costing | domain/planning (أدواتي)؛ domain/craft-order (إعادة تصدير توافق) | — (نقي بلا تخزين) | لا يوجد | `tests/domain/costing.test.ts` | `docs/manage-v2/PLAN.md §14.3؛ IMPACT S1` | PRESERVE — نواة تكلفة محايدة مشتركة (M1.1) |
 | financial-event | عقد 05 + `src/domain/financial-event/` | domain/financial-event | finance؛ cash؛ assets؛ loans؛ recurring-expense؛ transfers | storage (financialEvents) | `financialEvent` family | `tests/domain/financial-event.test.ts` + finance suites | عقد 05 | PRESERVE (محور عنقود السجلات المالية) |
 | asset | عقد 43 + `src/domain/asset/` | domain/asset | finance؛ assets pages؛ transfers | storage (assets) | `assetResidual` family | `tests/domain/asset*.test.ts` | عقد 43 | PRESERVE |
 | loan | عقد 05 + `src/domain/loan/` | domain/loan | loans pages؛ finance؛ transfers | storage (loans) | `loan` family | `tests/domain/loan.test.ts` | عقد 05 | PRESERVE |
@@ -27,7 +28,7 @@
 | budget | عقد 42 + `src/domain/budget/` | domain/budget | finance budgets | storage (expenseBudgets) | `expenseBudget` family | `tests/domain/budget.test.ts` | عقد 42 | PRESERVE |
 | cash-continuity | عقد 03 + `src/domain/cash-continuity/` | domain/cash-continuity | cash services؛ finance reads | storage (cashWallets/cashContinuity) | ضمن snapshot | `tests/domain/cash-continuity.test.ts` | عقد 03 | PRESERVE |
 | catalog | عقد 15 + `src/domain/catalog/` | domain/catalog | catalog pages؛ craft-order costing | storage (catalog*) | `catalog` family | `tests/domain/catalog.test.ts` | عقد 15 | PRESERVE |
-| planning | عقد UNIT-030/031 (أمر S10 — b56967d8/DOC-019) + `src/domain/planning/` | domain/planning | planning pages (T02–T05)؛ estimates (T01 معاينة/حفظ) | — (نقي بلا تخزين؛ المدخلات المحفوظة ضمن costEstimates) | ضمن عائلة costEstimates | `tests/domain/planning.test.ts` | عقد 030/031 | PRESERVE — تأسيس S10: يستهلك نواة SH-13 من craft-order بسطحها العام لا محرك ثانٍ |
+| planning | عقد UNIT-030/031 (أمر S10 — b56967d8/DOC-019) + `src/domain/planning/` | domain/planning | planning pages (T02–T05)؛ estimates (T01 معاينة/حفظ) | — (نقي بلا تخزين؛ المدخلات المحفوظة ضمن costEstimates) | ضمن عائلة costEstimates | `tests/domain/planning.test.ts` | عقد 030/031 | PRESERVE — تأسيس S10: يستهلك نواة SH-13 من `src/domain/costing/` (M1.1 — نواة محايدة مستخرجة) بسطحها العام لا محرك ثانٍ |
 | inventory-material | عقد 06 + `src/domain/inventory-material/` | domain/inventory-material | inventory pages؛ integrity؛ transfers | storage (materials/movements) | ضمن snapshot | `tests/domain/inventory-material.test.ts` | عقد 06 | PRESERVE |
 | supplier-purchase | عقد 07 + `src/domain/supplier-purchase/` | domain/supplier-purchase | suppliers pages؛ finance؛ transfers | storage (supplierPurchases) | `supplierPurchase` family | `tests/domain/supplier-purchase*.test.ts` | عقد 07 | PRESERVE |
 | direct-sale | عقد 09 + `src/domain/direct-sale/` | domain/direct-sale | direct-sale pages؛ collections؛ finance | storage (directSales) | `directSale` family | `tests/domain/*.test.ts` colocated + root | عقد 09 | PRESERVE |
