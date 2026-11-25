@@ -92,7 +92,7 @@ Update **your section only** in `docs/manage-v2/TRACKER.md` for this task: statu
 
 ## Short chat launcher (owner → ZAI)
 
-> Read and follow `docs/manage-v2/tasks/M<phase>.<n>-<slug>.md` on branch `feature/manage-v2`. Verify live state first, preserve existing work, implement only that task, tests first, update the tracker in the same commit, and report in Arabic. Stop at the task boundary.
+> Repo: https://github.com/Qays7753/Micro — branch `feature/manage-v2`. Read and follow `docs/manage-v2/tasks/M<phase>.<n>-<slug>.md` from the current remote head. Verify live state first, preserve existing work, implement only that task, tests first, update the tracker in the same commit. Deliver the report as a committed file and give me its full GitHub link — no chat attachments. Then stop at the task boundary.
 
 ## Quality checklist before sending any task
 
@@ -102,5 +102,6 @@ Update **your section only** in `docs/manage-v2/TRACKER.md` for this task: statu
 - [ ] Tests-first order explicit with commands.
 - [ ] Tracker rule present.
 - [ ] No secret, token, or credential anywhere.
+- [ ] Delivery rule present: report committed to `docs/manage-v2/reports/`, full SHA-pinned link, no chat attachments.
 - [ ] Stop point explicit.
 - [ ] Nothing that belongs to a later phase.

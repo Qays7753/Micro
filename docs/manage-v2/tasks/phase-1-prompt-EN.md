@@ -16,6 +16,19 @@
 - **Credentials:** none are needed. Never put a token, password, cookie, or key in a file, commit, log, or report; if the platform ever asks for authentication, use its secure credential field only.
 - **Stop point:** end of the named task, after the commit, the push, and the Arabic report. Then stop: `NO_REPOSITORY_WRITES` beyond that commit and `NO_CLEANUP` (no deletions, no formatting sweeps, no dependency updates) unless a later task explicitly authorizes them.
 
+## Deliverables, evidence channel, and chat format
+
+The owner works with you from a **browser chat**, not from an IDE, and does not accept files as chat attachments.
+
+- **Never attach a file to the chat.** No attachments, no uploads, no pasted file bodies, no screenshots as images. This holds for reports, logs, patches, manifests, exports, and test output.
+- **Every deliverable is a file in this repository** on `feature/manage-v2`, delivered as a **full GitHub URL pinned to a commit SHA**: `https://github.com/Qays7753/Micro/blob/<SHA>/<path>`.
+- **Report file per task:** `docs/manage-v2/reports/<TASK-ID>-report-AR.md` (Arabic, the content of the old "Report format"). Raw command output, if long, goes next to it as `<TASK-ID>-evidence.md`.
+- **Commit the report in the same task commit**, or in a docs-only commit on the same branch immediately after it; then link the exact SHA that contains it.
+- **Chat reply after the commit:** at most 10 lines in Arabic — task id, status, final SHA, tests (command + counts + result), the report link, and any blocker. Nothing else.
+- **No external file service, no pastebin, no cloud drive link.** The repository is the only delivery channel.
+- **If a deliverable cannot be committed** (binary too large, secret-bearing, or outside the allowed paths), stop and ask; never attach it and never work around the boundary.
+- No token, password, cookie, or key in any committed file, URL, log, or chat message.
+
 ## 0. Preflight (every task, report it before writing code)
 
 1. `git fetch`, then report: branch, `git log -1 --format=%H`, `git status --short`, untracked files.
@@ -236,7 +249,7 @@
 
 ---
 
-## Report format (Arabic, after each task)
+## Report format (Arabic) — written to `docs/manage-v2/reports/<TASK-ID>-report-AR.md`
 
 - المهمة والـcommit.
 - ما تغيّر، ملفًا ملفًا.
@@ -245,3 +258,5 @@
 - أي سؤال أو `BLOCKED` أو `STATE_DRIFT`.
 - تأكيد أن أي ملف ممنوع لم يُلمس.
 - تحديث `TRACKER.md` في نفس الـcommit.
+
+The file is committed and linked; the chat carries only the 10-line summary described above.
