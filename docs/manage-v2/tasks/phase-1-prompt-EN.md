@@ -1,20 +1,32 @@
 # Phase 1 — Pre-deletion separation and foundations (ZAI task prompt)
 
-> **Execute ONE task per run.** The launcher names the task id; do not continue to the next task in the same run.
+> **Execute ONE wave per run.** The launcher names the wave; run its tasks in the listed order without pausing between them, then stop at the wave boundary.
 > Canonical sources: `docs/manage-v2/micro-manage-spec-final.md` (v1.1, binding), `docs/manage-v2/micro-manage-ux-final.md`, `docs/manage-v2/IMPACT.md`, `docs/manage-v2/PLAN.md`, `docs/manage-v2/REVIEW.md`.
 > Branch: `feature/manage-v2` only. **`main` is forbidden.** No merge, no force-push, no history rewrite.
 
+## Waves (owner decision 26/11/2026 — batch execution)
+
+| Wave | Tasks (in this order) | Scope | Status |
+|---|---|---|---|
+| A | M1.2 → M1.3 | Cut the estimate → order cost link; remove the financial draft from Ask Micro | **authorized now** |
+| B | M1.6 | §14 folders and module boundaries | pending |
+| C | M1.7 → M1.8 → M1.9 | Money unit, strings catalog, deletion manifest + import guard | pending |
+| D | M1.10 → M1.11 | CI guards, then `knip` | pending |
+| — | M1.1, M1.1a | Already executed and accepted (26/11/2026) | done — do not re-run |
+
 ## Execution model, transitions, and resume
 
-- **One task per run.** The launcher names exactly one task id; that task's **Allowed files** list is the only authorized write scope. Do not prepare, refactor, or write anything for a later task.
-- **No pre-authorized transitions.** At the end of the task: commit, push to `feature/manage-v2`, report in Arabic, and stop. The next task begins only with a new launcher from the owner.
-- **Execution is not acceptance.** A finished task and green tests do not mean the task is accepted, the phase is closed, or merge/deploy is authorized. Manus reviews each task against `docs/manage-v2/REVIEW.md` after the commit; only the owner accepts.
-- **Resume:** if a run is interrupted mid-task, inspect the real workspace (branch, `HEAD`, dirty/untracked files, running processes) and continue the **same** task from its first incomplete action. Never reset, clean, drop stashes, or reclone over work. If the tree holds work the tracker does not explain, report `STATE_DRIFT` and stop.
+- **One wave per run.** The launcher names exactly one wave. Execute its tasks **in the listed order, without pausing for approval between them**. Each task keeps its own **Allowed files**, its own commit, and its own tracker entry — batching changes the run boundary, never the task boundary.
+- **No transitions between waves.** At the end of the wave: run the wave gate, commit, push, report in Arabic, and stop. The next wave begins only with a new launcher from the owner.
+- **Wave gate (mandatory, after the last task):** `corepack pnpm guards` → zero `FAIL`; `corepack pnpm test` → zero failures; `corepack pnpm typecheck` → clean. A wave that ends red is not finished: fix inside the wave's allowed files, or stop with `BLOCKED` — never widen scope to make a gate pass, never weaken a guard, threshold, or exemption.
+- **Failure isolation inside a wave:** if a task cannot be completed safely, finish nothing after it, keep what is committed, and report `BLOCKED` with the exact task, file, and question. Do not compensate by editing a later task's files.
+- **Execution is not acceptance.** A finished wave and green tests do not mean the tasks are accepted, the phase is closed, or merge/deploy is authorized. Manus reviews each task against `docs/manage-v2/REVIEW.md` after the commits; only the owner accepts.
+- **Resume:** if a run is interrupted, inspect the real workspace (branch, `HEAD`, dirty/untracked files, running processes), then continue the **same wave** from the first task whose tracker entry is not `DONE`. Inside a task, continue from its first incomplete action. Never reset, clean, drop stashes, or reclone over work. If the tree holds work the tracker does not explain, report `STATE_DRIFT` and stop.
 - **One writer, one branch.** No sub-agents and no parallel edits in this phase; no branch or PR per task. Small commits on `feature/manage-v2`, each carrying its task id and rule ids.
-- **Test timing:** tests-first inside every task (write, run, paste the failure, implement, run again). The full gate `pnpm check` runs in M1.10 (shared guards change) and again at the phase gate.
-- **Read-only outside the task:** every path not in the current task's **Allowed files** is read-only for that run. Inspecting is allowed; editing is not.
+- **Test timing:** tests-first inside every task (write, run, paste the failure, implement, run again). The wave gate runs after the last task; the full `pnpm check` runs in M1.10 (shared guards change) and again at the phase gate.
+- **Read-only outside the current task:** every path not in that task's **Allowed files** is read-only. Inspecting is allowed; editing is not.
 - **Credentials:** none are needed. Never put a token, password, cookie, or key in a file, commit, log, or report; if the platform ever asks for authentication, use its secure credential field only.
-- **Stop point:** end of the named task, after the commit, the push, and the Arabic report. Then stop: `NO_REPOSITORY_WRITES` beyond that commit and `NO_CLEANUP` (no deletions, no formatting sweeps, no dependency updates) unless a later task explicitly authorizes them.
+- **Stop point:** end of the wave, after the wave gate, the commits, the push, and the Arabic report. Then stop: `NO_REPOSITORY_WRITES` beyond those commits and `NO_CLEANUP` (no deletions, no formatting sweeps, no dependency updates) unless a later task explicitly authorizes them.
 
 ## Deliverables, evidence channel, and chat format
 
@@ -22,19 +34,20 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 - **Never attach a file to the chat.** No attachments, no uploads, no pasted file bodies, no screenshots as images. This holds for reports, logs, patches, manifests, exports, and test output.
 - **Every deliverable is a file in this repository** on `feature/manage-v2`, delivered as a **full GitHub URL pinned to a commit SHA**: `https://github.com/Qays7753/Micro/blob/<SHA>/<path>`.
-- **Report file per task:** `docs/manage-v2/reports/<TASK-ID>-report-AR.md` (Arabic, the content of the old "Report format"). Raw command output, if long, goes next to it as `<TASK-ID>-evidence.md`.
-- **Commit the report in the same task commit**, or in a docs-only commit on the same branch immediately after it; then link the exact SHA that contains it.
-- **Chat reply after the commit:** at most 10 lines in Arabic — task id, status, final SHA, tests (command + counts + result), the report link, and any blocker. Nothing else.
+- **Report file per wave:** `docs/manage-v2/reports/WAVE-<X>-report-AR.md`, with one section per task. Raw command output, if long, goes next to it as `WAVE-<X>-evidence.md`.
+- **Commit the report in the last task's commit**, or in a docs-only commit on the same branch immediately after it; then link the exact SHA that contains it.
+- **Chat reply after the wave:** at most 10 lines in Arabic — wave, tasks done, final SHA, gate results (guards / test / typecheck), the report link, and any blocker. Nothing else.
 - **No external file service, no pastebin, no cloud drive link.** The repository is the only delivery channel.
 - **If a deliverable cannot be committed** (binary too large, secret-bearing, or outside the allowed paths), stop and ask; never attach it and never work around the boundary.
 - No token, password, cookie, or key in any committed file, URL, log, or chat message.
 
-## 0. Preflight (every task, report it before writing code)
+## 0. Preflight (every wave, report it before writing code)
 
 1. `git fetch`, then report: branch, `git log -1 --format=%H`, `git status --short`, untracked files.
-2. Read `docs/manage-v2/TRACKER.md`; report the status of this task and of the previous task.
+2. Read `docs/manage-v2/TRACKER.md`; report the status of every task in the named wave.
 3. If the tree is dirty or the state differs from the tracker → **stop and report `STATE_DRIFT`**. Never reset/clean/overwrite.
-4. Confirm the task id named in the launcher matches a section below. If not, stop.
+4. Confirm the wave named in the launcher exists in the waves table above, and that its task ids match sections below. If not, stop.
+5. Skip any task already marked `DONE` in the tracker; start from the first task that is not `DONE` in that wave.
 
 ## 1. Global write boundary (applies to every task below)
 
@@ -58,7 +71,7 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ---
 
-## M1.1 — Extract the costing core out of `craft-order` (Tools independence)
+## M1.1 — Extract the costing core out of `craft-order` (Tools independence) — DONE 26/11/2026, do not re-run
 
 **Why:** `src/domain/planning/policies.ts:18` imports `calculateCostSnapshot` from `craft-order`, so deleting the old order domain would break Tools (أدواتي). Tools must keep its own calculation code and must not depend on Manage domain code (§14.3).
 
@@ -249,7 +262,7 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ---
 
-## M1.1a — M1.1 fix-up: registry row, test-map regeneration, stale comment
+## M1.1a — M1.1 fix-up: registry row, test-map regeneration, stale comment — DONE 26/11/2026, do not re-run
 
 **Why:** M1.1's code is correct, but it left the branch red and one comment factually wrong. The owner requires a green gate after every task, so these three items are authorized now instead of waiting for M1.10.
 
@@ -281,8 +294,9 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ---
 
-## Report format (Arabic) — written to `docs/manage-v2/reports/<TASK-ID>-report-AR.md`
+## Report format (Arabic) — written to `docs/manage-v2/reports/WAVE-<X>-report-AR.md`
 
+Per task, in the wave's order:
 - المهمة والـcommit.
 - ما تغيّر، ملفًا ملفًا.
 - الاختبارات: الأمر، العدد، النتيجة، على أي SHA.
@@ -290,5 +304,7 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 - أي سؤال أو `BLOCKED` أو `STATE_DRIFT`.
 - تأكيد أن أي ملف ممنوع لم يُلمس.
 - تحديث `TRACKER.md` في نفس الـcommit.
+
+Then the wave gate: `guards` / `test` / `typecheck` commands, counts, and results on the final SHA.
 
 The file is committed and linked; the chat carries only the 10-line summary described above.

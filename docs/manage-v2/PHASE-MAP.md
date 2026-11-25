@@ -21,7 +21,7 @@
 ## 2. إيقاع كل مرحلة
 
 1. **قبل البدء:** أكتب ملف أوامر المرحلة (`phase-N-prompt-EN.md`) من القالب، بحدود ملفات صريحة لكل مهمة، وألتزمه على `feature/manage-v2`، وأعطيك **لانشرًا قصيرًا واحدًا** لكل مهمة.
-2. **خلال المرحلة:** ZAI ينفّذ **مهمة واحدة لكل تشغيل**. بعد كل مهمة: أراجع حسب `REVIEW.md` (7 شروط + 8 فحوص مال + النطاق + الأمن)، وأحدّث قسم مانوس في `TRACKER.md`، وأعطيك لانشر المهمة التالية أو أمر إصلاح.
+2. **خلال المرحلة:** ZAI ينفّذ **موجة واحدة لكل تشغيل** (٢–٣ مهام متتالية، بقرار المالك 26/11/2026)، ولكل مهمة commit وتحديث متتبّع مستقل. عند نهاية الموجة تُشغَّل بوابة الموجة (`guards` + `test` + `typecheck`)؛ ثم أراجع المهام حسب `REVIEW.md` (7 شروط + 8 فحوص مال + النطاق + الأمن)، وأحدّث قسم مانوس في `TRACKER.md`، وأعطيك لانشر الموجة التالية أو أمر إصلاح.
 3. **عند بوابة المرحلة:** أشغّل/أتحقق من تعريف «خلص» للمرحلة، وأعطيك تقرير المرحلة بالعربي (ما نُفّذ، نتيجة كل مهمة، المؤجَّل، المخاطر، آخر SHA).
 4. **بعد قبولك:** أكتب ملف أوامر المرحلة التالية. لا أوامر لمرحلتين معًا.
 
@@ -30,13 +30,15 @@
 ## 3. اللانشر (نفس الصيغة كل مرة، يتغير اسم الملف ورقم المهمة فقط)
 
 ```text
-Repo: https://github.com/Qays7753/Micro — branch `feature/manage-v2`. Read and follow `docs/manage-v2/tasks/<PHASE-PROMPT>` from the current remote head. Verify live state first, preserve existing work, implement only <TASK-ID>, tests first, update the tracker in the same commit. Deliver the report as a committed file and give me its full GitHub link — no chat attachments. Then stop at the task boundary.
+Repo: https://github.com/Qays7753/Micro — branch `feature/manage-v2`. Read and follow `docs/manage-v2/tasks/<PHASE-PROMPT>` from the current remote head. Verify live state first, preserve existing work, execute only the named wave (its tasks in order, one commit and one tracker entry per task), tests first. Run the wave gate (guards / test / typecheck) at the end, deliver the report as a committed file and give me its full GitHub link — no chat attachments. Then stop at the wave boundary.
 ```
+
+**موجات المرحلة 1:** A = M1.2+M1.3، B = M1.6، C = M1.7+M1.8+M1.9، D = M1.10+M1.11. الزمن المتوقع: ٤ تشغيلات بدل ٨.
 
 ## 4. قواعد ثابتة في كل مرحلة
 
 - `main` ممنوع؛ فرع واحد `feature/manage-v2`؛ لا دمج قبل المرحلة 7 وقبولك.
 - كل تقرير ملف في `docs/manage-v2/reports/`، ويُسلَّم كرابط GitHub مثبّت على SHA — **لا مرفقات في المحادثة**.
-- مهمة واحدة لكل تشغيل، ولا انتقالات مسبقة التصريح، والتنفيذ ليس قبولًا.
+- موجة واحدة لكل تشغيل، ولا انتقالات بين الموجات بلا لانشر جديد، والتنفيذ ليس قبولًا.
 - أي حالة غير مذكورة في المواصفات: ZAI يتوقف، وأنا أسألك.
 - البنود الأمنية لا تُؤجَّل: SRV-03 في M2.4، MNG-LOCAL-01 في M6.3 وM7.4، SRV-07 في M2.12/M2.13 وM7.4.
