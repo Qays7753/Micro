@@ -2,7 +2,7 @@
  * Wave 3A (ARCH-002 / WS-212 — STR-401 + STR-405 من المسح المقبول): أصول تكافؤ مادية على القرص.
  *
  * الغرض: تجميد ملفات تصدير حقيقية بوصفها oracles دائمة:
- *  - الزوج الحالي 34/42 (تصحيح مؤرخ 2026-11-22 الملحق §10.2-7-2 — DOC-041/WS-251؛ كان 34/41) مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
+ *  - الزوج الحالي 34/43 (أمر المالك 12AA — 2026-11-24؛ كان 34/42 بعد الملحق §10.2-7-2) مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
  *    والتصدير الفعلي (يقارن مقارنة عميقة كاملة في كل تشغيل — أقوى حارس بايتات هنا)؛
  *  - ملف مكمّل غني بالعائلات الجديدة (مصروف متكرر/ميزانية/قرض مستلم/بيع مباشر/أصل/قرض...)
  *    مجمّد من مسار الخدمات الحقيقية (تجميد القيم؛ المطابقة قبولًا وعدادات ودورة كاملة)؛
@@ -92,7 +92,7 @@ function minimalLegacyFileFor(version: number, schemaVersion: number): LocalExpo
   } as unknown as LocalExportFile;
 }
 
-/** الزوج الحالي 34/42 (تصحيح مؤرخ 2026-11-22 الملحق §10.2-7-2 — DOC-041/WS-251؛ كان 33/40) مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
+/** الزوج الحالي 34/43 (أمر المالك 12AA — 2026-11-24؛ كان 34/42) مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
 async function currentGoldenViaMigration(): Promise<LocalExportFile> {
   const target = new MemoryLocalStore();
   const targetTransfers = new LocalTransferService(target, NOW);
@@ -333,7 +333,7 @@ const LEGACY_PAIRS = [...RELEASED_LEGACY_EXPORT_PAIRS]
   .sort((a, b) => b[0] - a[0]);
 
 describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
-  it("current-pair golden (34/42): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
+  it("current-pair golden (34/43): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
     const live = await currentGoldenViaMigration();
     const name = "current-pair.golden.json";
     if (GENERATE) {
@@ -387,12 +387,12 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 34/42", async () => {
+  it("every released legacy pair has a frozen minimal golden that still imports to 34/43", async () => {
     /* S14 (DOC-023 — أمر ba2ce7b4 §5): 33/40 صار زوجًا موروثًا (27 ← 28)
      * مع عائلتي ملخصات الفترة وإيصالات الأوامر في 34/41؛
      * الملحق §10.2-7-2 (2026-11-22 — DOC-041/WS-251): 34/41 صار زوجًا موروثًا
-     * (28 ← 29) مع مخزن سجل اسأل المحلي النصي في 34/42. */
-    expect(LEGACY_PAIRS.length).toBe(29);
+     * (29 ← 30) مع فتحة مفتاح تشفير النسخ في 34/43 (كان 28 ← 29 عند سجل اسأل في 34/42). */
+    expect(LEGACY_PAIRS.length).toBe(30);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
       const name = `legacy-minimal-${version}-${schemaVersion}.golden.json`;
@@ -432,7 +432,8 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           file: "current-pair.golden.json",
           sha256: "",
           kind: "current-pair",
-          description: "34/42 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+          description:
+            "34/43 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة (كان 34/42 عند الملحق §10.2-7-2)",
           byteStable: true,
         },
         {
@@ -440,7 +441,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           sha256: "",
           kind: "current-pair-supplement",
           description:
-            "34/42 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة وملخصات الفترة وإيصالات الأوامر) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+            "34/43 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة وملخصات الفترة وإيصالات الأوامر) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة) (كان 34/42 عند الملحق §10.2-7-2)",
           byteStable: false,
         },
         ...LEGACY_PAIRS.map(([v, s]): GoldenManifestEntry => ({
@@ -469,8 +470,8 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     }
     const manifest = JSON.parse(readGolden(manifestName)) as GoldenManifest;
     /* S14 (DOC-023): ذهبي 33/40 الموروث الجديد (30 ← 31 ملفًا)
-    /* الملحق §10.2-7-2 (2026-11-22 — DOC-041/WS-251): ذهبي 34/41 الموروث الجديد (31 ← 32 ملفًا) مع مخزن سجل اسأل المحلي النصي في 34/42. */
-    expect(manifest.files.length).toBe(32);
+    /* الملحق §10.2-7-2 (2026-11-22): ذهبي 34/41 الموروث الجديد (31 ← 32 ملفًا)؛ MNG-LOCAL-03 (أمر 12AA 2026-11-24): ذهبي 34/42 الموروث الجديد (32 ← 33 ملفًا) مع مخزن فتحة مفتاح تشفير النسخ في 34/43. */
+    expect(manifest.files.length).toBe(33);
     for (const entry of manifest.files) {
       const actual = sha256Of(readGolden(entry.file));
       expect(actual, `${entry.file} خُعدل يدويًا أو انحرف عن الأصل`).toBe(entry.sha256);

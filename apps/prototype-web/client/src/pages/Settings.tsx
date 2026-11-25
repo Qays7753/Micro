@@ -522,22 +522,26 @@ export default function SettingsPage() {
       setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
       return;
     }
-    const result = await transfers.createVerifiedExport();
+    /* MNG-LOCAL-03 (أمر 12AA — 2026-11-24): التصدير المنزّل مشفّر دائمًا —
+     * الملف المشفّر يُتحقق منه دورة كاملة (النص قبل الختم والمظروف بعده)
+     * ويُنزّل بايتات مشفّرة فقط؛ أي فشل (إلغاء تأكيد الجهاز/غياب المصادق/
+     * فشل التشفير) مغلق: لا ملف نصي ولا ادعاء نجاح. */
+    const result = await transfers.createSealedVerifiedExport();
     setIsWorking(false);
     if (!result.ok) {
       setStorageNotice("error", result.message);
       return;
     }
-    const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
+    const blob = new Blob([new Uint8Array(result.value.sealed)], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-local-${businessDateFromTimestamp(result.value.file.exportedAt)}.json`;
+    link.download = `micro-local-${businessDateFromTimestamp(result.value.exportedAt)}.mbak`;
     link.click();
     /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
     await preferences.markVerifiedExport();
-    setLastExport(result.value.file.exportedAt);
+    setLastExport(result.value.exportedAt);
     setCurrentSummary(result.value.summary);
     notifyDataChanged();
     setStorageNotice(
@@ -545,7 +549,10 @@ export default function SettingsPage() {
       /* MNG-LOCAL-04 (Post-Group 6 Wave 5 / DOC-041): تسمية صادقة لقدر بصمة
        * SHA-256 داخل الملف — تكشف التلف العرضي (نقل/تخزين) فقط، ولا تثبت
        * الأصالة أمام طرف ثالث (لا توقيع بمفتاح مستقل في هذا الإصدار). */
-      "النسخة جاهزة ومُتحقق منها — احفظها بمكان آمن، فيها كل أرقامك. البصمة داخل الملف تكشف التلف العرضي عند النقل أو التخزين فقط، ولا تثبت أصالة الملف أمام طرف آخر — لا توقيعًا رقميًّا في هذا الإصدار. لو ضاع الجهاز تضيع معه؛ لا سحابة في هذا الإصدار.",
+      /* MNG-LOCAL-04 + MNG-LOCAL-03 (أمر 12AA): تسمية صادقة لقدر البصمة داخل
+       * الملف المشفّر ولحماية الملف: مشفّر بمفتاح تفتحه مراسم تأكيد جهازك —
+       * لا كلمة مرور مكتوبة ولا ملف نصي أبدًا. */
+      "النسخة جاهزة ومُتحقق منها ومُشفّرة — احفظها بمكان آمن، فيها كل أرقامك. لا تُفتح إلا على جهاز يملك مفتاح المنصة نفسه (تأكيد الجهاز عند الفتح)؛ البصمة داخل الملف تكشف التلف العرضي عند النقل أو التخزين فقط ولا تثبت أصالة الملف أمام طرف آخر — لا توقيعًا رقميًا في هذا الإصدار. لو ضاع الجهاز ضاع معه؛ لا سحابة في هذا الإصدار.",
     );
   }
 
@@ -562,7 +569,9 @@ export default function SettingsPage() {
       return;
     }
     setResetFlow({ phase: "exporting" });
-    const result = await transfers.createVerifiedExport();
+    /* MNG-LOCAL-03 (12AA): بوابة التصفير نفسها تنزّل نسختها مشفّرة — لا ملف
+     * نصي قبل أي تصفير أبدًا. */
+    const result = await transfers.createSealedVerifiedExport();
     if (!result.ok) {
       setResetFlow({ phase: "idle" });
       setStorageNotice(
@@ -571,16 +580,16 @@ export default function SettingsPage() {
       );
       return;
     }
-    const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
+    const blob = new Blob([new Uint8Array(result.value.sealed)], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-local-${businessDateFromTimestamp(result.value.file.exportedAt)}.json`;
+    link.download = `micro-local-${businessDateFromTimestamp(result.value.exportedAt)}.mbak`;
     link.click();
     /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
     await preferences.markVerifiedExport();
-    setLastExport(result.value.file.exportedAt);
+    setLastExport(result.value.exportedAt);
     setResetNameConfirmation("");
     setResetFlow({ phase: "confirm" });
   }
@@ -649,7 +658,10 @@ export default function SettingsPage() {
       /* S02-A (SH-02): المعاينة مربوطة بالمراجعة — الجيل وبصمة الحالة الحية
        * لحظة العرض؛ التأكيد لا يقبل إلا أمرًا مربوطًا، وتغيّر البيانات بعده
        * يعيد المراجعة ولا يستبدل عملًا أحدث. */
-      const prepared = await transfers.prepareRestore(await file.text());
+      /* MNG-LOCAL-03 (12AA): الاستيراد بالبايتات — مظروف مشفّر (تأكيد الجهاز
+       * لفتحه) أو ملف وارث نصي بتحذير صريح؛ بوابات الحد قبل أي قراءة. */
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const prepared = await transfers.prepareRestoreFromBytes(bytes);
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
         return;
@@ -722,16 +734,22 @@ export default function SettingsPage() {
       setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
       return;
     }
-    const rollback = await transfers.readActiveRollback();
-    if (!rollback.ok || rollback.value === null) {
+    /* MNG-LOCAL-03 (12AA): تنزيل النسخة السابقة الدائمة مشفّرًا — مراسم مفتاح
+     * الجهاز نفسها، والفشل (إلغاء/غياب المصادق/فشل التشفير) مغلق بلا أي ملف. */
+    const rollback = await transfers.readActiveRollbackSealed();
+    if (!rollback.ok) {
+      setStorageNotice("error", rollback.message);
+      return;
+    }
+    if (rollback.value === null) {
       setStorageNotice("error", "لا توجد نسخة سابقة محفوظة على هذا الجهاز — لا ما يُنزَّل.");
       return;
     }
-    const blob = new Blob([JSON.stringify(rollback.value.file, null, 2)], { type: "application/json" });
+    const blob = new Blob([new Uint8Array(rollback.value.sealed)], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(rollback.value.file.exportedAt)}.json`;
+    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(rollback.value.exportedAt)}.mbak`;
     link.click();
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }
@@ -773,7 +791,10 @@ export default function SettingsPage() {
         setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
         return;
       }
-      const prepared = await guidedOpeningImport.prepare(await file.text());
+      /* MNG-LOCAL-03 (12AA): مدخل البداية بالبايتات — مظروف مشفّر أو ملف
+       * وارث نصي، وبوابات الحد قبل أي قراءة. */
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const prepared = await guidedOpeningImport.prepareFromBytes(bytes);
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
         return;

@@ -70,8 +70,10 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
         createExport: vi.fn(async () => ({ ok: false })),
         prepareImport: vi.fn(),
         prepareRestore: vi.fn(),
+        prepareRestoreFromBytes: vi.fn(),
         confirmImport: vi.fn(),
         createVerifiedExport: vi.fn(async () => ({ ok: false })),
+        createSealedVerifiedExport: vi.fn(async () => ({ ok: false })),
         resetAll: vi.fn(async () => ({ ok: false })),
         /* S02-A: واجهة حماية الاستبدال الدائمة في مضاعف الاختبار. */
         readRestoreStatus: vi.fn(async () => ({
@@ -79,6 +81,7 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
           value: { generation: 0, rollbackCreatedAt: null, unresolvedIntent: false },
         })),
         readActiveRollback: vi.fn(async () => ({ ok: true, value: null })),
+        readActiveRollbackSealed: vi.fn(async () => ({ ok: true, value: null })),
         prepareRollbackRestore: vi.fn(async () => ({ ok: false })),
       },
       guidedOpeningImport: { prepare: vi.fn(), confirm: vi.fn() },

@@ -16,9 +16,9 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "38bd825cd2b6e22580c18b6ae6f1a43bb93527cb",
+    "head": "2cfdf286645da5036cab530c76fef72281de9c14",
     "date": "2026-11-24",
-    "method": "Follow-up remediation re-anchor (WS-254/DOC-044, owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 38bd825c): measured from a fresh build on this exact tree with this environment's identity — no identity (local honest fallback — index.html carries no identity tag) — correcting the 2026-11-23 anchor's measurement defect: the previous CI/Pages records were simulated with a short (8-char) identity while every real Actions/Pages build embeds the full 40-char SHA in the index.html identity meta tag (a systematic +32 bytes the old baseline missed — the exact reported Pages failure on e2b82afd: actual 3,151,638 = old anchor 3,151,606 + 32). This anchor is measured with the code head's real full SHA so future comparisons are against what real CI/Pages environments actually build. The entry shrank -53 bytes (the Manage mode guard's removed 503-network_not_configured branch, MNG-LOCAL-02 follow-up) and the improvement is locked here. No ceiling, tolerance, count rule, or guard code changed."
+    "method": "MNG-LOCAL-03/06 remediation re-anchor (WS-254/DOC-044, owner order MNG-LOCAL-03-06-PASSWORDLESS-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 2cfdf286): measured from a fresh build on this exact tree with this environment's identity — local: honest null identity (index.html carries no identity tag); github-actions/cloudflare-pages: the full 40-char code-head SHA identity exactly as every real Actions/Pages build embeds it (the same representative-identity anchoring discipline locked by the 2026-11-24 follow-up re-anchor). The growth is the bounded cost of the order's own crypto surface in the lazy transfers chunk only (the sealed AES-256-GCM backup envelope, the WebAuthn-PRF key ceremony, and the byte-based import entries): lazy +12,051 raw / +3,632 gzipNorm; precache +12,291 raw per environment (local null identity) and +12,291 with the 40-char identity tag for GH/CF (3,163,876 = 3,151,585 + 12,291). The startup surface is untouched (initial 225,330/70,867 exactly as before — no ceremony code in the boot path), and swRuntime improved by 12 bytes (28,838 → 28,826 — locked). No ceiling, tolerance, count rule, or guard code changed; the ratchet (nbLOC of this baseline file) stays exactly as the documented protocol keeps it."
    },
    "toolchain": {
     "node": "v24.22.3",
@@ -32,12 +32,12 @@
    "measurements": {
     "initialRawTotal": 225330,
     "initialGzipNormTotal": 70867,
-    "lazyRawTotal": 1689021,
-    "lazyGzipNormTotal": 510575,
-    "swRuntimeRawTotal": 28838,
-    "entryRawBytes": 612324,
-    "entryGzipNormBytes": 149929,
-    "precacheBytesTotal": 3151495,
+    "lazyRawTotal": 1701072,
+    "lazyGzipNormTotal": 514207,
+    "precacheBytesTotal": 3163786,
+    "swRuntimeRawTotal": 28826,
+    "entryRawBytes": 612564,
+    "entryGzipNormBytes": 150009,
     "lazyJsCount": 148,
     "initialJsCount": 2,
     "dynamicRootsCount": 100,
@@ -54,9 +54,9 @@
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "38bd825cd2b6e22580c18b6ae6f1a43bb93527cb",
+    "head": "2cfdf286645da5036cab530c76fef72281de9c14",
     "date": "2026-11-24",
-    "method": "Follow-up remediation re-anchor (WS-254/DOC-044, owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 38bd825c): measured from a fresh build on this exact tree with this environment's identity — CF_PAGES_COMMIT_SHA = the code head's full 40-char SHA (the exact identity a real Pages build embeds) — correcting the 2026-11-23 anchor's measurement defect: the previous CI/Pages records were simulated with a short (8-char) identity while every real Actions/Pages build embeds the full 40-char SHA in the index.html identity meta tag (a systematic +32 bytes the old baseline missed — the exact reported Pages failure on e2b82afd: actual 3,151,638 = old anchor 3,151,606 + 32). This anchor is measured with the code head's real full SHA so future comparisons are against what real CI/Pages environments actually build. The entry shrank -53 bytes (the Manage mode guard's removed 503-network_not_configured branch, MNG-LOCAL-02 follow-up) and the improvement is locked here. No ceiling, tolerance, count rule, or guard code changed."
+    "method": "MNG-LOCAL-03/06 remediation re-anchor (WS-254/DOC-044, owner order MNG-LOCAL-03-06-PASSWORDLESS-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 2cfdf286): measured from a fresh build on this exact tree with this environment's identity — local: honest null identity (index.html carries no identity tag); github-actions/cloudflare-pages: the full 40-char code-head SHA identity exactly as every real Actions/Pages build embeds it (the same representative-identity anchoring discipline locked by the 2026-11-24 follow-up re-anchor). The growth is the bounded cost of the order's own crypto surface in the lazy transfers chunk only (the sealed AES-256-GCM backup envelope, the WebAuthn-PRF key ceremony, and the byte-based import entries): lazy +12,051 raw / +3,632 gzipNorm; precache +12,291 raw per environment (local null identity) and +12,291 with the 40-char identity tag for GH/CF (3,163,876 = 3,151,585 + 12,291). The startup surface is untouched (initial 225,330/70,867 exactly as before — no ceremony code in the boot path), and swRuntime improved by 12 bytes (28,838 → 28,826 — locked). No ceiling, tolerance, count rule, or guard code changed; the ratchet (nbLOC of this baseline file) stays exactly as the documented protocol keeps it."
    },
    "toolchain": {
     "node": "v24.22.3",
@@ -70,12 +70,12 @@
    "measurements": {
     "initialRawTotal": 225330,
     "initialGzipNormTotal": 70867,
-    "lazyRawTotal": 1689021,
-    "lazyGzipNormTotal": 510575,
-    "swRuntimeRawTotal": 28838,
-    "entryRawBytes": 612324,
-    "entryGzipNormBytes": 149929,
-    "precacheBytesTotal": 3151585,
+    "lazyRawTotal": 1701072,
+    "lazyGzipNormTotal": 514207,
+    "precacheBytesTotal": 3163876,
+    "swRuntimeRawTotal": 28826,
+    "entryRawBytes": 612564,
+    "entryGzipNormBytes": 150009,
     "lazyJsCount": 148,
     "initialJsCount": 2,
     "dynamicRootsCount": 100,
@@ -92,9 +92,9 @@
   },
   "github-actions": {
    "anchored": {
-    "head": "38bd825cd2b6e22580c18b6ae6f1a43bb93527cb",
+    "head": "2cfdf286645da5036cab530c76fef72281de9c14",
     "date": "2026-11-24",
-    "method": "Follow-up remediation re-anchor (WS-254/DOC-044, owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 38bd825c): measured from a fresh build on this exact tree with this environment's identity — GITHUB_SHA = the code head's full 40-char SHA (the exact identity a real Actions run embeds) — correcting the 2026-11-23 anchor's measurement defect: the previous CI/Pages records were simulated with a short (8-char) identity while every real Actions/Pages build embeds the full 40-char SHA in the index.html identity meta tag (a systematic +32 bytes the old baseline missed — the exact reported Pages failure on e2b82afd: actual 3,151,638 = old anchor 3,151,606 + 32). This anchor is measured with the code head's real full SHA so future comparisons are against what real CI/Pages environments actually build. The entry shrank -53 bytes (the Manage mode guard's removed 503-network_not_configured branch, MNG-LOCAL-02 follow-up) and the improvement is locked here. No ceiling, tolerance, count rule, or guard code changed."
+    "method": "MNG-LOCAL-03/06 remediation re-anchor (WS-254/DOC-044, owner order MNG-LOCAL-03-06-PASSWORDLESS-REMEDIATION-PROMPT-EN.md 2026-11-24, code head 2cfdf286): measured from a fresh build on this exact tree with this environment's identity — local: honest null identity (index.html carries no identity tag); github-actions/cloudflare-pages: the full 40-char code-head SHA identity exactly as every real Actions/Pages build embeds it (the same representative-identity anchoring discipline locked by the 2026-11-24 follow-up re-anchor). The growth is the bounded cost of the order's own crypto surface in the lazy transfers chunk only (the sealed AES-256-GCM backup envelope, the WebAuthn-PRF key ceremony, and the byte-based import entries): lazy +12,051 raw / +3,632 gzipNorm; precache +12,291 raw per environment (local null identity) and +12,291 with the 40-char identity tag for GH/CF (3,163,876 = 3,151,585 + 12,291). The startup surface is untouched (initial 225,330/70,867 exactly as before — no ceremony code in the boot path), and swRuntime improved by 12 bytes (28,838 → 28,826 — locked). No ceiling, tolerance, count rule, or guard code changed; the ratchet (nbLOC of this baseline file) stays exactly as the documented protocol keeps it."
    },
    "toolchain": {
     "node": "v24.22.3",
@@ -108,12 +108,12 @@
    "measurements": {
     "initialRawTotal": 225330,
     "initialGzipNormTotal": 70867,
-    "lazyRawTotal": 1689021,
-    "lazyGzipNormTotal": 510575,
-    "swRuntimeRawTotal": 28838,
-    "entryRawBytes": 612324,
-    "entryGzipNormBytes": 149929,
-    "precacheBytesTotal": 3151585,
+    "lazyRawTotal": 1701072,
+    "lazyGzipNormTotal": 514207,
+    "precacheBytesTotal": 3163876,
+    "swRuntimeRawTotal": 28826,
+    "entryRawBytes": 612564,
+    "entryGzipNormBytes": 150009,
     "lazyJsCount": 148,
     "initialJsCount": 2,
     "dynamicRootsCount": 100,

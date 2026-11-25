@@ -43,6 +43,15 @@ export function isWithinImportSizeLimit(text: string): boolean {
   return text.length <= MAX_IMPORT_FILE_UNITS;
 }
 
+/* MNG-LOCAL-03 (أمر المالك 12AA — 2026-11-24): بوابة خدمة بايتات الملف
+ * الثنائي — نفس السقف الرقمي القائم نفسه (٢^٢٤) مطبّقًا على بايتات المظروف
+ * المشفّر قبل أي فكّ؛ المظروف الثنائي يزيد الملف نحو ٥١ بايتًا فقط فوق
+ * النظير النصي فلا يُرفع سقف ولا يُلَيّن أي حد قائم — نفس قرار الرفض
+ * لأي ملف تجاوز الحد، قبل تحميل أي محتوى إلى الذاكرة. */
+export function isWithinImportBytesLimit(bytes: Uint8Array): boolean {
+  return bytes.length <= MAX_IMPORT_FILE_UNITS;
+}
+
 /* MNG-LOCAL-06 (Post-Group 6 Wave 5 / DOC-041، 2026-11-21): حدود العمق
  * والعدد فوق حد الحجم — ملف بحجم مسموح يمكنه تغليف تعشيش شديد العمق
  * يُنهك مكدس التحقق/الترحيل العودي، أو عائلة بعدد سجلات ضخم يُنهك الذاكرة

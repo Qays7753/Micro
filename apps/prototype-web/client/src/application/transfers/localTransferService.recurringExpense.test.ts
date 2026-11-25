@@ -163,7 +163,8 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
     expect(exported.value.file.version).toBe(34);
-    expect(exported.value.file.schemaVersion).toBe(42);
+    /* MNG-LOCAL-03 (أمر 12AA 2026-11-24): الزوج الحي صار 43/34 بعد مخزن فتحة المفتاح */
+    expect(exported.value.file.schemaVersion).toBe(43);
     expect(exported.value.file.data.recurringExpenseSeries).toHaveLength(1);
     expect(exported.value.file.data.recurringExpenseRevisions).toHaveLength(1);
     expect(exported.value.file.data.recurringExpenseOccurrences).toHaveLength(2);

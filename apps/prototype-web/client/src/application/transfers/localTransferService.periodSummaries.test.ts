@@ -224,11 +224,12 @@ describe("S14 — نقل ملخصات الفترة وإيصالات الأوام
 
   it("تزامن الأزواج: القائمة الصادرة تشمل 33/40 الموروث والزوج الحالي معًا", async () => {
     /* حارس انجراف مصغر: الزوجان الموروثان 33/40 و34/41 مسجلان،
-     * والزوج الحالي يتبع الثوابت الحية (34/42 بعد الملحق §10.2-7-2). */
+     * والزوج الحالي يتبع الثوابت الحية (34/43 بعد أمر المالك 12AA — مخزن
+     * فتحة مفتاح النسخ المشفّرة؛ كان 34/42 بعد الملحق §10.2-7-2). */
     const { RELEASED_LEGACY_EXPORT_PAIRS } = await import("./transferEnvelope");
     expect(RELEASED_LEGACY_EXPORT_PAIRS.has("33/40")).toBe(true);
     const { localExportVersion, localSchemaVersion } = await import("@/storage/local/types");
-    expect(`${localExportVersion}/${localSchemaVersion}`).toBe("34/42");
+    expect(`${localExportVersion}/${localSchemaVersion}`).toBe("34/43");
     expect(RELEASED_LEGACY_EXPORT_PAIRS.has(`${localExportVersion}/${localSchemaVersion}`)).toBe(false);
   });
 });

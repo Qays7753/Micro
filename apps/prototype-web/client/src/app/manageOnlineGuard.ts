@@ -244,6 +244,9 @@ export const NON_FINANCIAL_WRITE_RECIPES = [
   "saveRecurrence",
   "saveAskHistoryEntry",
   "saveLocalSecurity",
+  /* MNG-LOCAL-03 (أمر 12AA): فتحة مفتاح تشفير النسخ — كتابة غير مالية
+   * بامتياز (لا مادة مفتاح فيها أصلًا)؛ التصنيف صريح كما إخوتها. */
+  "saveLocalDataKeySlot",
 ] as const;
 
 /** المجموعة المحروسة الواحدة — تعداد صريح لا تخمين بادئات. */

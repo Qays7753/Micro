@@ -1,81 +1,107 @@
 {
-  "id": "WS-254",
-  "title": "إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص",
-  "status": "IN_REVIEW",
-  "items": [
-    "DOC-044"
-  ],
-  "branch": "manus/zai-prompt-open-findings-20261123",
-  "base_sha": "5a9064e657a40041ebe63c8f107d57a802f6b93f",
-  "areas": [
-    "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
-    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
-    "apps/prototype-web/client/src/components/profile/ManageOnlineSection.tsx",
-    "apps/prototype-web/client/src/application/transfers/",
-    "apps/prototype-web/client/src/application/resultCodes.ts",
-    "apps/prototype-web/client/src/pages/Settings.tsx",
-    "apps/prototype-web/worker/router.ts",
-    "apps/prototype-web/worker/api/media.ts",
-    "apps/prototype-web/worker/media.ts",
-    "apps/prototype-web/worker/env.ts",
-    "apps/prototype-web/worker/authorization.ts",
-    "apps/prototype-web/worker/api/deliveryRequest.ts",
-    "apps/prototype-web/worker/tests/",
-    "docs/expansion/security-findings-status.md",
-    "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/",
-    "docs/00-document-index.md",
-    "docs/operations/control/items/DOC-044.json",
-    "docs/operations/control/workstreams/WS-254.json",
-    "docs/operations/control/generated/"
-  ],
-  "contracts": [
-    "AGENTS.md",
-    "docs/operations/current-state.md",
-    "docs/operations/control/README.md",
-    "docs/expansion/DECISIONS.md",
-    "docs/expansion/security-findings-status.md",
-    "docs/quality/security-boundaries.md",
-    "docs/contracts/04-limited-sync-contract.md",
-    "docs/contracts/18-network-identity-workspace-access-contract.md",
-    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
-    "docs/contracts/23-network-data-lifecycle-recovery-contract.md"
-  ],
-  "agent": "Manus — prompt and documentation integrator; ZAI — sole code writer and integrator under the owner's explicit authorization; no parallel writers",
-  "pr": null,
-  "started_at": "2026-11-23",
-  "updated_at": "2026-11-24",
-  "next_action": "مراجعة المالك/Manus لتقرير المتابعة العربي FOLLOW-UP-REMEDIATION-REPORT-2026-11-24.md على رأس الفرع النهائي وdiffs الالتزامين (الكود 38bd825c ثم التسليم)؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (مؤجلة بقرار المالك المصرح) وMNG-LOCAL-06 (قياس الجهاز الفعلي الأدنى مدعومًا NOT_EXECUTED — البوابة DEVICE خارجية)؛ لا PR ولا دمج ولا نشر يدوي ولا إعدادات ولا بيانات حقيقية من هذه السلسلة.",
-  "notes": [
-    "This claim begins from main@5a9064e657a40041ebe63c8f107d57a802f6b93f. The ZAI execution must verify the live base and branch; the recorded SHA is a hint until checked.",
-    "The owner expressly authorized ordinary pushes to this branch and accepts the possibility of an automatic Cloudflare Pages preview. This does not authorize a manual deployment/retry, production promotion, or Cloudflare/Neon/R2 configuration or data writes. Do not use [CF-Pages-Skip].",
-    "Keep all 30 security findings visible. The eight open findings are in scope; MNG-LOCAL-03 remains technically open and deferred-by-owner unless the owner changes that decision. Do not invent encryption, key recovery, or a new export/storage format.",
-    "No structural refactoring, bulk moves, architecture-layer changes, semantic/financial changes, live migrations, provider calls, credentials, or real-data use. Synthetic fixtures are for automated tests only; the owner's eventual private partner trial is not being redefined as synthetic-only.",
-    "Production Pages was last documented without DB/MEDIA bindings and /api/* returning 503. An automatic preview is not proof of connected services, release readiness, or permission to use data.",
-    "Update 2026-11-24 (owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md, section «Prevent a separate Preview»): the owner's latest decision is NO separate Preview, and the Preview binding was found to point at the only Neon branch named production — therefore every commit pushed to THIS feature branch must now carry the [CF-Pages-Skip] prefix so no Cloudflare Pages preview is created or refreshed. This explicitly supersedes the earlier note on this claim that said not to use the prefix; no Cloudflare setting is changed by us, no manual deploy/retry, and if a Pages run nevertheless appears it is reported (URL/ID/source SHA) and no operation reaching its bindings is attempted."
-  ],
-  "evidence": [
-    "docs/expansion/security-findings-status.md",
-    "docs/00-document-index.md"
-  ],
-  "status_history": [
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-11-23",
-      "actor": "manus-owner-authorized-handoff",
-      "reason": "حُجز نطاق واحد للمطالبة الأمنية والجاهزية على فرع جديد من main@5a9064e بعد التحقق من عدم وجود مطالبات تنفيذ نشطة متداخلة؛ موافقة المالك تشمل دفع الفرع واحتمال معاينة Pages تلقائية فقط."
-    },
-    {
-      "status": "IN_PROGRESS",
-      "changed_at": "2026-11-23",
-      "actor": "manus-zai-handoff-integrator",
-      "reason": "بدأ إعداد الأمر الكنسي والفهرس ومزامنة Control، ثم يتابع ZAI تنفيذ النطاق المصرح به على الفرع نفسه دون فتح فرع أو PR جديد."
-    },
-    {
-      "status": "IN_REVIEW",
-      "changed_at": "2026-11-23",
-      "actor": "zai-open-findings-executor",
-      "reason": "اكتمل تنفيذ ZAI الكامل لأمر النتائج المفتوحة على الفرع نفسه (الأصل main@5a9064e6): سبعة إصلاحات جذور باختبارات انحدار مركزة، تسجيلات البروتوكول الموثقة نفس-الـPR (إرساءات حجم الملفات وخريطة الاختبارات وأسطح الحزمة بالبيئات الثلاث)، تحديث سجل الأمن الآمن، وتقرير التنفيذ العربي الكامل؛ البند إلى IN_REVIEW بانتظار مراجعة المالك/Manus — لا PR ولا دمج ولا تنظيف."
-    }
-  ],
-  "migration_baseline": false
+ "id": "WS-254",
+ "title": "إغلاق نتائج الأمن المفتوحة ونواقص الشيفرة للنموذج الأولي الخاص",
+ "status": "IN_REVIEW",
+ "items": [
+  "DOC-044"
+ ],
+ "branch": "manus/mng-local-03-06-remediation-20261124",
+ "base_sha": "a370557a4dfe7b11f8c6c0c091ba3ccc2a338539",
+ "areas": [
+  "apps/prototype-web/client/src/app/manageOnlineGuard.ts",
+  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+  "apps/prototype-web/client/src/components/profile/ManageOnlineSection.tsx",
+  "apps/prototype-web/client/src/application/transfers/",
+  "apps/prototype-web/client/src/application/resultCodes.ts",
+  "apps/prototype-web/client/src/pages/Settings.tsx",
+  "apps/prototype-web/worker/router.ts",
+  "apps/prototype-web/worker/api/media.ts",
+  "apps/prototype-web/worker/media.ts",
+  "apps/prototype-web/worker/env.ts",
+  "apps/prototype-web/worker/authorization.ts",
+  "apps/prototype-web/worker/api/deliveryRequest.ts",
+  "apps/prototype-web/worker/tests/",
+  "docs/expansion/security-findings-status.md",
+  "docs/expansion/handoffs/zai-micro-prototype-readiness-2026-11-23/",
+  "docs/00-document-index.md",
+  "docs/operations/control/items/DOC-044.json",
+  "docs/operations/control/workstreams/WS-254.json",
+  "docs/operations/control/generated/",
+  "apps/prototype-web/client/src/application/security/",
+  "apps/prototype-web/client/src/storage/local/",
+  "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+  "scripts/generate-mng-local-06-fixtures.mjs",
+  "docs/expansion/handoffs/zai-micro-local-security-remediation-2026-11-24/",
+  "docs/architecture/refactoring/mng-local-03-at-rest-encryption-scan-2026-11-24/",
+  "docs/quality/persistent-entity-touchpoints.json"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/operations/current-state.md",
+  "docs/operations/control/README.md",
+  "docs/expansion/DECISIONS.md",
+  "docs/expansion/security-findings-status.md",
+  "docs/quality/security-boundaries.md",
+  "docs/contracts/04-limited-sync-contract.md",
+  "docs/contracts/18-network-identity-workspace-access-contract.md",
+  "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+  "docs/contracts/23-network-data-lifecycle-recovery-contract.md"
+ ],
+ "agent": "Manus — prompt and documentation integrator; ZAI — sole code writer and integrator under the owner's explicit authorization; no parallel writers",
+ "pr": null,
+ "started_at": "2026-11-23",
+ "updated_at": "2026-11-24",
+ "next_action": "مراجعة المالك لتقرير التنفيذ العربي (12AB) وdiffs الالتزامين (الكود 2cfdf286 ثم التسليم) على رأس الفرع النهائي manus/mng-local-03-06-remediation-20261124؛ القرارات المفتوحة المتبقية تقنيًا: MNG-LOCAL-03 (شطر سجلات المخزن بانتظار إقرار المالك بموجات المسح A→D — الأمر §5) وMNG-LOCAL-06 (قياس أضعف جهاز فعلي مدعوم NOT_EXECUTED — بوابة DEVICE خارجية بيد المالك، الإجراء في §٦ من التقرير)؛ لا PR ولا دمج ولا نشر ولا معاينة ولا إعدادات ولا بيانات حقيقية ولا حذف/تنظيف فروع من هذه السلسلة.",
+ "notes": [
+  "This claim begins from main@5a9064e657a40041ebe63c8f107d57a802f6b93f. The ZAI execution must verify the live base and branch; the recorded SHA is a hint until checked.",
+  "The owner expressly authorized ordinary pushes to this branch and accepts the possibility of an automatic Cloudflare Pages preview. This does not authorize a manual deployment/retry, production promotion, or Cloudflare/Neon/R2 configuration or data writes. Do not use [CF-Pages-Skip].",
+  "Keep all 30 security findings visible. The eight open findings are in scope; MNG-LOCAL-03 remains technically open and deferred-by-owner unless the owner changes that decision. Do not invent encryption, key recovery, or a new export/storage format.",
+  "No structural refactoring, bulk moves, architecture-layer changes, semantic/financial changes, live migrations, provider calls, credentials, or real-data use. Synthetic fixtures are for automated tests only; the owner's eventual private partner trial is not being redefined as synthetic-only.",
+  "Production Pages was last documented without DB/MEDIA bindings and /api/* returning 503. An automatic preview is not proof of connected services, release readiness, or permission to use data.",
+  "Update 2026-11-24 (owner order FOLLOW-UP-REMEDIATION-PROMPT-EN.md, section «Prevent a separate Preview»): the owner's latest decision is NO separate Preview, and the Preview binding was found to point at the only Neon branch named production — therefore every commit pushed to THIS feature branch must now carry the [CF-Pages-Skip] prefix so no Cloudflare Pages preview is created or refreshed. This explicitly supersedes the earlier note on this claim that said not to use the prefix; no Cloudflare setting is changed by us, no manual deploy/retry, and if a Pages run nevertheless appears it is reported (URL/ID/source SHA) and no operation reaching its bindings is attempted.",
+  "Update 2026-11-24 (owner order MNG-LOCAL-03-06-PASSWORDLESS-REMEDIATION-PROMPT-EN, index 12AA): the claim legally reopens on the new branch manus/mng-local-03-06-remediation-20261124 from main@a370557a (PR #388 merged; the old branch is never reused). Scope narrows to MNG-LOCAL-03 and MNG-LOCAL-06 only: passwordless encrypted exports via a device-native WebAuthn-PRF key ceremony (fail-closed, no typed Micro password/PIN/passphrase), honest legacy-plaintext import warning, at-rest record encryption handled only through the structural gate below, and MNG-LOCAL-06 physical-device measurement preparation kept NOT_EXECUTED until the owner runs it. Every commit on this branch carries [CF-Pages-Skip]; no PR, merge, deploy, Preview, Cloudflare/Neon/R2 settings, database access, real data, branch deletion, force-push, or history rewrite."
+ ],
+ "evidence": [
+  "docs/expansion/security-findings-status.md",
+  "docs/00-document-index.md"
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-11-23",
+   "actor": "manus-owner-authorized-handoff",
+   "reason": "حُجز نطاق واحد للمطالبة الأمنية والجاهزية على فرع جديد من main@5a9064e بعد التحقق من عدم وجود مطالبات تنفيذ نشطة متداخلة؛ موافقة المالك تشمل دفع الفرع واحتمال معاينة Pages تلقائية فقط."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-23",
+   "actor": "manus-zai-handoff-integrator",
+   "reason": "بدأ إعداد الأمر الكنسي والفهرس ومزامنة Control، ثم يتابع ZAI تنفيذ النطاق المصرح به على الفرع نفسه دون فتح فرع أو PR جديد."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-11-23",
+   "actor": "zai-open-findings-executor",
+   "reason": "اكتمل تنفيذ ZAI الكامل لأمر النتائج المفتوحة على الفرع نفسه (الأصل main@5a9064e6): سبعة إصلاحات جذور باختبارات انحدار مركزة، تسجيلات البروتوكول الموثقة نفس-الـPR (إرساءات حجم الملفات وخريطة الاختبارات وأسطح الحزمة بالبيئات الثلاث)، تحديث سجل الأمن الآمن، وتقرير التنفيذ العربي الكامل؛ البند إلى IN_REVIEW بانتظار مراجعة المالك/Manus — لا PR ولا دمج ولا تنظيف."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-11-24",
+   "actor": "owner-mng-local-03-06-order",
+   "reason": "أمر المالك الجديد MNG-LOCAL-03-06-PASSWORDLESS-REMEDIATION-PROMPT-EN (2026-11-24، معرّف الفهرس 12AA): أذن بمعالجة النتيجتين المتبقيتين MNG-LOCAL-03 وMNG-LOCAL-06 على فرع جديد manus/mng-local-03-06-remediation-20261124 من main@a370557a (بعد دمج PR #388) — يلغي تأجيل MNG-LOCAL-03 المسجل في السلسلة السابقة؛ بحدود الأمر: لا كلمة مرور/PIN/عبارة مكتوبة إطلاقًا (تأكيد الجهاز الأصلية مسموح)، تصدير مشفّر تلقائيًا يفشل مغلقًا بلا أي ملف نصي، حماية بيانات IndexedDB نفسها لا الملف فقط، وقياس جهاز فعلي للـ06 بلا بدائل (محاكاة/سطح مكتب/CI ممنوعة). الفرع السابق مدمج ولا يُعاد استخدامه للتنفيذ؛ يُحفظ العمل السابق ولا يُعاد."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-11-24",
+   "actor": "zai-mng-local-03-06-remediation-executor",
+   "reason": "بدء تنفيذ أمر MNG-LOCAL-03/06 على الفرع manus/mng-local-03-06-remediation-20261124 (رأس الفرع عند البدء = ملف الأمر فقط 79a07c75؛ لا عمل تنفيذ سابق على الفرع — أول خطوة غير مكتملة هي التمهيد والمطالبة هذه): فحص حالة حي مكتمل (origin/main=a370557a، لا PRs مفتوحة، لا stashes ولا عمليات جارية، CI main أخضر عند الدمج)، إعادة فتح قانوني للمطالبة نفسها DOC-044/WS-254 (لا مطالبات نشطة متداخلة)، ثم بطاقة فهم عربية قبل الكود، ثم التنفيذ المحدود: مظروف نسخ مشفّر AES-256-GCM عبر مراسم مفتاح WebAuthn-PRF بمصادقة الجهاز الأصلية، تكامل أسطح التنزيل الثلاثة ومساري الاستيراد، تهيئة قياسات MNG-LOCAL-06، ومسح هيكلي قراءة-فقط لموضع تشفير السجلات في المخزن مع اقتراح موجات بحدود رجوع لقرار المالك (لا تنفيذ هيكلي قبل بوابته)."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-11-24",
+   "actor": "zai-mng-local-03-06-remediation-executor",
+   "reason": "اكتمل نطاق أمر MNG-LOCAL-03/06 على الفرع manus/mng-local-03-06-remediation-20261124 بالتزامين بادئة [CF-Pages-Skip] (الكود الحامل 2cfdf286 ثم التسليم): شطر الملف منفّذ كاملًا — كل ملف نسخ منزّل جديد مظروف مشفّر AES-256-GCM ثنائي (nonce جديد لكل تشفير) بمفتاح من مراسم WebAuthn-PRF بمصادقة الجهاز الأصلية بلا أي كلمة مرور مكتوبة، وفشل مغلق (إلغاء/غياب المصادق/عبث/عدم تطابق) بلا أي ملف نصي ولا أي كتابة؛ الاستيراد من المظروف الوصف-ذاتي (يعمل على أي جهاز يملك الاعتماد المتزامن) والوارث النصي بتحذير عربي صريح؛ فتحة المفتاح بمخزن محروس جديد (مخطط 42→43، touchpoints محدّث) بلا أي مادة مفتاح؛ 32 اختبارًا مركزًا جديدًا كلها خضراء (المظروف 9، المراسم 7، الخدمة 7، الافتتاحي 5، المهايئ 4) + تحديث الاختبارات المقترنة (منفذ المنفذ 157، الذهبيات المعاد توليدها بأداة GOLDEN_UPDATE الرسمية وزوج 34/42 موروثًا جديدًا، 13 اختبار إصدار أعيد تثبيته). شطر سجلات المخزن نفسها متوقف عند بوابة §5 بمسح هيكلي قراءة-فقط وموجات A→D بحدود قبول/رجوع بانتظار قرار المالك — لذلك MNG-LOCAL-03 تبقى open بشطر موثق وشطر معلَّق، ولا يُدّعى إغلاقها. MNG-LOCAL-06: مولّد قياسات اصطناعية موثق ومختبر (5/5 — القياسات الثلاثة عند الحواف القصوى تمر بوابات prepareImport الحية نفسها) والقياس الفعلي على أضعف جهاز مدعوم NOT_EXECUTED فتبقى open؛ إجراء قياس المالك بالعربية في التقرير. أسطح الحزمة أعيد إرساؤها بالبروتوكول الموثق نفس-الـPR لثلاث بيئات بالهوية التمثيلية الكاملة (lazy +12,051 خام/+3,632 gzip للكودك في القطعة الكسولة وحدها؛ سطح الإقلاع حرفيًا لم يتغير)؛ السجل الآمن محدّث: 28 fixed-verified + 2 open (الكل الثلاثون مرئية). لا PR ولا دمج ولا نشر ولا معاينة ولا إعدادات ولا بيانات حقيقية."
+  }
+ ],
+ "migration_baseline": false
 }
