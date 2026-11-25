@@ -77,7 +77,7 @@ $ corepack pnpm --filter @micro/prototype-web test
 $ rg -n "AskDraftCard|constructFinancialEventRecord" apps/prototype-web/client/src/pages/AskMicro.tsx apps/prototype-web/client/src/components/ask
  → لا نتائج (المجلد محذوف أصلًا)
 
-$ git diff --stat 96a4a722^..96a4a722 -- apps/prototype-web/client/src/application/ask/
+$ git diff --stat dbc0462c^..dbc0462c -- apps/prototype-web/client/src/application/ask/
  → فارغ (صفر أسطر — الدليل الحرفي على عدم المسّ)
 ```
 
@@ -111,7 +111,7 @@ $ corepack pnpm test
  Test Files  86 passed (86)      Tests  1031 passed (1031)
 ```
 
-## 6. بوابة الموجة (على الشجرة المكتملة 0ed3cada)
+## 6. بوابة الموجة (على الشجرة المكتملة 66745a89)
 
 ```
 $ corepack pnpm guards
@@ -139,15 +139,22 @@ $ corepack pnpm lint
 ## 7. سجل الالتزامات (موجة A كاملة)
 
 ```
-0ed3cada WAVE-A gate-fix — reconcile the guard evidence the wave's authorized changes moved (M1.2+M1.3)
-96a4a722 M1.3 scope-boundary/S3 — remove the financial draft from Ask Micro
-4d9c999c M1.2 — record task commit SHA in tracker (docs only)
-addfc21a M1.2 §14.3 — cut estimate→order cost link: remove readSourceEstimate + source-estimate UI (S2)
+66745a89 WAVE-A gate-fix — reconcile the guard evidence the wave's authorized changes moved (M1.2+M1.3)
+dbc0462c M1.3 scope-boundary/S3 — remove the financial draft from Ask Micro
+aeca7042 M1.2 — record task commit SHA in tracker (docs only)
+bed01d5e M1.2 §14.3 — cut estimate→order cost link: remove readSourceEstimate + source-estimate UI (S2)
 
---- addfc21a ---  6 files changed, 227 insertions(+), 72 deletions(-)
---- 4d9c999c ---  1 file changed, 2 insertions(+), 2 deletions(-)
---- 96a4a722 ---  8 files changed, 249 insertions(+), 814 deletions(-)
---- 0ed3cada ---  6 files changed, 35 insertions(+), 66 deletions(-)
+--- bed01d5e ---  6 files changed, 227 insertions(+), 72 deletions(-)
+--- aeca7042 ---  1 file changed, 2 insertions(+), 2 deletions(-)
+--- dbc0462c ---  8 files changed, 249 insertions(+), 814 deletions(-)
+--- 66745a89 ---  6 files changed, 35 insertions(+), 66 deletions(-)
 ```
 
-ملاحظة أمانة تقنية: التزام M1.3 عُدِّل محليًا مرة واحدة **قبل أي دفع** (unpushed) لضم حذف الملف الذي فكّه `git stash pop` من الفهرس إلى التزام مهمته — لا force-push ولا إعادة كتابة لأي تاريخ منشور؛ التاريخ المدفوع خطي.
+ملاحظة أمانة تقنية (١): التزام M1.3 عُدِّل محليًا مرة واحدة **قبل أي دفع** (unpushed) لضم حذف الملف الذي فكّه `git stash pop` من الفهرس إلى التزام مهمته — لا force-push ولا إعادة كتابة لأي تاريخ منشور.
+ملاحظة أمانة تقنية (٢): قبل الدفعة الوحيدة للموجة تقدّم الرأس البعيد بستة التزامات توثيقية للمالك (`a5ff462b` ← `eba0ef7f`)؛ أُعيد ترتيب التزامات الموجة غير المدفوعة فوقها بـrebase نظيف بلا تعارض — لا merge ولا force-push؛ التاريخ المدفوع خطي، ثم جُدِّدت مراجع الـSHA في المتتبّر والتقرير في الالتزام الختامي:
+
+```
+$ git rebase origin/feature/manage-v2
+Successfully rebased and updated refs/heads/feature/manage-v2.
+$ git push origin feature/manage-v2   (fast-forward — بلا قوة)
+```
