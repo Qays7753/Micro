@@ -249,6 +249,36 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ---
 
+## M1.1a — M1.1 fix-up: registry row, test-map regeneration, stale comment
+
+**Why:** M1.1's code is correct, but it left the branch red and one comment factually wrong. The owner requires a green gate after every task, so these three items are authorized now instead of waiting for M1.10.
+
+**Rules:** §14.3, IMPACT S1, owner decision 26/11/2026.
+
+**Do (exactly three things):**
+1. `docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`:
+   - Add one row for the new domain area `costing`: concept `costing`, authoritative source `§14.3 + src/domain/costing/`, implementation owner `domain/costing`, main consumers `domain/planning (أدواتي)؛ domain/craft-order (إعادة تصدير توافق)`, storage owner `— (نقي بلا تخزين)`, export/import `لا يوجد`, tests `tests/domain/costing.test.ts`, documentation `docs/manage-v2/PLAN.md §14.3؛ IMPACT S1`, status `PRESERVE — نواة تكلفة محايدة مشتركة (M1.1)`.
+   - Update the `planning` row so it no longer says it consumes the cost core **from `craft-order`**: it now consumes `src/domain/costing/`.
+   - Update the section-1 heading count (`20 منطقة + صف … = 21 صفًا`) to the real number after your row.
+2. Regenerate `docs/architecture/refactoring/generated/test-map.json` with `node scripts/generate-test-map.mjs`. **Never hand-edit the generated file.** Commit the generator output only.
+3. `src/domain/planning/types.ts`: correct the header comment (around lines 4–8) that still claims T01 consumes `calculateCostSnapshot` from `@micro-domain/craft-order`. It now consumes `src/domain/costing/`. **Comment text only — zero code change in this file.**
+
+**Allowed files:** the three files above, plus `docs/manage-v2/TRACKER.md` and `docs/manage-v2/reports/M1.1a-report-AR.md`.
+
+**Tests first / verification order:**
+1. Run `corepack pnpm guards` and paste the `registry-coverage` failure (it is the failing state).
+2. Make the three changes.
+3. Run `corepack pnpm guards` → every check `PASS`, zero `FAIL`.
+4. Run `node scripts/generate-test-map.mjs` twice; `git status --short` must be clean after the second run (no drift).
+5. Run `corepack pnpm test` → zero failures (the two guard-smoke failures of M1.1 must be gone).
+6. Run `corepack pnpm typecheck` → green. Paste `git diff --stat` and confirm `src/domain/planning/types.ts` shows comment-only changes.
+
+**Acceptance:** `pnpm guards` fully green; `pnpm test` zero failures; no generated-file drift; registry heading count matches its rows; no source behaviour changed.
+
+**Stop if:** a guard needs a threshold change, an exemption, or an ignore rule to pass — report instead of weakening it; or the registry format requires fields you cannot fill truthfully.
+
+---
+
 ## Report format (Arabic) — written to `docs/manage-v2/reports/<TASK-ID>-report-AR.md`
 
 - المهمة والـcommit.
