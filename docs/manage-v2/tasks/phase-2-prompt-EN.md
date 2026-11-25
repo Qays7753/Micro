@@ -10,7 +10,7 @@
 
 | Wave | Tasks (in order) | Scope | Status |
 |---|---|---|---|
-| E | M2.1 → M2.2 → M2.3 | §3 schema + append-only enforcement; Q1–Q20 entry registry and balance rule; I1–I9 as executable checks | pending phase-1 gate |
+| E | M2.1 → M2.2 → M2.3 | §3 schema + append-only enforcement; Q1–Q20 entry registry and balance rule; INV-1…INV-10 as executable checks | pending phase-1 gate |
 | F | M2.4 | The single operation handler: load → domain → one transaction → atomic idempotency reservation (SRV-03) | pending E |
 | G | M2.5 → M2.6 → M2.7 | OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE; OP-EXPENSE; owner deposit/withdrawal/transfer | pending F |
 | H | M2.8 → M2.9 → M2.10 | OP-COLLECT / OP-PAY / allocation by name; OP-WRITE-OFF; OP-CORRECT / OP-CANCEL-OPERATION (Q20) | pending G |
@@ -29,6 +29,19 @@
 - Unspecified state or a spec contradiction → stop and report `BLOCKED` with the exact question. No product decisions.
 - Credentials: none are needed. Never put a token, password, cookie, or key in a file, commit, log, URL, or report; if the platform ever asks for authentication, use its secure credential field only.
 - `NO_REPOSITORY_WRITES` beyond the wave's commits; `NO_CLEANUP` (no deletions, formatting sweeps, dependency updates) unless a task authorizes it.
+
+## Binding interpretations (Manus, 26/11/2026 — resolved without asking the owner)
+
+These six points are ambiguous in the spec and would otherwise stop a task. They are binding for phase 2; do not re-litigate them, and do not invent alternatives.
+
+1. **Invariant count.** §9 defines **ten** invariants (`INV-1`…`INV-10`). Any text saying "I1–I9" is a stale abbreviation; implement ten.
+2. **"Active entries and their reversals both count" (§8).** No soft delete and no deactivation: a reversal is a new entry, the original stays, and every sum includes both so they net to zero. Never filter sums by "not reversed".
+3. **Materials alert when net sales ≤ 0.** Hide the alert. Never divide by a non-positive denominator, never display ∞ or 0 as a ratio.
+4. **Per-10 ratio rounding.** `round_half_up` to one decimal, once, at display; no intermediate rounding. Negative profit shows `S-LOSS` instead of the ratio sentence (§8).
+5. **Ties.** Biggest expense, top sellers and top profit resolve ties deterministically: by descending amount, then by category/product identifier ascending. A test must be able to predict the order.
+6. **INV-1 with an unknown opening box.** Both sides are "unknown"; the test asserts both sides report unknown, and asserts the numeric equation only when every active box has a known opening.
+
+Reference numbers for §13: `docs/manage-v2/FIXTURES.md` (fils, INV-1 verified). Use them as expected values; do not recompute "the right number" by hand.
 
 ## 0. Preflight (every wave)
 
@@ -92,21 +105,21 @@ Repository paths: worker code is `apps/prototype-web/worker/**`; client is `apps
 
 ---
 
-## M2.3 — Invariants I1–I9 as executable checks
+## M2.3 — Invariants INV-1…INV-10 as executable checks
 
 **Why:** the invariants are the safety net for every later task; they must exist before operations are written.
 
 **Rules:** §9.
 
 **Do:**
-- Implement each of `I1`–`I9` as a pure check over a ledger state, callable from tests and from the operation handler where cheap.
+- Implement each of `INV-1`–`INV-10` as a pure check over a ledger state, callable from tests and from the operation handler where cheap.
 - `INV-1` and `INV-2` must be callable in a single assertion used by every acceptance test from here on.
 
 **Allowed files:** `src/domain/manage/invariants/**`, its tests, `docs/manage-v2/TRACKER.md`, the wave report.
 
 **Tests first:** one failing-then-passing test per invariant, including a deliberately corrupted state proving the check catches it.
 
-**Acceptance:** nine invariants, nine tests, each proving both the healthy and the corrupted case; no invariant silently returns true.
+**Acceptance:** ten invariants, ten tests, each proving both the healthy and the corrupted case; no invariant silently returns true. `INV-1` proves balance, not correctness (§9) — the numeric tests of §13 remain the primary criterion.
 
 **Stop if:** an invariant needs data the schema does not hold.
 
