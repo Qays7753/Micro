@@ -187,6 +187,14 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "inventory/materialSuggestions.ts",
   "inventory/materialUnitLabels.ts",
   "loans/index.ts",
+  /* M1.8/M1.9a (Wave C — §10/§11 + §14.2/D-7، نفس-الـPR 2026-11-26): بيت
+   * كتالوج نصوص مانج — ثلاثته قراءة صرفة: مفاتيح المواصفة (keys.ts) وقيمها
+   * العربية الثابتة (ar.ts) وباب البحث فاشلًا مغلقًا (index.ts)؛ أصول
+   * ثابتة بلا حالة ولا كتابة تخزين. صنّف في نفس الـPR وفق قاعدة
+   * D-04/R10A-F-019 (تصحيح M1.9a المعتمد من المالك). */
+  "manage/strings/ar.ts",
+  "manage/strings/index.ts",
+  "manage/strings/keys.ts",
   /* S10 (UNIT-030 — أمر b56967d8، DOC-019): بيت أدوات التخطيط النقي — دوال
    * حساب بلا أي تخزين (حفظ T01 في بيت التقديرات)؛ انضم للجسم بفحص
    * الخاصية نفسه: صفر أفعال كتابة نصيًا وتشغيليًا. */

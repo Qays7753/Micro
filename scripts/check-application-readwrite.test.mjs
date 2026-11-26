@@ -147,7 +147,7 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
   /* EX-D21 (DOC-037، Phase B — 2026-11-14): +network/askMicroService.ts — 74 -> 75. */
-  it("the live repository passes at the baseline: 80 corpus files, zero violations (reclassification 2026-11-22)", () => {
+  it("the live repository passes at the baseline: 83 corpus files, zero violations (M1.9a 2026-11-26)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
@@ -173,11 +173,15 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * نفس-الـPR 2026-11-22): +3 — بيت لوحة المشرف الجديد (admin/adminPanelService.ts
      * + بابه admin/index.ts — قراءة خادمية حصرًا) وخدمة أدوار الحساب
      * (network/accountRolesService.ts — قراءة وأوامر خادمية مدققة، صفر تخزين
-     * محلي)؛ 75 ← 78 (الاستكمال المستمر) ← 81 بالملحق §10.2 بتصنيف موثق نفس-الـPR ← 80 بإعادة تصنيف مؤرخة 2026-11-22 (استكمال التسجيل DOC-041/WS-251: askHistoryService صارت كاتبة عند منفذ التخزين — saveAskHistoryEntry؛ سابقة EX-D23 نفسها) (قاعدة D-04). */
-    expect(result.stats.readLikeCorpus).toBe(80);
-    expect(result.stats.readLikeBaseline).toBe(80);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(80);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(80);
+     * محلي)؛ 75 ← 78 (الاستكمال المستمر) ← 81 بالملحق §10.2 بتصنيف موثق نفس-الـPR ← 80 بإعادة تصنيف مؤرخة 2026-11-22 (استكمال التسجيل DOC-041/WS-251: askHistoryService صارت كاتبة عند منفذ التخزين — saveAskHistoryEntry؛ سابقة EX-D23 نفسها) (قاعدة D-04).
+     * M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، نفس-الـPR 2026-11-26): +3 —
+     * بيت كتالوج نصوص مانج (manage/strings/keys.ts وar.ts وبابه index.ts —
+     * مفاتيح وقيم ثابتة وبحث فاشلًا مغلقًا؛ صفر حالة وصفر كتابة تخزين)؛
+     * 80 ← 83 بتصنيف موثق نفس-الـPR (قاعدة D-04 — تصحيح M1.9a المعتمد). */
+    expect(result.stats.readLikeCorpus).toBe(83);
+    expect(result.stats.readLikeBaseline).toBe(83);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(83);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(83);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

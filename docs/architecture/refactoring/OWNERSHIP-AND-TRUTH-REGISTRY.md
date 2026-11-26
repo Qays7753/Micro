@@ -10,7 +10,7 @@
 
 ---
 
-## 1. خريطة ملكية مفاهيم المجال (20 منطقة حيّة + صف توزيعات مكمّل + صف تاريخي بلا مجلد = 22 صفًا)
+## 1. خريطة ملكية مفاهيم المجال (21 منطقة حيّة + صف توزيعات مكمّل + صف تاريخي بلا مجلد = 23 صفًا)
 > صف `owner-safe-withdrawal` تاريخي: لا مجلد حيًّا له في `src/domain/` (حارس التغطية يقيس اتجاه «الحي → السجل» فقط). يُحسم بقرار لاحق في M1.10، لا بالحذف الصامت.
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
@@ -20,6 +20,7 @@
 | shared (مال/وقت/كمية) | `src/domain/shared/` + عقد المقياس (قرش=1/100، بمنزلتين) | domain/shared | كل مناطق المجال؛ presentation formatters | — (نقي) | عبر القيم في العائلات | `tests/domain/shared.test.ts` | AGENTS §10؛ plan §3 | PRESERVE (Shared Kernel بحكم الواقع) |
 | craft-order | عقد 02/10/12 + `src/domain/craft-order/` | domain/craft-order | orders/schedule/collect؛ fulfillment؛ collections؛ integrity؛ transfers | storage (stores orders/schedules) | `craftOrder` family | `tests/domain/craft-order*.test.ts` (7 ملفات) | عقد التنفيذ 02-coverage | PRESERVE — STR-204c عمليات مستقبلية فقط |
 | costing | §14.3 + `src/domain/costing/` | domain/costing | domain/planning (أدواتي)؛ domain/craft-order (إعادة تصدير توافق) | — (نقي بلا تخزين) | لا يوجد | `tests/domain/costing.test.ts` | `docs/manage-v2/PLAN.md §14.3؛ IMPACT S1` | PRESERVE — نواة تكلفة محايدة مشتركة (M1.1) |
+| manage | §9 (R-20…R-22) + `src/domain/manage/` | domain/manage | لا مستهلك إنتاج بعد — المرحلة 2 عبر worker/application/manage؛ العميل لا يستورد المجال أبدًا (M1.6 — R10/R11) | — (نقي بلا تخزين) | لا يوجد | `tests/manage/money.test.ts` | `docs/manage-v2/PLAN.md §9؛ IMPACT §4` | PRESERVE — فلوس مانج: فلس عدد صحيح = 1/1000 د.أ بتقريب half-up مرة واحدة (M1.7/M1.8) |
 | financial-event | عقد 05 + `src/domain/financial-event/` | domain/financial-event | finance؛ cash؛ assets؛ loans؛ recurring-expense؛ transfers | storage (financialEvents) | `financialEvent` family | `tests/domain/financial-event.test.ts` + finance suites | عقد 05 | PRESERVE (محور عنقود السجلات المالية) |
 | asset | عقد 43 + `src/domain/asset/` | domain/asset | finance؛ assets pages؛ transfers | storage (assets) | `assetResidual` family | `tests/domain/asset*.test.ts` | عقد 43 | PRESERVE |
 | loan | عقد 05 + `src/domain/loan/` | domain/loan | loans pages؛ finance؛ transfers | storage (loans) | `loan` family | `tests/domain/loan.test.ts` | عقد 05 | PRESERVE |
@@ -144,6 +145,7 @@
 | input/ | الإدخال الموجّه (عقد 27) | 1 | 3 | — |
 | inventory/ | مواد المخزون (عقد 11/28 — ADR-014) | 11 | 3 | تقسيم Wave F شريحة ٣ (مُنسّق + 7 أشقاء) |
 | loans/ | القروض (عقد 29) | 2 | 2 | — |
+| manage/ | كتالوج نصوص مانج (§10/§11 + §14.2 — قرار المالك D-7): القيم العربية منسوخة حرفيًا من المواصفة وحدها؛ `t(key)` فشلًا مغلقًا على المفتاح المجهول؛ بلا منطق مالٍ ولا كتابة تخزين (M1.7/M1.8) | 3 (strings/keys.ts + strings/ar.ts + بابه strings/index.ts) | `strings/stringsCatalog.test.ts` (مجاور) | باب البيت `strings/` مسجل في حارس أسطح الأبواب (تسجيل M1.9a)؛ مسارا pages/manage وcomponents/manage محروسان نصيًا قبل وجود أي كود عرض |
 | owner/ | استحقاق المالك | 1 | 1 | — |
 | parties/ | الأطراف | 1 | 2 | — |
 | preferences/ | التفضيلات | 2 | 2 | — |

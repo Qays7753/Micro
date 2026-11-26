@@ -62,7 +62,7 @@ function fixtureRoot(doorContent = DOOR_OK) {
 }
 
 describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () => {
-  it("live repo: all 34 doors + the root file match the registered baseline", () => {
+  it("live repo: all 35 doors + the root file match the registered baseline", () => {
     /* S10 (UNIT-030 — أمر b56967d8/DOC-019، نفس-الـPR): بيت أدوات التخطيط
      * النقي بابه المسجل planning/index.ts (29 ← 30)؛ الأسطح (قيمًا وأنواعًا)
      * مثبتة بالأساس المحدث نفسه-الـPR.
@@ -73,10 +73,14 @@ describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () =
      * نفس-الـPR 2026-11-22): باب لوحة المشرف الجديد application/admin/index.ts
      * سُجل بسطحه المثبت في الأساس عند الالتزام الأصلي لكن عدّ هذا الفحص لم
      * يُحدَّث معه — 32 ← 33 تصحيحًا لما فات (كشفته البوابة الختامية 44939731892
-     * عند فحص الأبواب)؛ بلا أي تغيير في الحارس أو الأساس. */
+     * عند فحص الأبواب)؛ بلا أي تغيير في الحارس أو الأساس.
+     * M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، نفس-الـPR 2026-11-26): باب
+     * كتالوج نصوص مانج الجديد application/manage/strings/index.ts سُجل
+     * بسطحه الحي (٣ قيم + نوع واحد) في الأساس — 34 ← 35 (تصحيح M1.9a
+     * المعتمد من المالك)؛ بلا أي تغيير في الحارس نفسه. */
     const result = checkApplicationDoorSurfaces(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.doors).toBe(34);
+    expect(result.stats.doors).toBe(35);
     expect(result.stats.rootFiles).toBe(1);
     expect(result.violations).toEqual([]);
   });
