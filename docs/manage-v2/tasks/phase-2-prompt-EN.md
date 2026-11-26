@@ -1,10 +1,11 @@
 # Phase 2 — Schema, ledger, and server operations (ZAI wave prompt) — DRAFT
 
-> **Status: DRAFT, prepared 26/11/2026 while wave A runs.** Do not execute from this file until phase 1 closes and Manus confirms it against the phase-1 output (folder names from M1.6, money unit from M1.7, guards from M1.10). Any path below that differs from what phase 1 actually created is corrected in this file before the first launcher — never silently in code.
-> **Execute ONE wave per run**, tasks in the listed order, one commit and one tracker entry per task.
+> **Status: APPROVED FOR PHASE 2, updated 26/11/2026 after phase 1 closure.** The phase-1 gate was reviewed on `3832f93389e441a7ee854a5272094412afeec306`; verify the live remote state before acting and report any drift. Any path below that differs from the live repository is corrected in this prompt before code changes — never silently in code.
+> **Execute ONE TASK per run**. On every invocation, resume from the first incomplete task in the ordered list; complete only that task, verify and self-fix it, commit it, update its tracker entry, report it, and stop. When the same prompt is sent again, repeat the state check and continue with the next incomplete task. Do not redo a task already marked `DONE` or `ACCEPTED`.
 > Canonical sources: `docs/manage-v2/micro-manage-spec-final.md` (v1.1, binding) — §3 data, §4 entry types, §5 operations, §8 formulas, §9 invariants, §12 order, §13 tests, §14 architecture; `docs/manage-v2/IMPACT.md`; `docs/manage-v2/PLAN.md`; `docs/manage-v2/TRACEABILITY.md`; `docs/manage-v2/REVIEW.md`.
 > Branch: `feature/manage-v2` only. **`main` is forbidden.** No merge, no force-push, no history rewrite.
 > Delivery: no chat attachments. Reports are committed under `docs/manage-v2/reports/` and linked by full SHA URL.
+> Security continuity: read `Micro — تقرير التدقيق الأمني 2026-11-19.md` from the project-shared files and account for every finding relevant to the current task. Track relevant findings as `open`, `fixed-verified`, `deferred-by-owner`, or `not-applicable` with evidence; never mark a finding fixed from a code claim or unrelated green CI.
 
 ## Waves
 
@@ -17,16 +18,16 @@
 | I | M2.11 | The one server read module for every §8 / §8.2 figure | pending H |
 | J | M2.12 → M2.13 | Project export/delete over the new tables (SRV-07); transfer envelope v2 that rejects v1 | pending I |
 
-## Execution model (same as phase 1)
+## Execution model (sequential continuation)
 
-- One wave per run; tasks in order without pausing between them; each task keeps its own **Allowed files**, its own commit, its own tracker entry.
-- No transitions between waves. Wave gate at the end: `corepack pnpm guards` zero `FAIL`, `corepack pnpm test` zero failures, `corepack pnpm typecheck` clean. A red wave is not finished: fix inside the wave's allowed files or stop with `BLOCKED` — never weaken a guard, threshold, or exemption.
+- One task per run; tasks are ordered inside waves E–J. Each task keeps its own **Allowed files**, its own commit, and its own tracker entry. Stop after that task even when the next task is unblocked.
+- At the end of each wave, run and record the wave gate before stopping at the wave boundary: `corepack pnpm guards` zero `FAIL`, `corepack pnpm test` zero failures, `corepack pnpm typecheck` clean. A red wave is not finished: fix inside the current task/wave's allowed files or stop with `BLOCKED` — never weaken a guard, threshold, or exemption.
 - Tests first in every task: write the failing test, paste the failure, implement, run again.
 - Execution is not acceptance; Manus reviews each task against `REVIEW.md`, only the owner accepts.
-- Resume: continue the same wave from the first task whose tracker entry is not `DONE`; never reset, clean, or reclone over work.
-- No sub-agents, no parallel edits, no branch or PR per task.
+- Resume: re-read the live branch, commits, worktree, reports, and `TRACKER.md`; continue from the first task whose tracker entry is not `DONE`/`ACCEPTED`; never reset, clean, or reclone over work. If the tracker and tree disagree, report `STATE_DRIFT` and stop.
+- No sub-agents, no parallel edits, no branch or PR per task; the main ZAI agent performs implementation, tests, review, and self-correction sequentially.
 - Every path outside the current task's allowed list is read-only.
-- Unspecified state or a spec contradiction → stop and report `BLOCKED` with the exact question. No product decisions.
+- Unspecified state, a spec contradiction, a relevant security finding with unclear handling, or a required decision outside the prompt → stop and report `BLOCKED` with the exact question. No product decisions.
 - Credentials: none are needed. Never put a token, password, cookie, or key in a file, commit, log, URL, or report; if the platform ever asks for authentication, use its secure credential field only.
 - `NO_REPOSITORY_WRITES` beyond the wave's commits; `NO_CLEANUP` (no deletions, formatting sweeps, dependency updates) unless a task authorizes it.
 
@@ -298,13 +299,14 @@ Repository paths: worker code is `apps/prototype-web/worker/**`; client is `apps
 
 ---
 
-## Phase-2 gate (after wave J)
+## Phase-2 gate (after M2.13 and wave J)
 
 - §12 phase-1 test set passes: S2, S5, S6, S9, T5, T7, T8, T13, T15, T16, T25, T26, T27, T29, T30 — plus T55, T38, T35, T36, T6, T41 where the owning task lives here.
 - `INV-1` and `INV-2` asserted in every acceptance test.
 - No §8 formula outside the read module (source scan).
 - `pnpm guards`, `pnpm test`, `pnpm typecheck` green.
 - Report: `docs/manage-v2/reports/PHASE-2-report-AR.md`, one section per task plus the gate evidence.
+- Do not run the final phase gate early or claim phase completion before M2.13 is complete. The final report must list every task, every deferred/not-executed item, relevant security finding statuses, and the exact final SHA.
 
 
 ### 10. Autonomous Self-Correction & Verification (MANDATORY)
