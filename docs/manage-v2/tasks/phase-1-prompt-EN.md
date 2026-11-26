@@ -8,9 +8,9 @@
 
 | Wave | Tasks (in this order) | Scope | Status |
 |---|---|---|---|
-| A | M1.2 → M1.3 | Cut the estimate → order cost link; remove the financial draft from Ask Micro | **authorized now** |
-| B | M1.6 | §14 folders and module boundaries | pending |
-| C | M1.7 → M1.8 → M1.9 | Money unit, strings catalog, deletion manifest + import guard | pending |
+| A | M1.2 → M1.3 | Cut the estimate → order cost link; remove the financial draft from Ask Micro | done |
+| B | M1.6 | §14 folders and module boundaries | done |
+| C | M1.7 → M1.8 → M1.9 | Money unit, strings catalog, deletion manifest + import guard | **authorized now** |
 | D | M1.10 → M1.11 | CI guards, then `knip` | pending |
 | — | M1.1, M1.1a | Already executed and accepted (26/11/2026) | done — do not re-run |
 
