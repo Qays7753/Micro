@@ -21,7 +21,9 @@
 ## Execution model (continuous sequential execution)
 
 - Continue through tasks in order inside waves E–J without waiting for owner input. Each task keeps its own **Allowed files**, its own commit, and its own tracker entry. After committing a task, immediately begin the next incomplete task.
-- At the end of each wave, run and record the wave gate before continuing: `corepack pnpm guards` zero `FAIL`, `corepack pnpm test` zero failures, `corepack pnpm typecheck` clean. A red wave is not finished: diagnose and self-fix within the authorized boundary, then rerun; never weaken a guard, threshold, or exemption.
+- **Task-level verification (every task):** write and run the failing tests first; then run all tests for the task, all directly affected regressions, the affected package/typecheck, and focused lint/format checks for changed files. Run the task's required database/concurrency tests against the real harness when the task requires them. Do not run the entire repository test suite after every task unless a shared/central contract changed or the focused checks reveal a cross-boundary risk.
+- **Early full-check trigger:** if a task changes a shared handler, ledger/operation contract, database migration, shared guard/config, route registration, package/configuration, or any file consumed broadly, run the broader affected suites immediately and do not defer them to the wave gate.
+- At the end of each wave, run and record the full wave gate before continuing: `corepack pnpm guards` zero `FAIL`, `corepack pnpm test` zero failures, and `corepack pnpm typecheck` clean. Run full `format:check` and `knip` at the wave gate when their inputs changed, otherwise at the final phase gate. A red wave is not finished: diagnose and self-fix within the authorized boundary, then rerun; never weaken a guard, threshold, or exemption.
 - Tests first in every task: write the failing test, paste the failure, implement, run again.
 - Execution is not acceptance; record evidence for every task, but do not wait for Manus/owner acceptance between tasks. The owner reviews the consolidated final report after the phase.
 - Resume: re-read the live branch, commits, worktree, reports, and `TRACKER.md`; continue from the first task whose tracker entry is not `DONE`/`ACCEPTED`; never reset, clean, or reclone over work. If the tracker and tree disagree, report `STATE_DRIFT` and stop.
@@ -309,6 +311,10 @@ Repository paths: worker code is `apps/prototype-web/worker/**`; client is `apps
 - Report: `docs/manage-v2/reports/PHASE-2-report-AR.md`, one section per task plus the gate evidence.
 - Do not run the final phase gate early or claim phase completion before M2.13 is complete. The final report must list every task, every deferred/not-executed item, relevant security finding statuses, all assumptions made without asking, and the exact final SHA.
 - After publishing the final report, stop and ask the owner whether to accept the completed phase. Do not start the next phase automatically.
+
+### Verification-efficiency rule
+
+The goal is to reduce redundant runtime, not evidence. Never skip a required task test, invariant assertion, database/concurrency proof, affected regression, wave gate, or final regression. If a full suite is run for diagnosis or flakiness, record why; do not repeat it without a changed tree, a demonstrated flake, or a changed test environment.
 
 
 ### 10. Autonomous Self-Correction & Verification (MANDATORY)
