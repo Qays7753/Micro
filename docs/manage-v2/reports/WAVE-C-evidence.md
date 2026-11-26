@@ -363,3 +363,90 @@ AssertionError: expected 'diagnostics-storage: PASS — 439 ملف إ…' to mat
 | دبوس عدد | `scripts/check-diagnostics-storage.test.mjs` | `/436 ملف إنتاج/` → `/439 ملف إنتاج/` + تعليق مؤرخ | الملف خارج قائمة M1.9a المسموحة (كان في سؤال الموجة الأصلي ولم يُدرج في بنودها) |
 
 لم يُنفَّذ أي منها — التزامًا بحدود الكتابة («never widen scope to make a gate pass»).
+
+## §13 — استكمال M1.9a: الحالة الحمراء الموثَّقة قبل أي تعديل (على `dbabe541`)
+
+بعد إذن المالك المحدَّث (`dbabe541` — تحديث نص المهمة بالبندين ٥ و٦)، وقبل أي تعديل، الاختباران المعنيان بالاستكمال والفشلان نفساهما المسجلان في §11:
+
+```
+$ corepack pnpm vitest run scripts/check-diagnostics-storage.test.mjs scripts/check-file-size-ratchet.test.mjs
+
+ FAIL  scripts/check-diagnostics-storage.test.mjs > ... > passes on the live repository tree with exactly the one registered entry
+AssertionError: expected 'diagnostics-storage: PASS — 439 م…' to match /436 ملف إنتاج/
+
+ FAIL  scripts/check-file-size-ratchet.test.mjs > CLI on the live repo (smoke) > exits 0 with a summary line and the migration/drift note on the live tree
+AssertionError: expected 1 to be +0 // Object.is equality
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 41 passed (43)
+```
+
+```
+$ node scripts/check-file-size-ratchet.mjs
+file-size-ratchet: تدقيق الانجراف مقابل origin/main @ 5a9064e657a40041ebe63c8f107d57a802f6b93f
+file-size-ratchet: FAIL — 2 نمو/اندرافًا غير مصرح فوق الأساس:
+  [within-band-growth] scripts/application-door-surfaces-baseline.json: 617 -> 628 nbLOC (WATCH -> WATCH)
+    نمو غير مبرر داخل الشريط — قلّل المسؤولية أو أرسِ القيمة الجديدة بسجل إرساء موثق (ledger) بمرجع مراجعة مالك في نفس الـPR؛ لا تحرر الأساس بصمت
+  [within-band-growth] scripts/check-application-readwrite.mjs: 370 -> 382 nbLOC (NORMAL -> NORMAL)
+    نمو غير مبرر داخل الشريط — قلّل المسؤولية أو أرسِ القيمة الجديدة بسجل إرساء موثق (ledger) بمرجع مراجعة مالك في نفس الـPR؛ لا تحرر الأساس بصمت
+```
+
+## §14 — الاستكمال بعد التنفيذ (على شجرة التزام الاستكمال `ed9c15cd`)
+
+الاختباران المعنيان:
+
+```
+$ corepack pnpm vitest run scripts/check-diagnostics-storage.test.mjs scripts/check-file-size-ratchet.test.mjs
+
+ Test Files  2 passed (2)
+      Tests  43 passed (43)
+      Duration  3.71s
+```
+
+الحارس فرديًا — نموّا الموجة صارا «REANCHORED (documented)» (آخر سطرين قبل سطر PASS؛ بقية سطور REANCHORED هي الإرساءات الموثقة السابقة):
+
+```
+$ node scripts/check-file-size-ratchet.mjs
+file-size-ratchet: REANCHORED (documented) scripts/application-door-surfaces-baseline.json: 617 -> 628 (WATCH)
+file-size-ratchet: REANCHORED (documented) scripts/check-application-readwrite.mjs: 370 -> 382 (NORMAL)
+file-size-ratchet: PASS — 653 ملفًا مشمولًا (الأساس 514؛ انكماش 31؛ محذوف 14؛ إرساءات موثقة 194)؛ صفر نمو غير مبرر داخل الشريط أو عابره (R8-2/R8-F-005+F-006)؛ تراخيص الإرساء محسولة آليًا ضد شجرة OC (37 مرجعًا — F-028)
+```
+
+## §15 — بوابة الموجة النهائية على رأس استكمال M1.9a `ed9c15cd`
+
+`corepack pnpm guards` → **exit 0** — كل سطور الحراس PASS (لا FAIL واحد):
+
+```
+check-secrets: PASS — 2404 files scanned, 0 secret patterns
+check-test-focus: PASS — 538 test files (JS + Python), 0 focus/skip occurrences
+check-entity-touchpoints: PASS — manifest covers every store, every declared path exists, every omission has a reason
+module-boundaries: PASS — 469 ملف إنتاج؛ الأساس المقبول: 4 استيرادًا عميقًا داخل المجال، 15 حافة واجهة→مجال، 0 حافة تطبيق→عرض، 3 حافة عميقة عابرة لمناطق المجال، 2 حافة واجهة→تخزين (resolution-based)، 66 استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، 0 حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ 23 حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ 124 حافة أزواج بيوت تطبيق منها 84 قيمة و40 نوعًا (راتشة R9/D-07 على جرد 130/81/49 مع إعفاءات OD-10 الورقية)؛ 0 حافة عميل→مانج و0 حافة أجنبية من مجال مانج (صفر مسموح — R10/R11 جاهزتان قبل كود مانج، M1.6/§14.3/D-5)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019 + M1.6/R10-R11)
+check-lint-warning-baseline: PASS — 35 تحذيرًا بالضبط (max-lines-per-function=18 + complexity=17) = الأساس المعتمد؛ السقف 37 باقٍ في سطر lint دون مساس (D-05/R10A-F-026 — OD-GUARD)
+type-cycles: PASS — 1 دورة نوعية قائمة (كلها ضمن الأساس المقبول)؛ صفر دورة جديدة صامتة (Wave H/STR-617 بند 1)
+registry-coverage: PASS — 42 بيت تطبيق و21 منطقة مجال كلها مذكورة في سجل الملكية (Wave H/STR-617 بند 5)
+acceptance-value-anchors: PASS — مواقع الاستهلاك الأربعة المحروسة (agreementContextService وagreementService لمصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits في guided من المجال) تستهلك مصادرها الكنونية مباشرة والقوائم الكنونية بأعضائها الموثقة — رجوع أي موقع إلى نسخة حرفية (بصيغتيها) يُصاد حتميًا بالسلبيات المثبتة (Wave H/STR-623 ثم توحيد R4-B2 ثم إغلاق R4-REC-5)؛ وعائلات F-024 الست (inventoryMovementType وcatalogItemKind وscheduleStatus وyieldReadiness وshortCashDeclaration وexpenseContext) مثبتة من الجهتين: اتحاد المجال == مدققة النقل == الطاقم الموثق (R6-W2/F-024)
+file-size-ratchet: PASS — 653 ملفًا مشمولًا (الأساس 514؛ انكماش 31؛ محذوف 14؛ إرساءات موثقة 194)؛ صفر نمو غير مبرر داخل الشريط أو عابره (R8-2/R8-F-005+F-006)؛ تراخيص الإرساء محسولة آليًا ضد شجرة OC (37 مرجعًا — F-028)
+check-vendored-braces: PASS — 4 vendored copy/copies, exactly matching the documented baseline (documented upstream limitation — see docs/quality/vendored-braces-inventory.md; the graph-level elimination is guarded separately)
+check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (AST-bound ?? exemption, 4 approved sites); no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).
+application-door-surfaces: PASS — 35 بابًا (أي عمق) + 1 ملف جذر إنتاجيًا؛ الأسطح (قيمًا وأنواعًا) مطابقة للأساس المسجل؛ صفر توسيع/انكماش/برميل غير مرئي صامت (R5/S2 — PC-3/R0-N20)
+application-readwrite: PASS — 18 ملف قارئ مسجلًا + 10 موسوم PC-4؛ صفر استدعاءات كتابة (save/commit/delete/replace/clear بأول حرف كبير)؛ القارئ لا يكتب حتميًا في حدود المفردات الموثقة (R5/S3 — F-08)؛ جسم القراءة خارج العائلات الخمس 83/83 ملفًا (راتشة عضوية+خاصية D-04 — R10A-F-019/OD-GUARD)
+check-storage-listener-guards: PASS — 105 onsuccess listeners across 5 storage boundary files, all guarded (or documented exemptions: 2)
+check-test-typecheck-coverage: PASS — 443 test files inside the app typecheck program (NF-020 part 2)
+check-money-minor-casts: PASS — 514 ملف إنتاج مفحوصًا (خارج المناطق المعتمدة)؛ صفر تأكيدات داخلية إلى عائلة Minor (أساس 0)؛ صفر تأكيدات خارجية غير مصرحة؛ 13/13 موقع تضييق هوية as-number مطابقًا للأساس (D-02/OD-MONEY — MoneyMinor = number كما هو؛ W5 مغلقة بمحفزاتها)
+application-ambient-time: PASS — 178 ملف إنتاج تطبيقي؛ 25 منطقة ID-fallback معتمدة فيها 25 نداء Date.now() معفى؛ 3 تحليلًا صريحًا (مسموح)؛ منفذ الساعة الموثق 1 موقعًا؛ صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 25 موقعًا: 21 شكل-أ + 4 شكل-ب — تصحيح مؤرخ 2026-11-22 DOC-041/WS-251)
+diagnostics-storage: PASS — 439 ملف إنتاج زُرع؛ صفر وصول غير مسجل لمفاتيح تخزين المتصفح؛ الموضع المسجل الوحيد بالضبط: مهايئ التشخيص (apps/prototype-web/client/src/storage/diagnostics/browserDiagnosticStorage.ts — R11-W1A-NF-001)؛ الاستثناء التراثي للمسودات أُزيل بتقاعد ARCH-012 (2026-10-15)؛ والمهايئ نظيف من منفذ التخزين المالية/المحلية (فصل الحدود سارٍ)
+label-vocabulary: PASS — 45 تسمية دومين كنونية؛ 439 ملف إنتاج زُرع؛ 39 مدخلًا مثبتًا مصنفًا يغطي 45 موضعًا حيًّا (owner-gated/variant — راتشة OD-LABEL: التكرار الجديد يُرفض حتى يصنف)؛ مستهلك طبقة التطبيق الوحيد المحايد (agreementPresentation) يستهلك fieldLabelAr من الدومين
+a11y-dialog-surfaces: PASS — 439 ملف إنتاج زُرع؛ 10 سطحًا حواريًا مصنفًا (9 ملفًا يحمل تصريح حوار حيًا)؛ أي سطح حوار جديد يُرفض حتى يصنف في نفس الـPR (W4-0/OD-A11Y)؛ فخ التركيز قانوني للـTRUE_MODAL وحده
+manage-literal-text: PASS — 3 ملف سطح مانج مفحوصًا؛ 0 حرفية عربية (المسموح: الكتالوج strings/ar.ts وحده — موجود ومستثنى؛ M1.8/§10-§11/§14.2/D-7)
+deleted-imports: PASS — 22 صفًا في الجرد (21 planned / 1 deleted)؛ 3171 استيرادًا مفحوصًا في 567 ملف إنتاج؛ صفر استيراد لمسار محذوف وصفر إحياء (M1.9/D-10)
+```
+
+`corepack pnpm test` → **exit 0 — 89 ملفًا / 1139 اختبارًا: كلها ناجحة، صفر فشل**:
+
+```
+ Test Files  89 passed (89)
+      Tests  1139 passed (1139)
+      Duration  80.23s
+```
+
+`corepack pnpm typecheck` → **exit 0 نظيف** (لا خرج بعد سطر tsc --noEmit).
