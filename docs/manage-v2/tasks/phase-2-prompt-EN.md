@@ -27,7 +27,10 @@
 - Tests first in every task: write the failing test, paste the failure, implement, run again.
 - Execution is not acceptance; record evidence for every task, but do not wait for Manus/owner acceptance between tasks. The owner reviews the consolidated final report after the phase.
 - Resume: re-read the live branch, commits, worktree, reports, and `TRACKER.md`; continue from the first task whose tracker entry is not `DONE`/`ACCEPTED`; never reset, clean, or reclone over work. If the tracker and tree disagree, report `STATE_DRIFT` and stop.
-- No sub-agents, no parallel edits, no branch or PR per task; the main ZAI agent performs implementation, tests, review, and self-correction sequentially.
+- Sub-agents are optional, not mandatory. The main ZAI agent may use up to five sub-agents only when this gives a clear benefit. The main agent remains the sole accountable integrator and must independently verify every result, run the required tests, resolve conflicts, update the Tracker, create the final task commit, and push.
+- Every sub-agent must receive one bounded role, explicit input/paths, an explicit permission level (`READ_ONLY`, `TEST_ONLY`, or `BOUNDED_WRITE`), acceptance criteria, and a useful time/failure condition. A sub-agent report is never acceptance evidence by itself.
+- Parallel sub-agents are allowed only for independent, non-overlapping analysis or isolated scopes. Work involving shared files, migrations, ledger/operation contracts, the operation handler, route registration, Tracker, reports, or integration must remain sequential. No two agents may write the same file.
+- If a sub-agent hangs, fails, exceeds its useful time, returns no actionable evidence, violates scope, proposes weakening a guard/test, or conflicts with the specification, abandon or replace it and continue with the main agent. Never wait indefinitely and never let a sub-agent block the phase.
 - Every path outside the current task's allowed list is read-only.
 - Do not stop for routine ambiguity or a fixable test/guard failure. Use the binding specification, recorded owner decisions, the most conservative compatible interpretation, and the smallest reversible change; record every assumption in the task report and tracker. Continue without asking routine questions.
 - Stop only for a true blocker: unexplained `STATE_DRIFT`; missing credentials/access; an irreversible/protected action not authorized here; a fundamental specification contradiction affecting financial correctness, data integrity, or security; or a mandatory gate that remains red after reasonable self-correction within the allowed files. Report `BLOCKED` with the exact issue and the attempted fixes.
@@ -318,8 +321,8 @@ The goal is to reduce redundant runtime, not evidence. Never skip a required tas
 
 
 ### 10. Autonomous Self-Correction & Verification (MANDATORY)
-As the sole execution agent, you are responsible for end-to-end delivery and verification. 
-- **No sub-agents:** Do not spawn external sub-agents for testing or reviewing; handle everything sequentially in this main agent to prevent hangs.
+As the main execution agent, you remain responsible for end-to-end delivery and verification, whether or not you use optional sub-agents.
+- **Main-agent accountability:** Sub-agents may assist with bounded analysis, testing, review, or isolated implementation, but only the main agent integrates their work and confirms the final behavior. Re-run or independently inspect every relevant check yourself.
 - **Self-Fix Loop:** If `pnpm test`, `typecheck`, or `pnpm guards` fails, DO NOT stop and report the failure. Read the error, identify the root cause, and fix it yourself. Repeat the verification loop until the wave gate is 100% green. 
 - **Baseline/Registry Hygiene:** If your valid code triggers a hygienic guard (e.g., `registry-coverage`, `door-surfaces`, `readwrite`, `label-vocabulary`, `test-map`), you are explicitly authorized to update the corresponding registry file, baseline JSON, or whitelist in the same commit to make the guard pass. You do not need to ask permission to fix a guard that your own changes broke.
 - **Zero-Defect Delivery:** Never deliver a red state. Only report `BLOCKED` if there is a fundamental spec contradiction or an architectural conflict that cannot be solved via code or baseline updates.
