@@ -228,12 +228,462 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ## M1.9a — Wave C Fix-up (Guard Re-anchoring)
 **Why:** Wave C correctly implemented the features, but new directories and files triggered four hygienic guards that require updates in files outside Wave C's allowed list. This task authorizes exactly those four updates.
+**Do (exactly six things):**
+1. **Registry (`docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`):** Add the missing domain area row (`domain/manage`) to §1 and the missing application home row (`application/manage`) to §3, both noting "M1.7/M1.8", then update the row counters. Run `node scripts/generate-test-map.mjs` to sync the map.
+2. **Door Surfaces (`scripts/application-door-surfaces-baseline.json`):** Add `"manage/strings"` to the `doors` baseline with values `["MANAGE_STRINGS_AR", "MANAGE_STRING_KEYS", "t", "translate"]` and type `["ManageStringKey", "TextCatalog"]`. Update the test (`scripts/check-application-door-surfaces.test.mjs`) length check from 34 to 35.
+3. **Read/Write (`scripts/check-application-readwrite.mjs`):** Add `"manage/strings/ar.ts"`, `"manage/strings/index.ts"`, and `"manage/strings/keys.ts"` to `READ_LIKE_CORPUS_BASELINE`. Update the test (`scripts/check-application-readwrite.test.mjs`) lengths from 80 to 83.
+4. **Label Vocabulary (`scripts/check-label-vocabulary.mjs`):** Add the 5 predicted UI string conflicts (`"الكمية"`, `"اسم العميل"`, `"المبلغ"`, `"اسم المورد"`, `"الاسم"`) to the baseline bypass list (`DUPLICATE_LITERAL_EXEMPTIONS`).
+5. **Diagnostics Storage Count Pin (`scripts/check-diagnostics-storage.test.mjs`):** Update the pinned count from `436` to `439` with an explanation comment noting M1.7-M1.9.
+6. **File Size Ratchet (`scripts/file-size-ratchet-ledger.json`):** Add ledger entries to authorize the growth of files modified by the fixes above (e.g., `application-door-surfaces-baseline.json` and `check-application-readwrite.mjs`). Use standard ledger format to clear the ratchet conflict.
+**Allowed files:**
+- `src/domain/costing/**` (new)
+- `src/domain/craft-order/types.ts`, `src/domain/craft-order/policies.ts`, `src/domain/craft-order/index.ts` (imports/re-exports only)
+- `src/domain/planning/policies.ts` (import from `../costing/index.js`)
+- `tests/**` new/extended tests for the moved module
+
+**Tests first:**
+1. New test proving `src/domain/planning` has no `craft-order` import (source-scan assertion).
+2. New test importing `calculateCostSnapshot` from `src/domain/costing/index.js` and asserting one known snapshot (values copied from an existing green test).
+3. Existing cost-snapshot and planning tests stay green without edits.
+
+**Acceptance:** `grep -R "craft-order" src/domain/planning` returns nothing; `pnpm test` green for `src/domain/**` and `tests/**`; `pnpm typecheck` green; no duplicated function bodies.
+
+**Stop if:** a moved helper is used by non-cost craft-order logic in a way that would create a cycle, or a test outside the allowed set must change.
+
+---
+
+## M1.2 — Cut the estimate → order cost link
+
+**Why:** an estimate made in Tools must not feed an order's cost (S2, §14.3).
+
+**Rules:** §14.3, IMPACT S2.
+
+**Do:**
+- Delete `readSourceEstimate` from `client/src/application/agreements/orderDetailViewModel.ts` (and its now-unused imports/params).
+- Remove the corresponding state, effect, import and the «بدأ هذا الطلب من تقديرك…» block from `client/src/pages/OrderDetail.tsx` (around lines 57, 122–123, 259–265, 1831–1845).
+- Keep `sourceEstimateId` on the draft type (`application/drafts/draftService.ts`, `storage/local/types.ts`) untouched — it is used by other surfaces and by the future deletion of transfers.
+- Do **not** touch `pages/CostEditor.tsx` prefill logic (that is Tools' own editor, not the order cost).
+
+**Allowed files:** `client/src/application/agreements/orderDetailViewModel.ts`, `client/src/pages/OrderDetail.tsx`, plus tests that assert the removed behaviour (list them in the report).
+
+**Tests first:** a test asserting the order detail model exposes no source-estimate reader and the page renders without any estimate lookup; run it failing first.
+
+**Acceptance:** `grep -R "readSourceEstimate" client/src` returns nothing; order detail tests green; no other surface changed.
+
+**Stop if:** another production file imports `readSourceEstimate`, or the removal forces edits outside the allowed set.
+
+---
+
+## M1.3 — Remove the financial draft from Ask Micro (approved separation S3)
+
+**Why:** `client/src/components/ask/AskDraftCard.tsx:150` builds a legacy financial event and writes it to `financialEvents`. The owner approved removing only this financial path until it is redesigned on the new system.
+
+**Rules:** scope boundary, IMPACT S3. **This is the only task allowed to touch Ask files.**
+
+**Do:**
+- Remove the `AskDraftCard` render and import from `client/src/pages/AskMicro.tsx`.
+- Delete `client/src/components/ask/AskDraftCard.tsx`.
+- Do not change the Ask conversation, `application/ask/**`, `askMicroService`, or `ask-history`.
+- If `result.draft` becomes unused in the page, keep the service contract untouched and remove only the page's unused variable.
+
+**Allowed files:** `client/src/pages/AskMicro.tsx`, `client/src/components/ask/AskDraftCard.tsx` (delete), tests referencing the card.
+
+**Tests first:** a test asserting `AskMicro` renders no financial-draft affordance and that no module writes the `financialEvents` family from Ask; run failing first.
+
+**Acceptance:** `grep -R "AskDraftCard\|constructFinancialEventRecord" client/src/pages/AskMicro.tsx client/src/components/ask` returns nothing; Ask page tests green; `application/ask/**` unchanged (`git diff --stat` proves it).
+
+**Stop if:** the Ask page cannot compile without touching `application/ask/**`.
+
+---
+
+## M1.6 — Module boundaries for Manage v2
+
+**Why:** enforce the approved direction before any Manage code exists: `worker/api/manage → worker/application/manage → src/domain/manage`; the client never imports the domain; Delivery/Market/Tools never import Manage.
+
+**Rules:** §14.1–14.3, owner decision D-5.
+
+**Do:**
+- Extend `scripts/check-module-boundaries.mjs` with explicit rules for the Manage paths (they may not exist yet; the rules must be ready and must not weaken existing checks).
+- Add a rule: no file under `apps/prototype-web/client/src/**` may import `src/domain/manage/**` or `worker/application/manage/**`.
+- Add a rule: `src/domain/manage/**` may import only `src/domain/shared/**` and its own subtree.
+- Add a self-test fixture proving each rule fails when violated.
+
+**Allowed files:** `scripts/check-module-boundaries.mjs`, its tests/fixtures, `docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md` (only if the guard requires a registry entry).
+
+**Acceptance:** `pnpm guards` green; a deliberately violating fixture makes the guard fail (prove it, then remove the fixture).
+
+**Stop if:** the guard cannot express a rule without changing existing behaviour.
+
+---
+
+## M1.7 — Money in fils (domain module)
+
+**Why:** Manage money is fils = 1/1000 JOD, integer 64-bit, `round_half_up` once per multiply/divide. Shared money functions must not change.
+
+**Rules:** §9 (R-20…R-22), IMPACT §4, owner decision D-4.
+
+**Do:**
+- Create `src/domain/manage/money/` with: `MoneyFils` type (integer, non-negative where applicable), `FILS_PER_JOD = 1000`, `filsFromJodText` (strict parser, max 3 decimals, rejects > 3 decimals and non-numeric), `jodTextFromFils` (3 decimals, grouping, `.` decimal), `addFils`, `subFils`, `mulFilsByQuantityMilli`, `divFils`, each applying `roundHalfUp` exactly once and throwing on unsafe integers.
+- No dependency on `formatMoneyMinor` or on any `*Minor` naming.
+- Add `src/domain/manage/index.ts` exporting the public surface.
+
+**Allowed files:** `src/domain/manage/**`, `tests/manage/**` (new).
+
+**Tests first:** table-driven tests for parsing (`"12.350"` → 12350, `"12.35"` → 12350, `"12.3456"` rejected, `"1,250.000"` handling as specified), formatting (`12350` → `"12.350"`), rounding half-up at `.5`, overflow rejection, and quantity multiplication (milli × fils).
+
+**Acceptance:** tests green; `pnpm typecheck` green; no float arithmetic; `grep` shows no `/100` or `*100` in the module.
+
+**Stop if:** the spec is ambiguous about a formatting or rounding case (report the exact case).
+
+---
+
+## M1.8 — Manage strings catalog + literal-text guard
+
+**Why:** UI strings come from one catalog keyed by §10/§11; no literal Arabic on new Manage surfaces.
+
+**Rules:** §10, §11, §14.2, owner decision D-7.
+
+**Do:**
+- Create `client/src/application/manage/strings/` with `keys.ts` (key union), `ar.ts` (verbatim Arabic values copied from §10/§11 — **copy, never invent or paraphrase**), `index.ts` (`t(key)` lookup, throws on missing key).
+- Create `scripts/check-manage-literal-text.mjs`: fails on Arabic literals inside `client/src/pages/manage/**`, `client/src/components/manage/**`, `client/src/application/manage/**` (excluding `strings/ar.ts`).
+- Register the guard in `package.json` `guards`.
+
+**Allowed files:** `client/src/application/manage/**`, `scripts/check-manage-literal-text.mjs`, `package.json` (guards script only).
+
+**Tests first:** a test comparing catalog keys against the key list in the spec (parse §10/§11 pragmatically; if parsing is ambiguous, stop and report the ambiguous lines instead of guessing), plus a test that the guard fails on a fixture with literal Arabic.
+
+**Acceptance:** keys unique, every value non-empty, every value matches the spec verbatim, guard green on the current tree.
+
+**Stop if:** the spec contains a key without text or text without key (report both lists).
+
+---
+
+## M1.9 — Deletion manifest + deleted-import guard
+
+**Why:** no dead code may return silently; every deletion is declared before it happens.
+
+**Rules:** owner decision D-10.
+
+**Do:**
+- Create `docs/manage-v2/DELETION-MANIFEST.md`: one row per path planned for deletion (from `IMPACT.md` §1/§13), columns: path, reason, replacement, status (`planned` / `deleted`), phase.
+- Create `scripts/check-deleted-imports.mjs`: reads the manifest, and for every row marked `deleted`, fails if any file imports that path (relative or alias).
+- Register in `package.json` `guards`; add a fixture test proving it fails.
+
+**Allowed files:** `docs/manage-v2/DELETION-MANIFEST.md`, `scripts/check-deleted-imports.mjs`, its test/fixtures, `package.json` (guards script only).
+
+**Acceptance:** guard green (nothing deleted yet), fixture fails, manifest covers every path in IMPACT §1.
+
+---
+
+
+## M1.9a — Wave C Fix-up (Guard Re-anchoring)
+**Why:** Wave C correctly implemented the features, but new directories and files triggered four hygienic guards that require updates in files outside Wave C's allowed list. This task authorizes exactly those four updates.
+**Do (exactly six things):**
+1. **Registry (`docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`):** Add the missing domain area row (`domain/manage`) to §1 and the missing application home row (`application/manage`) to §3, both noting "M1.7/M1.8", then update the row counters. Run `node scripts/generate-test-map.mjs` to sync the map.
+2. **Door Surfaces (`scripts/application-door-surfaces-baseline.json`):** Add `"manage/strings"` to the `doors` baseline with values `["MANAGE_STRINGS_AR", "MANAGE_STRING_KEYS", "t", "translate"]` and type `["ManageStringKey", "TextCatalog"]`. Update the test (`scripts/check-application-door-surfaces.test.mjs`) length check from 34 to 35.
+3. **Read/Write (`scripts/check-application-readwrite.mjs`):** Add `"manage/strings/ar.ts"`, `"manage/strings/index.ts"`, and `"manage/strings/keys.ts"` to `READ_LIKE_CORPUS_BASELINE`. Update the test (`scripts/check-application-readwrite.test.mjs`) lengths from 80 to 83.
+4. **Label Vocabulary (`scripts/check-label-vocabulary.mjs`):** Add the 5 predicted UI string conflicts (`"الكمية"`, `"اسم العميل"`, `"المبلغ"`, `"اسم المورد"`, `"الاسم"`) to the baseline bypass list (`DUPLICATE_LITERAL_EXEMPTIONS`).
+5. **Diagnostics Storage Count Pin (`scripts/check-diagnostics-storage.test.mjs`):** Update the pinned count from `436` to `439` with an explanation comment noting M1.7-M1.9.
+6. **File Size Ratchet (`scripts/file-size-ratchet-ledger.json`):** Add ledger entries to authorize the growth of files modified by the fixes above (e.g., `application-door-surfaces-baseline.json` and `check-application-readwrite.mjs`). Use standard ledger format to clear the ratchet conflict.
+**Allowed files:**
+- `src/domain/costing/**` (new)
+- `src/domain/craft-order/types.ts`, `src/domain/craft-order/policies.ts`, `src/domain/craft-order/index.ts` (imports/re-exports only)
+- `src/domain/planning/policies.ts` (import from `../costing/index.js`)
+- `tests/**` new/extended tests for the moved module
+
+**Tests first:**
+1. New test proving `src/domain/planning` has no `craft-order` import (source-scan assertion).
+2. New test importing `calculateCostSnapshot` from `src/domain/costing/index.js` and asserting one known snapshot (values copied from an existing green test).
+3. Existing cost-snapshot and planning tests stay green without edits.
+
+**Acceptance:** `grep -R "craft-order" src/domain/planning` returns nothing; `pnpm test` green for `src/domain/**` and `tests/**`; `pnpm typecheck` green; no duplicated function bodies.
+
+**Stop if:** a moved helper is used by non-cost craft-order logic in a way that would create a cycle, or a test outside the allowed set must change.
+
+---
+
+## M1.2 — Cut the estimate → order cost link
+
+**Why:** an estimate made in Tools must not feed an order's cost (S2, §14.3).
+
+**Rules:** §14.3, IMPACT S2.
+
+**Do:**
+- Delete `readSourceEstimate` from `client/src/application/agreements/orderDetailViewModel.ts` (and its now-unused imports/params).
+- Remove the corresponding state, effect, import and the «بدأ هذا الطلب من تقديرك…» block from `client/src/pages/OrderDetail.tsx` (around lines 57, 122–123, 259–265, 1831–1845).
+- Keep `sourceEstimateId` on the draft type (`application/drafts/draftService.ts`, `storage/local/types.ts`) untouched — it is used by other surfaces and by the future deletion of transfers.
+- Do **not** touch `pages/CostEditor.tsx` prefill logic (that is Tools' own editor, not the order cost).
+
+**Allowed files:** `client/src/application/agreements/orderDetailViewModel.ts`, `client/src/pages/OrderDetail.tsx`, plus tests that assert the removed behaviour (list them in the report).
+
+**Tests first:** a test asserting the order detail model exposes no source-estimate reader and the page renders without any estimate lookup; run it failing first.
+
+**Acceptance:** `grep -R "readSourceEstimate" client/src` returns nothing; order detail tests green; no other surface changed.
+
+**Stop if:** another production file imports `readSourceEstimate`, or the removal forces edits outside the allowed set.
+
+---
+
+## M1.3 — Remove the financial draft from Ask Micro (approved separation S3)
+
+**Why:** `client/src/components/ask/AskDraftCard.tsx:150` builds a legacy financial event and writes it to `financialEvents`. The owner approved removing only this financial path until it is redesigned on the new system.
+
+**Rules:** scope boundary, IMPACT S3. **This is the only task allowed to touch Ask files.**
+
+**Do:**
+- Remove the `AskDraftCard` render and import from `client/src/pages/AskMicro.tsx`.
+- Delete `client/src/components/ask/AskDraftCard.tsx`.
+- Do not change the Ask conversation, `application/ask/**`, `askMicroService`, or `ask-history`.
+- If `result.draft` becomes unused in the page, keep the service contract untouched and remove only the page's unused variable.
+
+**Allowed files:** `client/src/pages/AskMicro.tsx`, `client/src/components/ask/AskDraftCard.tsx` (delete), tests referencing the card.
+
+**Tests first:** a test asserting `AskMicro` renders no financial-draft affordance and that no module writes the `financialEvents` family from Ask; run failing first.
+
+**Acceptance:** `grep -R "AskDraftCard\|constructFinancialEventRecord" client/src/pages/AskMicro.tsx client/src/components/ask` returns nothing; Ask page tests green; `application/ask/**` unchanged (`git diff --stat` proves it).
+
+**Stop if:** the Ask page cannot compile without touching `application/ask/**`.
+
+---
+
+## M1.6 — Module boundaries for Manage v2
+
+**Why:** enforce the approved direction before any Manage code exists: `worker/api/manage → worker/application/manage → src/domain/manage`; the client never imports the domain; Delivery/Market/Tools never import Manage.
+
+**Rules:** §14.1–14.3, owner decision D-5.
+
+**Do:**
+- Extend `scripts/check-module-boundaries.mjs` with explicit rules for the Manage paths (they may not exist yet; the rules must be ready and must not weaken existing checks).
+- Add a rule: no file under `apps/prototype-web/client/src/**` may import `src/domain/manage/**` or `worker/application/manage/**`.
+- Add a rule: `src/domain/manage/**` may import only `src/domain/shared/**` and its own subtree.
+- Add a self-test fixture proving each rule fails when violated.
+
+**Allowed files:** `scripts/check-module-boundaries.mjs`, its tests/fixtures, `docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md` (only if the guard requires a registry entry).
+
+**Acceptance:** `pnpm guards` green; a deliberately violating fixture makes the guard fail (prove it, then remove the fixture).
+
+**Stop if:** the guard cannot express a rule without changing existing behaviour.
+
+---
+
+## M1.7 — Money in fils (domain module)
+
+**Why:** Manage money is fils = 1/1000 JOD, integer 64-bit, `round_half_up` once per multiply/divide. Shared money functions must not change.
+
+**Rules:** §9 (R-20…R-22), IMPACT §4, owner decision D-4.
+
+**Do:**
+- Create `src/domain/manage/money/` with: `MoneyFils` type (integer, non-negative where applicable), `FILS_PER_JOD = 1000`, `filsFromJodText` (strict parser, max 3 decimals, rejects > 3 decimals and non-numeric), `jodTextFromFils` (3 decimals, grouping, `.` decimal), `addFils`, `subFils`, `mulFilsByQuantityMilli`, `divFils`, each applying `roundHalfUp` exactly once and throwing on unsafe integers.
+- No dependency on `formatMoneyMinor` or on any `*Minor` naming.
+- Add `src/domain/manage/index.ts` exporting the public surface.
+
+**Allowed files:** `src/domain/manage/**`, `tests/manage/**` (new).
+
+**Tests first:** table-driven tests for parsing (`"12.350"` → 12350, `"12.35"` → 12350, `"12.3456"` rejected, `"1,250.000"` handling as specified), formatting (`12350` → `"12.350"`), rounding half-up at `.5`, overflow rejection, and quantity multiplication (milli × fils).
+
+**Acceptance:** tests green; `pnpm typecheck` green; no float arithmetic; `grep` shows no `/100` or `*100` in the module.
+
+**Stop if:** the spec is ambiguous about a formatting or rounding case (report the exact case).
+
+---
+
+## M1.8 — Manage strings catalog + literal-text guard
+
+**Why:** UI strings come from one catalog keyed by §10/§11; no literal Arabic on new Manage surfaces.
+
+**Rules:** §10, §11, §14.2, owner decision D-7.
+
+**Do:**
+- Create `client/src/application/manage/strings/` with `keys.ts` (key union), `ar.ts` (verbatim Arabic values copied from §10/§11 — **copy, never invent or paraphrase**), `index.ts` (`t(key)` lookup, throws on missing key).
+- Create `scripts/check-manage-literal-text.mjs`: fails on Arabic literals inside `client/src/pages/manage/**`, `client/src/components/manage/**`, `client/src/application/manage/**` (excluding `strings/ar.ts`).
+- Register the guard in `package.json` `guards`.
+
+**Allowed files:** `client/src/application/manage/**`, `scripts/check-manage-literal-text.mjs`, `package.json` (guards script only).
+
+**Tests first:** a test comparing catalog keys against the key list in the spec (parse §10/§11 pragmatically; if parsing is ambiguous, stop and report the ambiguous lines instead of guessing), plus a test that the guard fails on a fixture with literal Arabic.
+
+**Acceptance:** keys unique, every value non-empty, every value matches the spec verbatim, guard green on the current tree.
+
+**Stop if:** the spec contains a key without text or text without key (report both lists).
+
+---
+
+## M1.9 — Deletion manifest + deleted-import guard
+
+**Why:** no dead code may return silently; every deletion is declared before it happens.
+
+**Rules:** owner decision D-10.
+
+**Do:**
+- Create `docs/manage-v2/DELETION-MANIFEST.md`: one row per path planned for deletion (from `IMPACT.md` §1/§13), columns: path, reason, replacement, status (`planned` / `deleted`), phase.
+- Create `scripts/check-deleted-imports.mjs`: reads the manifest, and for every row marked `deleted`, fails if any file imports that path (relative or alias).
+- Register in `package.json` `guards`; add a fixture test proving it fails.
+
+**Allowed files:** `docs/manage-v2/DELETION-MANIFEST.md`, `scripts/check-deleted-imports.mjs`, its test/fixtures, `package.json` (guards script only).
+
+**Acceptance:** guard green (nothing deleted yet), fixture fails, manifest covers every path in IMPACT §1.
+
+---
+
+
+## M1.9a — Wave C Fix-up (Guard Re-anchoring)
+**Why:** Wave C correctly implemented the features, but new directories and files triggered four hygienic guards that require updates in files outside Wave C's allowed list. This task authorizes exactly those four updates.
+**Do (exactly six things):**
+1. **Registry (`docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`):** Add the missing domain area row (`domain/manage`) to §1 and the missing application home row (`application/manage`) to §3, both noting "M1.7/M1.8", then update the row counters. Run `node scripts/generate-test-map.mjs` to sync the map.
+2. **Door Surfaces (`scripts/application-door-surfaces-baseline.json`):** Add `"manage/strings"` to the `doors` baseline with values `["MANAGE_STRINGS_AR", "MANAGE_STRING_KEYS", "t", "translate"]` and type `["ManageStringKey", "TextCatalog"]`. Update the test (`scripts/check-application-door-surfaces.test.mjs`) length check from 34 to 35.
+3. **Read/Write (`scripts/check-application-readwrite.mjs`):** Add `"manage/strings/ar.ts"`, `"manage/strings/index.ts"`, and `"manage/strings/keys.ts"` to `READ_LIKE_CORPUS_BASELINE`. Update the test (`scripts/check-application-readwrite.test.mjs`) lengths from 80 to 83.
+4. **Label Vocabulary (`scripts/check-label-vocabulary.mjs`):** Add the 5 predicted UI string conflicts (`"الكمية"`, `"اسم العميل"`, `"المبلغ"`, `"اسم المورد"`, `"الاسم"`) to the baseline bypass list (`DUPLICATE_LITERAL_EXEMPTIONS`).
+5. **Diagnostics Storage Count Pin (`scripts/check-diagnostics-storage.test.mjs`):** Update the pinned count from `436` to `439` with an explanation comment noting M1.7-M1.9.
+6. **File Size Ratchet (`scripts/file-size-ratchet-ledger.json`):** Add ledger entries to authorize the growth of files modified by the fixes above (e.g., `application-door-surfaces-baseline.json` and `check-application-readwrite.mjs`). Use standard ledger format to clear the ratchet conflict.
+**Allowed files:**
+- `src/domain/costing/**` (new)
+- `src/domain/craft-order/types.ts`, `src/domain/craft-order/policies.ts`, `src/domain/craft-order/index.ts` (imports/re-exports only)
+- `src/domain/planning/policies.ts` (import from `../costing/index.js`)
+- `tests/**` new/extended tests for the moved module
+
+**Tests first:**
+1. New test proving `src/domain/planning` has no `craft-order` import (source-scan assertion).
+2. New test importing `calculateCostSnapshot` from `src/domain/costing/index.js` and asserting one known snapshot (values copied from an existing green test).
+3. Existing cost-snapshot and planning tests stay green without edits.
+
+**Acceptance:** `grep -R "craft-order" src/domain/planning` returns nothing; `pnpm test` green for `src/domain/**` and `tests/**`; `pnpm typecheck` green; no duplicated function bodies.
+
+**Stop if:** a moved helper is used by non-cost craft-order logic in a way that would create a cycle, or a test outside the allowed set must change.
+
+---
+
+## M1.2 — Cut the estimate → order cost link
+
+**Why:** an estimate made in Tools must not feed an order's cost (S2, §14.3).
+
+**Rules:** §14.3, IMPACT S2.
+
+**Do:**
+- Delete `readSourceEstimate` from `client/src/application/agreements/orderDetailViewModel.ts` (and its now-unused imports/params).
+- Remove the corresponding state, effect, import and the «بدأ هذا الطلب من تقديرك…» block from `client/src/pages/OrderDetail.tsx` (around lines 57, 122–123, 259–265, 1831–1845).
+- Keep `sourceEstimateId` on the draft type (`application/drafts/draftService.ts`, `storage/local/types.ts`) untouched — it is used by other surfaces and by the future deletion of transfers.
+- Do **not** touch `pages/CostEditor.tsx` prefill logic (that is Tools' own editor, not the order cost).
+
+**Allowed files:** `client/src/application/agreements/orderDetailViewModel.ts`, `client/src/pages/OrderDetail.tsx`, plus tests that assert the removed behaviour (list them in the report).
+
+**Tests first:** a test asserting the order detail model exposes no source-estimate reader and the page renders without any estimate lookup; run it failing first.
+
+**Acceptance:** `grep -R "readSourceEstimate" client/src` returns nothing; order detail tests green; no other surface changed.
+
+**Stop if:** another production file imports `readSourceEstimate`, or the removal forces edits outside the allowed set.
+
+---
+
+## M1.3 — Remove the financial draft from Ask Micro (approved separation S3)
+
+**Why:** `client/src/components/ask/AskDraftCard.tsx:150` builds a legacy financial event and writes it to `financialEvents`. The owner approved removing only this financial path until it is redesigned on the new system.
+
+**Rules:** scope boundary, IMPACT S3. **This is the only task allowed to touch Ask files.**
+
+**Do:**
+- Remove the `AskDraftCard` render and import from `client/src/pages/AskMicro.tsx`.
+- Delete `client/src/components/ask/AskDraftCard.tsx`.
+- Do not change the Ask conversation, `application/ask/**`, `askMicroService`, or `ask-history`.
+- If `result.draft` becomes unused in the page, keep the service contract untouched and remove only the page's unused variable.
+
+**Allowed files:** `client/src/pages/AskMicro.tsx`, `client/src/components/ask/AskDraftCard.tsx` (delete), tests referencing the card.
+
+**Tests first:** a test asserting `AskMicro` renders no financial-draft affordance and that no module writes the `financialEvents` family from Ask; run failing first.
+
+**Acceptance:** `grep -R "AskDraftCard\|constructFinancialEventRecord" client/src/pages/AskMicro.tsx client/src/components/ask` returns nothing; Ask page tests green; `application/ask/**` unchanged (`git diff --stat` proves it).
+
+**Stop if:** the Ask page cannot compile without touching `application/ask/**`.
+
+---
+
+## M1.6 — Module boundaries for Manage v2
+
+**Why:** enforce the approved direction before any Manage code exists: `worker/api/manage → worker/application/manage → src/domain/manage`; the client never imports the domain; Delivery/Market/Tools never import Manage.
+
+**Rules:** §14.1–14.3, owner decision D-5.
+
+**Do:**
+- Extend `scripts/check-module-boundaries.mjs` with explicit rules for the Manage paths (they may not exist yet; the rules must be ready and must not weaken existing checks).
+- Add a rule: no file under `apps/prototype-web/client/src/**` may import `src/domain/manage/**` or `worker/application/manage/**`.
+- Add a rule: `src/domain/manage/**` may import only `src/domain/shared/**` and its own subtree.
+- Add a self-test fixture proving each rule fails when violated.
+
+**Allowed files:** `scripts/check-module-boundaries.mjs`, its tests/fixtures, `docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md` (only if the guard requires a registry entry).
+
+**Acceptance:** `pnpm guards` green; a deliberately violating fixture makes the guard fail (prove it, then remove the fixture).
+
+**Stop if:** the guard cannot express a rule without changing existing behaviour.
+
+---
+
+## M1.7 — Money in fils (domain module)
+
+**Why:** Manage money is fils = 1/1000 JOD, integer 64-bit, `round_half_up` once per multiply/divide. Shared money functions must not change.
+
+**Rules:** §9 (R-20…R-22), IMPACT §4, owner decision D-4.
+
+**Do:**
+- Create `src/domain/manage/money/` with: `MoneyFils` type (integer, non-negative where applicable), `FILS_PER_JOD = 1000`, `filsFromJodText` (strict parser, max 3 decimals, rejects > 3 decimals and non-numeric), `jodTextFromFils` (3 decimals, grouping, `.` decimal), `addFils`, `subFils`, `mulFilsByQuantityMilli`, `divFils`, each applying `roundHalfUp` exactly once and throwing on unsafe integers.
+- No dependency on `formatMoneyMinor` or on any `*Minor` naming.
+- Add `src/domain/manage/index.ts` exporting the public surface.
+
+**Allowed files:** `src/domain/manage/**`, `tests/manage/**` (new).
+
+**Tests first:** table-driven tests for parsing (`"12.350"` → 12350, `"12.35"` → 12350, `"12.3456"` rejected, `"1,250.000"` handling as specified), formatting (`12350` → `"12.350"`), rounding half-up at `.5`, overflow rejection, and quantity multiplication (milli × fils).
+
+**Acceptance:** tests green; `pnpm typecheck` green; no float arithmetic; `grep` shows no `/100` or `*100` in the module.
+
+**Stop if:** the spec is ambiguous about a formatting or rounding case (report the exact case).
+
+---
+
+## M1.8 — Manage strings catalog + literal-text guard
+
+**Why:** UI strings come from one catalog keyed by §10/§11; no literal Arabic on new Manage surfaces.
+
+**Rules:** §10, §11, §14.2, owner decision D-7.
+
+**Do:**
+- Create `client/src/application/manage/strings/` with `keys.ts` (key union), `ar.ts` (verbatim Arabic values copied from §10/§11 — **copy, never invent or paraphrase**), `index.ts` (`t(key)` lookup, throws on missing key).
+- Create `scripts/check-manage-literal-text.mjs`: fails on Arabic literals inside `client/src/pages/manage/**`, `client/src/components/manage/**`, `client/src/application/manage/**` (excluding `strings/ar.ts`).
+- Register the guard in `package.json` `guards`.
+
+**Allowed files:** `client/src/application/manage/**`, `scripts/check-manage-literal-text.mjs`, `package.json` (guards script only).
+
+**Tests first:** a test comparing catalog keys against the key list in the spec (parse §10/§11 pragmatically; if parsing is ambiguous, stop and report the ambiguous lines instead of guessing), plus a test that the guard fails on a fixture with literal Arabic.
+
+**Acceptance:** keys unique, every value non-empty, every value matches the spec verbatim, guard green on the current tree.
+
+**Stop if:** the spec contains a key without text or text without key (report both lists).
+
+---
+
+## M1.9 — Deletion manifest + deleted-import guard
+
+**Why:** no dead code may return silently; every deletion is declared before it happens.
+
+**Rules:** owner decision D-10.
+
+**Do:**
+- Create `docs/manage-v2/DELETION-MANIFEST.md`: one row per path planned for deletion (from `IMPACT.md` §1/§13), columns: path, reason, replacement, status (`planned` / `deleted`), phase.
+- Create `scripts/check-deleted-imports.mjs`: reads the manifest, and for every row marked `deleted`, fails if any file imports that path (relative or alias).
+- Register in `package.json` `guards`; add a fixture test proving it fails.
+
+**Allowed files:** `docs/manage-v2/DELETION-MANIFEST.md`, `scripts/check-deleted-imports.mjs`, its test/fixtures, `package.json` (guards script only).
+
+**Acceptance:** guard green (nothing deleted yet), fixture fails, manifest covers every path in IMPACT §1.
+
+---
+
+
+## M1.9a — Wave C Fix-up (Guard Re-anchoring)
+**Why:** Wave C correctly implemented the features, but new directories and files triggered four hygienic guards that require updates in files outside Wave C's allowed list. This task authorizes exactly those four updates.
 **Do (exactly four things):**
 1. **Registry (`docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`):** Add the missing domain area row (`domain/manage`) to §1 and the missing application home row (`application/manage`) to §3, both noting "M1.7/M1.8", then update the row counters. Run `node scripts/generate-test-map.mjs` to sync the map.
 2. **Door Surfaces (`scripts/application-door-surfaces-baseline.json`):** Add `"manage/strings"` to the `doors` baseline with values `["MANAGE_STRINGS_AR", "MANAGE_STRING_KEYS", "t", "translate"]` and type `["ManageStringKey", "TextCatalog"]`. Update the test (`scripts/check-application-door-surfaces.test.mjs`) length check from 34 to 35.
 3. **Read/Write (`scripts/check-application-readwrite.mjs`):** Add `"manage/strings/ar.ts"`, `"manage/strings/index.ts"`, and `"manage/strings/keys.ts"` to `READ_LIKE_CORPUS_BASELINE`. Update the test (`scripts/check-application-readwrite.test.mjs`) lengths from 80 to 83.
 4. **Label Vocabulary (`scripts/check-label-vocabulary.mjs`):** Add the 5 predicted UI string conflicts (`"الكمية"`, `"اسم العميل"`, `"المبلغ"`, `"اسم المورد"`, `"الاسم"`) to the baseline bypass list (`DUPLICATE_LITERAL_EXEMPTIONS`).
-**Allowed files:** the six files named above, `docs/architecture/refactoring/generated/test-map.json`, `docs/manage-v2/TRACKER.md`, `docs/manage-v2/reports/M1.9a-report-AR.md`.
+**Allowed files:** the six files named above, `scripts/check-diagnostics-storage.test.mjs`, `scripts/file-size-ratchet-ledger.json`, `docs/architecture/refactoring/generated/test-map.json`, `docs/manage-v2/TRACKER.md`, `docs/manage-v2/reports/M1.9a-report-AR.md`.
 **Acceptance:** `pnpm guards` fully green (0 FAIL); `pnpm test` zero failures.
 ---
 ## M1.10 — Update the CI guards affected by Manage v2
