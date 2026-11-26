@@ -1,4 +1,4 @@
-# Micro Manage v2 — أدلة الموجة C الخام (M1.7 → M1.8 → M1.9)
+# Micro Manage v2 — أدلة الموجة C (M1.7 → M1.8 → M1.9 + M1.9a)
 
 > مخرجات الأوامر الحرفية كما نُفِّذت على الشجرة الحية، بترتيب التنفيذ.
 > SHA الابتداء: `80b44d8f8c00bda5aa9bba1762fe0389c6e6dad8` (رأس البعيد وقت الأمر).
@@ -240,3 +240,126 @@ $ pnpm --filter @micro/prototype-web check → EXIT 0 (برنامجا التطب
 the new Manage paths» — لكنه لا يذكر door-surfaces ولا label-vocabulary ولا
 readwrite ولا دبوس عدد diagnostics، فالدقة المطلوبة من المالك موثَّقة في
 تقرير الموجة.
+
+
+---
+
+# ملحق التشغيل الثاني — M1.9a (تصحيح إرساء الحراس، 26/11/2026)
+
+## §8 — الـpreflight والحالة الحمراء قبل أي تعديل (على `3d4eeaf3`)
+
+```
+$ git fetch origin && git rebase FETCH_HEAD
+Successfully rebased and updated refs/heads/feature/manage-v2.
+$ git log -1 --format=%H
+3d4eeaf3f314664845fafcd7adc821aadaeaf970
+$ git status --short   (فارغ — شجرة نظيفة، لا untracked)
+```
+
+المتتبّع: M1.7/M1.8/M1.9 كلها `DONE` وM1.9a `TODO` (أول غير منجز في الموجة) — لا `STATE_DRIFT`.
+
+تشغيل `corepack pnpm guards` توقّف عند الحارس الثالث عشر (registry-coverage):
+
+```
+registry-coverage: FAIL — 2 وحدة بلا صف في docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md:
+  [application-home] manage/
+    بيت تطبيق بلا ذكر في سجل الملكية — أضف صفه في §3م (أو §3 للبيوت المالية) وحدّث خريطة G2
+  [domain-area] manage/
+    منطقة مجال بلا ذكر في سجل الملكية §1 — أضف صف الملكية قبل أي عمل في المنطقة
+ ELIFECYCLE  Command failed with exit code 1
+```
+
+والحراس الثلاثة الباقية المعنية بالمهمة (بعد الواقف في السلسلة) فرديًا:
+
+```
+$ node scripts/check-application-door-surfaces.mjs
+application-door-surfaces: FAIL — 1 خرقًا:
+  [door-unregistered] manage/strings
+
+$ node scripts/check-application-readwrite.mjs
+application-readwrite: FAIL — 3 خرقًا:
+  [read-like-corpus-growth] manage/strings/ar.ts
+  [read-like-corpus-growth] manage/strings/index.ts
+  [read-like-corpus-growth] manage/strings/keys.ts
+
+$ node scripts/check-label-vocabulary.mjs
+label-vocabulary: FAIL — 5 خرقًا:
+  [unclassified-domain-label-literal] application/manage/strings/ar.ts:30 — «الكمية» == domain quantity (string-literal)
+  [unclassified-domain-label-literal] application/manage/strings/ar.ts:34 — «اسم العميل» == domain customerName (string-literal)
+  [unclassified-domain-label-literal] application/manage/strings/ar.ts:43 — «المبلغ» == domain amountMinor (string-literal)
+  [unclassified-domain-label-literal] application/manage/strings/ar.ts:53 — «اسم المورد» == domain supplierName (string-literal)
+  [unclassified-domain-label-literal] application/manage/strings/ar.ts:251 — «الاسم» == domain name (string-literal)
+```
+
+## §9 — الحراس الأربعة بعد التصحيحات (شجرة التزام المهمة `589ff370`)
+
+```
+$ node scripts/check-registry-coverage.mjs
+registry-coverage: PASS — 42 بيت تطبيق و21 منطقة مجال كلها مذكورة في سجل الملكية (Wave H/STR-617 بند 5)
+
+$ node scripts/check-application-door-surfaces.mjs
+application-door-surfaces: PASS — 35 بابًا (أي عمق) + 1 ملف جذر إنتاجيًا؛ الأسطح (قيمًا وأنواعًا) مطابقة للأساس المسجل؛ صفر توسيع/انكماش/برميل غير مرئي صامت (R5/S2 — PC-3/R0-N20)
+
+$ node scripts/check-application-readwrite.mjs
+application-readwrite: PASS — 18 ملف قارئ مسجلًا + 10 موسوم PC-4؛ صفر استدعاءات كتابة (save/commit/delete/replace/clear بأول حرف كبير)؛ القارئ لا يكتب حتميًا في حدود المفردات الموثقة (R5/S3 — F-08)؛ جسم القراءة خارج العائلات الخمس 83/83 ملفًا (راتشة عضوية+خاصية D-04 — R10A-F-019/OD-GUARD)
+
+$ node scripts/check-label-vocabulary.mjs
+label-vocabulary: PASS — 45 تسمية دومين كنونية؛ 439 ملف إنتاج زُرع؛ 39 مدخلًا مثبتًا مصنفًا يغطي 45 موضعًا حيًّا (owner-gated/variant — راتشة OD-LABEL: التكرار الجديد يُرفض حتى يُصنف)؛ مستهلك طبقة التطبيق الوحيد المحايد (agreementPresentation) يستهلك fieldLabelAr من الدومين
+
+$ node scripts/generate-test-map.mjs && node scripts/generate-test-map.mjs
+generate-test-map: wrote docs/architecture/refactoring/generated/test-map.json (pages 76, contracts 49)   [مرتين — لا انجراف بعد الثانية]
+```
+
+## §10 — اختبارات الحراس الأربعة المحدَّثة (على شجرة `589ff370`)
+
+```
+$ corepack pnpm vitest run scripts/check-application-door-surfaces.test.mjs scripts/check-application-readwrite.test.mjs scripts/check-registry-coverage.test.mjs scripts/check-label-vocabulary.test.mjs
+
+ ✓ scripts/check-label-vocabulary.test.mjs (9 tests) 2519ms
+ ✓ scripts/check-application-readwrite.test.mjs (16 tests) 1070ms
+ ✓ scripts/check-application-door-surfaces.test.mjs (14 tests) 631ms
+ ✓ scripts/check-registry-coverage.test.mjs (4 tests) 284ms
+
+ Test Files  4 passed (4)
+      Tests  43 passed (43)
+```
+
+## §11 — بوابة الموجة على رأس مهمة M1.9a `589ff370`
+
+`corepack pnpm guards` → exit 1 — ١٤ حارسًا أخضر ثم الفشل الوحيد:
+
+```
+file-size-ratchet: تدقيق الانجراف مقابل origin/main @ 5a9064e657a40041ebe63c8f107d57a802f6b93f
+file-size-ratchet: FAIL — 2 نمو/انجرافًا غير مصرح فوق الأساس:
+  [within-band-growth] scripts/application-door-surfaces-baseline.json: 617 -> 628 nbLOC (WATCH -> WATCH)
+    نمو غير مبرر داخل الشريط — قلّل المسؤولية أو أرسِ القيمة الجديدة بسجل إرساء موثق (ledger) بمرجع مراجعة مالك في نفس الـPR؛ لا تحرر الأساس بصمت
+  [within-band-growth] scripts/check-application-readwrite.mjs: 370 -> 382 nbLOC (NORMAL -> NORMAL)
+    نمو غير مبرر داخل الشريط — قلّل المسؤولية أو أرسِ القيمة الجديدة بسجل إرساء موثق (ledger) بمرجع مراجعة مالك في نفس الـPR؛ لا تحرر الأساس بصمت
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+(السلسلة تتوقف عند أول فشل؛ الحراس الاثنا عشر بعده تحقّقت فرديًا كلها PASS: vendored-braces، date-arithmetic-ownership، application-door-surfaces، application-readwrite، storage-listener-guards، test-typecheck-coverage، money-minor-casts، application-ambient-time، diagnostics-storage، label-vocabulary، a11y-dialog-surfaces، manage-literal-text، deleted-imports.)
+
+`corepack pnpm test` → exit 1 — ٢ فشلين فقط:
+
+```
+ FAIL  scripts/check-diagnostics-storage.test.mjs > ... > passes on the live repository tree with exactly the one registered entry
+AssertionError: expected 'diagnostics-storage: PASS — 439 ملف إ…' to match /436 ملف إنتاج/
+
+ FAIL  scripts/check-file-size-ratchet.test.mjs > CLI on the live repo (smoke) > exits 0 with a summary line and the migration/drift note on the live tree
+
+ Test Files  2 failed | 87 passed (89)
+      Tests  2 failed | 1137 passed (1139)
+```
+
+`corepack pnpm typecheck` → exit 0 نظيف (لا خرج).
+
+## §12 — بنود الإغلاق الأخضر المتبقية (خارج ملفات M1.9a المسموحة)
+
+| البند | الملف المطلوب | التغيير المطلوب | لماذا خارج النطاق |
+|---|---|---|---|
+| إرساء راتشة ١ | `scripts/file-size-ratchet-reanchors.json` | مدخل: أساس الأبواب 617→628 (WATCH) بسلسلة صحيحة + ocRef حاكم | الملف خارج قائمة M1.9a المسموحة؛ ولا يوجد سجل Operations Control لمانج-في٢ ليُشار إليه |
+| إرساء راتشة ٢ | `scripts/file-size-ratchet-reanchors.json` | مدخل: حارس القراءة 370→382 (NORMAL) كذلك | مثل أعلاه |
+| دبوس عدد | `scripts/check-diagnostics-storage.test.mjs` | `/436 ملف إنتاج/` → `/439 ملف إنتاج/` + تعليق مؤرخ | الملف خارج قائمة M1.9a المسموحة (كان في سؤال الموجة الأصلي ولم يُدرج في بنودها) |
+
+لم يُنفَّذ أي منها — التزامًا بحدود الكتابة («never widen scope to make a gate pass»).
