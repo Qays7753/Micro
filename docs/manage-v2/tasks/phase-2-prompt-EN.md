@@ -306,6 +306,14 @@ Repository paths: worker code is `apps/prototype-web/worker/**`; client is `apps
 - `pnpm guards`, `pnpm test`, `pnpm typecheck` green.
 - Report: `docs/manage-v2/reports/PHASE-2-report-AR.md`, one section per task plus the gate evidence.
 
+
+### 10. Autonomous Self-Correction & Verification (MANDATORY)
+As the sole execution agent, you are responsible for end-to-end delivery and verification. 
+- **No sub-agents:** Do not spawn external sub-agents for testing or reviewing; handle everything sequentially in this main agent to prevent hangs.
+- **Self-Fix Loop:** If `pnpm test`, `typecheck`, or `pnpm guards` fails, DO NOT stop and report the failure. Read the error, identify the root cause, and fix it yourself. Repeat the verification loop until the wave gate is 100% green. 
+- **Baseline/Registry Hygiene:** If your valid code triggers a hygienic guard (e.g., `registry-coverage`, `door-surfaces`, `readwrite`, `label-vocabulary`, `test-map`), you are explicitly authorized to update the corresponding registry file, baseline JSON, or whitelist in the same commit to make the guard pass. You do not need to ask permission to fix a guard that your own changes broke.
+- **Zero-Defect Delivery:** Never deliver a red state. Only report `BLOCKED` if there is a fundamental spec contradiction or an architectural conflict that cannot be solved via code or baseline updates.
+
 ## Report format (Arabic) — `docs/manage-v2/reports/WAVE-<X>-report-AR.md`
 
 Per task: task id and commit; what changed file by file; tests (command, counts, result, SHA); what was not done or deferred; any question or `BLOCKED`/`STATE_DRIFT`; confirmation that no forbidden file was touched; tracker updated in the same commit. Then the wave gate results on the final SHA. The chat carries a ten-line summary and the link.
