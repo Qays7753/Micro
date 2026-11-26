@@ -133,6 +133,17 @@ jobs:
       - name: Verify domain and prototype
         run: pnpm check
 
+      # M1.11 (Wave D / قرار المالك D-10): كشف الكود الميت — نطاق مسارات مانج
+      # وأدواتي (src/domain/{manage,costing,planning} + بيوت التطبيق الثلاثة)
+      # بأبوابها العامة المعلنة في knip.json؛ الأساس صفر مخرجات، وبلا أي قواعد
+      # تجاهل تخفي نتائج حقيقية — أي نتيجة حقيقية تُبلَّغ لا تُدفن.
+      # KNIP_DISABLE_RAW_TRANSFER: مسار الأداء فقط (تسلسل oxc بديل) — يوحَّد
+      # هنا مع التحقق المحلي ليعمل المسار نفسه في كل بيئة.
+      - name: Detect dead code (knip — Manage and Tools scope)
+        env:
+          KNIP_DISABLE_RAW_TRANSFER: "1"
+        run: pnpm knip
+
       - name: Verify Operations Control PR metadata (read-only)
         if: github.event_name == 'pull_request'
         env:

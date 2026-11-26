@@ -23,10 +23,12 @@
     "check": "pnpm operations-control:test && pnpm operations-control:check && pnpm typecheck && pnpm lint && pnpm format:check && pnpm text-density && pnpm design-guards && pnpm guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build",
     "operations-control:generate": "python3 scripts/operations-control/generate_tracker.py",
     "operations-control:check": "python3 scripts/operations-control/validate.py",
-    "operations-control:test": "python3 -m unittest discover -s scripts/operations-control -p 'test_*.py'"
+    "operations-control:test": "python3 -m unittest discover -s scripts/operations-control -p 'test_*.py'",
+    "knip": "knip"
   },
   "devDependencies": {
     "eslint": "^9.39.1",
+    "knip": "^6.48.0",
     "prettier": "^3.6.2",
     "stylelint": "16",
     "stylelint-declaration-strict-value": "^1.12.1",

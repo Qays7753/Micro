@@ -39,10 +39,12 @@ export type PlanningSaveInput = {
   commission: PlanningPersistCommission | null;
 };
 
-/** S10: نسخة مدخلات حساب التخطيط عند الحفظ (تترقى مع تغير النموذج). */
-export const PLANNING_INPUT_SCHEMA_VERSION = 1;
-/** S10: نسخة محرك الحساب المسجلة مع النتيجة التاريخية. */
-export const PLANNING_CALCULATION_VERSION = 1;
+/** S10: نسخة مدخلات حساب التخطيط عند الحفظ (تترقى مع تغير النموذج).
+ * لا تُصدَّر (M1.11/knip): لا مستورد لها خارج الوحدة — تُستهلك محليًا أدناه. */
+const PLANNING_INPUT_SCHEMA_VERSION = 1;
+/** S10: نسخة محرك الحساب المسجلة مع النتيجة التاريخية.
+ * لا تُصدَّر (M1.11/knip): لا مستورد لها خارج الوحدة — تُستهلك محليًا أدناه. */
+const PLANNING_CALCULATION_VERSION = 1;
 
 const id = (prefix: string) =>
   globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
