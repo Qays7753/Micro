@@ -2,8 +2,10 @@
  * M1.7 (§14.1/§14.3 / قرار المالك D-5): السطح العام لمجال مانج
  * (`src/domain/manage/`). يحمل وحدة الفلس (M1.7) ووحدة قيود الدفتر
  * Q1–Q20 مع معادلة التوازن والبناء والتحقق (M2.2 — التوسيع تعديل مقصود
- * في نفس الـPR كما نص رأس هذا الملف، عبر باب knip المعلن نفسه)؛ تُضاف
- * إليه لاحقًا وحدات الثوابت والعقود والأشكال بموجاتها المصرَّح بها.
+ * في نفس الـPR كما نص رأس هذا الملف، عبر باب knip المعلن نفسه)، ووحدة
+ * ثوابت INV-1…INV-10 العشرة بفحوصها الصرفة فوق حالة الدفتر (M2.3 — عبر
+ * الباب المعلن نفسه)؛ تُضاف إليه لاحقًا وحدات العقود والأشكال بموجاتها
+ * المصرَّح بها.
  */
 export type { MoneyFils } from "./money/index.js";
 export {
@@ -46,3 +48,30 @@ export {
   validateLedgerEntry,
   buildLedgerEntry,
 } from "./ledger/index.js";
+export type {
+  CachedFigures,
+  CoreInvariantResults,
+  InvariantBalanceLine,
+  InvariantBox,
+  InvariantCheckResult,
+  InvariantEntry,
+  InvariantId,
+  InvariantOperation,
+  InvariantPosting,
+  InvariantSale,
+  InvariantSaleLine,
+  LedgerCheckState,
+} from "./invariants/index.js";
+export {
+  assertLedgerCoreInvariants,
+  checkInv1,
+  checkInv10,
+  checkInv2,
+  checkInv3,
+  checkInv4,
+  checkInv5,
+  checkInv6,
+  checkInv7,
+  checkInv8,
+  checkInv9,
+} from "./invariants/index.js";
