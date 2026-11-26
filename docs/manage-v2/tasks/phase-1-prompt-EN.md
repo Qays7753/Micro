@@ -10,7 +10,7 @@
 |---|---|---|---|
 | A | M1.2 → M1.3 | Cut the estimate → order cost link; remove the financial draft from Ask Micro | done |
 | B | M1.6 | §14 folders and module boundaries | done |
-| C | M1.7 → M1.8 → M1.9 | Money unit, strings catalog, deletion manifest + import guard | **authorized now** |
+| C | M1.7 → M1.8 → M1.9 → M1.9a | Money unit, strings catalog, deletion manifest + import guard + wave fixup | **authorized now** |
 | D | M1.10 → M1.11 | CI guards, then `knip` | pending |
 | — | M1.1, M1.1a | Already executed and accepted (26/11/2026) | done — do not re-run |
 
@@ -225,6 +225,17 @@ The owner works with you from a **browser chat**, not from an IDE, and does not 
 
 ---
 
+
+## M1.9a — Wave C Fix-up (Guard Re-anchoring)
+**Why:** Wave C correctly implemented the features, but new directories and files triggered four hygienic guards that require updates in files outside Wave C's allowed list. This task authorizes exactly those four updates.
+**Do (exactly four things):**
+1. **Registry (`docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md`):** Add the missing domain area row (`domain/manage`) to §1 and the missing application home row (`application/manage`) to §3, both noting "M1.7/M1.8", then update the row counters. Run `node scripts/generate-test-map.mjs` to sync the map.
+2. **Door Surfaces (`scripts/application-door-surfaces-baseline.json`):** Add `"manage/strings"` to the `doors` baseline with values `["MANAGE_STRINGS_AR", "MANAGE_STRING_KEYS", "t", "translate"]` and type `["ManageStringKey", "TextCatalog"]`. Update the test (`scripts/check-application-door-surfaces.test.mjs`) length check from 34 to 35.
+3. **Read/Write (`scripts/check-application-readwrite.mjs`):** Add `"manage/strings/ar.ts"`, `"manage/strings/index.ts"`, and `"manage/strings/keys.ts"` to `READ_LIKE_CORPUS_BASELINE`. Update the test (`scripts/check-application-readwrite.test.mjs`) lengths from 80 to 83.
+4. **Label Vocabulary (`scripts/check-label-vocabulary.mjs`):** Add the 5 predicted UI string conflicts (`"الكمية"`, `"اسم العميل"`, `"المبلغ"`, `"اسم المورد"`, `"الاسم"`) to the baseline bypass list (`DUPLICATE_LITERAL_EXEMPTIONS`).
+**Allowed files:** the six files named above, `docs/architecture/refactoring/generated/test-map.json`, `docs/manage-v2/TRACKER.md`, `docs/manage-v2/reports/M1.9a-report-AR.md`.
+**Acceptance:** `pnpm guards` fully green (0 FAIL); `pnpm test` zero failures.
+---
 ## M1.10 — Update the CI guards affected by Manage v2
 
 **Why:** the existing guards must keep protecting the repo while the new paths appear.
