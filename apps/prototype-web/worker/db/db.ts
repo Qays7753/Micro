@@ -73,6 +73,20 @@ export async function endDb(db: Db): Promise<void> {
   if (db instanceof PgDb) await db.end();
 }
 
+/**
+ * M2.5+ (Manage v2 write surface): the RAW postgres.js client behind a
+ * request-scoped Db — for domain operations that own their transaction
+ * (`sql.begin` — the M2.4 handler). The caller MUST NOT `end()` it: the
+ * worker entry's endDb closes the same client after dispatch (one socket
+ * per request; workerd forbids cross-request reuse). Throws for injected
+ * non-PG adapters (no raw client to share).
+ */
+export function rawSqlOf(env: { DB: PgDatabaseBinding | Db }): postgres.Sql {
+  const db = dbOf(env);
+  if (db instanceof PgDb) return db.sqlClient();
+  throw new Error("rawSqlOf expects a PostgreSQL-backed Db");
+}
+
 /** Env with the raw `DB` binding resolved into a request-scoped `Db`. */
 export type RuntimeEnv<T extends { DB: PgDatabaseBinding | Db }> = Omit<T, "DB"> & { DB: Db };
 

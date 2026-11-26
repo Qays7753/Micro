@@ -159,6 +159,12 @@ function metaOf(changes: number): DbMeta {
 export class PgDb implements Db {
   constructor(private readonly client: postgres.Sql) {}
 
+  /** M2.5+: the raw client (Manage v2 operations own their transaction via
+   * sql.begin). Same socket, same request scope — endDb closes it. */
+  sqlClient(): postgres.Sql {
+    return this.client;
+  }
+
   prepare(query: string): DbPreparedStatement {
     return new PgStatement(this.client, query);
   }

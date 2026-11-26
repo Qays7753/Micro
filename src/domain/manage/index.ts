@@ -75,3 +75,36 @@ export {
   checkInv8,
   checkInv9,
 } from "./invariants/index.js";
+/* M2.5 (wave G): السطح العام لعمليات §5 — مخططات العمليات الصرفة
+ * (planners) وواجهة الخطة التي يؤلّفها العامل مع معالج M2.4 داخل
+ * معاملته الواحدة. التوسيع في نفس الـPR عبر باب knip المعلن نفسه
+ * (رأس هذا الملف)، كما في M2.2/M2.3 قبله. */
+export type {
+  ManageOperationKind,
+  OpeningInput,
+  OperationContext,
+  OperationContextInput,
+  OperationPlan,
+  OperationWritePlan,
+  PlanBalanceLine,
+  PlanExtraWrites,
+  PlanLoadState,
+  TxQuery,
+} from "./operations/support.js";
+export type { SetupInput, SetupBoxSlot } from "./operations/setup.js";
+export type { AddBoxInput } from "./operations/addBox.js";
+export type { AddPriorBalanceInput } from "./operations/addPriorBalance.js";
+export {
+  OperationRejected,
+  reject,
+  requireName,
+  requirePositiveFils,
+  requireNonNegativeFils,
+  requireDate,
+  requireRequestId,
+  validateOpening,
+  requireContext,
+} from "./operations/support.js";
+export { planSetup } from "./operations/setup.js";
+export { planAddBox } from "./operations/addBox.js";
+export { planAddPriorBalance } from "./operations/addPriorBalance.js";

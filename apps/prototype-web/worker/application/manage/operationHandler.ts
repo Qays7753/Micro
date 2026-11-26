@@ -43,7 +43,7 @@
  * deterministically after the first write, exactly as a real constraint
  * violation or crash would.
  */
-import postgres from "postgres";
+import type postgres from "postgres";
 import type { BuiltLedgerEntry } from "../../../../../src/domain/manage/ledger/index.js";
 
 /** §3.7 operation kinds (the closed 0018 CHECK enumeration). */
@@ -126,9 +126,32 @@ export type ManageOperationOutcome =
   | { outcome: "replay"; result: StoredManageOperationResult }
   | { outcome: "conflict"; reason: string };
 
-/** Test-only injection (see the header) — never set by production callers. */
+/** M2.5+ operation hooks — everything an operation needs INSIDE the
+ * handler's single transaction (§14.1 / SRV-03). */
 export interface ManageOperationOptions {
   injectFailureAfterFirstWrite?: boolean;
+  /**
+   * «Load state in the transaction»: runs inside the operation's
+   * transaction right after the idempotency reservation is secured, BEFORE
+   * any write. The §14.1 shape (validate input → LOAD STATE in the
+   * transaction → domain → write) lives here: the operation loads its
+   * boxes/lines/sales and makes its domain decision on the consistent
+   * snapshot. A rejection thrown here rolls back the reservation too.
+   */
+  loadState?: (tx: postgres.TransactionSql<Record<string, unknown>>) => Promise<unknown>;
+  /**
+   * Operation-specific writes (box rows, sale rows, entries that must
+   * follow their FK targets…) in the SAME transaction: called after the
+   * operation row + balance lines + entries + postings are written — a
+   * failure anywhere rolls back everything (R-12). `operationId` is THIS
+   * operation's row id (never re-queried) and `entryIds` the ids of the
+   * entries already written for it.
+   */
+  extraWrites?: (context: {
+    tx: postgres.TransactionSql<Record<string, unknown>>;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<void>;
 }
 
 /** A reserved-but-never-stored row older than this is a dead reservation
@@ -246,6 +269,13 @@ export async function applyManageOperation(
       }
     }
 
+    // ── Load state IN the transaction (§14.1) — after the reservation is
+    // secured, before any write. The operation's domain decision runs here
+    // on a consistent snapshot; a rejection rolls back the reservation.
+    if (options.loadState !== undefined) {
+      await options.loadState(tx);
+    }
+
     // ── The operation row (§3.7) ────────────────────────────────────────
     const operationId = operationUuid();
     // The FIRST write inside the transaction after the reservation — the
@@ -299,6 +329,10 @@ export async function applyManageOperation(
       amountFils: write.amountFils,
       entryIds,
     };
+    // Operation-specific writes (box/sale rows…), same transaction (R-12).
+    if (options.extraWrites !== undefined) {
+      await options.extraWrites({ tx, operationId, entryIds });
+    }
     await tx`
       UPDATE manage_v2_idempotency
       SET response_status = ${200}, response_body = ${JSON.stringify(result)}
