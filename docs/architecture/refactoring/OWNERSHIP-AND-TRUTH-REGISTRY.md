@@ -11,7 +11,7 @@
 ---
 
 ## 1. خريطة ملكية مفاهيم المجال (21 منطقة حيّة + صف توزيعات مكمّل + صف تاريخي بلا مجلد = 23 صفًا)
-> صف `owner-safe-withdrawal` تاريخي: لا مجلد حيًّا له في `src/domain/` (حارس التغطية يقيس اتجاه «الحي → السجل» فقط). يُحسم بقرار لاحق في M1.10، لا بالحذف الصامت.
+> صف `owner-safe-withdrawal` تاريخي: لا مجلد حيًّا له في `src/domain/` (حارس التغطية يقيس اتجاه «الحي → السجل» فقط). **حُسم في M1.10 (2026-11-26):** الصف يبقى تاريخًا موثقًا بحالة HISTORICAL — REMOVED (S15/d7edfb16، ocRef DOC-024) — حُذف المجلد مع عائلة القراءة عديمة المستهلك، ولا يُحذف الصف صامتًا أبدًا.
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
 
@@ -36,7 +36,7 @@
 | direct-sale | عقد 09 + `src/domain/direct-sale/` | domain/direct-sale | direct-sale pages؛ collections؛ finance | storage (directSales) | `directSale` family | `tests/domain/*.test.ts` colocated + root | عقد 09 | PRESERVE |
 | party | عقد S05/UNIT-037 + `src/domain/party/` | domain/party | parties directory (حفظ/تعديل/أرشفة)؛ direct-sale/supplier-purchase (لقطات الربط) | storage (counterparties — **سجل مخزّن**) | `counterparties` family | `src/domain/party/policies.test.ts` | عقد S05 (UNIT-037 + العقد المشترك §5.1) | PRESERVE؛ هوية تعريفية بلا رصيد — الأرصدة تقرأ من المصادر المرتبطة بمعرف الطرف |
 | owner-entitlement | عقد 13 + `src/domain/owner-entitlement/` | domain/owner-entitlement | finance owner surfaces؛ transfers | storage (ownerEntitlement*) | `ownerEntitlement` family | `tests/owner-entitlement.test.ts` | عقد 13 | PRESERVE — عنقود Owner Money |
-| owner-safe-withdrawal | عقد 13/14 + `src/domain/owner-safe-withdrawal/` | domain/owner-safe-withdrawal | Finance.tsx (قيمة STR-304)؛ owner services | storage (عبر owner movements) | ضمن owner families | `tests/domain/owner-safe-withdrawal.test.ts` | عقد 13/14 | PRESERVE |
+| owner-safe-withdrawal (تاريخي — بلا مجلد) | عقد 13/14 (تاريخي) — كان `src/domain/owner-safe-withdrawal/` | domain/owner-safe-withdrawal (مؤرشف — لا مالك تنفيذ حيًّا) | لا مستهلك حيًّا — حُذف مع عائلة القراءة عديمة المستهلك (S15/d7edfb16) | لا تخزين حيًّا | لا شيء حيًّا | حُذف `tests/domain/owner-safe-withdrawal.test.ts` مع المنطقة | عقد 13/14 (المصدر التاريخي) | HISTORICAL — REMOVED (S15/d7edfb16، ocRef DOC-024)؛ حُسم في M1.10: الصف تاريخ موثق لا ملكية حية |
 | actual-time | عقد 16 + `src/domain/actual-time/` | domain/actual-time | time surfaces؛ finance reads | storage (actualTimeRecords) | ضمن snapshot | `tests/domain/actual-time.test.ts` | عقد 16 | PRESERVE |
 | financial-analysis (الاسم الأساس الحالي — Wave 4A؛ التاريخي g5) | عقد 12/17 + `src/domain/financial-analysis/` | domain/financial-analysis | application/financial-analysis؛ finance read models؛ integrity | storage (shortCashDeclarations — **سجل مخزّن**) | `shortCashDeclaration` family | `tests/domain/financial-analysis.test.ts` + `operatingBreakEven.test.ts` | عقد 12/17 | PRESERVE؛ تنفذ 4A: المسار الأساس financial-analysis + برميل توافق g5 للواجهة المجمدة؛ shortCashDeclarations سجل مخزّن لا read model |
 | financial-event توزيعات | عقد 14 (توزيع نتيجة الفترة) | domain/financial-event + finance (قراءة فقط) | finance؛ owner؛ transfers | storage (allocations) | ضمن families | ownershipBoundaries.exe017 | عقد 14 | PRESERVE (قفل exe017) |

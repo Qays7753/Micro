@@ -44,7 +44,9 @@ function requireSafeInteger(value: number, description: string): MoneyFils {
 /** تحويل ناتج BigInt إلى MoneyFils بعد إثباته داخل المدى الآمن. */
 function toSafeFilsOrThrow(value: bigint, description: string): MoneyFils {
   if (value > MAX_SAFE_FILS || value < MIN_SAFE_FILS) {
-    throw new Error(`${description} خرج عن نطاق الأعداد الصحيحة الآمنة بالفلس — ارفض العملية بدل تخزين قيمة مضلِّلة.`);
+    throw new Error(
+      `${description} خرج عن نطاق الأعداد الصحيحة الآمنة بالفلس — ارفض العملية بدل تخزين قيمة مضلِّلة.`,
+    );
   }
   return Number(value);
 }

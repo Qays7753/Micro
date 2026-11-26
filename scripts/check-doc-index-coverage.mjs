@@ -33,7 +33,10 @@ export const INDEX_PATH = "docs/00-document-index.md";
  * توسيع Wave G2/STR-619 (2026-10-04): من 4 مجلدات إلى 12 — كل مجلدات السلطة
  * التوثيقية. استثناء موثق: docs/operations/** يُحكم بنظام تحكم العمليات
  * الخاص به (JSON المصدر + العارضات المولدة + validate.py) لا بفهرس الوثائق،
- * وملفاته المحورية مثبتة في REQUIRED_CANONICAL أدناه؛ وdocs/fixtures/ بلا md. */
+ * وملفاته المحورية مثبتة في REQUIRED_CANONICAL أدناه؛ وdocs/fixtures/ بلا md.
+ * توسيع M1.10 (2026-11-26): docs/manage-v2 — برنامج مانج-في₂ (الخطة/الأثر/
+ * المتتبع/التقارير) يصبح سلطويًا مفهرسًا من الآن لا بعد بناء الواجهات —
+ * التغطية تتسع قبل الكود لا بعده (لا إضعاف: عكس اتجاه الإضعاف تمامًا). */
 export const FULL_COVERAGE_DIRS = [
   "docs/contracts",
   "docs/architecture",
@@ -47,6 +50,7 @@ export const FULL_COVERAGE_DIRS = [
   "docs/quality",
   "docs/reference",
   "docs/scenarios",
+  "docs/manage-v2",
 ];
 
 /** نواة السلطة — يجب ذكر كل منها في الفهرس (تُعدَّل بقرار موثق لا بصمت). */

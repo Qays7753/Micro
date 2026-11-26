@@ -91,7 +91,14 @@ const formatCases: ReadonlyArray<[number, string]> = [
   [-123456789, "-123,456.789"],
 ];
 
-const formatRejected: readonly number[] = [1.5, -1.5, Number.NaN, Number.POSITIVE_INFINITY, 9007199254740992, -9007199254740992];
+const formatRejected: readonly number[] = [
+  1.5,
+  -1.5,
+  Number.NaN,
+  Number.POSITIVE_INFINITY,
+  9007199254740992,
+  -9007199254740992,
+];
 
 /* ─── تقريب نصف لأعلى: الضرب بالملي (فلس × كمّ بالملي ÷ ١٠٠٠) ─── */
 const mulCases: ReadonlyArray<[number, number, number]> = [
@@ -127,7 +134,7 @@ describe("M1.7 (§9/IMPACT §4/D-4) — filsFromJodText", () => {
     expect(filsFromJodText(text)).toBe(expected);
   });
 
-  it.each(parseRejected)("rejects %j", (text) => {
+  it.each(parseRejected)("rejects %j", text => {
     expect(() => filsFromJodText(text)).toThrow();
   });
 });
@@ -137,7 +144,7 @@ describe("M1.7 (R-1a/R-20/R-22) — jodTextFromFils", () => {
     expect(jodTextFromFils(fils)).toBe(expected);
   });
 
-  it.each(formatRejected)("rejects non-safe-integer %d", (fils) => {
+  it.each(formatRejected)("rejects non-safe-integer %d", fils => {
     expect(() => jodTextFromFils(fils)).toThrow();
   });
 
@@ -205,9 +212,9 @@ describe("M1.7 — source scans (module self-containment)", () => {
   it("src/domain/manage has files and every import is relative (no external/shared dependency)", () => {
     expect(Object.keys(manageSources).length).toBeGreaterThan(0);
     const edges = Object.entries(manageSources).flatMap(([file, source]) =>
-      [...source.matchAll(/from\s*["']([^"']+)["']/g)].map((match) => `${file} → ${match[1] ?? ""}`),
+      [...source.matchAll(/from\s*["']([^"']+)["']/g)].map(match => `${file} → ${match[1] ?? ""}`),
     );
-    const nonRelative = edges.filter((edge) => {
+    const nonRelative = edges.filter(edge => {
       const specifier = edge.split(" → ")[1] ?? "";
       return !specifier.startsWith(".");
     });

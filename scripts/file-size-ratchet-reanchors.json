@@ -12732,6 +12732,25 @@
         "trigger": "Wave C M1.9a items 3+6 — the read-like corpus guard requires classifying new files in the same commit and a documented re-anchor for the growth",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "arch007-2026-11-26-m110-doc-index-manage-v2-scope",
+      "date": "2026-11-26",
+      "path": "scripts/check-doc-index-coverage.mjs",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 180,
+        "band": "NORMAL"
+      },
+      "reason": "M1.10 (Wave D, owner-authorized 893fcd82): docs/manage-v2 joins FULL_COVERAGE_DIRS with a dated 3-line rationale comment and one array element (+4 nbLOC over the last anchored 176) — coverage expands BEFORE the Manage v2 UI exists, not after; no threshold or exemption touched.",
+      "authorization": {
+        "ownerReview": "Owner launcher 2026-11-26 (Wave D authorized in phase-1 prompt @ 893fcd82) + M1.10 allowed files include this guard script; Autonomous Self-Correction rule authorizes the matching ledger entry in the same commit. Same-PR re-anchor per the documented protocol; ocRef resolves against the live OC tree (ARCH-007 VERIFIED).",
+        "trigger": "wave-d-m1.10-doc-index-manage-v2-coverage",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }
