@@ -4,78 +4,63 @@
  * (resolution-based) — يفحص حدود الوحدات عبر تحليل AST وحل الاستيرادات إلى
  * ملفات حقيقية، لا بمطابقة نصية.
  *
- * القواعد الست (ratchet — CI يرفض الجديد فقط؛ الأساس المقبول مضمّن) —
- * *(تصحيح مؤرخ 2026-10-07 — R1/TG-03 [R1-D2]: كان العنوان يقول «القواعد الخمس»
- * بينما الكود أدناه ينفذ ستًا — أُضيفت R5 في STR-617 وR6 في STR-615/PR #316
- * ولم يُحدّث العنوان؛ تصحيح تعليقي فقط بلا أي تغيير سلوك)*:
+ * القواعد (راتشة — CI يرفض الجديد فقط؛ الأساس المقبول مضمّن) — *(تصحيح مؤرخ
+ * 2026-10-07 — R1/TG-03 [R1-D2]: كان العنوان «القواعد الخمس» والكود أكثر)*:
  *  R1) استيراد عميق داخل المجال من خارج طبقة المجال
- *      (`@micro-domain/<area>/<غير-index>`): مقصور على الأزواج المسجلة
- *      (الاستثناءات الموثقة في سجل الملكية §5 — D-034 وSTR-205).
- *      **إصلاح Wave H (STR-617 بند 8، 2026-10-04):** نمط المنطقة صار
- *      `[a-z0-9-]+` — كان `[a-z-]+` فلا يطابق مناطق بأرقام (g5 كامن — مكتشف
- *      المعادي)؛ القياس الحي بعد الإصلاح: الأساس نفسه 3 حواف، صفر حواف g5.
+ *      (`@micro-domain/<area>/<غير-index>`): مقصور على الأزواج المسجلة في سجل
+ *      الملكية §5 (D-034/STR-205)؛ نمط المنطقة `[a-z0-9-]+` (إصلاح Wave H —
+ *      STR-617 بند 8: كان g5 كامنًا؛ القياس الحي بعده: 3 حواف، صفر g5).
  *  R2) حافة قيمة مباشرة من واجهة المستخدم إلى المجال (STR-106 — قرار مالك
- *      معلق): مجمدة على الأساس المسجل؛ أي حافة جديدة ترفض حتى قرار المالك.
- *      **إغلاق Wave H (STR-617 بند 4):** طبقة العرض presentation/* صارت داخل
- *      UI_LAYERS — الثقوب الثلاثة الموثقة (formatters انتقل للمطبق في Wave B؛
- *      الباقي حافتان) داخل الأساس المؤرخ.
- *  R3) حافة قيمة من التطبيق إلى العرض (STR-203 — قرار مالك معلق): مجمدة
- *      على الأساس المسجل كذلك.
+ *      معلق): مجمدة على الأساس المسجل؛ أي حافة جديدة تُرفض حتى قرار المالك؛
+ *      presentation/* داخل UI_LAYERS (Wave H — STR-617 بند 4).
+ *  R3) حافة قيمة من التطبيق إلى العرض (STR-203 — قرار مالك معلق): مجمدة —
+ *      **صفر بعد Wave B (ADR-011 §2، 2026-10-03)**؛ أي حافة جديدة تُرفض.
  *  R4) استيراد عميق عابر للمناطق داخل المجال نفسه (STR-617 بند 2 — كان بلا
- *      قاعدة): مجمد على الأزواج الثلاث الموثقة في سجل الملكية §5؛ الجديد يرفض.
- *  R5) حافة قيمة من واجهة المستخدم إلى تخزين زمن التشغيل حلًّا resolution-based
- *      (STR-617 بند 3 — مكمل ESLint النصي): العدّ بحل الاستيرادات لا بمطابقة
- *      النص، فلا إفلات بمسار نسبي؛ الاستثناءان الموثقان (StartupGate،
- *      PrototypeServicesContext — بشروط إزالة مسار UI) داخل الأساس.
+ *      قاعدة): مجمد على الأزواج الثلاث الموثقة في سجل الملكية §5؛ الجديد يُرفض.
+ *  R5) حافة قيمة من واجهة المستخدم إلى تخزين زمن التشغيل حلًّا resolution-based
+ *      (STR-617 بند 3 — مكمل ESLint النصي؛ لا إفلات بمسار نسبي): الاستثناءان
+ *      الموثقان (StartupGate، PrototypeServicesContext — بشروط إزالة مسار UI).
  *  R6) استيراد عميق من طبقات الواجهة إلى دواخل بيوت التطبيق
  *      (`application/<house>/<non-index>`) — راتشة STR-615 الشاملة (برنامج
  *      تصحيح PR #316، الخطوة ٦، 2026-10-06): خط الأساس ملف مسجل
- *      `scripts/ui-application-import-baseline.json` (وُلد من الجرد الحي
- *      ١٢٠ مفتاحًا) ينكمش رتيبًا مع هجرة الأبواب حتى الحالة النهائية =
- *      الاستيرادات المحتجزة الموثقة (شيمات التوافق المجمدة). أي استيراد
- *      عميق جديد يُرفض؛ وأي موقع هاجر ثم عاد يُرفض (مفتاحه غادر الأساس)؛
- *      وصف أساس لم يعد حيًّا يُرفض أيضًا (نظافة الأساس في نفس PR الهجرة).
- *      طبقات الفحص: ui/app-shell/contexts/lib/presentation + pwa (سطح
- *      تشغيلي ملاصق للواجهة — register.ts يستهلك خدمات التطبيق).
- *      **(R5/S1، 2026-10-09):** المحدّد النوعي `import("…").X` (ImportTypeNode)
- *      صار يُسجّل (كان يهرّب من R6) وامتداد المسح شمل `.js/.jsx` (كان
- *      `.ts/.tsx` فقط) — كلاهما بسلبيات مثبتة في ملف الاختبار.
- *
+ *      `scripts/ui-application-import-baseline.json` ينكمش رتيبًا مع هجرة
+ *      الأبواب؛ صف أساس غادر الشجرة يُرفض (نظافة نفس-PR). طبقات الفحص:
+ *      ui/app-shell/contexts/lib/presentation + pwa (register.ts يستهلك
+ *      خدمات التطبيق). **(R5/S1، 2026-10-09):** المحدّد النوعي
+ *      `import("…").X` وامتداد المسح `.js/.jsx` صارا يُسجلان (سلبيات مثبتة).
  *  R7) استيراد من مكوّنات الواجهة إلى صفحاتها (components/** -> pages/**)
  *      — فئة الانحدار المباشرة لدورة المالية (R8-F-019، 2026-10-10): الحافة
- *      النوعية السابقة FinancePeriodResultSection.tsx <-> pages/Finance.tsx
- *      فُكّت في R7-1 بنقل ملكية الحالة إلى application/finance/financeState.ts
- *      (STR-204c/R6-SCAN-F-019)؛ هذه القاعدة تمنع عودة الصنف كله بأي شكل:
- *      قيمة أو نوعًا أو ديناميكيًا أو ImportTypeNode أو إعادة تصدير، وحلًّا
- *      للمسارات (نسبي/مستعار) لا مطابقة نصية. الاتجاه القانوني المعاكس
- *      (صفحة -> مكوّن) يبقى حرًّا. الاستثناء الوحيد: قائمة مراجعة مالك صريحة
+ *      النوعية السابقة فُكّت في R7-1 (financeState — STR-204c)؛ القاعدة تمنع
+ *      عودة الصنف كله بأي شكل (قيمة/نوع/ديناميكي/ImportTypeNode/إعادة تصدير)
+ *      وحلًّا للمسارات؛ الاتجاه المعاكس حر؛ الاستثناء قائمة مالك صريحة
  *      (فارغة عند التأسيس) — لا أساس انجراري مفتوح.
  *  R8) حافة نوعية من طبقات الواجهة إلى التخزين (R11 W1A-1 / D-01 —
- *      R10A-F-006، قرار OD-GUARD الخيار A، 2026-10-13): الأساس الكامل
- *      19 مفتاحًا (17 صفحة/مكوّنًا + ملفَي app-shell) — النمط النوعي
- *      ذاته مصرَّح به في ESLint؛ الراتشة تمنع نموه الصامت فقط: أي مفتاح
- *      جديد يُرفض، وأي مفتاح غادر الشجرة يُرفض (نظافة الأساس نفس-الـPR)،
- *      ومجموعة الـ17 القديمة محفوظة كثابت تاريخي مسمّى للمقارنة لا كأساس.
+ *      R10A-F-006، قرار OD-GUARD الخيار A، 2026-10-13): أساس كامل مسجل
+ *      (الـ17 التاريخية + ملفا app-shell + الموثقة لاحقًا؛ النمط مصرَّح به في
+ *      ESLint)؛ النمو الصامت والانكماش غير الموثق يُرفضان (نظافة نفس-الـPR)؛
  *      العدّ بحل الاستيرادات (المختلط = قيمة) ويشمل `import type` وكل
- *      المحددات النوعية و`import("…")` النوعي و`export type … from`،
- *      ومنذ R11 أيضًا صيغة `import x = require("…")` (و النوعية) — جمع
- *      ImportEqualsDeclaration أُضيف إلى المجمّع فلا إفلات بتغيير إملاء.
+ *      المحددات النوعية و`import("…")` و`export type … from` وصيغة
+ *      `import x = require("…")` — جمع ImportEqualsDeclaration فلا إفلات
+ *      بتغيير إملاء.
  *  R9) راتشة أزواج بيوت التطبيق الداخلية (R11 W1A-1 / D-07 — R10B-NF-005،
  *      قرار OD-10 الخيار A، 2026-10-13): جرد كامل مسجل بملف
- *      `scripts/application-house-edges-census.json` — 130 حافة فريدة
- *      (81 قيمة + 49 نوعًا؛ التصنيف مهيمن-النوع: أي موقع نوعي واحد يجعل
- *      الحافة نوعية) بين بيوت التطبيق (الأبواب وملفات الجذر مستثناة
- *      أهدافًا ومصادر — مشتركة بالتعريف). الإعفاءات الورقية المعتمدة:
+ *      `scripts/application-house-edges-census.json` (تصنيف مهيمن-النوع؛
+ *      الأبواب وملفات الجذر مشتركة بالتعريف). الإعفاءات الورقية المعتمدة:
  *      time/clock.ts وformatting/formatters.ts وidentity/buildIdentity.ts
- *      (الوصول إليها by-design) + ملف الجذر resultCodes.ts (قانوني
- *      بالتعريف). الفشول: زوج جديد، تجاوز سقف زوج (قيمة/نوع منفصلين)،
- *      حافة أساس غادرت الشجرة، انجراف جرد على هدف معفي (يُسجل في نفس
- *      الـPR — النمو على الأهداف المعفاة مسموح لكن ليس صامتًا)، خرق
- *      ثوابت الإعفاء (إلغاء تلقائي معلن)، ودورة بيوت جديدة أو محلولة
- *      بلا إعادة إرساء. الأساس يُحدّث عمدًا في نفس الـPR فقط.
+ *      + ملف الجذر resultCodes.ts (قانوني بالتعريف). الفشول: زوج جديد،
+ *      تجاوز سقف زوج (قيمة/نوع منفصلين)، حافة أساس غادرت الشجرة، انجراف
+ *      جرد على هدف معفي، خرق ثوابت الإعفاء (إلغاء تلقائي معلن)، ودورة
+ *      بيوت جديدة أو محلولة بلا إعادة إرساء. الأساس يُحدّث عمدًا في
+ *      نفس الـPR فقط.
+ *  R10/R11 (M1.6 — manage-v2 phase 1، §14.1–14.3/D-5، 2026-11-26): حدود مانج
+ *      جاهزة قبل وجود كودها — R10: لا ملف تحت client/src يستورد
+ *      `src/domain/manage` ولا `apps/prototype-web/worker/application/manage`
+ *      (قيمة/نوع/ديناميكي؛ بلا أساس ولا استثناءات)؛ R11: مجال مانج يستورد
+ *      شجرته و`src/domain/shared` حصرًا — أي هدف داخلي آخر يُرفض. الكشف بتحويل
+ *      افتراضي للمحدد (بلا اشتراط وجود الملف) فلا إفلات بتغيير الإملاءة.
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
- * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
- * الزيادة مرئية لا مستحيلة، ويمنعها الصامتة فحسب.
+ * الـPR مع صف/تحديث في سجل الملكية §5 — الحارس يجعل الزيادة مرئية لا
+ * مستحيلة، ويمنعها الصامتة فحسب.
  *
  * الاستخدام: node scripts/check-module-boundaries.mjs [repoRoot].
  * الخروج: 0 = نظيف؛ 1 = أي خرق جديد.
@@ -105,19 +90,41 @@ export function layerOf(repoRoot, file) {
   return "infra";
 }
 
-/* Wave H (STR-617 بند 4، 2026-10-04): presentation ضمّت — حواف عرض→مجال
- * صارت تحت تجميد R2 بدل أن تمر خارج الحراسة. */
+/* Wave H (STR-617 بند 4): presentation ضُمّت — حواف عرض→مجال تحت تجميد R2. */
 const UI_LAYERS = new Set(["ui", "app-shell", "contexts", "lib", "presentation"]);
 
-/* ─── R6 (الخطوة ٦ — STR-615 الشاملة، 2026-10-06) ───────────────────────
- * طبقات الواجهة لحدود بيوت التطبيق: نفس مجموعة UI_LAYERS + pwa (سطح
- * تشغيلي ملاصق للواجهة يستهلك خدمات التطبيق — pwa/register.ts). */
+/* ─── R6 (الخطوة ٦ — STR-615): طبقات حدود بيوت التطبيق = UI_LAYERS + pwa. ── */
 const R6_LAYERS = new Set([...UI_LAYERS, "pwa"]);
 
 const APPLICATION_INTERIOR_PREFIX = "apps/prototype-web/client/src/application/";
 
-/** أساس R6: ملف JSON مسجل بجذر المستودع — غيابه = قائمة فارغة (لا يفلت
- *  استيراد عميق جديد بوجوده أو غيابه). */
+/* ─── R10/R11 (M1.6 — manage-v2 phase 1، §14.1–14.3/D-5، 2026-11-26) ────
+ * مسارات مانج قد لا توجد بعد — التحويل الافتراضي (بلا اشتراط وجود الملف)
+ * يجعلهما جاهزتين قبل ولادة كود مانج بلا تضعيف أي قاعدة قائمة. */
+const MANAGE_DOMAIN_PREFIX = "src/domain/manage";
+const MANAGE_WORKER_APPLICATION_PREFIX = "apps/prototype-web/worker/application/manage";
+const CLIENT_SRC_PREFIX = "apps/prototype-web/client/src";
+
+const isUnderPrefix = (rel, prefix) => rel === prefix || rel.startsWith(`${prefix}/`);
+
+/** M1.6: المسار الافتراضي للمحدد داخل المستودع (مستعار/نسبي، بلا اشتراط
+ * وجود الملف)؛ المحدد الخارجي يعيد null — شأن ناشره (مبدأ الحارس نفسه). */
+export function virtualImportTarget(specifier, fromFile, repoRoot) {
+  const stripExt = p => p.replace(/\.(js|mjs|cjs|jsx)$/, "");
+  if (specifier.startsWith("@micro-domain/")) {
+    return stripExt(path.posix.join("src/domain", specifier.slice("@micro-domain/".length)));
+  }
+  if (specifier.startsWith("@/") && !specifier.startsWith("@micro-domain/")) {
+    return stripExt(path.posix.join(CLIENT_SRC_PREFIX, specifier.slice(2)));
+  }
+  if (specifier.startsWith(".")) {
+    const resolved = path.resolve(path.dirname(fromFile), specifier);
+    return stripExt(path.relative(repoRoot, resolved).split(path.sep).join("/"));
+  }
+  return null;
+}
+
+/** أساس R6: ملف JSON مسجل — غيابه = قائمة فارغة (لا يفلت شيء بوجوده أو غيابه). */
 export function loadUiApplicationImportBaseline(repoRoot) {
   const baselinePath = path.join(repoRoot, "scripts", "ui-application-import-baseline.json");
   try {
@@ -239,37 +246,24 @@ export function collectAllImports(repoRoot, files) {
 }
 
 /* ─── الأساس المقبول (ratchet baseline) ────────────────────────────────────
- * مصدر الأساس: القياس الحي عند تنفيذ Wave 4E (سجل الجرد v1.2 + رسم الاستيراد)
- * مطابقًا لسجل الاستثناءات في سجل الملكية §5. التحديث عمدًا في نفس الـPR
- * المصورة الحافة/الاستيراد الجديد، مع صف السجل. */
+ * مصدر الأساس: القياس الحي عند Wave 4E (سجل الجرد v1.2) مطابقًا لسجل الملكية
+ * §5؛ التحديث عمدًا بنفس الـPR مع صف السجل. */
 
-/** R1: الاستيرادات العميقة المسجلة داخل المجال من خارجه (كلها ديناميكية موثقة).
- * Wave F (ADR-013، 2026-10-04): فحص MIC-18 انتقل حرفيًا من integrityCheckService.ts
- * إلى بيته الشقيق integrityCheckSettlementBasis.ts — الحافة الموثقة نفسها
- * (STR-205/STR-313) انتقلت معه؛ تحديث الأساس في نفس الـPR وفق بروتوكول الحارس.
- * Wave F شريحة ٢ (ADR-013 عنقود ٣، 2026-10-04): قراءة المؤشرات انتقلت حرفيًا من
- * projectFinancialService.ts إلى بيته الشقيق projectFinancialInsights.ts — حافة
- * operatingBreakEven الموثقة D-034 نفسها (خارج حزمة الدخول عمدًا) انتقلت معها. */
+/** R1: الاستيرادات العميقة المسجلة داخل المجال من خارجه (كلها ديناميكية
+ * موثقة — Wave F/ADR-013 نقلت حافتين حرفيًا لبيوت شقيقة بنفس الـPR). */
 export const DEEP_DOMAIN_IMPORT_BASELINE = [
-  /* S04 (DOC-013، 2026-10-28): سياسة رصد الأرصدة تُحمَّل مع خدمة العدّ
-   * الديناميكية خارج حزمة الدخول — نفس علة D-034 الموثقة أعلاه؛ إرساء
-   * الحافة في نفس الـPR وفق البروتوكول. */
+  /* S04 (DOC-013، 2026-10-28): نفس علة D-034 — إرساء بنفس الـPR. */
   "apps/prototype-web/client/src/application/cash/cashCountService.ts -> @micro-domain/cash-continuity/observationPolicy.js",
   "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts -> @micro-domain/craft-order/settlementInvariant.js",
   "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
 ];
 
-/** R2: حواف القيمة المباشرة المسجلة من الواجهة إلى المجال (STR-106).
- * Wave H (STR-617 بند 4، 2026-10-04): حافتا العرض المسجلتان بعد ضم presentation
- * إلى UI_LAYERS — formatters.ts انتقلت إلى التطبيق في Wave B فلم تبقَ. */
+/** R2: حواف القيمة المباشرة المسجلة من الواجهة إلى المجال (STR-106) —
+ * presentation ضُمّت لـUI_LAYERS في Wave H (STR-617 بند 4). */
 export const UI_TO_DOMAIN_VALUE_BASELINE = [
-  /* R10-B4/F-021 (2026-10-12): اشتقاقات قراءة الدومين التي حلّت أعلى مرايا
-   * F-049 انحرافًا — previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal
-   * وstandingDepositMinorOf/pendingDepositSettlementMinorOf/
-   * unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf. نفس نمط
-   * السوابق المسجلة (knowledgeGapsOf/residualOf): اشتقاق دومين صرف يُستهلك
-   * للعرض؛ التسجيل في نفس الـPR الذي أدخل الحافة (بروتوكول الراتشة). */
+  /* R10-B4/F-021 (2026-10-12): اشتقاقات دومين صرف تُستهلك للعرض
+   * (previewSupplierPurchase*، *DepositMinorOf…) — تسجيل بنفس الـPR. */
   "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx -> @micro-domain/craft-order/index.js",
   "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx -> @micro-domain/supplier-purchase/index.js",
   "apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx -> @micro-domain/financial-event/index.js",
@@ -288,43 +282,34 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
   "apps/prototype-web/client/src/presentation/ownerEntitlementPresentation.ts -> @micro-domain/owner-entitlement/index.js",
 ];
 
-/** R3: حواف القيمة المسجلة من التطبيق إلى العرض (STR-203). */
-/** R3: حواف القيمة من التطبيق إلى العرض — **صفر بعد Wave B (ADR-011 §2،
- * 2026-10-03):** استُخرجت مفردات التنسيق/التسميات/عرض الاتفاق النقية إلى
- * بيوت تطبيقية (@/application/formatting/formatters، activity/activityLabels،
- * agreements/agreementPresentation) وواجهة العرض صارت تعيد التصدير (الاتجاه
- * الصحيح). أي حافة جديدة تطبيق→عرض يرفضها الحارس من جديد. */
+/** R3: حواف القيمة من التطبيق إلى العرض (STR-203) — **صفر بعد Wave B
+ * (ADR-011 §2):** استُخرجت مفردات العرض النقية إلى بيوت تطبيقية وواجهة
+ * العرض تعيد التصدير؛ أي حافة جديدة تُرفض. */
 export const APPLICATION_TO_PRESENTATION_VALUE_BASELINE = [];
 
-/** R4 (Wave H — STR-617 بند 2، 2026-10-04): الأزواج العميقة المسجلة العابرة
- * للمناطق داخل المجال نفسه — الأزواج الثلاثة الموثقة في سجل الملكية §5
- * (STR-030 مستعار التسمية + مستورد النوع؛ إعادة تصدير سياق الهدر من مالكه
- * الكنوني). أي زوج جديد يرفض حتى صف سجل موثق. */
+/** R4 (Wave H — STR-617 بند 2): الأزواج العميقة المسجلة العابرة للمناطق
+ * داخل المجال نفسه (الأزواج الثلاثة الموثقة في سجل الملكية §5 — STR-030). */
 export const DOMAIN_CROSS_AREA_DEEP_BASELINE = [
   "src/domain/recurring-expense/policies.ts -> ../financial-event/types.js",
   "src/domain/recurring-margin/policies.ts -> ../inventory-material/policies.js",
   "src/domain/recurring-margin/types.ts -> ../inventory-material/types.js",
 ];
 
-/** R5 (Wave H — STR-617 بند 3، 2026-10-04): حافتا القيمة الموثقتان من
- * واجهة المستخدم إلى تخزين زمن التشغيل (مكمل ESLint النصي بحلّ الاستيرادات) —
- * الاستثناءان المقيدان بشروط إزالة مسار UI في سجل الملكية. */
+/** R5 (Wave H — STR-617 بند 3): حافتا القيمة الموثقتان من واجهة المستخدم
+ * إلى تخزين زمن التشغيل — الاستثناءان المقيدان بشروط إزالة مسار UI. */
 export const UI_TO_STORAGE_VALUE_BASELINE = [
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/createBrowserLocalStore",
   "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/persistentStorage",
 ];
 
-/** R7 (R8-F-019، 2026-10-10): استثناءات مكوّن->صفحة الموثقة بقرار مالك —
- * فارغة عند التأسيس (الشجرة الحية صفر حواف بهذا الاتجاه). أي إضافة مستقبلية
- * تتطلب صف سجل ملكية ومرجع قرار، ولا تُقبل كأساس انجراري. */
+/** R7 (R8-F-019): استثناءات مكوّن->صفحة الموثقة بقرار مالك — فارغة عند
+ * التأسيس؛ أي إضافة تتطلب صف سجل ملكية ومرجع قرار، لا أساس انجراري. */
 export const COMPONENT_TO_PAGE_BASELINE = [];
 
-/** R8 (R11 W1A-1 / D-01 — R10A-F-006، OD-GUARD الخيار A، 2026-10-14):
- * الأساس الكامل لحواف النوع فقط من طبقات الواجهة إلى التخزين — 19 مفتاحًا
- * مقيسة حية عند 5ef4ce08 (كلها إلى `@/storage/local/types`): 12 صفحة +
- * 5 مكوّنات + ملفَا app-shell الموثقان (StartupGate، PrototypeServicesContext
- * — نفس استثنائي R5 القيميَين). النمط النوعي نفسه قانوني بتصرية ESLint؛
- * الراتشة تمنع النمو الصامت والانكماش غير الموثق فحطمًا. */
+/** R8 (R11 W1A-1 / D-01 — OD-GUARD الخيار A): الأساس الكامل لحواف النوع
+ * فقط من طبقات الواجهة إلى التخزين — قياس حي عند 5ef4ce08 (صفحات +
+ * مكوّنات + ملفا app-shell؛ النمط مصرَّح به في ESLint)؛ الراتشة تمنع
+ * النمو الصامت والانكماش غير الموثق فحسب. */
 export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
@@ -334,20 +319,15 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx -> @/storage/local/types",
   /* S03/DOC-012 (2026-10-28، نفس-الـPR): +1 موثقة — قسم بيانات المشروع
-   * يستورد نوع ActivityProfile الكنوني وحده (نفس نمط قسمَي الإعدادات
-   * القائمين)؛ الصف المقابل في سجل الملكية §5. */
+   * يستورد نوع ActivityProfile الكنوني وحده؛ الصف في سجل الملكية §5. */
   "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
   /* EX-D23 M6 (DOC-040، 2026-11-14، نفس-الالتزام): +1 موثقة — حارس الوضع
-   * المتصل-فقط يحتاج نوع PrototypeLocalStore وحده ليغلف المخزن الوحيد
-   * بوكيل الحارس (نفس نمط ملفَي app-shell الموثقين)؛ النوع وحده لا قيمة
-   * تخزينية، والغلاف معطل بنيويًا حتى قرار المشغل. */
+   * المتصل-فقط يستورد نوع PrototypeLocalStore وحده (تغليف بوكيل الحارس). */
   "apps/prototype-web/client/src/app/manageOnlineGuard.ts -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
   /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): +4 موثقة —
-   * أسطح التخطيط تستورد الأنواع وحدها (القيم عبر الخدمات): محرر المجموعة
-   * والمحفوظات والحاسبة من أنواع حساب T01 المحفوظة، ومحرر التوافق يستورد
-   * نوع CostEstimate الكنوني وحده. */
+   * أسطح التخطيط تستورد الأنواع وحدها (القيم عبر الخدمات). */
   "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
   "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
@@ -362,9 +342,9 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/pages/Settings.tsx -> @/storage/local/types",
 ];
 
-/** R8 — المجموعة التاريخية الـ17 (إحصاء RV1/R10-A: صفحات/مكوّنات فقط، بلا
- * ملفَي app-shell) — تُحفظ للمقارنة التاريخية المسماة لا كأساس تنفيذي؛
- * يتحقق الاختبار أنها مجموعة جزئية صارمة من الأساس الكامل فوقه. */
+/** R8 — المجموعة التاريخية الـ17 (إحصاء RV1/R10-A: صفحات/مكوّنات فقط) —
+ * تُحفظ للمقارنة التاريخية المسماة لا كأساس تنفيذي؛ الاختبار يتحقق
+ * أنها مجموعة جزئية صارمة من الأساس الكامل. */
 export const UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17 = [
   "apps/prototype-web/client/src/components/cost/MaterialSheet.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/forms/useFormDraft.ts -> @/storage/local/types",
@@ -555,6 +535,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
     houseEdges: 0,
     houseEdgesValue: 0,
     houseEdgesType: 0,
+    clientToManage: 0,
+    manageDomainForeign: 0,
   };
   const domainArea = f => (f.match(/src\/domain\/([^/]+)\//) || [])[1] ?? null;
 
@@ -619,8 +601,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
         }
       }
     }
-    /* R5 (Wave H — STR-617 بند 3): قيمة من واجهة المستخدم إلى تخزين زمن
-     * التشغيل — resolution-based فلا إفلات بمسار نسبي. */
+    /* R5 (Wave H — STR-617 بند 3): قيمة واجهة→تخزين زمن التشغيل — resolution-based. */
     if (UI_LAYERS.has(imp.layer) && imp.kind === "value" && imp.resolved?.startsWith("apps/prototype-web/client/src/storage/")) {
       stats.uiToStorage += 1;
       const key = `${imp.file} -> ${imp.specifier}`;
@@ -632,9 +613,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
-    /* R6 (الخطوة ٦ — STR-615 الشاملة): استيراد عميق من طبقات الواجهة إلى
-     * دواخل بيوت التطبيق (قيمة أو نوع — الحد مساري لا قيمي). الباب هو
-     * `application/<house>/index.ts` حصرًا. */
+    /* R6 (STR-615): استيراد عميق من طبقات الواجهة إلى دواخل بيوت التطبيق
+     * (قيمة أو نوع — الحد مساري)؛ الباب `application/<house>/index.ts` حصرًا. */
     if (R6_LAYERS.has(imp.layer) && applicationInteriorOf(imp.resolved) !== null) {
       stats.uiToApplicationDeep += 1;
       const key = `${imp.file} -> ${imp.resolved}`;
@@ -648,10 +628,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
-    /* R7 (R8-F-019، 2026-10-10): مكوّن -> صفحة — فئة انحدار دورة المالية.
-     * طبقيًا كلاهما ui؛ التمييز بالمسار الحلولي (resolution-based) فلا إفلات
-     * بمستعار أو نسبي، وكل نوع استيراد يُقبض (الجمع يغطي القيمة والنوع
-     * والديناميكي وImportTypeNode وإعادة التصدير). الاتجاه المعاكس قانوني. */
+    /* R7 (R8-F-019): مكوّن -> صفحة — فئة انحدار دورة المالية؛ التمييز بالمسار
+     * الحلولي وكل أنواع الاستيراد مقبوضة؛ الاتجاه المعاكس قانوني. */
     if (
       imp.file.startsWith("apps/prototype-web/client/src/components/") &&
       imp.resolved?.startsWith("apps/prototype-web/client/src/pages/")
@@ -666,9 +644,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
-    /* R8 (R11 W1A-1 / D-01، 2026-10-14): حافة نوعية من طبقات الواجهة إلى
-     * التخزين — راتشة على النمط المصرَّح به (R10A-F-006/OD-GUARD). النمو
-     * الصامت يُرفض، والانكماش غير الموثق يُرفض (نظافة الأساس نفس-الـPR). */
+    /* R8 (R11 W1A-1 / D-01): حافة نوعية واجهة→تخزين — راتشة على النمط المصرَّح
+     * به؛ النمو الصامت والانكماش غير الموثق يُرفضان (نظافة نفس-الـPR). */
     if (UI_LAYERS.has(imp.layer) && imp.kind === "type" && imp.resolved?.startsWith("apps/prototype-web/client/src/storage/")) {
       stats.uiToStorageType += 1;
       const key = `${imp.file} -> ${imp.specifier}`;
@@ -682,9 +659,36 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
+    /* R10 (M1.6/§14.1–14.3/D-5): العميل لا يستورد مجال مانج ولا معالجاته
+     * السيرفرية (قيمة/نوع/ديناميكي؛ بلا أساس) — الافتراضي يصطاد قبل وجود الملفات. */
+    const virtualTarget = virtualImportTarget(imp.specifier, path.join(repoRoot, imp.file), repoRoot);
+    if (imp.file.startsWith(`${CLIENT_SRC_PREFIX}/`) && virtualTarget !== null) {
+      if (isUnderPrefix(virtualTarget, MANAGE_DOMAIN_PREFIX) || isUnderPrefix(virtualTarget, MANAGE_WORKER_APPLICATION_PREFIX)) {
+        stats.clientToManage += 1;
+        violations.push({
+          rule: "R10-client-to-manage-import",
+          key: `${imp.file} -> ${imp.specifier}`,
+          hint: "استيراد من العميل إلى مجال مانج أو معالجاته السيرفرية (M1.6/§14.3/D-5): العميل API رفيع + عرض + كاش بلا أي حساب؛ أزل الحافة — لا استثناءات مسجلة",
+        });
+      }
+    }
+    /* R11 (M1.6 — §14.3): مجال مانج يستورد شجرته وsrc/domain/shared حصرًا —
+     * أي هدف داخلي آخر (مجال آخر/عميل/عامل) يُرفض؛ الخارجي شأن ناشره. */
+    if (
+      virtualTarget !== null &&
+      isUnderPrefix(imp.file, MANAGE_DOMAIN_PREFIX) &&
+      !isUnderPrefix(virtualTarget, MANAGE_DOMAIN_PREFIX) &&
+      !isUnderPrefix(virtualTarget, "src/domain/shared")
+    ) {
+      stats.manageDomainForeign += 1;
+      violations.push({
+        rule: "R11-manage-domain-import",
+        key: `${imp.file} -> ${imp.specifier}`,
+        hint: "مجال مانج يستورد هدفًا داخليًا خارج شجرته وshared (M1.6/§14.3): مانج وحدة منفصلة داخل التطبيق؛ أزل الحافة — لا استثناءات مسجلة",
+      });
+    }
   }
-  /* R6 — نظافة الأساس: صف غادر الشجرة الحية (هجرة/حذف) يُزال من الملف
-   * في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
+  /* R6 — نظافة الأساس: صف غادر الشجرة يُزال من الملف في نفس الـPR. */
   for (const key of r6Allowed) {
     if (!r6Seen.has(key)) {
       violations.push({
@@ -829,8 +833,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
       }
     }
   }
-  /* R8 — نظافة الأساس: مفتاح غادر الشجرة (هجرة/حذف/تحويل لقيمة) يُزال من
-   * الثابت في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
+  /* R8 — نظافة الأساس: مفتاح غادر الشجرة يُزال من الثابت في نفس الـPR. */
   for (const key of uiToStorageType) {
     if (!r8Seen.has(key)) {
       violations.push({
@@ -860,7 +863,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 130/81/49 مع إعفاءات OD-10 الورقية)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 130/81/49 مع إعفاءات OD-10 الورقية)؛ ${stats.clientToManage} حافة عميل→مانج و${stats.manageDomainForeign} حافة أجنبية من مجال مانج (صفر مسموح — R10/R11 جاهزتان قبل كود مانج، M1.6/§14.3/D-5)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019 + M1.6/R10-R11)`,
   );
 }
 

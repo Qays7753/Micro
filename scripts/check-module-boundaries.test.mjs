@@ -898,3 +898,136 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
     expect(edges[0].kind).toBe("type");
   });
 });
+
+describe("R10/R11 (M1.6 — manage-v2 phase 1, §14.1–14.3/D-5: client isolation + manage-domain purity)", () => {
+  it("R10: a client file importing the manage domain via alias (barrel or bare) is rejected — type or value", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/manage/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/ManageLeak.tsx",
+      'import type { T } from "@micro-domain/manage/index.js";\nexport type X = T;\n',
+    );
+    write(
+      root,
+      "apps/prototype-web/client/src/application/manage/service.ts",
+      'import { v } from "@micro-domain/manage";\nexport const s = v;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r10 = result.violations.filter(v => v.rule === "R10-client-to-manage-import");
+    expect(r10).toHaveLength(2);
+    expect(r10.some(v => v.key.includes("pages/ManageLeak.tsx"))).toBe(true);
+    expect(r10.some(v => v.key.includes("application/manage/service.ts"))).toBe(true);
+    expect(result.stats.clientToManage).toBe(2);
+  });
+
+  it("R10: a RELATIVE client import into src/domain/manage is caught even when the target file does not exist yet", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/shared/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/RelativeLeak.tsx",
+      'import { v } from "../../../../../src/domain/manage/money/index.js";\nexport const p = v;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r10 = result.violations.filter(v => v.rule === "R10-client-to-manage-import");
+    expect(r10).toHaveLength(1);
+    expect(r10[0].key).toContain("pages/RelativeLeak.tsx");
+  });
+
+  it("R10: a client import into worker/application/manage (relative, real worker location) is caught — target need not exist", () => {
+    const root = makeTempDir();
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/WorkerLeak.tsx",
+      'import { handler } from "../../../worker/application/manage/createExpense.js";\nexport const p = handler;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r10 = result.violations.filter(v => v.rule === "R10-client-to-manage-import");
+    expect(r10).toHaveLength(1);
+    expect(r10[0].key).toContain("pages/WorkerLeak.tsx");
+  });
+
+  it("R10: lookalike area names (management, market) are NOT the manage area — no over-matching", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/management/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/market/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Lookalike.tsx",
+      'import type { T } from "@micro-domain/management/index.js";\nimport type { M } from "@micro-domain/market";\nexport type X = T;\nexport type Y = M;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R10-client-to-manage-import")).toEqual([]);
+    expect(result.stats.clientToManage).toBe(0);
+  });
+
+  it("R10: non-client sources are not this rule's business (a domain file importing the manage barrel is left to R11/§14)", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/manage/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/widget/consumer.ts", APP_SERVICE("@micro-domain/manage/index.js"));
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R10-client-to-manage-import")).toEqual([]);
+  });
+
+  it("R11: a manage-domain file importing its own subtree and src/domain/shared passes (both spellings)", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/shared/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/manage/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "src/domain/manage/money/math.ts",
+      [
+        'import { v } from "../index.js";',
+        'import type { T } from "@micro-domain/shared/index.js";',
+        "export const m = v;",
+      ].join("\n"),
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R11-manage-domain-import")).toEqual([]);
+    expect(result.stats.manageDomainForeign).toBe(0);
+  });
+
+  it("R11: a manage-domain file importing another domain area (even its barrel, even type-only) is rejected", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/craft-order/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/manage/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "src/domain/manage/money/math.ts",
+      'import type { T } from "@micro-domain/craft-order/index.js";\nexport type X = T;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r11 = result.violations.filter(v => v.rule === "R11-manage-domain-import");
+    expect(r11).toHaveLength(1);
+    expect(r11[0].key).toContain("src/domain/manage/money/math.ts");
+    expect(result.stats.manageDomainForeign).toBe(1);
+  });
+
+  it("R11: client/worker internals from the manage domain are rejected; external packages are not repo paths", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/manage/clientService.ts", "export const cs = 1;\n");
+    write(
+      root,
+      "src/domain/manage/money/leak.ts",
+      [
+        'import { cs } from "@/application/manage/clientService";',
+        'import { h } from "../../../../apps/prototype-web/worker/application/manage/handler.js";',
+        'import { e } from "some-external-package";',
+        "export const l = cs;",
+      ].join("\n"),
+    );
+    const result = checkModuleBoundaries(root);
+    const r11 = result.violations.filter(v => v.rule === "R11-manage-domain-import");
+    expect(r11).toHaveLength(2);
+    expect(result.stats.manageDomainForeign).toBe(2);
+  });
+
+  it("the live repository has zero R10/R11 violations (no Manage code yet — the rules stand ready)", () => {
+    const result = checkModuleBoundaries(REPO_ROOT);
+    expect(result.ok).toBe(true);
+    expect(result.violations.filter(v => v.rule.startsWith("R10") || v.rule.startsWith("R11"))).toEqual([]);
+    expect(result.stats.clientToManage).toBe(0);
+    expect(result.stats.manageDomainForeign).toBe(0);
+  });
+});
