@@ -90,6 +90,14 @@ Update **your section only** in `docs/manage-v2/TRACKER.md` for this task: statu
 
 ---
 
+
+### 10. Autonomous Self-Correction & Verification (MANDATORY)
+As the sole execution agent, you are responsible for end-to-end delivery and verification. 
+- **No sub-agents:** Do not spawn external sub-agents for testing or reviewing; handle everything sequentially in this main agent to prevent hangs.
+- **Self-Fix Loop:** If `pnpm test`, `typecheck`, or `pnpm guards` fails, DO NOT stop and report the failure. Read the error, identify the root cause, and fix it yourself. Repeat the verification loop until the wave gate is 100% green. 
+- **Baseline/Registry Hygiene:** If your valid code triggers a hygienic guard (e.g., `registry-coverage`, `door-surfaces`, `readwrite`, `label-vocabulary`, `test-map`), you are explicitly authorized to update the corresponding registry file, baseline JSON, or whitelist in the same commit to make the guard pass. You do not need to ask permission to fix a guard that your own changes broke.
+- **Zero-Defect Delivery:** Never deliver a red state. Only report `BLOCKED` if there is a fundamental spec contradiction or an architectural conflict that cannot be solved via code or baseline updates.
+
 ## Short chat launcher (owner → ZAI)
 
 > Repo: https://github.com/Qays7753/Micro — branch `feature/manage-v2`. Read and follow `docs/manage-v2/tasks/<PHASE-PROMPT>` from the current remote head. Verify live state first, preserve existing work, execute only the named wave (its tasks in order, one commit and one tracker entry per task), tests first. Run the wave gate (guards / test / typecheck) at the end, deliver the report as a committed file and give me its full GitHub link — no chat attachments. Then stop at the wave boundary.
