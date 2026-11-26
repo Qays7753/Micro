@@ -108,7 +108,7 @@
     - نطاق القبول: `corepack pnpm --filter @micro/prototype-web test` → **٤٧٥ ملفًا / ٣٧٨٢ اختبارًا كلها ناجحة**؛ `corepack pnpm typecheck` ناجح؛ `corepack pnpm --filter @micro/prototype-web exec tsc --noEmit` ناجح؛ `corepack pnpm lint` → ٠ أخطاء / ٣٥ تحذيرًا (= الأساس نفسه).
     - قبول النص الحرفي: `grep -R "readSourceEstimate" client/src` → لا شيء.
   - ملاحظات: الاختبارات الشاهدة على السلوك المحذوف: `orderDetailViewModel.test.ts` (سطح التصدير الكامل بلا قارئ تقدير مصدر)، `OrderDetail.noEstimateLink.dom.test.tsx` (جديد: لا نداء لخدمتي المسودات/التقديرات ولا عرض للمقطع رغم مسودة مرتبطة تحمل معرّف تقدير حيًّا في المخزن)، `G3.dom.test.tsx` (قلبت تأكيدات رابط التقدير إلى نفيها وأبقت تأكيد تسميات التصحيح). ملف اختبار الصفحة أُنشئ أولًا داخل `pages/` ثم نُقل إلى جذر `client/src` (نمط G3/G4) التزامًا بحد استيراد التخزين للصفحات — المنطق نفسه بلا تغيير. حُذف استيراد `ArrowLeft` لأن استخدامه الوحيد كان في المقطع المحذوف (إبقاؤه كان يكسر أساس تحذيرات اللينت). استيرادان غير مستخدمَين في `OrderDetail.tsx` (`CircleDollarSign`، `Save`) كانا كذلك قبل المهمة وبقيا — خارج نطاقها.
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.3 — إزالة المسودة المالية من «اسأل Micro»
 - **ZAI:** `DONE` — 26/11/2026
@@ -120,8 +120,9 @@
     - نطاق القبول: `corepack pnpm --filter @micro/prototype-web test` → **٤٧٧ ملفًا / ٣٧٨١ اختبارًا كلها ناجحة**؛ `corepack pnpm test` (الجذر) → **٨٦ ملفًا / ١٠٣١ اختبارًا كلها ناجحة** (بعد مصالحة أدلة الحراس — بند الملاحظات)؛ `corepack pnpm typecheck` ناجح؛ `pnpm --filter @micro/prototype-web exec tsc --noEmit` ناجح؛ `corepack pnpm guards` → كل الفحوص PASS (exit 0)؛ `corepack pnpm lint` → ٠ أخطاء / ٣٥ تحذيرًا (= الأساس).
     - قبول النص الحرفي: `grep -R "AskDraftCard\|constructFinancialEventRecord" client/src/pages/AskMicro.tsx client/src/components/ask` → لا شيء.
   - ملاحظات: الاختبارات الشاهدة: `AskMicro.noFinancialDraft.dom.test.tsx` (جديد: اقتراح حدث مالي من الخادم لا يعرض بطاقة ولا يكتب إلى `/api/manage/records`) و`AskMicro.noFinancialDraft.scan.test.ts` (جديد: مسح مصدر الصفحة + `components/ask` بلا أي إشارة للبطاقة/البنّاء/العائلة) و`AskMicro.dom.test.tsx` (استُبدلت اختبارات بطاقة حجز التوصيل الثلاثة بواحد يشهد على الغياب: لا بطاقة ولا جلب سائقين ولا كتابة) و`AskMicro.governance.dom.test.tsx` (قُلبت اختبارات §10.2-5 إلى نفيها). `scripts/check-diagnostics-storage.test.mjs`: دبوس عدّ الملفات ٤٣٧→٤٣٦ (اختبار يذكر البطاقة صراحة وتغيّره مفروض بالحذف — بروتوكول التوثيق نفسه المتبع تاريخيًا). مصالحة أدلة الحراس الأخرى التي فرضها نطاق الموجة (صفوف الجرد الجانحة لـM1.2، خريطة الاختبارات، الذهبي لكثافة النص لـM1.3) في الالتزام الملاصق الموثق — نمط «gate-fix» المعتمد (سابقة f689854e). `result.draft` بقيت في عقد الخادم دون استهلاك عند الصفحة عمدًا حتى إعادة التصميم.
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
+- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
 #### M1.4 — (نُقلت إلى M2.12)
 - **ZAI:** `DEFERRED` — السبب: تعتمد على الجداول الجديدة (قرار المالك 25/11/2026).
 - **مانوس:** `ACCEPTED` — النقل مسجَّل في PLAN.md وTRACKER.md.
@@ -143,27 +144,27 @@
     - إثبات القبول بأداة مخالفة مقصودة: ملفا إثبات (عميل يستورد برميل مانج `@micro-domain/manage/index.js` ومعالجة سيرفرية نسبية `../../../worker/application/manage/createExpense.js`؛ ومجال مانج يستورد `../planning/index.js`) → `node scripts/check-module-boundaries.mjs` → **FAIL (exit 1) بثلاث مخالفات** `[R10-client-to-manage-import] ×2` و`[R11-manage-domain-import]`، ثم أُزالا فورًا → **PASS (exit 0)** والشجرة نظيفة (`git status` لا يظهر أثرًا لهما).
     - بوابة الموجة: `corepack pnpm guards` → **٢٠ فحصًا كلها PASS، صفر FAIL (exit 0)**؛ `corepack pnpm test` → **٨٦ ملفًا / ١٠٤٠ اختبارًا كلها ناجحة (صفر فاشلة؛ كانت ١٠٣١ قبل الموجة)**؛ `corepack pnpm typecheck` → ناجح (exit 0)؛ و`corepack pnpm lint` (استكمالًا لا شرطًا) → ٠ أخطاء / ٣٥ تحذيرًا (= الأساس نفسه).
   - ملاحظات: (١) راتشة الحجم: الملف `SPLIT_CANDIDATE` بسقف ٨٤٠ nbLoc (إرساء موثق سابق 822→840 بمدخل ledger معتمد)؛ أي نمو فوق السقف يحتاج إرساءً بترخيص OC وملف الإرساء خارج الملفات المسموحة لـM1.6 — فكُثِّفت تعليقات التوثيق في الرأس وداخل الملف (كل معرّفات المرجع محفوظة: STR-617/615، ADR-011/013، D-034/01/07، R8-F-005/006/019، R10A/R10B، OD-GUARD/OD-10، DOC-012/013/019/040، UNIT-030..032، S04/S03/S10، STR-030/106/203/204c/205) مع إبقاء قيم الأسس حرفية؛ القياس النهائي ٨٤٠ nbLoc بالضبط وfile-size-ratchet ضمن الـguards الأخضر. (٢) مسار العامل المحظور على العميل هو `apps/prototype-web/worker/application/manage` — موقع `worker/` الفعلي في المستودع داخل `apps/prototype-web/`؛ أمر الموجة يذكره منطقيًا `worker/application/manage`. (٣) حدود مسح الحارس (SCAN_ROOTS) لا تشمل ملفات `worker/` نفسها — قواعد الاتجاه الداخلي للعامل (api→application→domain) تحتاج توسيع مسح مستقبليًا بقرار مالك؛ القاعدتان المطلوبتين في الأمر تعملان على المصادر الممسوحة (client/domain) بالكامل. (٤) ملاحظة أمانة (خارج نطاقي): قسم مانوس لهذه المهمة كان يقول قبل التنفيذ «المراجعة `DONE`/`ACCEPTED` — التقرير في `reviews/WAVE-A-review-AR.md`» — حرفيٌّ من مراجعة الموجة A (لم يكن لكود M1.6 وجود حينها)؛ لم يُمسّ (قسم مانوس لمَنوس وحده) ويُحسم في مراجعة الموجة B.
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.7 — وحدة الفلس
 - **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات:
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.8 — كتالوج نصوص مانج
 - **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات:
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.9 — جرد الحذف وحارس الاستيراد المحذوف
 - **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات:
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.10 — تحديث حراس CI
 - **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات:
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 #### M1.11 — إضافة knip وضبط نطاقه
 - **ZAI:** `TODO` — commit: — الاختبارات: — ملاحظات: النطاق الأدنى: مسارات مانج وأدواتي.
-- **مانوس:** المراجعة: `DONE` — التصحيحات: راجعت diff والالتزامات، الاختبارات، الحراس (guards، test، typecheck) كلها نجحت. التقرير في `reviews/WAVE-A-review-AR.md`. — القرار: `ACCEPTED`.
+- **مانوس:** المراجعة: `PENDING` — التصحيحات: — القرار:
 
 ---
 
