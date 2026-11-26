@@ -12694,6 +12694,44 @@
         "trigger": "post-group6-ask-pair-protocol",
         "ocRef": "DOC-041"
       }
+    },
+    {
+      "id": "arch007-2026-11-26-m19a-door-baseline-registration",
+      "date": "2026-11-26",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 617,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 628,
+        "band": "WATCH"
+      },
+      "reason": "M1.9a (Wave C — guard re-anchoring per the phase-1 execution order + the owner's updated M1.9a authorization 2026-11-26, commit dbabe541): registering the manage/strings door in the door-surfaces baseline with its pinned live surface (3 values — MANAGE_STRING_KEYS, MANAGE_STRINGS_AR, t — plus one type — ManageStringKey; the minimal registration is 9 lines, no smaller); the same documented door-widening pattern as doc040-2026-11-14-m3-network-door-surface. No threshold, band, or guard semantics touched.",
+      "authorization": {
+        "ownerReview": "Owner's updated M1.9a task text (phase-1-prompt-EN.md, commit dbabe541 «authorize ZAI to fix the diagnostic-storage pin and the file-size ratchet too», 2026-11-26) — item 6 authorizes these ledger entries in the standard format; the manage-v2 program holds no Operations Control record of its own as of this date (items/workstreams checked — the Wave-C report question), so the referral follows the ledger-native governing record ARCH-007 (the first-named referral precedent; the same pattern as the 67 backfilled v1 entries); the full human-auditable owner review is this text.",
+        "trigger": "Wave C M1.9a items 2+6 — the size ratchet requires a documented re-anchor for any growth above the baseline",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "arch007-2026-11-26-m19a-readwrite-corpus-registration",
+      "date": "2026-11-26",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 370,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "reason": "M1.9a (Wave C — guard re-anchoring per the phase-1 execution order + the owner's updated M1.9a authorization 2026-11-26, commit dbabe541): registering the three manage/strings files (ar.ts, index.ts, keys.ts) in the guarded read-like corpus with the dated D-04 classification the protocol itself mandates (3 entry lines + the dated classification comment); the same documented corpus-addition pattern as doc040-2026-11-14-m3-readlike-corpus. No threshold, band, or guard semantics touched.",
+      "authorization": {
+        "ownerReview": "Owner's updated M1.9a task text (phase-1-prompt-EN.md, commit dbabe541 «authorize ZAI to fix the diagnostic-storage pin and the file-size ratchet too», 2026-11-26) — item 6 authorizes these ledger entries in the standard format; the manage-v2 program holds no Operations Control record of its own as of this date (items/workstreams checked — the Wave-C report question), so the referral follows the ledger-native governing record ARCH-007 (the first-named referral precedent; the same pattern as the 67 backfilled v1 entries); the full human-auditable owner review is this text.",
+        "trigger": "Wave C M1.9a items 3+6 — the read-like corpus guard requires classifying new files in the same commit and a documented re-anchor for the growth",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }
