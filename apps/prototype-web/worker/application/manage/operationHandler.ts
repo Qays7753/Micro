@@ -1,0 +1,309 @@
+/**
+ * M2.4 (Manage v2 phase 2, wave F — spec §14.1, R-11, R-12, R-23, R-25,
+ * SRV-03, T55): THE single server-side operation handler every §5 operation
+ * goes through from M2.5 on. Shape (task text, binding):
+ *
+ *   validate input → load state in the transaction → run the domain
+ *   function → write operation + entries + postings → commit.
+ *
+ * Atomic idempotency (SRV-03 — the security-critical core): the request id
+ * reservation happens INSIDE the same transaction as the writes, with the
+ * `manage_v2_idempotency` UNIQUE (project_id, request_id) constraint doing
+ * the arbitration (migration 0019). There is NO idempotency read outside the
+ * transaction: a concurrent duplicate loses the INSERT race inside its own
+ * transaction and rolls back completely (R-12) — the same request can never
+ * apply twice and never half-apply. A failure of ANY step rolls back
+ * everything INCLUDING the reservation, so an honest retry re-executes.
+ *
+ * Why this is NOT the network-layer `idempotency` table (worker/idempotency.ts):
+ * that surface is HTTP-shaped (key scoped to a session cookie, response
+ * stored AFTER the handler returns — outside the operation's transaction).
+ * Manage v2 owns its reservation at the operation boundary (R-25: "every
+ * save carries a client-generated request id"), scoped to the PROJECT not
+ * the session, committed atomically WITH the operation rows. The route layer
+ * (M2.5+) may still wrap with `command()` for transport idempotency; this
+ * handler is the source of truth for "applied at most once per (project,
+ * request id)".
+ *
+ * Purity boundary (§14.1): this module contains NO financial calculation.
+ * Entries arrive BUILT and VALIDATED from the M2.2 domain builder
+ * (buildLedgerEntry — the per-entry §3.8 equation already checked there,
+ * INV-10); the handler only persists them. §8 figures are M2.11's read
+ * module alone. The client never computes or decides a figure (R-23): it
+ * sends intent (the write below) and receives the result.
+ *
+ * Money is MoneyFils (integer fils, M1.7) end to end — no number decimals,
+ * no /100, no *100. Quantities are milli-integers. Dates are Amman local
+ * date strings (YYYY-MM-DD) passed by the caller (the domain owns no clock;
+ * the operation layer above passes today from worker/clock.ts).
+ *
+ * Injected-failure test hook: `injectFailureAfterFirstWrite` exists ONLY for
+ * the M2.4 acceptance test that proves a mid-transaction failure leaves no
+ * operation, no entries and NO reservation behind. It fails the transaction
+ * deterministically after the first write, exactly as a real constraint
+ * violation or crash would.
+ */
+import postgres from "postgres";
+import type { BuiltLedgerEntry } from "../../../../../src/domain/manage/ledger/index.js";
+
+/** §3.7 operation kinds (the closed 0018 CHECK enumeration). */
+export type ManageOperationKind =
+  | "OP-SETUP"
+  | "OP-ADD-BOX"
+  | "OP-ADD-PRIOR-BALANCE"
+  | "OP-SALE-CREATE"
+  | "OP-PREPAYMENT"
+  | "OP-SALE-DELIVERY-COST"
+  | "OP-DELIVER"
+  | "OP-CANCEL-SALE"
+  | "OP-RETURN"
+  | "OP-PRICE-CORRECTION"
+  | "OP-UNDO-DELIVERY"
+  | "OP-COLLECT"
+  | "OP-WRITE-OFF"
+  | "OP-PAY"
+  | "OP-EXPENSE"
+  | "OP-OWNER-DEPOSIT"
+  | "OP-OWNER-WITHDRAWAL"
+  | "OP-TRANSFER"
+  | "OP-MERGE-BOXES"
+  | "OP-SPLIT-BOXES"
+  | "OP-TRACKER-HIDE"
+  | "OP-TRACKER-ADD"
+  | "OP-RECONCILE"
+  | "OP-RETURN-AFTER-ABSENCE"
+  | "OP-CORRECT"
+  | "OP-CANCEL-OPERATION";
+
+/** A balance_line the operation creates (§3.6) — its origin_operation_id is
+ * the operation this write commits. */
+export interface ManageBalanceLineWrite {
+  id: string;
+  direction: "to_me" | "by_me";
+  kind: string;
+  originOn: string;
+  counterpartyName?: string;
+  saleId?: string;
+}
+
+/** One §5 operation's write intent: everything the transaction persists. */
+export interface ManageOperationWrite {
+  projectId: string;
+  createdByAccountId: string;
+  /** R-25: the client-generated request id; the atomic reservation key. */
+  requestId: string;
+  kind: ManageOperationKind;
+  effectiveOn: string;
+  /** §3.7 display amount (fils); the entries are the financial truth. */
+  amountFils: number;
+  counterpartyName?: string;
+  boxId?: string;
+  saleId?: string;
+  category?: string;
+  deliveryCostFils?: number;
+  note?: string;
+  /** §3.7 payload — operation-specific inputs, persisted verbatim. */
+  payload?: unknown;
+  /** Balance lines this operation opens (§3.6); origin_operation_id is set
+   * by the handler to the committed operation's id. */
+  balanceLines?: ManageBalanceLineWrite[];
+  /** Entries BUILT AND VALIDATED by the M2.2 domain builder (never raw
+   * postings): the §3.8 per-entry equation is already enforced there. */
+  entries: BuiltLedgerEntry[];
+}
+
+/** The stored result replayed verbatim on a duplicate request. */
+export interface StoredManageOperationResult {
+  operationId: string;
+  kind: ManageOperationKind;
+  effectiveOn: string;
+  amountFils: number;
+  entryIds: string[];
+}
+
+export type ManageOperationOutcome =
+  | { outcome: "applied"; result: StoredManageOperationResult }
+  | { outcome: "replay"; result: StoredManageOperationResult }
+  | { outcome: "conflict"; reason: string };
+
+/** Test-only injection (see the header) — never set by production callers. */
+export interface ManageOperationOptions {
+  injectFailureAfterFirstWrite?: boolean;
+}
+
+/** A reserved-but-never-stored row older than this is a dead reservation
+ * (crashed worker between write and commit — impossible when the reservation
+ * is inside the transaction, kept honest for takeover anyway): the next
+ * attempt takes it over instead of blocking forever. 5 minutes, the same
+ * order as the network layer's RESERVATION_TTL_MS. */
+const RESERVATION_TAKEOVER_MS = 5 * 60 * 1000;
+
+const RESERVED_STATUS = 0;
+
+interface ReservationRow {
+  request_hash: string;
+  response_status: number;
+  response_body: string;
+  created_at: string | number;
+  reserved_at: string | number;
+}
+
+/** Operation ids are UUIDs (§3 PK); crypto.randomUUID is available in the
+ * worker runtime and in Node ≥ 19 (the test harness). */
+function operationUuid(): string {
+  return crypto.randomUUID();
+}
+
+/** Timestamp parameter: postgres.js sends Date objects through its own
+ * serialization only when typed as parameters in certain modes; an ISO
+ * string is the unambiguous TIMESTAMPTZ input form. */
+function timestamptz(ms: number): string {
+  return new Date(ms).toISOString();
+}
+
+/** Canonical request hash: the full write intent EXCEPT the reserved
+ * request id itself — a different body under the same key is the explicit
+ * E-IDEMPOTENCY-CONFLICT (SRV-03 §2.5). JSON with sorted keys would be
+ * over-engineering here: the object is built in one place, so the literal
+ * serialization is stable for identical intents. */
+async function requestHashOf(write: ManageOperationWrite): Promise<string> {
+  const { requestId: _ignored, ...rest } = write;
+  void _ignored;
+  const serialized = JSON.stringify(rest);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(serialized));
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Apply one §5 operation atomically. The caller passes a REQUEST-SCOPED
+ * postgres client (the production Db shape: one connection per request —
+ * workerd forbids cross-request socket reuse); the whole handler runs inside
+ * `sql.begin`, one transaction: reservation + operation + balance lines +
+ * entries + postings, commit or nothing (R-12).
+ */
+export async function applyManageOperation(
+  sql: postgres.Sql,
+  write: ManageOperationWrite,
+  options: ManageOperationOptions = {},
+): Promise<ManageOperationOutcome> {
+  const requestHash = await requestHashOf(write);
+  const now = Date.now();
+
+  return sql.begin(async tx => {
+    // ── Reservation INSIDE the transaction (SRV-03) ─────────────────────
+    // INSERT ... ON CONFLICT DO NOTHING + re-read: the winner owns the key
+    // and continues in THIS transaction; a live loser gets a definitive
+    // answer below. No idempotency read happens outside this transaction.
+    const inserted = await tx`
+      INSERT INTO manage_v2_idempotency
+        (project_id, request_id, request_hash, response_status, response_body, created_at, reserved_at)
+      VALUES (${write.projectId}, ${write.requestId}, ${requestHash}, ${RESERVED_STATUS}, ${""}, ${now}, ${now})
+      ON CONFLICT (project_id, request_id) DO NOTHING
+      RETURNING request_hash`;
+    if (inserted.length === 0) {
+      // Someone holds the key: a completed response (same body → replay the
+      // stored result verbatim; different body → explicit conflict), or an
+      // in-flight reservation (live → in-progress conflict; dead → takeover).
+      const existing = (
+        await tx`
+        SELECT request_hash, response_status, response_body, created_at, reserved_at
+        FROM manage_v2_idempotency
+        WHERE project_id = ${write.projectId} AND request_id = ${write.requestId}`
+      )[0] as ReservationRow | undefined;
+      if (existing === undefined) {
+        // Raced a concurrent takeover delete/insert — surface the conflict,
+        // never a second application.
+        return { outcome: "conflict", reason: "idempotency_reservation_race" };
+      }
+      if (Number(existing.response_status) !== RESERVED_STATUS) {
+        if (String(existing.request_hash) !== requestHash) {
+          return { outcome: "conflict", reason: "E-IDEMPOTENCY-CONFLICT" };
+        }
+        return {
+          outcome: "replay",
+          result: JSON.parse(existing.response_body) as StoredManageOperationResult,
+        };
+      }
+      const reservedAt = Number(existing.reserved_at);
+      if (now - reservedAt <= RESERVATION_TAKEOVER_MS) {
+        // Live in-flight duplicate. The loser's whole transaction rolls back
+        // below (nothing was written by it); an honest retry re-executes.
+        return { outcome: "conflict", reason: "idempotency_key_in_progress" };
+      }
+      // Dead reservation (crashed worker outside this design; kept honest):
+      // take it over inside the same transaction.
+      const taken = await tx`
+        UPDATE manage_v2_idempotency
+        SET request_hash = ${requestHash}, reserved_at = ${now}, created_at = ${now},
+            response_status = ${RESERVED_STATUS}, response_body = ${""}
+        WHERE project_id = ${write.projectId} AND request_id = ${write.requestId}
+          AND response_status = ${RESERVED_STATUS} AND reserved_at = ${reservedAt}
+        RETURNING reserved_at`;
+      if (taken.length === 0) {
+        return { outcome: "conflict", reason: "idempotency_reservation_race" };
+      }
+    }
+
+    // ── The operation row (§3.7) ────────────────────────────────────────
+    const operationId = operationUuid();
+    // The FIRST write inside the transaction after the reservation — the
+    // injected-failure hook fails right after it to prove full rollback.
+    await tx`
+      INSERT INTO operation
+        (id, project_id, kind, effective_on, status, box_id, sale_id, counterparty_name,
+         category, amount_minor, delivery_cost_minor, payload, note, created_by_account_id, created_at)
+      VALUES (${operationId}, ${write.projectId}, ${write.kind}, ${write.effectiveOn}, ${"active"},
+              ${write.boxId ?? null}, ${write.saleId ?? null}, ${write.counterpartyName ?? null},
+              ${write.category ?? null}, ${write.amountFils}, ${write.deliveryCostFils ?? null},
+              ${write.payload === undefined ? null : JSON.stringify(write.payload)},
+              ${write.note ?? null}, ${write.createdByAccountId}, ${timestamptz(now)})`;
+
+    if (options.injectFailureAfterFirstWrite === true) {
+      throw new Error("M2.4 injected failure after the first write — transaction must roll back");
+    }
+
+    // ── Balance lines this operation opens (§3.6) ───────────────────────
+    for (const line of write.balanceLines ?? []) {
+      await tx`
+        INSERT INTO balance_line
+          (id, project_id, direction, kind, counterparty_name, origin_on, sale_id, origin_operation_id)
+        VALUES (${line.id}, ${write.projectId}, ${line.direction}, ${line.kind},
+                ${line.counterpartyName ?? null}, ${line.originOn}, ${line.saleId ?? null}, ${operationId})`;
+    }
+
+    // ── Entries + postings (§3.8, append-only inserts) ──────────────────
+    const entryIds: string[] = [];
+    for (const entry of write.entries) {
+      const entryId = operationUuid();
+      entryIds.push(entryId);
+      await tx`
+        INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, reverses_entry_id, created_at)
+        VALUES (${entryId}, ${write.projectId}, ${operationId}, ${entry.entryType}, ${entry.effectiveOn},
+                ${entry.reversesEntryId ?? null}, ${timestamptz(now)})`;
+      for (const posting of entry.postings) {
+        await tx`
+          INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, rev_kind, delta_minor)
+          VALUES (${operationUuid()}, ${write.projectId}, ${entryId}, ${posting.account},
+                  ${posting.refId ?? null}, ${posting.category ?? null}, ${posting.revKind ?? null},
+                  ${posting.deltaFils})`;
+      }
+    }
+
+    // ── Store the response INSIDE the same transaction, then commit ─────
+    const result: StoredManageOperationResult = {
+      operationId,
+      kind: write.kind,
+      effectiveOn: write.effectiveOn,
+      amountFils: write.amountFils,
+      entryIds,
+    };
+    await tx`
+      UPDATE manage_v2_idempotency
+      SET response_status = ${200}, response_body = ${JSON.stringify(result)}
+      WHERE project_id = ${write.projectId} AND request_id = ${write.requestId}
+        AND response_status = ${RESERVED_STATUS}`;
+    return { outcome: "applied", result };
+  });
+}
