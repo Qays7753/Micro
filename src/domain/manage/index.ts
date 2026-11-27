@@ -156,6 +156,9 @@ export type { MergeBoxesInput } from "./operations/mergeBoxes.js";
 export { planMergeBoxes } from "./operations/mergeBoxes.js";
 export type { SplitBoxesInput } from "./operations/splitBoxes.js";
 export { planSplitBoxes } from "./operations/splitBoxes.js";
+/* M4.2 (phase 4): OP-RECONCILE + قاعدة اقتراح التحويل — الباب المعلن نفسه. */
+export type { ReconcileInput, ReconcileBoxInput } from "./operations/reconcile.js";
+export { planReconcile, transferProposalOf } from "./operations/reconcile.js";
 /* M3.9 (phase 3): OP-UNDO-DELIVERY — الباب المعلن نفسه. */
 export type { UndoDeliveryInput } from "./operations/undoDelivery.js";
 export { planUndoDelivery } from "./operations/undoDelivery.js";
