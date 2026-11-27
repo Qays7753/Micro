@@ -35,6 +35,7 @@ import { deleteProject, exportProject } from "./api/projectLifecycle.ts";
 import { registerDeliveryRoutes } from "./routes.delivery.ts";
 import { registerManageRoutes } from "./routes.manage.ts";
 import { registerManageV2Routes } from "./api/manageV2.ts";
+import { registerManageV2ProductRoutes } from "./api/manageV2Products.ts";
 import {
   adminCancelBooking,
   adminDecisionsLog,
@@ -299,5 +300,6 @@ export function buildRouter(): ApiRouter {
   registerDeliveryRoutes(router);
   registerManageRoutes(router);
   registerManageV2Routes(router);
+  registerManageV2ProductRoutes(router);
   return router;
 }

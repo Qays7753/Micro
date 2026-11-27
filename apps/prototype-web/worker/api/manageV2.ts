@@ -30,11 +30,11 @@
 import postgres from "postgres";
 import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
-import { HttpError, jsonResponse, requireJsonBody } from "../http.ts";
+import { HttpError, jsonResponse } from "../http.ts";
 import { authedRoute } from "../routes.ts";
-import { readJsonBody, type ApiRouter, type RouteContext } from "../router.ts";
-import type { AuthenticatedContext } from "../auth/session.ts";
-import { applyManageOperation, type ManageOperationOutcome } from "../application/manage/operationHandler.ts";
+import type { ApiRouter } from "../router.ts";
+import { planOr400, projectWrite, readBody, requireProject, runPlan, toHttpError } from "./manageV2Shared.ts";
+import type { OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 import { planSetup } from "../../../../src/domain/manage/operations/setup.js";
 import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planAddPriorBalance } from "../../../../src/domain/manage/operations/addPriorBalance.js";
@@ -50,90 +50,11 @@ import { planWriteOff } from "../../../../src/domain/manage/operations/writeOff.
 import { planCorrect } from "../../../../src/domain/manage/operations/correct.js";
 import { planCancelOperation } from "../../../../src/domain/manage/operations/cancelOperation.js";
 import { computeManageFigures } from "../application/manage/readModel.js";
-import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
-/** Body of a Manage v2 write request: the shared reader (JSON content type,
- * SRV-02 256 KiB cap, malformed JSON → 400), then a JSON object. */
-async function readBody(request: Request): Promise<Record<string, unknown>> {
-  return requireJsonBody(await readJsonBody(request));
-}
-
-/** The signed-in caller's project (R-24: one per app account). `claimed` is
- * the projectId the request body repeats, when it does: it may only EQUAL
- * the caller's own project, never choose the target. Someone else's project,
- * an unknown id and "no project yet" all answer the same 404. */
-async function requireProject(
-  sql: postgres.Sql,
-  auth: AuthenticatedContext,
-  claimed: unknown,
-): Promise<string> {
-  if (claimed !== undefined && claimed !== null && typeof claimed !== "string") {
-    throw new HttpError(400, "bad_request", { field: "projectId" });
-  }
-  const rows = await sql`SELECT id FROM project WHERE owner_account_id = ${auth.identityId}`;
-  const project = rows[0] as { id: string } | undefined;
-  if (
-    project === undefined ||
-    (typeof claimed === "string" && claimed.length > 0 && claimed !== project.id)
-  ) {
-    throw new HttpError(404, "not_found", { surface: "manage_v2_project" });
-  }
-  return project.id;
-}
-
-/** Map §11 rejections to the HTTP error envelope (400 + the code). */
-function toHttpError(error: unknown): never {
-  if (error instanceof OperationRejected) {
-    throw new HttpError(400, error.code.toLowerCase(), { code: error.code });
-  }
-  throw error;
-}
-
-/** Run a planner through the §11 → 400 mapping: its rejections are
- * synchronous throws, thrown before anything persists. */
-function planOr400<T>(make: () => T): T {
-  try {
-    return make();
-  } catch (error) {
-    toHttpError(error);
-  }
-}
-
-/** Compose a validated domain plan with the M2.4 handler: the ONE
- * transaction. A refused idempotency key (same key, different body; still
- * in flight) is a 409 — never a 200 the client could mistake for a saved
- * operation. */
-async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<ManageOperationOutcome> {
-  try {
-    const outcome = await applyManageOperation(sql, plan.write, {
-      ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
-      ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
-      ...(plan.resultData !== undefined ? { resultData: plan.resultData } : {}),
-      ...(plan.revisionEntries !== undefined ? { revisionEntries: plan.revisionEntries } : {}),
-    });
-    if (outcome.outcome === "conflict") {
-      throw new HttpError(409, "conflict", { code: outcome.reason });
-    }
-    return outcome;
-  } catch (error) {
-    toHttpError(error);
-  }
-}
-
-/** The opening of every project-scoped write route: the request-scoped
- * client, the JSON body, and the caller's OWN project (R-24 — the body may
- * only repeat it) with Amman today for the planner. */
-async function projectWrite(ctx: RouteContext, auth: AuthenticatedContext) {
-  const sql = rawSqlOf(ctx.env);
-  const body = await readBody(ctx.request);
-  return {
-    sql,
-    projectId: await requireProject(sql, auth, body.projectId),
-    body,
-    createdByAccountId: auth.identityId,
-    today: ammanDateString(Date.now()),
-  };
-}
+/* M3.1: the shared plumbing (readBody, requireProject, toHttpError,
+ * planOr400, runPlan, projectWrite — the exact code this file used to carry)
+ * moved verbatim to api/manageV2Shared.ts when phase 3's route files began;
+ * every M2.x route below uses it through the imports above. */
 
 export function registerManageV2Routes(router: ApiRouter): void {
   router.post(
