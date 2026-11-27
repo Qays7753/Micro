@@ -105,6 +105,10 @@ export type {
   OwnerWithdrawalType,
 } from "./operations/ownerMoney.js";
 export type { TransferInput } from "./operations/transfer.js";
+/* M2.8 (wave H): التحصيل والدفع بالتخصيص بالاسم — الباب المعلن نفسه. */
+export type { CollectInput, CollectShortfall } from "./operations/collect.js";
+export type { PayInput } from "./operations/pay.js";
+export type { OpenBalanceLine } from "./operations/allocation.js";
 export {
   OperationRejected,
   reject,
@@ -122,3 +126,5 @@ export { planAddPriorBalance } from "./operations/addPriorBalance.js";
 export { planExpense } from "./operations/expense.js";
 export { planOwnerDeposit, planOwnerWithdrawal } from "./operations/ownerMoney.js";
 export { planTransfer } from "./operations/transfer.js";
+export { planCollect } from "./operations/collect.js";
+export { planPay } from "./operations/pay.js";
