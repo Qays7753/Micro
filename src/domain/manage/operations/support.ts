@@ -141,6 +141,28 @@ export interface TxQuery {
   (...parts: unknown[]): unknown;
 }
 
+/** w.negative_box (the T8 box-state rule, shared by every operation that
+ * can leave a box below zero — M2.6 OP-EXPENSE, M2.7 OP-OWNER-WITHDRAWAL /
+ * OP-TRANSFER): read the box's RESULTING balance inside the operation's
+ * transaction (call from `resultData`, after every write). A box whose
+ * opening is unknown has an UNKNOWN balance — never a warning. Returns the
+ * operation result data carrying the warning, or undefined. */
+export async function negativeBoxWarning(
+  tx: TxQuery,
+  projectId: string,
+  boxId: string,
+): Promise<Record<string, unknown> | undefined> {
+  const rows = (await tx`
+    SELECT b.opening_status, COALESCE(SUM(p.delta_minor), 0)::bigint AS total
+    FROM box b
+    LEFT JOIN ledger_posting p ON p.account = 'BOX' AND p.ref_id = b.id AND p.project_id = b.project_id
+    WHERE b.id = ${boxId} AND b.project_id = ${projectId}
+    GROUP BY b.id`) as Array<{ opening_status: string; total: string | number }>;
+  const row = rows[0];
+  if (row === undefined || String(row.opening_status) !== "known" || Number(row.total) >= 0) return undefined;
+  return { warnings: ["w.negative_box"] };
+}
+
 /** A balance_line the operation creates (§3.6) — the same shape the M2.4
  * handler persists, declared here so plans are self-contained. */
 export interface PlanBalanceLine {

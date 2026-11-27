@@ -39,6 +39,7 @@
 import { buildLedgerEntry, isExpenseCategory } from "../ledger/index.js";
 import type { BuiltLedgerEntry, ExpenseCategory } from "../ledger/index.js";
 import {
+  negativeBoxWarning,
   reject,
   requireContext,
   requireDate,
@@ -256,24 +257,10 @@ function expenseLoadState(projectId: string, form: ExpenseForm, write: Operation
   };
 }
 
-/** w.negative_box (T8), decided from the box's RESULTING balance: read after
- * the entries are written, in the same transaction. An unknown opening means
- * an unknown balance — never a warning. */
-async function negativeBoxWarning(
-  tx: TxQuery,
-  projectId: string,
-  boxId: string,
-): Promise<Record<string, unknown> | undefined> {
-  const rows = (await tx`
-    SELECT b.opening_status, COALESCE(SUM(p.delta_minor), 0)::bigint AS total
-    FROM box b
-    LEFT JOIN ledger_posting p ON p.account = 'BOX' AND p.ref_id = b.id AND p.project_id = b.project_id
-    WHERE b.id = ${boxId} AND b.project_id = ${projectId}
-    GROUP BY b.id`) as Array<{ opening_status: string; total: string | number }>;
-  const row = rows[0];
-  if (row === undefined || String(row.opening_status) !== "known" || Number(row.total) >= 0) return undefined;
-  return { warnings: ["w.negative_box"] };
-}
+/* w.negative_box (T8) is decided by the shared `negativeBoxWarning`
+ * (support.ts — the T8 box-state rule every operation that can leave a box
+ * below zero shares, M2.7): the box's RESULTING balance, read after the
+ * entries are written, in the same transaction. */
 
 /** Plan OP-EXPENSE: validate, then resolve the box and build the entries
  * inside the handler's transaction. */

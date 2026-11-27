@@ -97,6 +97,14 @@ export type { AddBoxInput } from "./operations/addBox.js";
 export type { AddPriorBalanceInput } from "./operations/addPriorBalance.js";
 /* M2.6 (wave G): OP-EXPENSE — الباب المعلن نفسه. */
 export type { ExpenseInput, ExpensePayment, ExpenseSource } from "./operations/expense.js";
+/* M2.7 (wave G): حركات مال المالك والتحويل بين الصناديق — الباب المعلن نفسه. */
+export type {
+  OwnerDepositInput,
+  OwnerDepositSource,
+  OwnerWithdrawalInput,
+  OwnerWithdrawalType,
+} from "./operations/ownerMoney.js";
+export type { TransferInput } from "./operations/transfer.js";
 export {
   OperationRejected,
   reject,
@@ -112,3 +120,5 @@ export { planSetup } from "./operations/setup.js";
 export { planAddBox } from "./operations/addBox.js";
 export { planAddPriorBalance } from "./operations/addPriorBalance.js";
 export { planExpense } from "./operations/expense.js";
+export { planOwnerDeposit, planOwnerWithdrawal } from "./operations/ownerMoney.js";
+export { planTransfer } from "./operations/transfer.js";

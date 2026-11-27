@@ -1,7 +1,8 @@
 /**
  * Manage v2 phase 2, wave G+: HTTP surface for the §5 operations over the
  * new §3 tables — OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE (M2.5),
- * OP-EXPENSE (M2.6); M2.7+ add their operations here. One route file for
+ * OP-EXPENSE (M2.6), OP-OWNER-DEPOSIT / OP-OWNER-WITHDRAWAL / OP-TRANSFER
+ * (M2.7); M2.8+ add their operations here. One route file for
  * the whole Manage v2 write surface (`/api/manage-v2/*`); the M2.4 handler
  * owns the transaction and the atomic idempotency.
  *
@@ -37,6 +38,11 @@ import { planSetup } from "../../../../src/domain/manage/operations/setup.js";
 import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planAddPriorBalance } from "../../../../src/domain/manage/operations/addPriorBalance.js";
 import { planExpense } from "../../../../src/domain/manage/operations/expense.js";
+import {
+  planOwnerDeposit,
+  planOwnerWithdrawal,
+} from "../../../../src/domain/manage/operations/ownerMoney.js";
+import { planTransfer } from "../../../../src/domain/manage/operations/transfer.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
 /** Body of a Manage v2 write request: the shared reader (JSON content type,
@@ -233,6 +239,70 @@ export function registerManageV2Routes(router: ApiRouter): void {
           supplierName: body.supplierName,
           effectiveOn: body.effectiveOn,
           note: body.note,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M2.7 — OP-OWNER-DEPOSIT / OP-OWNER-WITHDRAWAL / OP-TRANSFER (§5).
+  // The planners need live state (the box a movement touches): it is
+  // resolved inside the handler's transaction; a box that is not active
+  // answers E-BOX-STATE here like any §11 rejection.
+  router.post(
+    "api/manage-v2/owner-deposit",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planOwnerDeposit({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          amountFils: body.amountFils,
+          box: body.box,
+          source: body.source,
+          effectiveOn: body.effectiveOn,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  router.post(
+    "api/manage-v2/owner-withdrawal",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planOwnerWithdrawal({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          amountFils: body.amountFils,
+          box: body.box,
+          type: body.type,
+          effectiveOn: body.effectiveOn,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  router.post(
+    "api/manage-v2/transfer",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planTransfer({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          fromBox: body.fromBox,
+          toBox: body.toBox,
+          amountFils: body.amountFils,
+          effectiveOn: body.effectiveOn,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
