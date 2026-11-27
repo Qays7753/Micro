@@ -164,6 +164,27 @@ async function digestSnapshot(
   return sha256Hex(JSON.stringify({ project, families }));
 }
 
+/** M2.13 (the import half): recompute the canonical data digest over a
+ * ROUTE-SHAPE data object (the camelCase families the export response
+ * carries) — the ONE implementation of the envelope digest, shared by the
+ * export and the import so the two can never drift. The families are
+ * rebuilt in MANAGE_DATA_TABLES order (the canonical serialization). */
+export async function digestOfEnvelopeData(data: {
+  project: Record<string, unknown>;
+  [family: string]: unknown;
+}): Promise<string> {
+  const families: Record<string, Array<Record<string, unknown>>> = {};
+  for (const table of MANAGE_DATA_TABLES) {
+    const key = FAMILY_KEYS[table];
+    const rows = data[key];
+    if (!Array.isArray(rows)) {
+      throw new Error(`E-IMPORT-MALFORMED: family ${key} is not an array`);
+    }
+    families[table] = rows as Array<Record<string, unknown>>;
+  }
+  return digestSnapshot(data.project, families);
+}
+
 /**
  * Export one Manage project as the v2 envelope — ONE locked read
  * transaction (FOR SHARE on the project row blocks a concurrent deletion;
