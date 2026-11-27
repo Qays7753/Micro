@@ -25,6 +25,8 @@ import {
   MANAGE_EXPORT_FORMAT,
   MANAGE_EXPORT_VERSION,
 } from "../application/manage/exportDelete.js";
+import { assertLedgerCoreInvariants } from "../../../../src/domain/manage/invariants/index.js";
+import { ledgerState } from "./manage.v2.helpers.ts";
 import { planExpense } from "../../../../src/domain/manage/operations/expense.js";
 import { planPay } from "../../../../src/domain/manage/operations/pay.js";
 import { planOwnerDeposit } from "../../../../src/domain/manage/operations/ownerMoney.js";
@@ -261,6 +263,10 @@ describe("M2.12 — the deletion", () => {
     const after = await withSql(sql => manageRowCounts(sql, projectId));
     expect(after.project).toBe(1);
     expect(after.ledger_entry).toBe(before.ledger_entry + 1);
+    // §13: the live state after the refusal ends with the core assertions.
+    const core = assertLedgerCoreInvariants(await withSql(sql => ledgerState(sql, projectId)));
+    expect(core.inv1.outcome).not.toBe("violation");
+    expect(core.inv2.outcome).toBe("pass");
     // The digest of a CURRENT export deletes: the check is the
     // export-first rule, not a refusal to ever delete.
     const fresh = await withSql(sql => exportManageProject(sql, projectId));
