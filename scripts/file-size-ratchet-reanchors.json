@@ -12808,6 +12808,25 @@
         "trigger": "M2.12 task: the project lifecycle endpoints gain the Manage v2 branch (export v2 envelope + export-first digest deletion)",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "arch007-2026-11-27-m213-import-transfer-watch",
+      "date": "2026-11-27",
+      "path": "apps/prototype-web/worker/application/manage/importTransfer.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 401,
+        "band": "WATCH"
+      },
+      "reason": "M2.13 (مانج-في₂ المرحلة 2 — الموجة J): استيراد مظروف النقل v2 — النصف الثاني للمظروف فوق جداول §3: رفض v1 الصراحة (E-ENVELOPE-V1-UNSUPPORTED)، بصمة البيانات بتنفيذ التصدير الواحد، الثوابت السبعة أحادية الحالة شبكة أمان قبل الكتابة، سباق الاستيرادين بفائز واحد (UNIQUE داخل المعاملة)، وإعادة تخطيط كل معرف كيان بكل مرجع (ref_id متعدد الصيغ وسلاسل العملية/القيد) — إدراجات الأعمدة الصريحة الثلاثة عشر لكل جدول هي الحجم الشرعي (أعمدة ثابتة لا مساحة أسماء من بيانات المظروف)؛ from=0 تأسيس موثق بنمط readModel.ts.",
+      "authorization": {
+        "ownerReview": "Phase-2 wave J execution under the approved continuous phase-2 prompt (same governing program as the M2.11/M2.12 manage entries); establishment entry recorded in the M2.13 pin commit per the documented same-PR protocol.",
+        "trigger": "new-file-enters-band rule — the v2 transfer-envelope import module (M2.13) measured 401 nbLOC at establishment",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }
