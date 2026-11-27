@@ -94,8 +94,8 @@ export interface ManageOperationWrite {
   requestId: string;
   kind: ManageOperationKind;
   effectiveOn: string;
-  /** §3.7 display amount (fils); the entries are the financial truth. */
-  amountFils: number;
+  /** §3.7 display amount (fils; null = the row shows no amount, §5.0) — the entries are the financial truth. */
+  amountFils: number | null;
   /** §3.7 corrects_operation_id — set on the replacement of a corrected
    * operation (M2.10 OP-CORRECT): the new version of the operation. */
   correctsOperationId?: string;
@@ -132,7 +132,7 @@ export interface StoredManageOperationResult {
   operationId: string;
   kind: ManageOperationKind;
   effectiveOn: string;
-  amountFils: number;
+  amountFils: number | null;
   entryIds: string[];
   /** Operation-specific result (M2.6 — e.g. OP-EXPENSE's warnings),
    * computed inside the transaction by the plan's `resultData` hook and

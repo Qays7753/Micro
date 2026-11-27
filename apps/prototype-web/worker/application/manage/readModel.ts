@@ -125,6 +125,10 @@ interface LineRow {
   direction: string;
   kind: string;
   counterparty_name: string | null;
+  /** §3.6/T44 (M3.2): the display name — the line's own, or the SALE's
+   * customer name for sale_remainder/customer_refund lines (they take the
+   * name from the sale, so a rename carries them). */
+  resolved_name: string | null;
   origin_on: string;
   sale_id: string | null;
 }
@@ -136,6 +140,8 @@ interface SaleRow {
   planned_delivery_on: string;
   final_price_minor: string | number | null;
   cancelled_on: string | null;
+  tracked: boolean;
+  hidden_from_tracker: boolean;
 }
 
 interface SaleLineRow {
@@ -171,11 +177,15 @@ async function loadSnapshot(sql: postgres.Sql, projectId: string, today: string)
   const boxes = (await sql`
     SELECT id, kind, status, opening_status FROM box WHERE project_id = ${projectId}`) as unknown as BoxRow[];
   const lines = (await sql`
-    SELECT id, direction, kind, counterparty_name, origin_on::text AS origin_on, sale_id
-    FROM balance_line WHERE project_id = ${projectId}`) as unknown as LineRow[];
+    SELECT l.id, l.direction, l.kind, l.counterparty_name, l.origin_on::text AS origin_on, l.sale_id,
+           COALESCE(l.counterparty_name, s.customer_name) AS resolved_name
+    FROM balance_line l
+    LEFT JOIN sale s ON s.id = l.sale_id AND s.project_id = l.project_id
+    WHERE l.project_id = ${projectId}`) as unknown as LineRow[];
   const sales = (await sql`
     SELECT id, customer_name, registered_on::text AS registered_on,
-           planned_delivery_on::text AS planned_delivery_on, final_price_minor, cancelled_on::text AS cancelled_on
+           planned_delivery_on::text AS planned_delivery_on, final_price_minor,
+           cancelled_on::text AS cancelled_on, tracked, hidden_from_tracker
     FROM sale WHERE project_id = ${projectId}`) as unknown as SaleRow[];
   const saleLineRows = (await sql`
     SELECT id, sale_id, product_id, description, quantity_milli, unit_price_minor, unit_cost_minor
@@ -364,12 +374,31 @@ export interface ManageFiguresResponse {
   salesList: Array<{
     id: string;
     status: string;
+    customerName: string | null;
+    registeredOn: string;
+    plannedDeliveryOn: string;
+    deliveredOn: string | null;
+    tracked: boolean;
+    hiddenFromTracker: boolean;
     finalPriceFils: number | null;
     prepaymentFils: number;
     netSaleRevenueFils: number;
     expectedProfitFils: number | null;
     fullAmountFils: number | null;
     paid: { paidFils: number; ofFils: number | null };
+  }>;
+  /** §8.2 (M3.2, T48): «مشروعي الآن» — every sale not delivered and not
+   * cancelled, by planned date, REGARDLESS of tracker flags. */
+  openSales: Array<{
+    id: string;
+    status: string;
+    customerName: string | null;
+    plannedDeliveryOn: string;
+    tracked: boolean;
+    hiddenFromTracker: boolean;
+    finalPriceFils: number | null;
+    prepaymentFils: number;
+    fullAmountFils: number | null;
   }>;
   topSellers: Array<{ productId: string; name: string; valueFils: number; quantityText: string }>;
   topProfit: Array<{ productId: string; name: string; profitFils: number; perUnitText: string }>;
@@ -483,6 +512,12 @@ function salesListRows(
     return {
       id: sale.id,
       status,
+      customerName: sale.customer_name,
+      registeredOn: sale.registered_on,
+      plannedDeliveryOn: sale.planned_delivery_on,
+      deliveredOn: delivered,
+      tracked: sale.tracked,
+      hiddenFromTracker: sale.hidden_from_tracker,
       finalPriceFils: finalPrice,
       prepaymentFils: prepay,
       netSaleRevenueFils: netSaleRevenue,
@@ -491,6 +526,34 @@ function salesListRows(
       paid,
     };
   });
+}
+
+/** §8.2 (M3.2, T48): the «مشروعي الآن» open-sales list — every sale not
+ * delivered and not cancelled, by planned date then registered date,
+ * REGARDLESS of the tracker flags (a tracked = false sale shows here the
+ * same as a tracked one). */
+function openSalesRows(rows: ManageFiguresResponse["salesList"]): ManageFiguresResponse["openSales"] {
+  // §8.2: every sale not delivered and not cancelled, by planned date —
+  // the tracker flags do NOT filter this list (T48), they only mark rows.
+  return rows
+    .filter(r => r.deliveredOn === null && r.status !== "cancelled")
+    .sort(
+      (a, b) =>
+        a.plannedDeliveryOn.localeCompare(b.plannedDeliveryOn) ||
+        a.registeredOn.localeCompare(b.registeredOn) ||
+        a.id.localeCompare(b.id),
+    )
+    .map(r => ({
+      id: r.id,
+      status: r.status,
+      customerName: r.customerName,
+      plannedDeliveryOn: r.plannedDeliveryOn,
+      tracked: r.tracked,
+      hiddenFromTracker: r.hiddenFromTracker,
+      finalPriceFils: r.finalPriceFils,
+      prepaymentFils: r.prepaymentFils,
+      fullAmountFils: r.fullAmountFils,
+    }));
 }
 
 /** Compute every §8/§8.2 figure of one project for one period. */
@@ -698,7 +761,7 @@ export async function computeManageFigures(
       .filter(l => l.line.direction === "to_me" && l.outstanding > 0 && l.line.origin_on <= overdueBefore)
       .map(l => ({
         lineId: l.line.id,
-        counterpartyName: l.line.counterparty_name,
+        counterpartyName: l.line.resolved_name,
         outstandingFils: l.outstanding,
         originOn: l.line.origin_on,
         text: money(l.outstanding).text,
@@ -707,13 +770,14 @@ export async function computeManageFigures(
       id: l.line.id,
       direction: l.line.direction,
       kind: l.line.kind,
-      counterpartyName: l.line.counterparty_name,
+      counterpartyName: l.line.resolved_name,
       originOn: l.line.origin_on,
       outstandingFils: l.outstanding,
       overdue: l.line.direction === "to_me" && l.outstanding > 0 && l.line.origin_on <= overdueBefore,
       text: money(l.outstanding).text,
     })),
     salesList,
+    openSales: openSalesRows(salesList),
     topSellers,
     topProfit,
     bars,

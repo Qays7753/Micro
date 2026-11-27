@@ -151,6 +151,9 @@ export { planPay } from "./operations/pay.js";
 export { planWriteOff } from "./operations/writeOff.js";
 export { planCorrect } from "./operations/correct.js";
 export { planCancelOperation } from "./operations/cancelOperation.js";
+/* M3.2 (phase 3): OP-SALE-CREATE + لقطة البنود — الباب المعلن نفسه. */
+export type { SaleCreateInput, SaleCreateLineInput, SaleLineWrite } from "./operations/saleCreate.js";
+export { planSaleCreate } from "./operations/saleCreate.js";
 /* M3.1 (phase 3): منتجاتي + لقطة البند — باب knip المعلن نفسه (رأس هذا
  * الملف). */
 export type {

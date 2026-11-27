@@ -215,7 +215,8 @@ export interface OperationWritePlan {
   requestId: string;
   kind: ManageOperationKind;
   effectiveOn: string;
-  amountFils: number;
+  /** §3.7 display amount — null when the row shows no amount (§5.0). */
+  amountFils: number | null;
   /** §3.7 corrects_operation_id — set on the replacement of a corrected
    * operation (M2.10 OP-CORRECT): the new version of the operation. */
   correctsOperationId?: string;
