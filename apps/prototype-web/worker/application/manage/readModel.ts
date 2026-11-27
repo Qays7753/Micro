@@ -325,6 +325,7 @@ export interface ManageFiguresResponse {
   sales: Figure;
   returnsAndDiscounts: Figure;
   netSales: Figure;
+  netProfit: Figure;
   expenses: Figure;
   equipment: Figure;
   personalWithdrawals: Figure;

@@ -145,12 +145,12 @@ async function seedSale(
     await sql`INSERT INTO operation (id, project_id, kind, effective_on, status, sale_id, box_id, amount_minor,
                                      payload, created_by_account_id, created_at)
               VALUES (${op}, ${projectId}, ${"OP-PREPAYMENT"}, ${input.registeredOn}, ${"active"}, ${saleId},
-                      ${boxId}, ${input.prepaymentFils}, ${"{}"}, ${"seed"}, ${createdAt})`;
+                      ${boxId}, ${input.prepaymentFils!}, ${"{}"}, ${"seed"}, ${createdAt})`;
     await sql`INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, created_at)
               VALUES (${entry}, ${projectId}, ${op}, ${"Q4"}, ${input.registeredOn}, ${createdAt})`;
     await sql`INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, delta_minor)
-              VALUES (${crypto.randomUUID()}, ${projectId}, ${entry}, ${"BOX"}, ${boxId}, ${input.prepaymentFils}),
-                     (${crypto.randomUUID()}, ${projectId}, ${entry}, ${"PRE"}, ${saleId}, ${input.prepaymentFils})`;
+              VALUES (${crypto.randomUUID()}, ${projectId}, ${entry}, ${"BOX"}, ${boxId}, ${input.prepaymentFils!}),
+                     (${crypto.randomUUID()}, ${projectId}, ${entry}, ${"PRE"}, ${saleId}, ${input.prepaymentFils!})`;
   }
   if ((input.saleDeliveryCostFils ?? 0) > 0) {
     const boxId = String(
@@ -161,7 +161,7 @@ async function seedSale(
     await sql`INSERT INTO operation (id, project_id, kind, effective_on, status, sale_id, box_id,
                                      amount_minor, payload, created_by_account_id, created_at)
               VALUES (${op}, ${projectId}, ${"OP-SALE-DELIVERY-COST"}, ${input.registeredOn}, ${"active"},
-                      ${saleId}, ${boxId}, ${input.saleDeliveryCostFils}, ${"{}"}, ${"seed"}, ${createdAt})`;
+                      ${saleId}, ${boxId}, ${input.saleDeliveryCostFils!}, ${"{}"}, ${"seed"}, ${createdAt})`;
     await sql`INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, created_at)
               VALUES (${entry}, ${projectId}, ${op}, ${"Q8"}, ${input.registeredOn}, ${createdAt})`;
     await sql`INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, delta_minor)

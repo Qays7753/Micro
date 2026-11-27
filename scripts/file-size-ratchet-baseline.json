@@ -12,7 +12,8 @@
     "future_reanchors": "any future value increase requires a re-anchor ledger entry (scripts/file-size-ratchet-reanchors.json) with from/to values chained to this baseline and an owner-review reference; the drift audit compares against the merge-base baseline so a same-PR baseline edit cannot conceal growth",
     "s10": "S10 (DOC-019 — أمر b56967d8، 2026-10-31): انضم src/domain/planning/policies.ts إلى الجرد عند 457 nbLOC (WATCH) بإرساء موثق S10-PLANNING-TOOLS-20261031-12 — ملف سياسات عائلة التخطيط الجديد بيتًا واحدًا كنمط إخوته.",
     "s10_policies": "S10 (DOC-019): policies.ts عند 561 nbLOC (WATCH) بعد تجزئة التعقيد — الإرساء S10-PLANNING-TOOLS-20261031-12.",
-    "m2_10_manage_v2_watch": "M2.10 (مانج-في₂ المرحلة 2 — ARCH-007، 2026-11-27): واجهة الكتابة الواحدة `apps/prototype-web/worker/api/manageV2.ts` (مسارات العمليات العشر بتوسعات الموجات G–H) والمعالج الواحد `apps/prototype-web/worker/application/manage/operationHandler.ts` (خطافا M2.6 + مرحلة التصحيح M2.10) دخلا شريط المراجعة WATCH بنمط إخوتهما الموثق — النمو المشروع بتقارير الموجات في docs/manage-v2/reports/ وتتبّع المتتبع؛ لا تصعيد صامت."
+    "m2_10_manage_v2_watch": "M2.10 (مانج-في₂ المرحلة 2 — ARCH-007، 2026-11-27): واجهة الكتابة الواحدة `apps/prototype-web/worker/api/manageV2.ts` (مسارات العمليات العشر بتوسعات الموجات G–H) والمعالج الواحد `apps/prototype-web/worker/application/manage/operationHandler.ts` (خطافا M2.6 + مرحلة التصحيح M2.10) دخلا شريط المراجعة WATCH بنمط إخوتهما الموثق — النمو المشروع بتقارير الموجات في docs/manage-v2/reports/ وتتبّع المتتبع؛ لا تصعيد صامت.",
+    "m2_11_read_model_watch": "M2.11 (مانج-في₂ المرحلة 2 — الموجة I، ARCH-007، 2026-11-27): موديول القراءة الواحد `apps/prototype-web/worker/application/manage/readModel.ts` (كل أشكال §8/§8.2 بإجابة جاهزة للعرض T54) دخل شريط المراجعة WATCH من يومه بنمط إخوته الموثق — التنفيذ الوحيد المسموح للمعادلات (مسح مصدري يحرسه)، صفُّ الأساس يُقيّد القيمة والراتشة تحرس أي نمو لاحقًا؛ لا تصعيد صامت."
   },
   "measurements": {
     "apps/prototype-web/client/src/App.tsx": {
@@ -2077,6 +2078,10 @@
     },
     "apps/prototype-web/worker/application/manage/operationHandler.ts": {
       "nbLoc": 426,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/worker/application/manage/readModel.ts": {
+      "nbLoc": 682,
       "band": "WATCH"
     }
   }

@@ -12770,6 +12770,25 @@
         "trigger": "M2.11 task: the read module's route joins the manage v2 surface file",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "arch007-2026-11-27-m211-read-module-watch",
+      "date": "2026-11-27",
+      "path": "apps/prototype-web/worker/application/manage/readModel.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 682,
+        "band": "WATCH"
+      },
+      "reason": "M2.11 (مانج-في₂ المرحلة 2 — الموجة I): موديول القراءة الواحد لأشكال §8/§8.2 — التنفيذ الوحيد المسموح لكل معادلة عرض (T54 بإجابة جاهزة) فوق لقطة القيود الصرفة؛ ملف جديد يدخل شريط المراجعة WATCH من يومه بإرساء موثق (from=0 تأسيس لا نمو) بنمط إخوته manageV2.ts/operationHandler.ts. سُجّل هذا الإرساء في تصحيح لاحق للمهمة (M2.11-correction): بوابة الموجة I الأصلية أرسلت manageV2.ts وحده وأغفلت هذا الملف ففشل حارس الراتشة على شجرة الالتزام نفسها.",
+      "authorization": {
+        "ownerReview": "Phase-2 wave I execution under the approved continuous phase-2 prompt (same governing program as the M2.10/M2.11 manage entries); establishment entry recorded in the M2.11-correction commit per the documented same-PR protocol.",
+        "trigger": "new-file-enters-band rule — the one §8/§8.2 read module (M2.11) measured 682 nbLOC at establishment",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }
