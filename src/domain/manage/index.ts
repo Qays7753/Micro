@@ -151,6 +151,11 @@ export { planPay } from "./operations/pay.js";
 export { planWriteOff } from "./operations/writeOff.js";
 export { planCorrect } from "./operations/correct.js";
 export { planCancelOperation } from "./operations/cancelOperation.js";
+/* M4.1 (phase 4): OP-MERGE-BOXES / OP-SPLIT-BOXES — الباب المعلن نفسه. */
+export type { MergeBoxesInput } from "./operations/mergeBoxes.js";
+export { planMergeBoxes } from "./operations/mergeBoxes.js";
+export type { SplitBoxesInput } from "./operations/splitBoxes.js";
+export { planSplitBoxes } from "./operations/splitBoxes.js";
 /* M3.9 (phase 3): OP-UNDO-DELIVERY — الباب المعلن نفسه. */
 export type { UndoDeliveryInput } from "./operations/undoDelivery.js";
 export { planUndoDelivery } from "./operations/undoDelivery.js";

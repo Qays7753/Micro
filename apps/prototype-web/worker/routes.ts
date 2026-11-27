@@ -37,6 +37,7 @@ import { registerManageRoutes } from "./routes.manage.ts";
 import { registerManageV2Routes } from "./api/manageV2.ts";
 import { registerManageV2ProductRoutes } from "./api/manageV2Products.ts";
 import { registerManageV2SaleRoutes } from "./api/manageV2Sales.ts";
+import { registerManageV2BoxRoutes } from "./api/manageV2Boxes.ts";
 import {
   adminCancelBooking,
   adminDecisionsLog,
@@ -303,5 +304,6 @@ export function buildRouter(): ApiRouter {
   registerManageV2Routes(router);
   registerManageV2ProductRoutes(router);
   registerManageV2SaleRoutes(router);
+  registerManageV2BoxRoutes(router);
   return router;
 }
