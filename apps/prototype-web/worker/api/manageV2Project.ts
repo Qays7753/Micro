@@ -11,6 +11,7 @@ import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
 import { ProjectNotFound, readProjectState, renameProject } from "../application/manage/projectState.js";
 import { readSaleRows } from "../application/manage/saleRows.js";
+import { SaleDetailsNotFound, readSaleDetails } from "../application/manage/saleDetails.js";
 import { projectRead, projectWrite } from "./manageV2Shared.ts";
 import { jsonResponse } from "../http.ts";
 
@@ -35,6 +36,24 @@ export function registerManageV2ProjectRoutes(router: ApiRouter): void {
       const { sql, projectId } = await projectRead(ctx, auth);
       const rows = await readSaleRows(sql, projectId, ammanDateString(Date.now()));
       return jsonResponse({ sales: rows });
+    }),
+  );
+
+  // M5.3 — P-21 sale details: the ONE read module's figures + the display
+  // fields (lines, delivery costs, the linked operation history). Read-only.
+  router.get(
+    "api/manage-v2/sale/:id",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId } = await projectRead(ctx, auth);
+      try {
+        const details = await readSaleDetails(sql, projectId, ctx.params.id!, ammanDateString(Date.now()));
+        return jsonResponse(details);
+      } catch (error) {
+        if (error instanceof SaleDetailsNotFound) {
+          throw new HttpError(404, "not_found", { surface: "manage_v2_sale" });
+        }
+        throw error;
+      }
     }),
   );
 

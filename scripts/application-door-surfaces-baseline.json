@@ -625,16 +625,22 @@
     },
     "manage/api": {
       "value": [
+        "addSaleToTracker",
+        "archiveManageProduct",
         "collectPayment",
         "detectAbsence",
         "fetchManageFigures",
+        "fetchManageProducts",
         "fetchManageProject",
         "fetchManageSaleRows",
         "fetchReconciliationLog",
+        "fetchSaleDetails",
+        "hideSaleFromTracker",
         "isNetworkFailure",
         "manageErrorCode",
         "payDebt",
         "renameProject",
+        "saveManageProduct",
         "setupProject"
       ],
       "type": [
@@ -643,8 +649,10 @@
         "ManageOperationResult",
         "ManagePeriod",
         "ManageWriteOutcome",
+        "ProductItem",
         "ProjectStateResponse",
         "ReconciliationLogResponse",
+        "SaleDetailsResponse",
         "SaleRow",
         "SetupBoxOpening",
         "SetupBoxSlot",
@@ -662,7 +670,9 @@
         "jodInputText",
         "manageErrorText",
         "nextLocalDate",
-        "parseJodInputToFils"
+        "parseJodInputToFils",
+        "shiftLocalDate",
+        "weekStartAnchor"
       ],
       "type": []
     }

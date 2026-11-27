@@ -46,6 +46,12 @@ export interface ProductSaveInput {
   components?: readonly ProductComponentInput[];
 }
 
+/** One component row as P-23's filled editor reads it (§3.3). */
+export interface ProductComponentView {
+  name: string;
+  costFils: number;
+}
+
 /** One listed product (the P-22 source): every figure computed here. */
 export interface ProductListItem {
   productId: string;
@@ -55,6 +61,10 @@ export interface ProductListItem {
   /** §3.3: Σ components, or null when the product has none (unknown). */
   unitCostFils: number | null;
   archived: boolean;
+  /** M5.3 (P-23 معبّاة): the stored components themselves, position order —
+   * the editor loads them verbatim (a save without them would wipe the
+   * catalog row wholesale, the save contract above). */
+  components: ProductComponentView[];
 }
 
 /** A save/archive result: the stored row read back, cost included. */
@@ -153,7 +163,22 @@ export async function saveProduct(sql: postgres.Sql, input: ProductSaveInput): P
     unitPriceFils: Number(row.unit_price_minor),
     unitCostFils: productUnitCostFils(form.components),
     archived: Boolean(row.archived),
+    components: form.components.map(c => ({ name: c.name, costFils: c.costFils })),
   };
+}
+
+/** The stored component rows of one product, position order (M5.3 — the
+ * save/archive results and P-23's filled editor read the same shape). */
+async function componentsOfProduct(
+  sql: postgres.Sql,
+  projectId: string,
+  productId: string,
+): Promise<ProductComponentView[]> {
+  const rows = (await sql`
+    SELECT name, cost_minor FROM product_component
+    WHERE project_id = ${projectId} AND product_id = ${productId}
+    ORDER BY position, id`) as Array<{ name: string; cost_minor: string | number }>;
+  return rows.map(r => ({ name: String(r.name), costFils: Number(r.cost_minor) }));
 }
 
 /** The §3.3 unit cost of one product: Σ components, or null when it has
@@ -192,6 +217,7 @@ export async function setProductArchived(
     unitPriceFils: Number(row.unit_price_minor),
     unitCostFils: await unitCostOf(sql, input.projectId, productId),
     archived: Boolean(row.archived),
+    components: await componentsOfProduct(sql, input.projectId, productId),
   };
 }
 
@@ -216,6 +242,23 @@ export async function listProducts(
     FROM product_component WHERE project_id = ${projectId}
     GROUP BY product_id`) as Array<{ product_id: string; total: string | number; n: number }>;
   const costOf = new Map(costs.map(c => [String(c.product_id), Number(c.n) === 0 ? null : Number(c.total)]));
+  // M5.3: the component rows themselves (position order) — P-23's filled
+  // editor source; the cost above stays the server's Σ (D-5).
+  const componentRows = (await sql`
+    SELECT product_id, name, cost_minor FROM product_component
+    WHERE project_id = ${projectId}
+    ORDER BY product_id, position, id`) as Array<{
+    product_id: string;
+    name: string;
+    cost_minor: string | number;
+  }>;
+  const componentsOf = new Map<string, ProductComponentView[]>();
+  for (const row of componentRows) {
+    const key = String(row.product_id);
+    const list = componentsOf.get(key) ?? [];
+    list.push({ name: String(row.name), costFils: Number(row.cost_minor) });
+    componentsOf.set(key, list);
+  }
   const toListItem = (p: (typeof products)[number]): ProductListItem => ({
     productId: String(p.id),
     name: String(p.name),
@@ -224,6 +267,7 @@ export async function listProducts(
     // §3.3: zero components → unknown (null), never 0.
     unitCostFils: costOf.get(String(p.id)) ?? null,
     archived: Boolean(p.archived),
+    components: componentsOf.get(String(p.id)) ?? [],
   });
   return {
     active: products.filter(p => !p.archived).map(toListItem),

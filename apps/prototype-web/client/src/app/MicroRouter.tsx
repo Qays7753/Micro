@@ -16,7 +16,8 @@ import { BrandLaunchSplash } from "@/components/brand/BrandLaunchSplash";
  * نهج التبويب: مسار “/” كما هو — التغيير الوحيد المسموح على الشريط هو
  * الاسم («الرئيسية» ← «مشروعي الآن» — قرار ١١/D-12). */
 const ManageNowPage = lazy(() => import("@/pages/manage/NowPage"));
-const Orders = lazy(() => import("@/pages/Orders"));
+/* M5.3: صفحة الطلبات القديمة (pages/Orders.tsx) تبقى بملفها حتى حذف
+ * المرحلة ٦ — مقعد «/orders» صار متتبّع مانج P-20 (نمط M5.2 في «/»). */
 const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
 /* المجموعة ١ (ملف المالك): /profile — سطح بلا مقعد سادس؛ الدخول من الترويسة/الإعدادات. */
@@ -129,6 +130,13 @@ const ManageSettingsPage = lazy(() => import("@/pages/manage/SettingsPage"));
 const ManageReturnOrdersPage = lazy(() => import("@/pages/manage/ReturnOrdersPage"));
 const ManageReturnBalancesPage = lazy(() => import("@/pages/manage/ReturnBalancesPage"));
 const ManageReturnConfirmPage = lazy(() => import("@/pages/manage/ReturnConfirmPage"));
+/* M5.3: متتبّع الطلبات P-20 وتفاصيل الطلب P-21 (قارئان يبقيان الشريط —
+ * U-005) ومنتجاتي P-22 قائمة قارئة، ومحرر المنتج P-23/P-24 ورقة عمق
+ * كاملة بمسارها الخاص. */
+const ManageTrackerPage = lazy(() => import("@/pages/manage/TrackerPage"));
+const ManageSaleDetailPage = lazy(() => import("@/pages/manage/SaleDetailPage"));
+const ManageProductsPage = lazy(() => import("@/pages/manage/ProductsPage"));
+const ManageProductEditorPage = lazy(() => import("@/pages/manage/ProductEditorPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -158,6 +166,11 @@ export function MicroRouter() {
             <Route path="/manage/return/orders" component={ManageReturnOrdersPage} />
             <Route path="/manage/return/balances" component={ManageReturnBalancesPage} />
             <Route path="/manage/return/confirm" component={ManageReturnConfirmPage} />
+            <Route path="/manage/tracker" component={ManageTrackerPage} />
+            <Route path="/manage/sale/:id" component={ManageSaleDetailPage} />
+            <Route path="/manage/products/new" component={ManageProductEditorPage} />
+            <Route path="/manage/products/:id" component={ManageProductEditorPage} />
+            <Route path="/manage/products" component={ManageProductsPage} />
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
@@ -310,7 +323,10 @@ export function MicroRouter() {
             <Route path="/finance/activity" component={FinanceActivity} />
             {/* UNIT-040: مسار /share/preview أزيل بقرار الإلغاء — لا معاينة
              * مشاركة؛ الوصلة القديمة تسقط إلى 404 الصادقة لا إلى بديل مشاركة. */}
-            <Route path="/orders" component={Orders} />
+            {/* M5.3 (مانج-في₂ المرحلة 5 — UX P-20): مقعد «الطلبات» يفتح متتبّع
+             * مانج (نمط M5.2 في مقعد «/»); صفحة الطلبات القديمة تبقى بملفها
+             * حتى حذف المرحلة ٦. */}
+            <Route path="/orders" component={ManageTrackerPage} />
             {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
             <Route path="/review">
               <Redirect to="/finance" />

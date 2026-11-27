@@ -5,5 +5,13 @@
  * الباب لا يحمل أي معادلة من §8 أبدًا.
  */
 export { MANAGE_FILS_PER_JOD, parseJodInputToFils, jodInputText, jodDashboardAmount } from "./moneyInput.js";
-export { fill, formatDateR21, formatMonthR21, ageTextR19, nextLocalDate } from "./display.js";
+export {
+  fill,
+  formatDateR21,
+  formatMonthR21,
+  ageTextR19,
+  nextLocalDate,
+  weekStartAnchor,
+  shiftLocalDate,
+} from "./display.js";
 export { manageErrorText } from "./errorText.js";

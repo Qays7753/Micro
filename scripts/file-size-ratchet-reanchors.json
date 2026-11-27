@@ -13045,6 +13045,186 @@
     "ocRef": "ARCH-007"
    },
    "trigger": "within-band-growth rule — the manage.css fixture entry measured 1307->1315 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-MicroRoutertsx",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+   "from": {
+    "nbLoc": 299,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 352,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3 (مانج-في₂ المرحلة 5): مسارات مانج الجديدة — المتتبّع P-20 وتفاصيل الطلب P-21 بنمط :id وقائمة منتجاتي P-22 ومحرر المنتج P-23/P-24 (ورقة/ورقة معبّأة)، ومقعد «/orders» يفتح متتبّع مانج (نمط M5.2 في مقعد «/») مع تقاعد استيراد صفحة الطلبات القديمة بملفها حتى المرحلة ٦ — نقطة التجميع القائمة نفسها.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1/M5.2 manage entries); the routing wiring committed in the same task commit per the documented same-PR protocol.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 299->352 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 299->352 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-routeClassifierts",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+   "from": {
+    "nbLoc": 100,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 113,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3: نمط عمق محرر المنتج P-23/P-24 (^/manage/products/(new|[^/]+)$) — الورقة نموذج يخفي الشريط (UX §1.2)؛ أسطح القراءة الثلاثة (المتتبّع وتفاصيل الطلب والقائمة) ليست هنا (U-005).",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1/M5.2 manage entries); the depth decision tested in routeKnowledgeSync in the same commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 100->113 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 100->113 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-navigationts",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/app/navigation.ts",
+   "from": {
+    "nbLoc": 64,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 104,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3: تسمية المتتبّع P-20 (s.tracker من كتالوج مانج) قبل سقف «/manage» العام — تسمية سياقية واحدة بتعليقها.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1/M5.2 manage entries); the label from the manage catalog via its declared door (M5.1 documentation).",
+    "trigger": "within-band-growth rule — chained M5.3 measured 64->104 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 64->104 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-navigationContractts",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+   "from": {
+    "nbLoc": 226,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 236,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3: بدائل رجوع محرر المنتج P-23/P-24 إلى قائمة منتجاتي P-22 (بيته) — سطران بالخريطة الكنونية بتعليقهما.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the previous manage entries); the fallback contract updated with its route in the same commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 226->236 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 226->236 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-manage-route-template",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+   "from": {
+    "nbLoc": 58,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 66,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3: قسم manage في ROUTE_GROUPS يتمم مسارات المرحلة — tracker وsale/:id وproducts وproducts/new وproducts/:id؛ سلسلة القوالب المشتقة نفسها.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1/M5.2 manage entries); the template group extended with its routes in the same commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 58->66 nbLOC (routeTemplate measured 66 nbLOC — same value as the M5.2 chain top)",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 58->66 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-indexcss-import",
+   "date": "2026-11-28",
+   "path": "apps/prototype-web/client/src/index.css",
+   "from": {
+    "nbLoc": 7365,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 7469,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "M5.3: سطر استيراد واحد لملف شريط أسبوع المتتبّع manage-tracker.css (نمط القسمة بالسطح فوق أساس manage.css — كل ملف أسطح مانج تحت شريط المراجعة) مع سطر تعليقه.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1 manage-css-import entry); the import committed in the same task commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 7365->7469 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 7365->7469 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-manage-client-doors-baseline",
+   "date": "2026-11-28",
+   "path": "scripts/application-door-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 617,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 683,
+    "band": "WATCH"
+   },
+   "reason": "M5.3: تسجيل أسطح أبواب مانج الموسعة — باب api بست قيم قراءة/كتابة جديدة (تفاصيل الطلب P-21، منتجاتي P-22/23، متتبّع P-21) ونوعين، وباب العرض بغلافي أسبوع المتتبّع (weekStartAnchor/shiftLocalDate — STR-106).",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1 doors-baseline entry); the deliberate surface widening registered in the same task commit per PC-3.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 617->683 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 617->683 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-readwrite-corpus-reclassification",
+   "date": "2026-11-28",
+   "path": "scripts/check-application-readwrite.mjs",
+   "from": {
+    "nbLoc": 370,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 399,
+    "band": "NORMAL"
+   },
+   "reason": "M5.3: إخراج manage/api/writes.ts من جسم القراءة (D-04) — دالة حفظ المنتج saveManageProduct (فعل «حفظ» P-23 الحرفي) جعلت نصه كاتبًا نصيًا وبابه الصادق كذلك (كتابات HTTP بلا كتابة تخزين)؛ إعادة التصنيف الموثقة التي ينص عليها الحارس نفسه، بتعليقها المؤرخ في نفس الـPR.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1 corpus registration); the documented D-04 reclassification in the same task commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 370->399 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 370->399 nbLOC"
+  },
+  {
+   "id": "arch007-2026-11-28-m53-stylelint-fixture-manage-tracker-css",
+   "date": "2026-11-28",
+   "path": "scripts/security/braces-elimination/fixtures/stylelint-runs.json",
+   "from": {
+    "nbLoc": 1307,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 1323,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "M5.3: إدخال styles/manage-tracker.css النظيف في تثبيتات stylelint الذهبية (النتيجة نفسها التي ينتجها الرتل الأصلي على ملف نظيف — صفحة مصدر واحدة زائدة بلا أي تحذير)؛ نفس نمط M5.1 مع manage.css.",
+   "authorization": {
+    "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1 stylelint-fixture entry); the fixture updated with the CSS file that added it in the same commit.",
+    "trigger": "within-band-growth rule — chained M5.3 measured 1307->1323 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — chained M5.3 measured 1307->1323 nbLOC"
   }
  ]
 }

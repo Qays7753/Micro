@@ -216,6 +216,10 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   /* EX-D21 (Phase B): Ask Micro تعود لأصل سياقها عبر ?returnTo القياسي؛
    * بديل البدء البارد بلا سياق هو الرئيسية. */
   "/ask": "/",
+  /* M5.3 (مانج-في₂ المرحلة 5): محرر المنتج P-23/P-24 يعود لقائمة منتجاتي
+   * P-22 (بيته — فُتح منها) بلا سياق. */
+  "/manage/products/new": "/manage/products",
+  "/manage/products/:id": "/manage/products",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */

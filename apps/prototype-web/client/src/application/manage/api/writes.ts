@@ -85,6 +85,41 @@ export function payDebt(input: {
   return manageWrite("/api/manage-v2/pay", { ...input }, input.requestId);
 }
 
+/** M5.3 — إخفاء من المتتبّع (P-21: الحذف من هنا وحده؛ إخفاء بلا أثر مالي T31). */
+export function hideSaleFromTracker(saleId: string): Promise<{ sale: unknown }> {
+  return manageWrite("/api/manage-v2/tracker-hide", { saleId }, freshRequestId("hide"));
+}
+
+/** M5.3 — إضافة إلى المتتبّع (من الحركات: بيع غير ظاهر — بلا أثر مالي). */
+export function addSaleToTracker(saleId: string): Promise<{ sale: unknown }> {
+  return manageWrite("/api/manage-v2/tracker-add", { saleId }, freshRequestId("add"));
+}
+
+/** M5.3 — حفظ منتج (إنشاء/تحديث — P-23، تحديث مباشر نمط المنتجات). */
+export function saveManageProduct(input: {
+  productId: string;
+  name: string;
+  unitLabel?: string;
+  unitPriceFils: number;
+  components?: Array<{ name: string; costFils: number }>;
+}): Promise<{
+  product: {
+    productId: string;
+    name: string;
+    unitLabel: string | null;
+    unitPriceFils: number;
+    unitCostFils: number | null;
+    archived: boolean;
+  };
+}> {
+  return manageWrite("/api/manage-v2/products", { ...input }, freshRequestId("product"));
+}
+
+/** M5.3 — أرشيفة/إلغاءها (P-24). */
+export function archiveManageProduct(productId: string, archived: boolean): Promise<{ product: unknown }> {
+  return manageWrite("/api/manage-v2/products/archive", { productId, archived }, freshRequestId("archive"));
+}
+
 /** M5.1 — OP-SETUP (§5): إنشاء المشروع وفتح الصناديك بقيود Q1. */
 export function setupProject(input: {
   requestId: string;

@@ -1,0 +1,70 @@
+/*
+ * M5.3 (مانج-في₂ المرحلة 5 — UX P-20 «متتبّع الطلبات»): شريط الأسبوع —
+ * الأحد أولًا (R-5) فوق توكنات --vf-* نفسها. ملف مستقل فوق أساس
+ * manage.css (كل ملف أسطح مانج تحت شريط المراجعة 400 سطرًا — نمط القسمة
+ * بالسطح مع بقية مهام المرحلة).
+ */
+
+/* -- شريط الأسبوع: الأحد أولًا (R-5) -------------------------------------- */
+.micro-manage-week {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.micro-manage-week__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* عنوان الشهر R-21 — منتقي التاريخ الأصلي شفاف فوقه للقفز لأي يوم. */
+.micro-manage-week__month {
+  position: relative;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--vf-border-interactive);
+  border-radius: var(--vf-radius-control);
+  background: var(--vf-surface);
+  color: var(--vf-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+.micro-manage-week__picker {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.micro-manage-week__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+.micro-manage-week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--vf-radius-control);
+  background: transparent;
+  color: var(--vf-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.micro-manage-week__day--today {
+  border-color: var(--vf-border-interactive);
+}
+.micro-manage-week__day--selected {
+  background: var(--vf-clay-interactive);
+  color: var(--vf-surface);
+}
+.micro-manage-week__day--selected:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: 1px;
+}
+.micro-manage-week__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}

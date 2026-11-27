@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "fff38fa6ad567d63d31d6bcae054ae9f9bfdf9f1",
+  "head": "4d0cc793edfc246f7d0246728302c487eb417a6b",
   "pages": {
-    "total": 82,
+    "total": 86,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -582,6 +582,18 @@
           "pages/manage/NowPage.dom.test.tsx"
         ]
       },
+      "pages/manage/ProductEditorPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ProductEditorPage.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ProductsPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ProductsPage.dom.test.tsx"
+        ]
+      },
       "pages/manage/ReturnBalancesPage.tsx": {
         "kind": "direct",
         "evidence": [
@@ -600,6 +612,12 @@
           "pages/manage/ReturnFlow.dom.test.tsx"
         ]
       },
+      "pages/manage/SaleDetailPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/SaleDetailPage.dom.test.tsx"
+        ]
+      },
       "pages/manage/SettingsPage.tsx": {
         "kind": "direct",
         "evidence": [
@@ -610,6 +628,12 @@
         "kind": "direct",
         "evidence": [
           "pages/manage/StartPage.dom.test.tsx"
+        ]
+      },
+      "pages/manage/TrackerPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/TrackerPage.dom.test.tsx"
         ]
       }
     },

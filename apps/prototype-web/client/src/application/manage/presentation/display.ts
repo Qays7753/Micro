@@ -14,7 +14,12 @@
  *  - العمر نص عرض مشتق من تاريخين (origin وtoday) — ليس رقمًا ماليًا ولا
  *    يعتمد على أي قيمة من §8.
  */
-import { floorRatio, localDateDayNumber, localDatePlusDays } from "@micro-domain/shared/index.js";
+import {
+  floorRatio,
+  localDateDayNumber,
+  localDatePlusDays,
+  localDateWeekdayIndex,
+} from "@micro-domain/shared/index.js";
 import { t, type ManageStringKey } from "../strings/index.js";
 
 /** استيفاء العناصر النائبة حرفيًا: fill("رصيدك {amount}", { amount: "85" })
@@ -77,4 +82,18 @@ export function ageTextR19(originOn: string, today: string): string {
  *  P-10 (مقارنة نص تاريخ الخادم؛ لا حساب مالي). */
 export function nextLocalDate(today: string): string {
   return localDatePlusDays(today, 1) ?? today;
+}
+
+/** M5.3 (UX P-20 «متتبّع الطلبات» R-5): مرساة بداية الأسبوع (الأحد) ليوم
+ *  مفتاح — نواة التاريخ المشتركة عبر بوابة العرض (STR-106: أسطح الواجهة
+ *  لا تستورد قيم المجال مباشرة؛ فهرس اليوم 0 = الأحد). */
+export function weekStartAnchor(day: string): string {
+  const index = localDateWeekdayIndex(day) ?? 0;
+  return localDatePlusDays(day, -index) ?? day;
+}
+
+/** M5.3: إزاحة أيام على تاريخ محلي مع سقوط آمن إلى اليوم نفسه عند المدخل
+ *  غير الصالح (مدخل الصفحة دائمًا صالح — تاريخ الخادم أو اختيار المنتقي). */
+export function shiftLocalDate(day: string, days: number): string {
+  return localDatePlusDays(day, days) ?? day;
 }

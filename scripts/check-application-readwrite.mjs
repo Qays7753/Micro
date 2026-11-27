@@ -200,11 +200,13 @@ export const READ_LIKE_CORPUS_BASELINE = [
    * الشبكة المعتمد: قراءات §8 وكتابات §5 بمفاتيح تكرار، لا كتابة تخزين
    * أبدًا) وpresentation (تنسيق إدخال/عرض خالص + خرائط أخطاء §11)؛ كلاهما
    * قراءة صرفة بالمعنى الحرفي (لا يستدعيان أي فعل save/commit/delete/
-   * replace/clear على أي منفذ). صنّفا في نفس الـPR وفق قاعدة D-04/R10A-F-019. */
+   * replace/clear على أي منفذ). صنّفا في نفس الـPR وفق قاعدة D-04/R10A-F-019.
+   * M5.3 (نفس-الـPR): كتابات مانج غادرت الجسم — saveManageProduct (فعل
+   * «حفظ» P-23 الحرفي) جعلت نصها «كاتبًا نصيًا» وبابه الصادق كذلك (كتابات
+   * HTTP، لا كتابة تخزين قط) — إعادة التصنيف الموثقة التي ينص عليها D-04. */
   "manage/api/errors.ts",
   "manage/api/index.ts",
   "manage/api/reads.ts",
-  "manage/api/writes.ts",
   "manage/presentation/display.ts",
   "manage/presentation/errorText.ts",
   "manage/presentation/index.ts",

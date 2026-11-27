@@ -13,6 +13,8 @@
 @import "./styles/brand-launch-splash.css";
 /* M5.1 (Manage v2 phase 5): أسطح مانج — عقود موحّدة فوق توكنات --vf-*. */
 @import "./styles/manage.css";
+/* M5.3: شريط أسبوع المتتبّع P-20 — ملف سطح مستقل فوق الأساس. */
+@import "./styles/manage-tracker.css";
 
 @custom-variant dark (&:is(.dark *));
 

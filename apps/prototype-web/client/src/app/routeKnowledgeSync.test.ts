@@ -80,6 +80,9 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/manage/return/orders": "مانج: العودة بعد الانقطاع P-12 — تدفق عمق (M5.2)",
   "/manage/return/balances": "مانج: العودة P-13 — تدفق عمق (M5.2)",
   "/manage/return/confirm": "مانج: تأكيد التسوية P-14 — ورقة عمق (M5.2)",
+  /* M5.3: محرر المنتج P-23/P-24 — ورقة عمق كاملة (النموذج يخفي الشريط). */
+  "/manage/products/new": "مانج: منتج جديد P-23 فارغة — ورقة عمق (M5.3)",
+  "/manage/products/:id": "مانج: محرر المنتج P-23 معبّأة + تأكيد الأرشفة P-24 — ورقة عمق (M5.3)",
   "/direct-sales/new": "بيع مباشر جديد — محرر فعل واحد",
   "/direct-sales/:id": "تعديل/تصحيح بيع مباشر — محرر",
   "/orders/new": "طلب جديد — محرر مسودة كامل",
@@ -189,6 +192,11 @@ const SURFACE_ROUTES: readonly string[] = [
   "/finance/recurring/:id",
   "/finance/statement",
   "/finance/activity",
+  /* M5.3 (مانج-في₂ المرحلة 5): أسطح قراءة مانج — المتتبّع P-20 وتفاصيل
+   * الطلب P-21 وقائمة منتجاتي P-22 — قارئات يبقين الشريط (U-005). */
+  "/manage/tracker",
+  "/manage/sale/:id",
+  "/manage/products",
   "/settings",
   "/profile",
 ];

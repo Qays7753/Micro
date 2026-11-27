@@ -177,11 +177,16 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، نفس-الـPR 2026-11-26): +3 —
      * بيت كتالوج نصوص مانج (manage/strings/keys.ts وar.ts وبابه index.ts —
      * مفاتيح وقيم ثابتة وبحث فاشلًا مغلقًا؛ صفر حالة وصفر كتابة تخزين)؛
-     * 80 ← 83 بتصنيف موثق نفس-الـPR (قاعدة D-04 — تصحيح M1.9a المعتمد). */
-    expect(result.stats.readLikeCorpus).toBe(91);
-    expect(result.stats.readLikeBaseline).toBe(91);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(91);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(91);
+     * 80 ← 83 بتصنيف موثق نفس-الـPR (قاعدة D-04 — تصحيح M1.9a المعتمد).
+     * M5.3 (مانج-في₂ المرحلة 5، نفس-الـPR 2026-11-28): -1 — كتابات مانج
+     * (manage/api/writes.ts) غادرت الجسم بإعادة تصنيف مؤرخة: دالة حفظ
+     * المنتج saveManageProduct (فعل «حفظ» P-23 الحرفي) جعلت نصها كاتبًا
+     * نصيًا وبابه الصادق كذلك (كتابات HTTP بلا كتابة تخزين) — التعليق
+     * الموثق في READ_LIKE_CORPUS_BASELINE نفسه؛ 91 ← 90 (قاعدة D-04). */
+    expect(result.stats.readLikeCorpus).toBe(90);
+    expect(result.stats.readLikeBaseline).toBe(90);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(90);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(90);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

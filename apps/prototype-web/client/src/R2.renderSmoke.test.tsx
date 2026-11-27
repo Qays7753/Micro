@@ -53,7 +53,7 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (88 = 87 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
+/* كل مسارات الموجّه المسجّلة (93 = 92 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
  * و/admin أُضيف G02/Q129 بالاستكمال المستمر 2026-11-22، و/manage/start أُضيف
  * مانج-في₂ M5.1 2026-11-28)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
@@ -161,6 +161,11 @@ const ROUTES: readonly string[] = [
   "/manage/return/orders",
   "/manage/return/balances",
   "/manage/return/confirm",
+  "/manage/tracker",
+  "/manage/sale/sale-x",
+  "/manage/products",
+  "/manage/products/new",
+  "/manage/products/product-x",
 ];
 
 async function mountApp() {

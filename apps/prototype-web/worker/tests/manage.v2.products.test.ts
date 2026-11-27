@@ -318,6 +318,24 @@ describe("M3.1 — product save/list/archive (§3.3, R-17)", () => {
       const listed = listing.active.find(p => p.productId === monsaf);
       expect(listed).toMatchObject({ unitPriceFils: 25_000, unitCostFils: 18_000 });
       expect(listing.active.find(p => p.name === "شاي قديم")?.unitCostFils).toBeNull();
+      /* M5.3 (P-23 معبّاة): المكوّنات نفسها بترتيب position — مصدر المحرر. */
+      expect(listed?.components).toEqual([{ name: "لحم", costFils: 18_000 }]);
+      expect(listing.active.find(p => p.name === "شاي قديم")?.components).toEqual([]);
+      /* المحفوظ يرجع مكوّناته كذلك (نفس الشكل). */
+      const saved = await saveProduct(sql, {
+        projectId: ctx.projectId,
+        productId: crypto.randomUUID(),
+        name: "محاشي",
+        unitPriceFils: 15_000,
+        components: [
+          { name: "ورق عنب", costFils: 6_000 },
+          { name: "رز", costFils: 2_500 },
+        ],
+      });
+      expect(saved.components).toEqual([
+        { name: "ورق عنب", costFils: 6_000 },
+        { name: "رز", costFils: 2_500 },
+      ]);
     });
   });
 });

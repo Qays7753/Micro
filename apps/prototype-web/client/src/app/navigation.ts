@@ -84,6 +84,8 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/manage/products") || pathname.startsWith("/manage/product"))
     return manageT("s.products");
   if (pathname.startsWith("/manage/sale/")) return manageT("op.sale");
+  /* M5.3: المتتبّع P-20 — تسميته الخاصة قبل سقف «/manage» العام. */
+  if (pathname.startsWith("/manage/tracker")) return manageT("s.tracker");
   if (pathname.startsWith("/manage/return/orders")) return manageT("s.overdue_orders");
   if (pathname.startsWith("/manage/return/")) return manageT("s.balances");
   if (pathname.startsWith("/manage/boxes")) return manageT("s.boxes");

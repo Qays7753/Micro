@@ -173,3 +173,81 @@ export interface SaleRow {
 export function fetchManageSaleRows(): Promise<{ sales: SaleRow[] }> {
   return apiFetch<{ sales: SaleRow[] }>("/api/manage-v2/sale-rows");
 }
+
+/** تفاصيل الطلب (M5.3 — P-21): الطلب وبنوده وتوصيله وسجله المالي. */
+export interface SaleDetailsResponse {
+  sale: {
+    id: string;
+    status: string;
+    customerName: string | null;
+    registeredOn: string;
+    plannedDeliveryOn: string;
+    deliveredOn: string | null;
+    finalPriceFils: number | null;
+    finalPriceText: string | null;
+    tracked: boolean;
+    hiddenFromTracker: boolean;
+    note: string | null;
+    prepaymentFils: number;
+    expectedProfitFils: number | null;
+    netSaleRevenueFils: number;
+    fullAmountFils: number | null;
+    paidFils: number;
+    paidOfFils: number | null;
+    customerRefundDueFils: number | null;
+    customerRefundDueText: string | null;
+    /** P-21 §4: «آخر تعديل» — بتاريخ عمّان من الخادم؛ null إذا لم يُعدّل قط. */
+    lastEditOn: string | null;
+  };
+  /** P-21 «الحالات»: صفوف السجل تعرض الصندوق مع صندوقين فقط (C-10). */
+  boxesCount: number;
+  lines: Array<{
+    id: string;
+    productId: string | null;
+    description: string;
+    quantityMilli: number;
+    unitPriceFils: number | null;
+    unitLabel: string | null;
+  }>;
+  deliveryCosts: Array<{
+    operationId: string;
+    amountFils: number;
+    amountText: string;
+    source: string;
+    effectiveOn: string;
+  }>;
+  history: Array<{
+    operationId: string;
+    kind: string;
+    effectiveOn: string;
+    amountFils: number | null;
+    amountText: string | null;
+    status: string;
+    corrected: boolean;
+    boxKind: string | null;
+    category: string | null;
+  }>;
+}
+
+/** منتج (M5.3 — P-22/P-23): السطر والسعر والتكلفة §3.3 ومكوّناته
+ *  (P-23 معبّاة — الحفظ بلا مكوّنات يمسحها جملة، عقد الخادم). */
+export interface ProductItem {
+  productId: string;
+  name: string;
+  unitLabel: string | null;
+  unitPriceFils: number;
+  unitCostFils: number | null;
+  archived: boolean;
+  components: Array<{ name: string; costFils: number }>;
+}
+
+/** M5.3 — تفاصيل الطلب (P-21). */
+export function fetchSaleDetails(saleId: string): Promise<SaleDetailsResponse> {
+  return apiFetch<SaleDetailsResponse>(`/api/manage-v2/sale/${encodeURIComponent(saleId)}`);
+}
+
+/** M5.3 — قائمة المنتجات (P-22): النشطة والمؤرشفة (شكل الخادم حرفيًا:
+ *  { active, archived } — كل منهما ProductItem[]). */
+export function fetchManageProducts(): Promise<{ active: ProductItem[]; archived: ProductItem[] }> {
+  return apiFetch<{ active: ProductItem[]; archived: ProductItem[] }>("/api/manage-v2/products");
+}
