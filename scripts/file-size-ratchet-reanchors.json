@@ -12865,6 +12865,26 @@
     "trigger": "within-band-growth rule — the M3.4 companion mechanism (a spec-mandated second §5 operation in the one transaction) measured 426->517 nbLOC",
     "ocRef": "ARCH-007"
    }
+  },
+  {
+   "id": "arch007-2026-11-27-m38-readmodel-s8-reversal-fix",
+   "date": "2026-11-27",
+   "path": "apps/prototype-web/worker/application/manage/readModel.ts",
+   "from": {
+    "nbLoc": 682,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 761,
+    "band": "WATCH"
+   },
+   "reason": "M3.8 (مانج-في₂ المرحلة 3): إصلاح ثغرة §8 كامنة في M2.11 كشفها تصحيح السعر، وتوسيع M3.2 قبلها (الأسماء عبر الطلب + openSales) — تُوثَّق معًا في سلسلة الإرساء من الأساس 682: (١) M3.2: حل أسماء أسطر البيع عبر الطلب §3.6/T44 وحقول salesList وقسم openSales §8.2/T48؛ (٢) M3.8: إصلاح احتساب §8 للعكوس («القيود النشطة وعكوسها كلاهما يُحتسب») بإبقاء كل الترحيلات مع علم is_active تفلتر به فحوص النشاط وحدها. الوحدة تبقى المكان الواحد لكل شكل عرض (§14.2).",
+   "authorization": {
+    "ownerReview": "Phase-3 continuous execution under the approved phase-3 prompt (same governing program as the previous manage entries); the §8 fix is a correctness repair proven by T18's figures; establishment entry recorded in the M3.8 task commit per the documented same-PR protocol.",
+    "trigger": "within-band-growth rule — the §8 reversal-accounting fix (all postings + is_active flag) measured 745->761 nbLOC",
+    "ocRef": "ARCH-007"
+   },
+   "trigger": "within-band-growth rule — the chained M3.2 additions + the M3.8 §8 reversal-accounting fix measured 682->761 nbLOC"
   }
  ]
 }

@@ -22,6 +22,7 @@ import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js
 import { planSaleDeliveryCost } from "../../../../src/domain/manage/operations/saleDeliveryCost.js";
 import { planCancelSale } from "../../../../src/domain/manage/operations/cancelSale.js";
 import { planReturn } from "../../../../src/domain/manage/operations/saleReturn.js";
+import { planPriceCorrection } from "../../../../src/domain/manage/operations/priceCorrection.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -164,6 +165,26 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           amountFils: body.amountFils,
           refund: body.refund as never,
           ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.8 — OP-PRICE-CORRECTION (§5): the after-delivery price fix — Q20 of
+  // the active Q5 + a new Q5 at the new price on the delivery date.
+  router.post(
+    "api/manage-v2/price-correction",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planPriceCorrection({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          newPriceFils: body.newPriceFils,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));

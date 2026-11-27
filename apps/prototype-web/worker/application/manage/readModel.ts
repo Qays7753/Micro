@@ -99,6 +99,9 @@ function perUnitFils(totalFils: number, quantityMilli: number): number {
 /* ── The loaded snapshot (one query round per request — INV-3) ─────────── */
 
 interface PostingRow {
+  /** Whether the entry is ACTIVE (not reversed) — the entry-level activity
+   * checks (delivered, active return) filter on this; the §8 sums do not. */
+  is_active: boolean;
   account: string;
   ref_id: string | null;
   category: string | null;
@@ -166,14 +169,20 @@ interface Snapshot {
 }
 
 async function loadSnapshot(sql: postgres.Sql, projectId: string, today: string): Promise<Snapshot> {
+  // M3.8's §8 fix (a latent M2.11 gap, exposed by the price correction):
+  // "Only active entries AND THEIR REVERSALS both count — a reversal nets
+  // its original to zero" — the sums must see EVERY posting (the original
+  // and its Q20 cancel naturally); excluding reversed ENTRIES loses the
+  // original's contribution and keeps only the mirror. The entry-level
+  // activity checks (delivered, has-active-return) filter the flag below.
   const postings = (await sql`
     SELECT p.account, p.ref_id, p.category, p.rev_kind, p.delta_minor, e.effective_on::text AS effective_on,
-           e.entry_type, o.kind AS operation_kind, o.sale_id AS operation_sale_id
+           e.entry_type, o.kind AS operation_kind, o.sale_id AS operation_sale_id,
+           NOT EXISTS (SELECT 1 FROM ledger_entry r WHERE r.reverses_entry_id = e.id) AS is_active
     FROM ledger_posting p
     JOIN ledger_entry e ON e.id = p.entry_id
     JOIN operation o ON o.id = e.operation_id
-    WHERE p.project_id = ${projectId}
-      AND NOT EXISTS (SELECT 1 FROM ledger_entry r WHERE r.reverses_entry_id = e.id)`) as unknown as PostingRow[];
+    WHERE p.project_id = ${projectId}`) as unknown as PostingRow[];
   const boxes = (await sql`
     SELECT id, kind, status, opening_status FROM box WHERE project_id = ${projectId}`) as unknown as BoxRow[];
   const lines = (await sql`
@@ -275,14 +284,21 @@ function lineOutstandingFils(s: Snapshot, lineId: string, direction: "to_me" | "
 /** The sale's delivered_on: the effective date of its active Q5 (§3.4). */
 function deliveredOn(s: Snapshot, saleId: string): string | null {
   const delivery = s.postings.find(
-    p => p.entry_type === "Q5" && p.account === "REV" && p.ref_id === saleId && p.rev_kind === "delivery",
+    p =>
+      p.is_active &&
+      p.entry_type === "Q5" &&
+      p.account === "REV" &&
+      p.ref_id === saleId &&
+      p.rev_kind === "delivery",
   );
   return delivery === undefined ? null : delivery.effective_on;
 }
 
 /** The sale's active Q16 (return) — excludes it from top sellers (§8). */
 function hasActiveReturn(s: Snapshot, saleId: string): boolean {
-  return s.postings.some(p => p.entry_type === "Q16" && p.account === "REV" && p.ref_id === saleId);
+  return s.postings.some(
+    p => p.is_active && p.entry_type === "Q16" && p.account === "REV" && p.ref_id === saleId,
+  );
 }
 
 /** Σ EXP[sale_delivery] linked to the sale (the §8 expected-profit term). */
