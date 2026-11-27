@@ -20,6 +20,7 @@ import { planSaleCreate } from "../../../../src/domain/manage/operations/saleCre
 import { planPrepayment } from "../../../../src/domain/manage/operations/prepayment.js";
 import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js";
 import { planSaleDeliveryCost } from "../../../../src/domain/manage/operations/saleDeliveryCost.js";
+import { planCancelSale } from "../../../../src/domain/manage/operations/cancelSale.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -119,6 +120,27 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           amountFils: body.amountFils,
           source: body.source,
           ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.6 — OP-CANCEL-SALE (§5): final cancellation — Q15 with the kept
+  // amount and the refund choice; cancelled_on set; today's date (R-26).
+  router.post(
+    "api/manage-v2/cancel-sale",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planCancelSale({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          ...(body.keptFils === undefined ? {} : { keptFils: body.keptFils }),
+          ...(body.refund === undefined ? {} : { refund: body.refund as never }),
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
