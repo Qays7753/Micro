@@ -14,6 +14,7 @@ import type { ApiRouter } from "../router.ts";
 import { planMergeBoxes } from "../../../../src/domain/manage/operations/mergeBoxes.js";
 import { planSplitBoxes } from "../../../../src/domain/manage/operations/splitBoxes.js";
 import { planReconcile } from "../../../../src/domain/manage/operations/reconcile.js";
+import { detectAbsence } from "../application/manage/absence.js";
 import { jsonResponse, planOr400, projectWrite, runPlan } from "./manageV2Shared.ts";
 
 export function registerManageV2BoxRoutes(router: ApiRouter): void {
@@ -74,6 +75,18 @@ export function registerManageV2BoxRoutes(router: ApiRouter): void {
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M4.3 — the absence detection (§7.2-1): on app open. NOT an operation
+  // (no request id): idempotent by state — the same inputs write the same
+  // rows (an open event extends, a recent last operation writes nothing).
+  router.post(
+    "api/manage-v2/absence-detect",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, today } = await projectWrite(ctx, auth);
+      const absence = await detectAbsence(sql, { projectId, today });
+      return jsonResponse({ absence });
     }),
   );
 }

@@ -160,14 +160,24 @@ function adjustmentQ19s(
 
 /** «Load state in the transaction» (§14.1): lock the active boxes, match
  * the input's set, compute each box's current balance from the ledger,
- * and build the Q19s (filling the §3.10 rows to persist). */
+ * and build the Q19s (filling the §3.10 rows to persist). The return
+ * flow additionally requires an OPEN absence event (§7.2: the flow
+ * starts from the detected card — none is malformed input). */
 function reconcileLoadState(
   ctx: { projectId: string; today: string },
+  context: "routine" | "return_after_absence",
   boxes: ValidBox[],
   write: OperationWritePlan,
   resolved: { rows: Array<{ id: string; countedFils: number; recordedAtStartFils: number }> },
 ): (tx: TxQuery) => Promise<void> {
   return async (tx: TxQuery) => {
+    if (context === "return_after_absence") {
+      const open = (await tx`
+        SELECT 1 FROM absence_event
+        WHERE project_id = ${ctx.projectId} AND complete IS NULL
+        LIMIT 1`) as unknown[];
+      if (open.length === 0) reject("E-AMOUNT");
+    }
     const active = (await tx`
       SELECT id, kind, opening_status FROM box
       WHERE project_id = ${ctx.projectId} AND status = 'active'
@@ -208,13 +218,18 @@ function reconcileLoadState(
 /** Plan OP-RECONCILE: the finish — Q19 per remaining Δ + the §3.10 rows. */
 export function planReconcile(input: ReconcileInput): OperationPlan {
   const ctx = requireContext(input);
-  // M4.2 owns the routine context; M4.3/M4.4 extend this same planner.
-  if (input.context !== "routine") reject("E-AMOUNT");
+  // M4.2 owns `routine`; M4.3 adds `return_after_absence` (the open
+  // absence event is completed by §7.2-5's rule); M4.4 adds
+  // `first_unknown_opening`. Any other value is malformed input.
+  if (input.context !== "routine" && input.context !== "return_after_absence") {
+    reject("E-AMOUNT");
+  }
+  const context: "routine" | "return_after_absence" = input.context;
   const boxes = requireBoxes(input.boxes);
 
   // Idempotency identity (R-25): the validated inputs only.
   const intent = {
-    context: "routine",
+    context,
     boxes: boxes.map(b => ({
       box: b.box,
       countedFils: b.countedFils,
@@ -241,21 +256,36 @@ export function planReconcile(input: ReconcileInput): OperationPlan {
 
   return {
     write,
-    loadState: reconcileLoadState(ctx, boxes, write, resolved),
-    extraWrites: async context => {
+    loadState: reconcileLoadState(ctx, context, boxes, write, resolved),
+    extraWrites: async context2 => {
       // §3.10: the reconciliation (id = the operation id — 1:1) and one
       // row per box, in the same transaction.
-      await context.tx`
+      await context2.tx`
         INSERT INTO reconciliation (id, project_id, performed_on, context, created_at)
-        VALUES (${context.operationId}, ${ctx.projectId}, ${ctx.today}, ${"routine"}, now())`;
+        VALUES (${context2.operationId}, ${ctx.projectId}, ${ctx.today}, ${context}, now())`;
       for (const row of resolved.rows) {
-        await context.tx`
+        await context2.tx`
           INSERT INTO reconciliation_box (reconciliation_id, box_id, project_id, recorded_minor, counted_minor)
-          VALUES (${context.operationId}, ${row.id}, ${ctx.projectId}, ${row.recordedAtStartFils}, ${row.countedFils})`;
+          VALUES (${context2.operationId}, ${row.id}, ${ctx.projectId}, ${row.recordedAtStartFils}, ${row.countedFils})`;
+      }
+      // §7.2-4/5 (the return flow): the open absence event is completed —
+      // true iff the reconciliation ended with all Δ = 0 at step 1
+      // (counted = recorded at start for every box) AND no Q19 was
+      // posted. Steps 2–3's operations ran BEFORE the recorded was read,
+      // so they never break completeness; an answer that closes the
+      // difference exactly leaves counted ≠ recorded-at-start → false.
+      if (context === "return_after_absence") {
+        const complete =
+          write.entries.length === 0 && boxes.every(b => b.countedFils === b.recordedAtStartFils);
+        const updated = (await context2.tx`
+          UPDATE absence_event SET complete = ${complete}
+          WHERE project_id = ${ctx.projectId} AND complete IS NULL
+          RETURNING id`) as unknown[];
+        if (updated.length === 0) reject("E-AMOUNT");
       }
     },
     resultData: async () => ({
-      context: "routine",
+      context,
       performedOn: ctx.today,
       boxes: resolved.rows.map(r => ({ boxId: r.id, countedFils: r.countedFils })),
     }),

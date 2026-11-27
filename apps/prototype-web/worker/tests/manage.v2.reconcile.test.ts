@@ -455,9 +455,10 @@ describe("M4.2 — the routine-reconcile validations", () => {
             boxes,
           }),
         );
-      // M4.2 owns the routine context; the other two arrive with M4.3/M4.4.
-      await expect(make("return_after_absence", good)).rejects.toMatchObject({ code: "E-AMOUNT" });
+      // M4.2 owns `routine`; `return_after_absence` arrived with M4.3
+      // (its own acceptance file) — `first_unknown_opening` with M4.4.
       await expect(make("first_unknown_opening", good)).rejects.toMatchObject({ code: "E-AMOUNT" });
+      await expect(make("nonsense", good)).rejects.toMatchObject({ code: "E-AMOUNT" });
       // Every ACTIVE box must be counted exactly once.
       await expect(make("routine", [])).rejects.toMatchObject({ code: "E-AMOUNT" });
       await expect(
