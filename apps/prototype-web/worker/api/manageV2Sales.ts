@@ -17,6 +17,7 @@ import { HttpError } from "../http.ts";
 import { authedRoute } from "../routes.ts";
 import type { ApiRouter } from "../router.ts";
 import { planSaleCreate } from "../../../../src/domain/manage/operations/saleCreate.js";
+import { planPrepayment } from "../../../../src/domain/manage/operations/prepayment.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -41,6 +42,29 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           ...(body.tracked === undefined ? {} : { tracked: body.tracked }),
           ...(body.note === undefined ? {} : { note: body.note }),
           ...(body.registeredOn === undefined ? {} : { registeredOn: body.registeredOn }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.3 — OP-PREPAYMENT (§5): money received on an undelivered sale —
+  // Q4 on the resolved active box; the sale must be neither delivered nor
+  // cancelled (E-SALE-STATE inside the transaction).
+  router.post(
+    "api/manage-v2/prepayment",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planPrepayment({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          amountFils: body.amountFils,
+          box: body.box,
+          ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
