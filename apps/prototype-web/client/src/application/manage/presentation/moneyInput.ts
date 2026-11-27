@@ -18,6 +18,7 @@
  */
 
 import { floorRatio } from "@micro-domain/shared/index.js";
+import { t } from "../strings/index.js";
 
 /** ١ دينار = ١٠٠٠ فلس (ISO 4217) — ثابت العرض والإرسال. */
 export const MANAGE_FILS_PER_JOD = 1000;
@@ -58,4 +59,26 @@ export function jodInputText(fils: number): string {
   const whole = floorRatio(fils, MANAGE_FILS_PER_JOD) ?? 0;
   const fraction = fils % MANAGE_FILS_PER_JOD;
   return `${groupThousands(String(whole))}.${String(fraction).padStart(3, "0")}`;
+}
+
+/* ── تنسيق اللوحة (R-20/G-24) لقيم §8.2 الخام ────────────────────────────
+ * M5.2 (قراءة موثقة): قيم §8.2 على مستوى الطلب/الخط (مؤشر «المدفوع…»،
+ * متبقي الخط…) تصل من موديول القراءة **فلسًا خامًا** (الأرقام المجمعات §8
+ * وحدها تحمل نصوصها الجاهزة). تنسيق R-20/R-22 عرضٌ لا حساب: القيمة من
+ * الخادم والصيغة من القاعدة — وهذا عمل طبقة العرض المعتمدة (§14.2
+ * «التنسيق: منسّق واحد» + IMPACT §12). المنطق يعكس wholeText الخادم
+ * بايت-بايت: الصحيح بلا كسور والكسري بثلاث منازل، ولاحقة «د» بإدراج
+ * المستهلك (الجمل قد تحذفها والحقول تعرضها لاحقة ثابتة).
+ */
+
+/** نص المبلغ بصيغة اللوحة و«مشروعي الآن» (R-20/G-24 + R-22 «د»): «1,250 د»
+ *  أو «1,250.500 د» — مطابق بايت-بايت لـtextDashboard الخادم (كل رقم
+ *  معروض يطابق موديول القراءة). */
+export function jodDashboardAmount(fils: number): string {
+  if (!Number.isSafeInteger(fils) || fils < 0) return "";
+  const amount =
+    fils % MANAGE_FILS_PER_JOD !== 0
+      ? jodInputText(fils)
+      : groupThousands(String(floorRatio(fils, MANAGE_FILS_PER_JOD) ?? 0));
+  return `${amount} ${t("l.currency")}`;
 }

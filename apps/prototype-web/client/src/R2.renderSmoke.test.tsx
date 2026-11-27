@@ -53,7 +53,7 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (84 = 83 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
+/* كل مسارات الموجّه المسجّلة (88 = 87 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
  * و/admin أُضيف G02/Q129 بالاستكمال المستمر 2026-11-22، و/manage/start أُضيف
  * مانج-في₂ M5.1 2026-11-28)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
@@ -157,6 +157,10 @@ const ROUTES: readonly string[] = [
   "/share/preview",
   "/setup",
   "/manage/start",
+  "/manage/settings",
+  "/manage/return/orders",
+  "/manage/return/balances",
+  "/manage/return/confirm",
 ];
 
 async function mountApp() {
@@ -239,8 +243,9 @@ describe("R2 render smoke — every route mounts in both themes", () => {
     /* NAV-001 (2026-09-16): زر «سجّل» المركزي أُزيل — عقد لوحة المفاتيح يُثبت
      * الآن الوصول بالتبويب إلى مقاعد الشريط الخمسة نفسها (الرئيسية). */
     const navRegion = document.querySelector('nav[aria-label="التنقل الرئيسي"]');
+    /* M5.2 (قرار ١١/D-12): مقعد الفتح صار «مشروعي الآن». */
     const navButton = Array.from(document.querySelectorAll(".micro-bottom-nav button")).find(el =>
-      el.textContent?.includes("الرئيسية"),
+      el.textContent?.includes("مشروعي الآن"),
     );
     expect(navButton).toBeTruthy();
     expect(navRegion).toBeTruthy();

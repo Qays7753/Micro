@@ -12895,16 +12895,16 @@
     "band": "WATCH"
    },
    "to": {
-    "nbLoc": 660,
+    "nbLoc": 673,
     "band": "WATCH"
    },
-   "reason": "M5.1 (مانج-في₂ المرحلة 5): تسجيل البابين الجديدين لبيت مانج العميل — manage/api (عميل HTTP رفيع: ٤ قيم و٨ أنواع) وmanage/presentation (تنسيق الإدخال والعرض وخرائط الأخطاء: ٨ قيم) — بنفس-الـPR مع الكود الذي أنشأهما وبتوثيق مؤرخ في notes الباب نفسه؛ سابقة باب manage/strings (M1.9a) نفسها.",
+   "reason": "M5.1 (مانج-في₂ المرحلة 5): تسجيل البابين الجديدين لبيت مانج العميل — manage/api (عميل HTTP رفيع: ٤ قيم و٨ أنواع) وmanage/presentation (تنسيق الإدخال والعرض وخرائط الأخطاء: ٨ قيم) — بنفس-الـPR مع الكود الذي أنشأهما وبتوثيق مؤرخ في notes الباب نفسه؛ سابقة باب manage/strings (M1.9a) نفسها. — M5.2: توسيع مقصود للسطحين (+9 قيم و3 أنواع) بنفس-الـPR مع الكود.",
    "authorization": {
     "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the previous manage entries); guard registration in the same commit per the documented same-PR protocol.",
-    "trigger": "within-band-growth rule — registering the two new manage client doors measured 617->660 nbLOC",
+    "trigger": "within-band-growth rule — chained M5.1+M5.2 door registrations measured 617->673 nbLOC",
     "ocRef": "ARCH-007"
    },
-   "trigger": "within-band-growth rule — registering the two new manage client doors measured 617->660 nbLOC"
+   "trigger": "within-band-growth rule — chained M5.1+M5.2 door registrations measured 617->673 nbLOC"
   },
   {
    "id": "arch007-2026-11-28-m51-manage-client-readlike-corpus",
@@ -12975,16 +12975,16 @@
     "band": "NORMAL"
    },
    "to": {
-    "nbLoc": 100,
+    "nbLoc": 102,
     "band": "NORMAL"
    },
-   "reason": "M5.1 (مانج-في₂ المرحلة 5): تسميات أسطح مانج السياقية من كتالوج مانج (§10) عبر بابه المعلن — لا حرفية عربية لسطح مانج في هذا الملف؛ نفس خريطة التسميات المركزية.",
+   "reason": "M5.1 (مانج-في₂ المرحلة 5): تسميات أسطح مانج السياقية من كتالوج مانج (§10) عبر بابه المعلن — لا حرفية عربية لسطح مانج في هذا الملف؛ نفس خريطة التسميات المركزية. — M5.2: تسميات أسطح مانج الإضافية (الإعدادات/العودة/الصناديق/الحركات/المستحقات/المالية الفرعية) من الكتالوج + تعديل اسم مقعد الفتح إلى «مشروعي الآن» (قرار ١١/D-12).",
    "authorization": {
     "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the previous manage entries); the routing/label wiring in the same commit per the documented same-PR protocol.",
-    "trigger": "within-band-growth rule — the manage contextual labels measured 64->100 nbLOC",
+    "trigger": "within-band-growth rule — chained M5.1+M5.2 measured 64->102 nbLOC",
     "ocRef": "ARCH-007"
    },
-   "trigger": "within-band-growth rule — the manage contextual labels measured 64->100 nbLOC"
+   "trigger": "within-band-growth rule — chained M5.1+M5.2 measured 64->102 nbLOC"
   },
   {
    "id": "arch007-2026-11-28-m51-MicroRoutertsx",
@@ -12995,16 +12995,16 @@
     "band": "NORMAL"
    },
    "to": {
-    "nbLoc": 319,
+    "nbLoc": 336,
     "band": "NORMAL"
    },
-   "reason": "M5.1 (مانج-في₂ المرحلة 5): الاستيراد الكسول لمسار /manage/start (نموذج البداية P-01) وتسجيل المسار — نقطة التجميع القائمة نفسها.",
+   "reason": "M5.1 (مانج-في₂ المرحلة 5): الاستيراد الكسول لمسار /manage/start (نموذج البداية P-01) وتسجيل المسار — نقطة التجميع القائمة نفسها. — M5.2: مسارات مانج الجديدة (P-10 في مقعد «/» + الإعدادات + تدفق العودة الثلاثي).",
    "authorization": {
     "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the previous manage entries); the routing/label wiring in the same commit per the documented same-PR protocol.",
-    "trigger": "within-band-growth rule — the manage start route wiring measured 299->319 nbLOC",
+    "trigger": "within-band-growth rule — chained M5.1+M5.2 measured 299->336 nbLOC",
     "ocRef": "ARCH-007"
    },
-   "trigger": "within-band-growth rule — the manage start route wiring measured 299->319 nbLOC"
+   "trigger": "within-band-growth rule — chained M5.1+M5.2 measured 299->336 nbLOC"
   },
   {
    "id": "arch007-2026-11-28-m51-manage-route-template",

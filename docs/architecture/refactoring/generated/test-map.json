@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "f225aea18b56cd941fbc68205467cee1fbc5d179",
+  "head": "fff38fa6ad567d63d31d6bcae054ae9f9bfdf9f1",
   "pages": {
-    "total": 77,
+    "total": 82,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -574,6 +574,36 @@
         "kind": "named-reference",
         "evidence": [
           "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/manage/NowPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/NowPage.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ReturnBalancesPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ReturnFlow.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ReturnConfirmPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ReturnFlow.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ReturnOrdersPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ReturnFlow.dom.test.tsx"
+        ]
+      },
+      "pages/manage/SettingsPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ReturnFlow.dom.test.tsx"
         ]
       },
       "pages/manage/StartPage.tsx": {

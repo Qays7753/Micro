@@ -7,6 +7,10 @@
 export { manageErrorCode, isNetworkFailure } from "./errors.js";
 export {
   setupProject,
+  detectAbsence,
+  renameProject,
+  collectPayment,
+  payDebt,
   type ManageOperationResult,
   type ManageWriteOutcome,
   type SetupBoxOpening,
@@ -14,8 +18,14 @@ export {
 } from "./writes.js";
 export {
   fetchManageFigures,
+  fetchManageProject,
+  fetchReconciliationLog,
+  fetchManageSaleRows,
   type ManagePeriod,
   type ManageFiguresResponse,
   type Figure,
   type UnknownFigure,
+  type ProjectStateResponse,
+  type ReconciliationLogResponse,
+  type SaleRow,
 } from "./reads.js";

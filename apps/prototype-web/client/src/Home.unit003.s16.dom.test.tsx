@@ -320,7 +320,7 @@ describe("UNIT-003/S16 — الرئيسية (HOME-A2) والشريط الخما�
   it("NAV-01 §1: الشريط الخماسي الجديد بلا مقعد سادس — المالية، الطلبات، الرئيسية، التوصيل، السوق", () => {
     render(<BottomNav activePath="/" items={primaryNavigation} onNavigate={() => {}} />);
     const labels = primaryNavigation.map(item => item.label);
-    expect(labels).toEqual(["المالية", "الطلبات", "الرئيسية", "التوصيل", "السوق"]);
+    expect(labels).toEqual(["المالية", "الطلبات", "مشروعي الآن", "التوصيل", "السوق"]);
     expect(labels).toHaveLength(5);
     /* الأدوات والإعدادات ليستا مقعدًا (بيت الأدوات مدخل الرئيسية). */
     expect(labels).not.toContain("أدواتي");

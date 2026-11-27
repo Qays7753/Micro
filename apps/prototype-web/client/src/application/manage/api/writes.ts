@@ -42,6 +42,49 @@ export interface SetupBoxSlot {
   opening: SetupBoxOpening;
 }
 
+/** مفتاح طلب مولّد للكتابات غير المعملية بمعرف الطلب (R-25). */
+function freshRequestId(prefix: string): string {
+  return `${prefix}-${globalThis.crypto?.randomUUID() ?? Math.random()}`;
+}
+
+/** M5.2 — كشف الانقطاع (§7.2-1): على فتح التطبيق — كتابة مباشرة حتيمية
+ *  بالحالة (ليست عملية؛ المفتوح يتمدد لا يتكرر). */
+export function detectAbsence(): Promise<{ absence: unknown }> {
+  return manageWrite("/api/manage-v2/absence-detect", {}, freshRequestId("absence"));
+}
+
+/** M5.2 — تعديل اسم المشروع (P-11، R-17: بلا أثر مالي). */
+export function renameProject(name: string): Promise<{ projectId: string; name: string }> {
+  return manageWrite("/api/manage-v2/project-name", { name }, freshRequestId("rename"));
+}
+
+/** M5.2 — OP-COLLECT (§5): تحصيل (P-13: كامل المتبقي فورًا بصندوق واحد). */
+export function collectPayment(input: {
+  requestId: string;
+  amountFils: number;
+  box: "cash" | "account";
+  balanceLineId?: string;
+  counterpartyName?: string;
+  effectiveOn?: string;
+  shortfall?: "keep_outstanding" | "write_off";
+  priorBalance?: boolean;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite("/api/manage-v2/collect", { ...input }, input.requestId);
+}
+
+/** M5.2 — OP-PAY (§5): سداد (P-13: كامل متبقيها فورًا). */
+export function payDebt(input: {
+  requestId: string;
+  amountFils: number;
+  box: "cash" | "account";
+  balanceLineId?: string;
+  counterpartyName?: string;
+  effectiveOn?: string;
+  priorBalance?: boolean;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite("/api/manage-v2/pay", { ...input }, input.requestId);
+}
+
 /** M5.1 — OP-SETUP (§5): إنشاء المشروع وفتح الصناديك بقيود Q1. */
 export function setupProject(input: {
   requestId: string;

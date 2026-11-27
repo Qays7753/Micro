@@ -14,14 +14,14 @@ describe("Prototype navigation contract", () => {
     expect(primaryNavigation.map(item => item.label)).toEqual([
       "المالية",
       "الطلبات",
-      "الرئيسية",
+      "مشروعي الآن",
       "التوصيل",
       "السوق",
     ]);
   });
 
   it("maps each known path to an Arabic contextual label with the unified finance name", () => {
-    expect(getNavigationLabel("/")).toBe("الرئيسية");
+    expect(getNavigationLabel("/")).toBe("مشروعي الآن");
     expect(getNavigationLabel("/orders")).toBe("الطلبات");
     expect(getNavigationLabel("/finance")).toBe("المالية");
     expect(getNavigationLabel("/tools")).toBe("أدواتي");

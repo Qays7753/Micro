@@ -189,7 +189,7 @@ describe("shared shell navigation — four product entry points (EX-D19/EX-D21)"
     });
     const nav = screen.getByRole("navigation", { name: "التنقل الرئيسي" });
     const labels = Array.from(nav.querySelectorAll("button span")).map(span => span.textContent);
-    expect(labels).toEqual(["المالية", "الطلبات", "الرئيسية", "التوصيل", "السوق"]);
+    expect(labels).toEqual(["المالية", "الطلبات", "مشروعي الآن", "التوصيل", "السوق"]);
     // Ask Micro lives in the logo menu — never a sixth bar seat (contract 26 §9).
     expect(labels).not.toContain("اسأل Micro");
     fireEvent.click(screen.getByTestId("micro-logo-menu-button"));

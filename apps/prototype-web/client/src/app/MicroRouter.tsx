@@ -10,7 +10,12 @@ import { CapabilityCreateGate } from "@/app/CapabilityRouteGate";
 /* W3 (brand launch splash): one-shot in-app launch splash at the existing startup boundary. */
 import { BrandLaunchSplash } from "@/components/brand/BrandLaunchSplash";
 
-const Home = lazy(() => import("@/pages/Home"));
+/* M5.2 (مانج-في₂ المرحلة 5 — UX §1): «مشروعي الآن» P-10 — وجهة الفتح
+ * دائمًا؛ التطبيق يفتح عليه، وبغياب مشروع مالي يحوّل إلى P-01 (الورقة
+ * الكاملة). الصفحة القديمة (pages/Home.tsx) تبقى بملفها حتى حذف المرحلة ٦.
+ * نهج التبويب: مسار “/” كما هو — التغيير الوحيد المسموح على الشريط هو
+ * الاسم («الرئيسية» ← «مشروعي الآن» — قرار ١١/D-12). */
+const ManageNowPage = lazy(() => import("@/pages/manage/NowPage"));
 const Orders = lazy(() => import("@/pages/Orders"));
 const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
@@ -118,6 +123,12 @@ const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
  * يفتح من البطاقة الافتتاحية عند غياب مشروع مالي (R-24: الحساب الواحد
  * مشروع واحد). */
 const ManageStartPage = lazy(() => import("@/pages/manage/StartPage"));
+/* M5.2: إعدادات المشروع P-11 وتدفق العودة بعد الانقطاع P-12/P-13/P-14 —
+ * كلها أوراق عمق كاملة (النماذج تخفي الشريط — UX §1.2). */
+const ManageSettingsPage = lazy(() => import("@/pages/manage/SettingsPage"));
+const ManageReturnOrdersPage = lazy(() => import("@/pages/manage/ReturnOrdersPage"));
+const ManageReturnBalancesPage = lazy(() => import("@/pages/manage/ReturnBalancesPage"));
+const ManageReturnConfirmPage = lazy(() => import("@/pages/manage/ReturnConfirmPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -143,6 +154,10 @@ export function MicroRouter() {
         <StartupGate onSettled={() => setGateSettled(true)}>
           <Switch>
             <Route path="/manage/start" component={ManageStartPage} />
+            <Route path="/manage/settings" component={ManageSettingsPage} />
+            <Route path="/manage/return/orders" component={ManageReturnOrdersPage} />
+            <Route path="/manage/return/balances" component={ManageReturnBalancesPage} />
+            <Route path="/manage/return/confirm" component={ManageReturnConfirmPage} />
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
@@ -302,7 +317,9 @@ export function MicroRouter() {
             </Route>
             <Route path="/settings" component={SettingsPage} />
             <Route path="/profile" component={Profile} />
-            <Route path="/" component={Home} />
+            {/* M5.2: P-10 «مشروعي الآن» يحل محل الرئيسية القديمة في مقعد
+             * الفتح «/» — الشريط السفلي نفسه ومساراته؛ التسمية من الكتالوج. */}
+            <Route path="/" component={ManageNowPage} />
             <Route component={NotFound} />
           </Switch>
         </StartupGate>

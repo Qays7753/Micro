@@ -116,7 +116,60 @@ export interface ManageFiguresResponse {
   flags: { newUser: boolean; incompletePeriod: boolean; unknownBalance: boolean };
 }
 
+/** حالة المشروع (M5.2 — P-10/P-11): الاسم + الانقطاع المفتوح بأيامه. */
+export interface ProjectStateResponse {
+  projectId: string;
+  name: string;
+  openAbsence: {
+    startedOn: string;
+    endedOn: string;
+    /** الأيام منذ آخر تسجيل — محسوبة في الخادم (نص العرض عند العميل). */
+    daysSinceLastRecord: number;
+  } | null;
+}
+
+/** سجل المطابقة (M4.5): صفوف §3.10 + علامة R-8 المستحقة. */
+export interface ReconciliationLogResponse {
+  due: boolean;
+  reconciliations: Array<{
+    id: string;
+    performedOn: string;
+    context: string;
+    boxes: Array<{ boxId: string; kind: string; recordedFils: number; countedFils: number }>;
+  }>;
+}
+
 /** M5.1 — موديول القراءة الواحد (§8/§8.2): كل رقم معروض مصدره هنا. */
 export function fetchManageFigures(period: ManagePeriod = "month"): Promise<ManageFiguresResponse> {
   return apiFetch<ManageFiguresResponse>(`/api/manage-v2/figures?period=${period}`);
+}
+
+/** M5.2 — حالة المشروع: الاسم + بطاقة العودة (§7.2). */
+export function fetchManageProject(): Promise<ProjectStateResponse> {
+  return apiFetch<ProjectStateResponse>("/api/manage-v2/project");
+}
+
+/** M5.2 — سجل المطابقة وعلامة R-8 (تذكير P-10). */
+export function fetchReconciliationLog(): Promise<ReconciliationLogResponse> {
+  return apiFetch<ReconciliationLogResponse>("/api/manage-v2/reconciliations");
+}
+
+/** صف C-09 (M5.2): حقول عرض الطلب + أرقام §8.2 الخام من موديول القراءة. */
+export interface SaleRow {
+  id: string;
+  status: string;
+  customerName: string | null;
+  firstLineDescription: string;
+  plannedDeliveryOn: string;
+  deliveredOn: string | null;
+  tracked: boolean;
+  hiddenFromTracker: boolean;
+  paidFils: number;
+  ofFils: number | null;
+  fullAmountFils: number | null;
+}
+
+/** M5.2 — صفوف الطلب (P-10/P-12/P-20). */
+export function fetchManageSaleRows(): Promise<{ sales: SaleRow[] }> {
+  return apiFetch<{ sales: SaleRow[] }>("/api/manage-v2/sale-rows");
 }

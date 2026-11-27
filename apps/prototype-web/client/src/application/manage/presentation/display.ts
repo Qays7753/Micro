@@ -14,7 +14,7 @@
  *  - العمر نص عرض مشتق من تاريخين (origin وtoday) — ليس رقمًا ماليًا ولا
  *    يعتمد على أي قيمة من §8.
  */
-import { floorRatio, localDateDayNumber } from "@micro-domain/shared/index.js";
+import { floorRatio, localDateDayNumber, localDatePlusDays } from "@micro-domain/shared/index.js";
 import { t, type ManageStringKey } from "../strings/index.js";
 
 /** استيفاء العناصر النائبة حرفيًا: fill("رصيدك {amount}", { amount: "85" })
@@ -71,4 +71,10 @@ export function ageTextR19(originOn: string, today: string): string {
   if (origin === null || now === null) return formatDateR21(originOn);
   const { key, n } = ageKeyOf(now - origin);
   return n === undefined ? t(key) : fill(key, { n: String(n) });
+}
+
+/** يوم الغد بتوقيت عمّان (نواة التاريخ المشتركة) — لتجميع «غداً» في قوائم
+ *  P-10 (مقارنة نص تاريخ الخادم؛ لا حساب مالي). */
+export function nextLocalDate(today: string): string {
+  return localDatePlusDays(today, 1) ?? today;
 }

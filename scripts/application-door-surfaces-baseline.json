@@ -18,7 +18,8 @@
     "الملحق §10.2 (DOC-041/WS-251 — أمر المالك 2026-11-22، نفس-الـPR): باب جديد لبيت اسأل Micro (application/ask) — السجل المحلي النصي وبناء الحدث المالي المقترح؛ تسجيل الباب الجديد بأساسه المضبوط (4 قيم ونوع واحد) كسابقة باب admin المسجل بأمر الاستكمال نفسه (PC-3 مؤرخ).",
     "الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251، إعادة إرساء موثقة بنفس الـPR): باب اسأل أعيد إرساؤه — الدرجان الحرّان القديمان (loadAskHistory/recordAskExchange) خرجا ودخلت الخدمة القابلة للحقن AskHistoryService تركّبها جذر التركيب كالمعتاد، بعد أن صار السجل المحلي عند منفذ التخزين في المهايئين كليهما (نمط مسودات النماذج — listAskHistory/saveAskHistoryEntry)؛ النوع AskHistoryEntry كما هو.",
     "M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، 2026-11-26، نفس الـPR): باب كتالوج نصوص مانج الجديد manage/strings سُجل بسطحه الحي المضبوط — ٣ قيم (MANAGE_STRING_KEYS وMANAGE_STRINGS_AR وt) ونوع واحد (ManageStringKey). نص مهمة M1.9a توقع أيضًا translate وTextCatalog ولم تنفذهما M1.8 (مواصفة M1.8 تسمي t(key) وحدها) — الأساس يثبت السطح الحي لا التوقع (PC-3 مؤرخ)؛ التسجيل بتصحيح M1.9a المعتمد من المالك.",
-    "M5.1 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR 2026-11-28): بابان جديدان لبيت مانج العميل — manage/api (عميل HTTP رفيع لعمليات §5 وقراءات §8: ٤ قيم و٨ أنواع) وmanage/presentation (تنسيق الإدخال R-1a/R-20 والعرض R-19/R-21 واستيفاء الكتالوج وخرائط الأخطاء: ٨ قيم) — سابقة باب manage/strings نفسها (PC-3 مؤرخ)."
+    "M5.1 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR 2026-11-28): بابان جديدان لبيت مانج العميل — manage/api (عميل HTTP رفيع لعمليات §5 وقراءات §8: ٤ قيم و٨ أنواع) وmanage/presentation (تنسيق الإدخال R-1a/R-20 والعرض R-19/R-21 واستيفاء الكتالوج وخرائط الأخطاء: ٨ قيم) — سابقة باب manage/strings نفسها (PC-3 مؤرخ).",
+    "M5.2 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR 2026-11-28): توسيع مقصود للبابين — manage/api (+7 قيم: قراءة حالة المشروع وسجل المطابقة وصفوف الطلبات وكشف الانقطاع وإعادة التسمية والتحصيل/السداد الفوري لـP-13؛ +3 أنواع) وmanage/presentation (+قيمتان: تنسيق اللوحة R-20/G-24 ويوم الغد بالنواة المشتركة)؛ PC-3 مؤرخ بنفس الـPR."
   ],
   "doors": {
     "activity": {
@@ -624,9 +625,16 @@
     },
     "manage/api": {
       "value": [
+        "collectPayment",
+        "detectAbsence",
         "fetchManageFigures",
+        "fetchManageProject",
+        "fetchManageSaleRows",
+        "fetchReconciliationLog",
         "isNetworkFailure",
         "manageErrorCode",
+        "payDebt",
+        "renameProject",
         "setupProject"
       ],
       "type": [
@@ -635,6 +643,9 @@
         "ManageOperationResult",
         "ManagePeriod",
         "ManageWriteOutcome",
+        "ProjectStateResponse",
+        "ReconciliationLogResponse",
+        "SaleRow",
         "SetupBoxOpening",
         "SetupBoxSlot",
         "UnknownFigure"
@@ -647,8 +658,10 @@
         "fill",
         "formatDateR21",
         "formatMonthR21",
+        "jodDashboardAmount",
         "jodInputText",
         "manageErrorText",
+        "nextLocalDate",
         "parseJodInputToFils"
       ],
       "type": []

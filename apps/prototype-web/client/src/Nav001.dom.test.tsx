@@ -109,7 +109,9 @@ describe("NAV-001 — approved five-seat navigation", () => {
   it("the bottom bar holds exactly the five approved seats with no central record button", () => {
     render(<BottomNav activePath="/" items={primaryNavigation} onNavigate={() => {}} />);
     const labels = primaryNavigation.map(item => item.label);
-    expect(labels).toEqual(["المالية", "الطلبات", "الرئيسية", "التوصيل", "السوق"]);
+    /* M5.2 (قرار ١١/D-12): «الرئيسية» ← «مشروعي الآن» — التعديل الوحيد
+     * المسموح على الشريط؛ مقعده وأيقونته وترتيبه كما هم. */
+    expect(labels).toEqual(["المالية", "الطلبات", "مشروعي الآن", "التوصيل", "السوق"]);
     const buttons = screen.getAllByRole("button");
     for (const label of labels) {
       expect(buttons.some(button => button.textContent?.includes(label))).toBe(true);

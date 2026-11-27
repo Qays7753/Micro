@@ -86,7 +86,7 @@ function renderShellWith(
   );
 }
 
-const SEAT_LABELS = ["المالية", "الطلبات", "الرئيسية", "التوصيل", "السوق"] as const;
+const SEAT_LABELS = ["المالية", "الطلبات", "مشروعي الآن", "التوصيل", "السوق"] as const;
 
 function visibleSeatCount(): number {
   return SEAT_LABELS.filter(label => screen.queryByRole("button", { name: new RegExp(label) }) !== null)
@@ -112,7 +112,7 @@ describe("NAV-001/R1-15 — guest hides owner-only Finance/Orders seats; everyon
     expect(count).toBe(3);
     expect(screen.queryByRole("button", { name: /المالية/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /الطلبات/ })).toBeNull();
-    expect(screen.queryByRole("button", { name: /الرئيسية/ })).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /مشروعي الآن/ })).not.toBeNull();
     expect(screen.queryByRole("button", { name: /التوصيل/ })).not.toBeNull();
     expect(screen.queryByRole("button", { name: /السوق/ })).not.toBeNull();
   });
