@@ -89,11 +89,14 @@ export type {
   PlanBalanceLine,
   PlanExtraWrites,
   PlanLoadState,
+  PlanResultData,
   TxQuery,
 } from "./operations/support.js";
 export type { SetupInput, SetupBoxSlot } from "./operations/setup.js";
 export type { AddBoxInput } from "./operations/addBox.js";
 export type { AddPriorBalanceInput } from "./operations/addPriorBalance.js";
+/* M2.6 (wave G): OP-EXPENSE — الباب المعلن نفسه. */
+export type { ExpenseInput, ExpensePayment, ExpenseSource } from "./operations/expense.js";
 export {
   OperationRejected,
   reject,
@@ -108,3 +111,4 @@ export {
 export { planSetup } from "./operations/setup.js";
 export { planAddBox } from "./operations/addBox.js";
 export { planAddPriorBalance } from "./operations/addPriorBalance.js";
+export { planExpense } from "./operations/expense.js";

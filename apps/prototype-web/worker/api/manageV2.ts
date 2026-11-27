@@ -1,9 +1,9 @@
 /**
- * M2.5 (Manage v2 phase 2, wave G): HTTP surface for the three opening
- * operations — OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE — over the new
- * §3 tables. One route file for the whole Manage v2 write surface
- * (`/api/manage-v2/*`), extended task by task (M2.6+ add their operations
- * here); the M2.4 handler owns the transaction and the atomic idempotency.
+ * Manage v2 phase 2, wave G+: HTTP surface for the §5 operations over the
+ * new §3 tables — OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE (M2.5),
+ * OP-EXPENSE (M2.6); M2.7+ add their operations here. One route file for
+ * the whole Manage v2 write surface (`/api/manage-v2/*`); the M2.4 handler
+ * owns the transaction and the atomic idempotency.
  *
  * Shape (§14.1 + the M1.6 boundary): the route ONLY adapts HTTP —
  * authenticate, resolve the caller's project (R-24: one project per app
@@ -30,12 +30,13 @@ import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
 import { HttpError, jsonResponse, requireJsonBody } from "../http.ts";
 import { authedRoute } from "../routes.ts";
-import { readJsonBody, type ApiRouter } from "../router.ts";
+import { readJsonBody, type ApiRouter, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 import { applyManageOperation, type ManageOperationOutcome } from "../application/manage/operationHandler.ts";
 import { planSetup } from "../../../../src/domain/manage/operations/setup.js";
 import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planAddPriorBalance } from "../../../../src/domain/manage/operations/addPriorBalance.js";
+import { planExpense } from "../../../../src/domain/manage/operations/expense.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
 /** Body of a Manage v2 write request: the shared reader (JSON content type,
@@ -94,6 +95,7 @@ async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<ManageOp
     const outcome = await applyManageOperation(sql, plan.write, {
       ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
       ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
+      ...(plan.resultData !== undefined ? { resultData: plan.resultData } : {}),
     });
     if (outcome.outcome === "conflict") {
       throw new HttpError(409, "conflict", { code: outcome.reason });
@@ -102,6 +104,21 @@ async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<ManageOp
   } catch (error) {
     toHttpError(error);
   }
+}
+
+/** The opening of every project-scoped write route: the request-scoped
+ * client, the JSON body, and the caller's OWN project (R-24 — the body may
+ * only repeat it) with Amman today for the planner. */
+async function projectWrite(ctx: RouteContext, auth: AuthenticatedContext) {
+  const sql = rawSqlOf(ctx.env);
+  const body = await readBody(ctx.request);
+  return {
+    sql,
+    projectId: await requireProject(sql, auth, body.projectId),
+    body,
+    createdByAccountId: auth.identityId,
+    today: ammanDateString(Date.now()),
+  };
 }
 
 export function registerManageV2Routes(router: ApiRouter): void {
@@ -160,15 +177,13 @@ export function registerManageV2Routes(router: ApiRouter): void {
   router.post(
     "api/manage-v2/add-box",
     authedRoute(async (ctx, auth) => {
-      const sql = rawSqlOf(ctx.env);
-      const body = await readBody(ctx.request);
-      const projectId = await requireProject(sql, auth, body.projectId);
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
       const plan = planOr400(() =>
         planAddBox({
           projectId,
-          createdByAccountId: auth.identityId,
+          createdByAccountId,
           requestId: body.requestId,
-          today: ammanDateString(Date.now()),
+          today,
           kind: body.kind,
           opening: body.opening,
         }),
@@ -180,19 +195,44 @@ export function registerManageV2Routes(router: ApiRouter): void {
   router.post(
     "api/manage-v2/add-prior-balance",
     authedRoute(async (ctx, auth) => {
-      const sql = rawSqlOf(ctx.env);
-      const body = await readBody(ctx.request);
-      const projectId = await requireProject(sql, auth, body.projectId);
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
       const plan = planOr400(() =>
         planAddPriorBalance({
           projectId,
-          createdByAccountId: auth.identityId,
+          createdByAccountId,
           requestId: body.requestId,
-          today: ammanDateString(Date.now()),
+          today,
           direction: body.direction,
           counterpartyName: body.counterpartyName,
           amountFils: body.amountFils,
           originOn: body.originOn,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M2.6 — OP-EXPENSE (§5). The planner needs live state (the box the
+  // payment leaves): it is resolved inside the handler's transaction; a box
+  // that is not active answers E-BOX-STATE here like any §11 rejection.
+  router.post(
+    "api/manage-v2/expense",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planExpense({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          amountFils: body.amountFils,
+          deliveryCostFils: body.deliveryCostFils,
+          category: body.category,
+          payment: body.payment,
+          source: body.source,
+          supplierName: body.supplierName,
+          effectiveOn: body.effectiveOn,
+          note: body.note,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));

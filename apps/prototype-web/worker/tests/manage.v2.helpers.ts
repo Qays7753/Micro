@@ -55,6 +55,7 @@ export async function runPlan(sql: postgres.Sql, make: () => OperationPlan): Pro
   return applyManageOperation(sql, plan.write, {
     ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
     ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
+    ...(plan.resultData !== undefined ? { resultData: plan.resultData } : {}),
   });
 }
 

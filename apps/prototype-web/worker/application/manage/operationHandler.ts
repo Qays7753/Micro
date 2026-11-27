@@ -99,6 +99,8 @@ export interface ManageOperationWrite {
   counterpartyName?: string;
   boxId?: string;
   saleId?: string;
+  /** §3.7 balance_line_id: the balance line the operation acts on or opens. */
+  balanceLineId?: string;
   category?: string;
   deliveryCostFils?: number;
   note?: string;
@@ -108,7 +110,9 @@ export interface ManageOperationWrite {
    * by the handler to the committed operation's id. */
   balanceLines?: ManageBalanceLineWrite[];
   /** Entries BUILT AND VALIDATED by the M2.2 domain builder (never raw
-   * postings): the §3.8 per-entry equation is already enforced there. */
+   * postings): the §3.8 per-entry equation is already enforced there. A
+   * plan whose entries depend on live state fills this array in its
+   * `loadState` hook (the handler reads it after the hook). */
   entries: BuiltLedgerEntry[];
   /** The client's validated INTENT — every input the plan was built from
    * and NO server-generated id. It is what the idempotency request hash
@@ -127,6 +131,10 @@ export interface StoredManageOperationResult {
   effectiveOn: string;
   amountFils: number;
   entryIds: string[];
+  /** Operation-specific result (M2.6 — e.g. OP-EXPENSE's warnings),
+   * computed inside the transaction by the plan's `resultData` hook and
+   * stored WITH the response: a replay returns it verbatim. */
+  data?: Record<string, unknown>;
 }
 
 export type ManageOperationOutcome =
@@ -160,6 +168,20 @@ export interface ManageOperationOptions {
     operationId: string;
     entryIds: string[];
   }) => Promise<void>;
+  /**
+   * Operation-specific RESULT data (M2.6): called inside the same
+   * transaction AFTER every write (standard rows + extraWrites) — the
+   * resulting state is visible. What it returns is stored with the
+   * idempotent response as `result.data`, so a replayed request (R-25)
+   * returns it verbatim. `undefined` stores nothing. Still NO financial
+   * calculation here: the plan's hook decides (e.g. a warning); the handler
+   * only persists its answer.
+   */
+  resultData?: (context: {
+    tx: postgres.TransactionSql<Record<string, unknown>>;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<Record<string, unknown> | undefined>;
 }
 
 /** A reserved-but-never-stored row older than this is a dead reservation
@@ -308,10 +330,11 @@ export async function applyManageOperation(
     // injected-failure hook fails right after it to prove full rollback.
     await tx`
       INSERT INTO operation
-        (id, project_id, kind, effective_on, status, box_id, sale_id, counterparty_name,
+        (id, project_id, kind, effective_on, status, box_id, sale_id, balance_line_id, counterparty_name,
          category, amount_minor, delivery_cost_minor, payload, note, created_by_account_id, created_at)
       VALUES (${operationId}, ${write.projectId}, ${write.kind}, ${write.effectiveOn}, ${"active"},
-              ${write.boxId ?? null}, ${write.saleId ?? null}, ${write.counterpartyName ?? null},
+              ${write.boxId ?? null}, ${write.saleId ?? null}, ${write.balanceLineId ?? null},
+              ${write.counterpartyName ?? null},
               ${write.category ?? null}, ${write.amountFils}, ${write.deliveryCostFils ?? null},
               ${write.payload === undefined ? null : JSON.stringify(write.payload)},
               ${write.note ?? null}, ${write.createdByAccountId}, ${timestamptz(now)})`;
@@ -358,6 +381,12 @@ export async function applyManageOperation(
     // Operation-specific writes (box/sale rows…), same transaction (R-12).
     if (options.extraWrites !== undefined) {
       await options.extraWrites({ tx, operationId, entryIds });
+    }
+    // Operation-specific result data (e.g. a warning about the resulting
+    // state), decided by the plan now that every write is visible.
+    if (options.resultData !== undefined) {
+      const data = await options.resultData({ tx, operationId, entryIds });
+      if (data !== undefined) result.data = data;
     }
     await tx`
       UPDATE manage_v2_idempotency

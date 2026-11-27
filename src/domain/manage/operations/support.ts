@@ -197,6 +197,8 @@ export interface OperationWritePlan {
   counterpartyName?: string;
   boxId?: string;
   saleId?: string;
+  /** §3.7 balance_line_id: the balance line the operation acts on or opens. */
+  balanceLineId?: string;
   category?: string;
   deliveryCostFils?: number;
   note?: string;
@@ -212,7 +214,10 @@ export interface OperationWritePlan {
 }
 
 /** «Load state in the transaction» (§14.1): runs inside the handler's
- * transaction after the idempotency reservation, before any write. */
+ * transaction after the idempotency reservation, before any write. A plan
+ * whose entries depend on live state (the box a payment leaves, the line a
+ * payment settles…) fills `write.entries` / `write.boxId` / `write.balanceLineId`
+ * here: the handler reads them after this hook. */
 export type PlanLoadState = (tx: TxQuery) => Promise<unknown>;
 
 /** Operation-specific writes (box rows, FK-ordered entries…) inside the
@@ -224,10 +229,22 @@ export type PlanExtraWrites = (context: {
   entryIds: string[];
 }) => Promise<void>;
 
+/** Operation-specific RESULT data (M2.6): computed inside the same
+ * transaction AFTER every write of the operation — the resulting state is
+ * visible — and stored by the handler WITH the idempotent response as
+ * `result.data`, so a replayed request (R-25) returns it verbatim (e.g.
+ * OP-EXPENSE's w.negative_box warning). */
+export type PlanResultData = (context: {
+  tx: TxQuery;
+  operationId: string;
+  entryIds: string[];
+}) => Promise<Record<string, unknown> | undefined>;
+
 /** A complete §5 operation plan: the handler composes it inside its one
  * transaction (SRV-03 reservation + writes + response). */
 export interface OperationPlan {
   write: OperationWritePlan;
   loadState?: PlanLoadState | undefined;
   extraWrites?: PlanExtraWrites | undefined;
+  resultData?: PlanResultData | undefined;
 }
