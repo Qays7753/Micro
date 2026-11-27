@@ -55,6 +55,7 @@ import { buildLedgerEntry } from "../../../../src/domain/manage/ledger/index.js"
 import { assertLedgerCoreInvariants } from "../../../../src/domain/manage/invariants/index.js";
 import type { LedgerCheckState } from "../../../../src/domain/manage/invariants/index.js";
 import { startWorker, type WorkerInstance } from "./harness.ts";
+import { fileSqlUrl } from "./manage.v2.helpers.ts";
 
 /** The per-file harness database URL (migrations 0001–0019 applied). */
 let fileDbUrl = "";
@@ -67,17 +68,10 @@ function scopedClient(): postgres.Sql {
 
 beforeAll(async () => {
   worker = await startWorker();
-  const base = process.env.MICRO_TEST_PG_CONNECTION;
-  if (!base) throw new Error("MICRO_TEST_PG_CONNECTION is not set");
   // The harness creates this file's isolated database (micro_tf_<tag>) and
-  // applies every migration to it; recover the freshest micro_tf_* database
-  // from the admin catalog (the tag is module-scoped in harness.ts).
-  const admin = postgres(base, { max: 1 });
-  const rows =
-    await admin`select datname from pg_database where datname like 'micro_tf_%' order by pg_database_size(datname) desc`;
-  await admin.end();
-  if (rows.length === 0) throw new Error("no harness micro_tf_* database found");
-  fileDbUrl = `${base.replace(/\/[^/]*$/, "")}/${rows[0]!.datname}`;
+  // applies every migration to it; resolve THAT database through the
+  // harness handle (never a guess among the parallel suite's databases).
+  fileDbUrl = await fileSqlUrl(worker);
 });
 
 afterAll(async () => {

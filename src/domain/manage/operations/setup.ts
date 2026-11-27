@@ -8,16 +8,21 @@
  * 'unknown' (the explicit path; the first reconciliation fixes it via Q1
  * effective on the box's created_on, §7.3 — phase 4).
  *
- * R-9: at most one cash + one account box; a duplicate kind is E-BOX-LIMIT.
+ * R-9: OP-SETUP initializes a project — ANY box already present means the
+ * project is initialized (E-BOX-LIMIT); the boxes themselves are one cash +
+ * one account at most, also E-BOX-LIMIT.
  *
  * This is a PURE PLANNER (M1.6 boundary — the domain imports nothing from
- * the worker): it validates and returns an OperationPlan; the M2.4 handler
- * (composed by the route) runs loadState (project + boxes INSERT, before
- * the entries' postings reference the boxes) and extraWrites (the Q1
- * entries after the boxes exist) inside its single transaction.
+ * the worker): it validates and returns an OperationPlan. Nothing persists
+ * before it has validated. The route then creates the project row (R-24 —
+ * it must exist before the operation's transaction because the handler's
+ * idempotency reservation references it), and the M2.4 handler (composed by
+ * the route) runs loadState (the R-9 live check, then the box rows) inside
+ * its single transaction and persists the plan's Q1 entries exactly like
+ * those of any other operation: the ledger has ONE writer (the handler),
+ * no operation writes ledger rows itself.
  */
 import { buildLedgerEntry } from "../ledger/index.js";
-import type { BuiltLedgerEntry } from "../ledger/index.js";
 import {
   reject,
   requireName,
@@ -91,57 +96,48 @@ export function planSetup(input: SetupInput): OperationPlan {
           openingFils: box.opening.unknown ? null : box.opening.openingFils,
         })),
       },
-      entries: [],
+      // Idempotency identity (R-25): the validated inputs only — the box
+      // ids above are generated per planning.
+      intent: {
+        projectName,
+        boxes: created.map(box => ({
+          kind: box.kind,
+          openingFils: box.opening.unknown ? null : box.opening.openingFils,
+        })),
+      },
+      entries,
     },
-    loadState: setupLoadState(ctx, created, projectName),
-    extraWrites: setupExtraWrites(ctx, entries),
+    loadState: setupLoadState(ctx, created),
   };
 }
 
-/** Inside the transaction: project row (R-24), R-9 live check, box rows
- * (before any posting references them — FK order). */
+/** Inside the transaction: the R-9 live check, then the box rows — before
+ * the Q1 postings reference them. The project row itself already exists:
+ * the route creates it after validation and before the transaction (the
+ * handler's idempotency reservation carries an FK to it). */
 function setupLoadState(
-  ctx: { projectId: string; createdByAccountId: string; today: string },
+  ctx: { projectId: string; today: string },
   created: Array<{ id: string; kind: "cash" | "account"; opening: OpeningInput }>,
-  projectName: string,
 ): OperationPlan["loadState"] {
   return async tx => {
-    const existing =
-      (await (tx`SELECT kind FROM box WHERE project_id = ${ctx.projectId}` as unknown as Promise<
-        Array<Record<string, unknown>>
-      >)) as Array<Record<string, unknown>>;
-    const existingKinds = new Set(existing.map(b => String(b.kind)));
-    for (const box of created) {
-      if (existingKinds.has(box.kind)) reject("E-BOX-LIMIT");
-    }
-    await tx`INSERT INTO project (id, name, owner_account_id, created_at)
-               VALUES (${ctx.projectId}, ${projectName}, ${ctx.createdByAccountId}, now())
-               ON CONFLICT (id) DO NOTHING`;
+    // Lock the project row: a concurrent first setup whose transaction is
+    // already inserting this project's boxes holds FOR KEY SHARE on it (the
+    // box FK), so this waits for that transaction to end, and the box check
+    // below then sees its committed boxes.
+    const project = (await tx`SELECT 1 FROM project WHERE id = ${ctx.projectId} FOR UPDATE`) as unknown[];
+    if (project.length === 0) reject("E-BOX-STATE");
+
+    // An idempotent retry never reaches here (the handler answers it from
+    // the stored response before loading state), so ANY existing box means
+    // the project is already initialized.
+    const boxes = (await tx`SELECT 1 FROM box WHERE project_id = ${ctx.projectId} LIMIT 1`) as unknown[];
+    if (boxes.length > 0) reject("E-BOX-LIMIT");
+
     for (const box of created) {
       await tx`INSERT INTO box (id, project_id, kind, status, opening_status, created_on, created_at)
                  VALUES (${box.id}, ${ctx.projectId}, ${box.kind}, ${"active"},
                          ${box.opening.unknown ? "unknown" : "known"}, ${ctx.today}, now())`;
     }
     return null;
-  };
-}
-
-/** The Q1 entries AFTER the boxes exist, linked to THIS operation's row. */
-function setupExtraWrites(
-  ctx: { projectId: string },
-  entries: BuiltLedgerEntry[],
-): OperationPlan["extraWrites"] {
-  return async ({ tx, operationId }) => {
-    for (const entry of entries) {
-      const entryId = crypto.randomUUID();
-      await tx`INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, created_at)
-               VALUES (${entryId}, ${ctx.projectId}, ${operationId}, ${entry.entryType}, ${entry.effectiveOn}, now())`;
-      for (const posting of entry.postings) {
-        await tx`INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, rev_kind, delta_minor)
-                 VALUES (${crypto.randomUUID()}, ${ctx.projectId}, ${entryId}, ${posting.account},
-                         ${posting.refId ?? null}, ${posting.category ?? null}, ${posting.revKind ?? null},
-                         ${posting.deltaFils})`;
-      }
-    }
   };
 }

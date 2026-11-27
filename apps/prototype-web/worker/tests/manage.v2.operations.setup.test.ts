@@ -5,7 +5,8 @@
  * routes, composed with the M2.4 handler (the ONE transaction).
  *
  * Real test posture: Miniflare over the per-file isolated PostgreSQL
- * (migrations 0001–0019). Domain planners are exercised through the same
+ * (migrations 0001–0019), resolved through the harness handle (see
+ * manage.v2.helpers.ts). Domain planners are exercised through the same
  * composition the route performs (runPlan) against the real database; the
  * HTTP surface is exercised end-to-end (signInAs + apiPost).
  *
@@ -18,76 +19,37 @@
  *  5. T13 setup half — prior payable 70: AP 70 / OPEN −70.
  *  6. OP-ADD-BOX known opening → Q1; duplicate kind → E-BOX-LIMIT.
  *  7. OP-SETUP validation: empty name; negative opening; ambiguous unknown.
- *  8. Routes /api/manage-v2/* end-to-end (OP-SETUP creates the project).
+ *  8. R-25/T55 — a repeated plan (same request id) replays; R-9 live —
+ *     a setup on a project that already has ANY box is E-BOX-LIMIT.
+ *  9. Routes /api/manage-v2/* end-to-end (OP-SETUP creates the project and
+ *     returns its id; the next operation uses it).
  * Every acceptance path ends with assertLedgerCoreInvariants (INV-1+INV-2).
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import postgres from "postgres";
-import { startWorker, signInAs, apiPost, type WorkerInstance } from "./harness.ts";
+import { startWorker, apiPost, signInAs, type WorkerInstance } from "./harness.ts";
+import {
+  accountTotal,
+  boxBalance,
+  fileSqlUrl,
+  ledgerState,
+  resultOf,
+  runPlan,
+  scopedClient,
+  seedProjectRow,
+} from "./manage.v2.helpers.ts";
 import { planSetup } from "../../../../src/domain/manage/operations/setup.js";
 import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planAddPriorBalance } from "../../../../src/domain/manage/operations/addPriorBalance.js";
-import type { OperationPlan } from "../../../../src/domain/manage/operations/support.js";
-import { applyManageOperation } from "../application/manage/operationHandler.ts";
 import { buildLedgerEntry } from "../../../../src/domain/manage/ledger/index.js";
 import { assertLedgerCoreInvariants } from "../../../../src/domain/manage/invariants/index.js";
-import type { LedgerCheckState } from "../../../../src/domain/manage/invariants/index.js";
 
 let worker: WorkerInstance;
-let fileDbUrl = "";
+let dbUrl = "";
 let ownerSeq = 0;
-
-function scopedClient(): postgres.Sql {
-  return postgres(fileDbUrl, { max: 1 });
-}
-
-/** Compose a domain plan with the M2.4 handler — the route's composition.
- * Takes a plan FACTORY: a planner's synchronous validation throw (e.g.
- * E-AMOUNT on bad input) becomes a rejected promise here, so every path is
- * assertable with .rejects. */
-async function runPlan(sql: postgres.Sql, make: () => OperationPlan) {
-  const plan = make();
-  return applyManageOperation(sql, plan.write, {
-    ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
-    ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
-  });
-}
 
 beforeAll(async () => {
   worker = await startWorker();
-  const base = process.env.MICRO_TEST_PG_CONNECTION;
-  if (!base) throw new Error("MICRO_TEST_PG_CONNECTION is not set");
-  // Resolve THIS file's database deterministically: sign a probe account in
-  // through the real flow, then find the candidate database whose project
-  // table contains that account. (Picking the largest micro_tf_* database
-  // raced the parallel suite — every test FILE gets its own database.)
-  const probeAccount = `m25-dbprobe-${crypto.randomUUID()}`;
-  await signInAs(worker, { sub: probeAccount, email: `${probeAccount}@example.com` });
-  const admin = postgres(base, { max: 1 });
-  const candidates = await admin`select datname from pg_database where datname like 'micro_tf_%'`;
-  await admin.end();
-  if (candidates.length === 0) throw new Error("no harness micro_tf_* database found");
-  const stem = base.replace(/\/[^/]*$/, "");
-  let found = "";
-  for (const row of candidates) {
-    const probe = postgres(`${stem}/${row.datname}`, { max: 1 });
-    try {
-      // Sign-in creates a network_identity row (not a project) — that row
-      // lives only in THIS file's database; its id is what projects use as
-      // owner_account_id.
-      const hit = await probe`SELECT id FROM network_identity WHERE google_sub = ${probeAccount}`;
-      if (hit.length > 0) {
-        found = String(row.datname);
-        break;
-      }
-    } catch {
-      // No project table here (not this harness database) — next.
-    } finally {
-      await probe.end({ timeout: 1 }).catch(() => undefined);
-    }
-  }
-  if (found === "") throw new Error("could not locate this file's harness database");
-  fileDbUrl = `${stem}/${found}`;
+  dbUrl = await fileSqlUrl(worker);
 });
 
 afterAll(async () => {
@@ -106,122 +68,49 @@ function nextOwner(): string {
   return `m25-owner-${ownerSeq}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function seedProjectRow(projectId: string, ownerAccountId: string): Promise<void> {
-  const sql = scopedClient();
+/** A seeded project + the OP-SETUP input every case below starts from. */
+async function newProject(boxes: Array<{ kind: "cash" | "account"; opening: Record<string, unknown> }>) {
+  const projectId = freshProjectId();
+  const owner = nextOwner();
+  const sql = scopedClient(dbUrl);
   try {
-    await sql`INSERT INTO project (id, name, owner_account_id, created_at)
-              VALUES (${projectId}, ${"مشروع M2.5"}, ${ownerAccountId}, now())
-              ON CONFLICT (id) DO NOTHING`;
+    await seedProjectRow(sql, projectId, owner);
   } finally {
     await sql.end();
   }
-}
-
-async function ledgerState(projectId: string): Promise<LedgerCheckState> {
-  const sql = scopedClient();
-  try {
-    const boxes = await sql`SELECT id, status, opening_status FROM box WHERE project_id = ${projectId}`;
-    const lines = await sql`SELECT id, direction FROM balance_line WHERE project_id = ${projectId}`;
-    const entries = await sql`
-      SELECT id, operation_id, entry_type, effective_on, reverses_entry_id
-      FROM ledger_entry WHERE project_id = ${projectId}`;
-    const postings = await sql`
-      SELECT entry_id, account, ref_id, category, rev_kind, delta_minor
-      FROM ledger_posting WHERE project_id = ${projectId}`;
-    return {
-      boxes: boxes.map(b => ({ id: b.id, status: b.status, openingStatus: b.opening_status })),
-      balanceLines: lines.map(l => ({ id: l.id, direction: l.direction })),
-      sales: [],
-      saleLines: [],
-      operations: [],
-      entries: entries.map(e => ({
-        id: e.id,
-        operationId: e.operation_id,
-        entryType: e.entry_type,
-        effectiveOn: new Date(e.effective_on).toISOString().slice(0, 10),
-        ...(e.reverses_entry_id ? { reversesEntryId: e.reverses_entry_id } : {}),
-        postings: postings
-          .filter(p => p.entry_id === e.id)
-          .map(p => ({
-            account: p.account,
-            deltaFils: Number(p.delta_minor),
-            ...(p.ref_id ? { refId: p.ref_id } : {}),
-            ...(p.category ? { category: p.category } : {}),
-            ...(p.rev_kind ? { revKind: p.rev_kind } : {}),
-          })),
-      })),
-    };
-  } finally {
-    await sql.end();
-  }
-}
-
-async function boxBalance(projectId: string, kind: "cash" | "account"): Promise<number> {
-  const sql = scopedClient();
-  try {
-    const rows = await sql`
-      SELECT COALESCE(SUM(p.delta_minor), 0)::bigint AS total
-      FROM ledger_posting p
-      JOIN box b ON b.id = p.ref_id AND b.project_id = ${projectId} AND b.kind = ${kind}
-      WHERE p.account = 'BOX'`;
-    return Number(rows[0]!.total);
-  } finally {
-    await sql.end();
-  }
-}
-
-async function accountTotal(projectId: string, account: string): Promise<number> {
-  const sql = scopedClient();
-  try {
-    const rows = await sql`
-      SELECT COALESCE(SUM(delta_minor), 0)::bigint AS total
-      FROM ledger_posting WHERE project_id = ${projectId} AND account = ${account}`;
-    return Number(rows[0]!.total);
-  } finally {
-    await sql.end();
-  }
+  const setup = () =>
+    planSetup({
+      projectId,
+      createdByAccountId: owner,
+      requestId: `setup-${crypto.randomUUID()}`,
+      projectName: "مشروع سامي",
+      today: AMMAN_TODAY,
+      boxes,
+    });
+  return { projectId, owner, setup };
 }
 
 /* ── 1. S1-opening ─────────────────────────────────────────────────────── */
 
 describe("M2.5 S1-opening — OP-SETUP cash 200 + account 100", () => {
-  it("writes Q1 per box with known openings", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    const result = await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع سامي",
-        today: AMMAN_TODAY,
-        boxes: [
-          { kind: "cash", opening: { openingFils: 200_000 } },
-          { kind: "account", opening: { openingFils: 100_000 } },
-        ],
-      }),
-    );
-    expect(result.outcome).toBe("applied");
-    expect(await boxBalance(projectId, "cash")).toBe(200_000);
-    expect(await boxBalance(projectId, "account")).toBe(100_000);
-    expect(await accountTotal(projectId, "OPEN")).toBe(300_000);
-    expect(await accountTotal(projectId, "REV")).toBe(0);
-    expect(await accountTotal(projectId, "EXP")).toBe(0);
-    // A second setup with a NEW request id on the same project hits R-9.
-    await expect(
-      runPlan(scopedClient(), () =>
-        planSetup({
-          projectId,
-          createdByAccountId: owner,
-          requestId: `req-${crypto.randomUUID()}`,
-          projectName: "مشروع سامي",
-          today: AMMAN_TODAY,
-          boxes: [{ kind: "cash", opening: { openingFils: 5000 } }],
-        }),
-      ),
-    ).rejects.toThrow(/E-BOX-LIMIT/);
-    assertLedgerCoreInvariants(await ledgerState(projectId));
+  it("writes Q1 per box with known openings, and lists them in the result", async () => {
+    const { projectId, setup } = await newProject([
+      { kind: "cash", opening: { openingFils: 200_000 } },
+      { kind: "account", opening: { openingFils: 100_000 } },
+    ]);
+    const result = await runPlan(scopedClient(dbUrl), setup);
+    expect(resultOf(result, "applied").entryIds.length).toBe(2);
+    const sql = scopedClient(dbUrl);
+    try {
+      expect(await boxBalance(sql, projectId, "cash")).toBe(200_000);
+      expect(await boxBalance(sql, projectId, "account")).toBe(100_000);
+      expect(await accountTotal(sql, projectId, "OPEN")).toBe(300_000);
+      expect(await accountTotal(sql, projectId, "REV")).toBe(0);
+      expect(await accountTotal(sql, projectId, "EXP")).toBe(0);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
+    } finally {
+      await sql.end();
+    }
   });
 });
 
@@ -229,21 +118,10 @@ describe("M2.5 S1-opening — OP-SETUP cash 200 + account 100", () => {
 
 describe("M2.5 T4-setup — OP-SETUP unknown opening", () => {
   it("creates the box with opening_status unknown and NO Q1 entry", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    const result = await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع سامي",
-        today: AMMAN_TODAY,
-        boxes: [{ kind: "cash", opening: { unknown: true } }],
-      }),
-    );
+    const { projectId, setup } = await newProject([{ kind: "cash", opening: { unknown: true } }]);
+    const result = await runPlan(scopedClient(dbUrl), setup);
     expect(result.outcome).toBe("applied");
-    const sql = scopedClient();
+    const sql = scopedClient(dbUrl);
     try {
       const boxes = await sql`SELECT kind, opening_status FROM box WHERE project_id = ${projectId}`;
       expect(boxes.length).toBe(1);
@@ -251,18 +129,16 @@ describe("M2.5 T4-setup — OP-SETUP unknown opening", () => {
       expect(boxes[0]!.opening_status).toBe("unknown");
       const entries = await sql`SELECT count(*)::int AS n FROM ledger_entry WHERE project_id = ${projectId}`;
       expect(Number(entries[0]!.n)).toBe(0);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
     } finally {
       await sql.end();
     }
-    assertLedgerCoreInvariants(await ledgerState(projectId));
   });
 
   it("a duplicate explicit amount with unknown is rejected as ambiguous", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
+    const { projectId, owner } = await newProject([]);
     await expect(
-      runPlan(scopedClient(), () =>
+      runPlan(scopedClient(dbUrl), () =>
         planSetup({
           projectId,
           createdByAccountId: owner,
@@ -298,20 +174,9 @@ describe("M2.5 T4 — Q1 on first reconciliation effective on box created_on", (
 
 describe("M2.5 T38 — prior receivable 40 for tracking only", () => {
   it("AR 40; OPEN +40; box unchanged; profit 0", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع",
-        today: AMMAN_TODAY,
-        boxes: [{ kind: "cash", opening: { unknown: true } }],
-      }),
-    );
-    const result = await runPlan(scopedClient(), () =>
+    const { projectId, owner, setup } = await newProject([{ kind: "cash", opening: { unknown: true } }]);
+    await runPlan(scopedClient(dbUrl), setup);
+    const result = await runPlan(scopedClient(dbUrl), () =>
       planAddPriorBalance({
         projectId,
         createdByAccountId: owner,
@@ -324,23 +189,23 @@ describe("M2.5 T38 — prior receivable 40 for tracking only", () => {
       }),
     );
     expect(result.outcome).toBe("applied");
-    expect(await accountTotal(projectId, "AR")).toBe(40_000);
-    expect(await accountTotal(projectId, "OPEN")).toBe(40_000);
-    expect(await accountTotal(projectId, "BOX")).toBe(0);
-    expect(await accountTotal(projectId, "REV")).toBe(0);
-    expect(await accountTotal(projectId, "EXP")).toBe(0);
-    const sql = scopedClient();
+    const sql = scopedClient(dbUrl);
     try {
+      expect(await accountTotal(sql, projectId, "AR")).toBe(40_000);
+      expect(await accountTotal(sql, projectId, "OPEN")).toBe(40_000);
+      expect(await accountTotal(sql, projectId, "BOX")).toBe(0);
+      expect(await accountTotal(sql, projectId, "REV")).toBe(0);
+      expect(await accountTotal(sql, projectId, "EXP")).toBe(0);
       const lines =
         await sql`SELECT direction, kind, counterparty_name FROM balance_line WHERE project_id = ${projectId}`;
       expect(lines.length).toBe(1);
       expect(lines[0]!.direction).toBe("to_me");
       expect(lines[0]!.kind).toBe("prior_receivable");
       expect(lines[0]!.counterparty_name).toBe("سامي");
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
     } finally {
       await sql.end();
     }
-    assertLedgerCoreInvariants(await ledgerState(projectId));
   });
 });
 
@@ -348,20 +213,9 @@ describe("M2.5 T38 — prior receivable 40 for tracking only", () => {
 
 describe("M2.5 — prior payable 70 (T13 setup)", () => {
   it("AP 70; OPEN −70; no money moves", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع",
-        today: AMMAN_TODAY,
-        boxes: [{ kind: "cash", opening: { openingFils: 0 } }],
-      }),
-    );
-    const result = await runPlan(scopedClient(), () =>
+    const { projectId, owner, setup } = await newProject([{ kind: "cash", opening: { openingFils: 0 } }]);
+    await runPlan(scopedClient(dbUrl), setup);
+    const result = await runPlan(scopedClient(dbUrl), () =>
       planAddPriorBalance({
         projectId,
         createdByAccountId: owner,
@@ -374,10 +228,15 @@ describe("M2.5 — prior payable 70 (T13 setup)", () => {
       }),
     );
     expect(result.outcome).toBe("applied");
-    expect(await accountTotal(projectId, "AP")).toBe(70_000);
-    expect(await accountTotal(projectId, "OPEN")).toBe(-70_000);
-    expect(await accountTotal(projectId, "BOX")).toBe(0);
-    assertLedgerCoreInvariants(await ledgerState(projectId));
+    const sql = scopedClient(dbUrl);
+    try {
+      expect(await accountTotal(sql, projectId, "AP")).toBe(70_000);
+      expect(await accountTotal(sql, projectId, "OPEN")).toBe(-70_000);
+      expect(await accountTotal(sql, projectId, "BOX")).toBe(0);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
+    } finally {
+      await sql.end();
+    }
   });
 });
 
@@ -385,20 +244,11 @@ describe("M2.5 — prior payable 70 (T13 setup)", () => {
 
 describe("M2.5 — OP-ADD-BOX", () => {
   it("adds the account box with a known opening → Q1", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع",
-        today: AMMAN_TODAY,
-        boxes: [{ kind: "cash", opening: { openingFils: 50_000 } }],
-      }),
-    );
-    const result = await runPlan(scopedClient(), () =>
+    const { projectId, owner, setup } = await newProject([
+      { kind: "cash", opening: { openingFils: 50_000 } },
+    ]);
+    await runPlan(scopedClient(dbUrl), setup);
+    const result = await runPlan(scopedClient(dbUrl), () =>
       planAddBox({
         projectId,
         createdByAccountId: owner,
@@ -408,28 +258,22 @@ describe("M2.5 — OP-ADD-BOX", () => {
         opening: { openingFils: 25_000 },
       }),
     );
-    expect(result.outcome).toBe("applied");
-    expect(await boxBalance(projectId, "cash")).toBe(50_000);
-    expect(await boxBalance(projectId, "account")).toBe(25_000);
-    assertLedgerCoreInvariants(await ledgerState(projectId));
+    expect(resultOf(result, "applied").entryIds.length).toBe(1);
+    const sql = scopedClient(dbUrl);
+    try {
+      expect(await boxBalance(sql, projectId, "cash")).toBe(50_000);
+      expect(await boxBalance(sql, projectId, "account")).toBe(25_000);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
+    } finally {
+      await sql.end();
+    }
   });
 
   it("rejects a duplicate kind with E-BOX-LIMIT", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
-    await runPlan(scopedClient(), () =>
-      planSetup({
-        projectId,
-        createdByAccountId: owner,
-        requestId: `req-${crypto.randomUUID()}`,
-        projectName: "مشروع",
-        today: AMMAN_TODAY,
-        boxes: [{ kind: "cash", opening: { openingFils: 0 } }],
-      }),
-    );
+    const { projectId, owner, setup } = await newProject([{ kind: "cash", opening: { openingFils: 0 } }]);
+    await runPlan(scopedClient(dbUrl), setup);
     await expect(
-      runPlan(scopedClient(), () =>
+      runPlan(scopedClient(dbUrl), () =>
         planAddBox({
           projectId,
           createdByAccountId: owner,
@@ -447,11 +291,9 @@ describe("M2.5 — OP-ADD-BOX", () => {
 
 describe("M2.5 — OP-SETUP validation", () => {
   it("rejects an empty name and a negative opening", async () => {
-    const projectId = freshProjectId();
-    const owner = nextOwner();
-    await seedProjectRow(projectId, owner);
+    const { projectId, owner } = await newProject([]);
     await expect(
-      runPlan(scopedClient(), () =>
+      runPlan(scopedClient(dbUrl), () =>
         planSetup({
           projectId,
           createdByAccountId: owner,
@@ -463,7 +305,7 @@ describe("M2.5 — OP-SETUP validation", () => {
       ),
     ).rejects.toThrow(/E-NAME-REQUIRED/);
     await expect(
-      runPlan(scopedClient(), () =>
+      runPlan(scopedClient(dbUrl), () =>
         planSetup({
           projectId,
           createdByAccountId: owner,
@@ -477,50 +319,103 @@ describe("M2.5 — OP-SETUP validation", () => {
   });
 });
 
-/* ── 8. Routes end-to-end ──────────────────────────────────────────────── */
+/* ── 8. T55 / R-9 ──────────────────────────────────────────────────────── */
+
+describe("M2.5 — a repeated setup and the R-9 live check", () => {
+  it("replays the first operation when the same request id is planned again", async () => {
+    const { projectId, owner } = await newProject([]);
+    const requestId = `setup-${crypto.randomUUID()}`;
+    const plan = () =>
+      planSetup({
+        projectId,
+        createdByAccountId: owner,
+        requestId,
+        projectName: "مشروع سامي",
+        today: AMMAN_TODAY,
+        boxes: [{ kind: "cash", opening: { openingFils: 30_000 } }],
+      });
+    const first = resultOf(await runPlan(scopedClient(dbUrl), plan), "applied");
+    // The second planning generates a different box id; the intent is the
+    // same request.
+    const again = resultOf(await runPlan(scopedClient(dbUrl), plan), "replay");
+    expect(again.operationId).toBe(first.operationId);
+    const sql = scopedClient(dbUrl);
+    try {
+      const ops = await sql`SELECT count(*)::int AS n FROM operation WHERE project_id = ${projectId}`;
+      expect(Number(ops[0]!.n)).toBe(1);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
+    } finally {
+      await sql.end();
+    }
+  });
+
+  it("rejects a setup on a project that already has any box (E-BOX-LIMIT)", async () => {
+    const { projectId, owner, setup } = await newProject([
+      { kind: "cash", opening: { openingFils: 20_000 } },
+    ]);
+    await runPlan(scopedClient(dbUrl), setup);
+    // Even a setup asking only for the MISSING kind: a project with a box
+    // is initialized, and OP-ADD-BOX is the operation that adds a box.
+    await expect(
+      runPlan(scopedClient(dbUrl), () =>
+        planSetup({
+          projectId,
+          createdByAccountId: owner,
+          requestId: `req-${crypto.randomUUID()}`,
+          projectName: "مشروع سامي",
+          today: AMMAN_TODAY,
+          boxes: [{ kind: "account", opening: { openingFils: 10_000 } }],
+        }),
+      ),
+    ).rejects.toThrow(/E-BOX-LIMIT/);
+    const sql = scopedClient(dbUrl);
+    try {
+      const boxes = await sql`SELECT kind FROM box WHERE project_id = ${projectId}`;
+      expect(boxes.map(b => b.kind)).toEqual(["cash"]);
+    } finally {
+      await sql.end();
+    }
+  });
+});
+
+/* ── 9. Routes end-to-end ──────────────────────────────────────────────── */
 
 describe("M2.5 — routes /api/manage-v2/*", () => {
   it("OP-SETUP then OP-ADD-PRIOR-BALANCE through the HTTP API", async () => {
-    const routeAccount = await signInAs(worker, {
+    const session = await signInAs(worker, {
       sub: `m25-route-${Math.random().toString(36).slice(2, 8)}`,
       email: `m25-route-${Math.random().toString(36).slice(2, 8)}@example.com`,
     });
-    const setupResponse = await apiPost(worker, routeAccount.cookieHeader, "/api/manage-v2/setup", {
+    const setupResponse = await apiPost(worker, session.cookieHeader, "/api/manage-v2/setup", {
       requestId: `route-${crypto.randomUUID()}`,
       projectName: "مشروع الطريق",
       boxes: [{ kind: "cash", opening: { openingFils: 30_000 } }],
     });
     expect(setupResponse.status).toBe(200);
-    const setupBody = (await setupResponse.json()) as { outcome: string };
+    // The setup response carries the project id the account now owns.
+    const setupBody = (await setupResponse.json()) as { outcome: string; projectId: string };
     expect(setupBody.outcome).toBe("applied");
-
-    const sql = scopedClient();
-    let projectId = "";
-    try {
-      const rows =
-        await sql`SELECT id FROM project WHERE name = ${"مشروع الطريق"} ORDER BY created_at DESC LIMIT 1`;
-      projectId = String((rows[0] as { id: string }).id);
-    } finally {
-      await sql.end();
-    }
+    const projectId = setupBody.projectId;
     expect(projectId.length).toBeGreaterThan(0);
 
-    const priorResponse = await apiPost(
-      worker,
-      routeAccount.cookieHeader,
-      "/api/manage-v2/add-prior-balance",
-      {
-        requestId: `route-${crypto.randomUUID()}`,
-        direction: "to_me",
-        counterpartyName: "خالد",
-        amountFils: 40_000,
-      },
-    );
+    const priorResponse = await apiPost(worker, session.cookieHeader, "/api/manage-v2/add-prior-balance", {
+      requestId: `route-${crypto.randomUUID()}`,
+      direction: "to_me",
+      counterpartyName: "خالد",
+      amountFils: 40_000,
+    });
     expect(priorResponse.status).toBe(200);
     const priorBody = (await priorResponse.json()) as { outcome: string };
     expect(priorBody.outcome).toBe("applied");
 
-    expect(await accountTotal(projectId, "AR")).toBe(40_000);
-    assertLedgerCoreInvariants(await ledgerState(projectId));
+    const sql = scopedClient(dbUrl);
+    try {
+      expect(await accountTotal(sql, projectId, "AR")).toBe(40_000);
+      const owners = await sql`SELECT owner_account_id FROM project WHERE id = ${projectId}`;
+      expect(owners.length).toBe(1);
+      assertLedgerCoreInvariants(await ledgerState(sql, projectId));
+    } finally {
+      await sql.end();
+    }
   });
 });

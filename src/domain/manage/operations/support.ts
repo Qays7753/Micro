@@ -133,8 +133,10 @@ import type { BuiltLedgerEntry } from "../ledger/index.js";
 
 /** A postgres.js-compatible tagged-template query surface — the STRUCTURAL
  * type of a transaction handle as the hooks see it. The real
- * postgres.TransactionSql the handler passes satisfies this shape; the
- * domain carries no postgres dependency (M1.6 boundary). */
+ * postgres.TransactionSql the handler passes satisfies this shape (its
+ * query helper is thenable); the domain carries no postgres dependency
+ * (M1.6 boundary). The awaited value is `unknown`, so a hook narrows the
+ * rows it reads with one cast at the read site (`as unknown[]`). */
 export interface TxQuery {
   (...parts: unknown[]): unknown;
 }
@@ -201,6 +203,12 @@ export interface OperationWritePlan {
   payload?: unknown;
   balanceLines?: PlanBalanceLine[];
   entries: BuiltLedgerEntry[];
+  /** The client's validated INTENT — every input the plan was built from,
+   * with NO server-generated id (boxes and balance lines the plan creates
+   * get fresh ids on every planning). The M2.4 handler hashes it for the
+   * idempotency reservation (R-25/T55): a retried request plans again and
+   * must replay, not conflict. Every planner sets it. */
+  intent?: unknown;
 }
 
 /** «Load state in the transaction» (§14.1): runs inside the handler's

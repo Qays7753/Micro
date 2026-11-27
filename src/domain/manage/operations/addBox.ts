@@ -9,11 +9,11 @@
  * entry, opening_status = 'unknown').
  *
  * PURE PLANNER (M1.6 boundary): the M2.4 handler runs loadState (the R-9
- * live check + the box row before the postings reference it) and
- * extraWrites (the Q1 entry) inside its single transaction.
+ * live check + the box row before the postings reference it) inside its
+ * single transaction, then persists the plan's Q1 entry like those of any
+ * other operation.
  */
 import { buildLedgerEntry } from "../ledger/index.js";
-import type { BuiltLedgerEntry } from "../ledger/index.js";
 import {
   reject,
   requireContext,
@@ -35,7 +35,7 @@ export function planAddBox(input: AddBoxInput): OperationPlan {
   const opening = validateOpening(input.opening);
 
   const boxId = crypto.randomUUID();
-  const entries: BuiltLedgerEntry[] = [];
+  const entries = [];
   if (!opening.unknown && opening.openingFils > 0) {
     entries.push(
       buildLedgerEntry({
@@ -61,33 +61,24 @@ export function planAddBox(input: AddBoxInput): OperationPlan {
         openingStatus: opening.unknown ? "unknown" : "known",
         openingFils: opening.unknown ? null : opening.openingFils,
       },
-      entries: [],
+      // Idempotency identity (R-25): the validated inputs only — boxId is
+      // generated per planning.
+      intent: {
+        kind,
+        openingFils: opening.unknown ? null : opening.openingFils,
+      },
+      entries,
     },
     // R-9 live check + the box row, inside the transaction before the
     // postings reference the box.
     loadState: async tx => {
-      const existing =
-        (await (tx`SELECT kind FROM box WHERE project_id = ${ctx.projectId} AND kind = ${kind}` as unknown as Promise<
-          Array<Record<string, unknown>>
-        >)) as Array<Record<string, unknown>>;
+      const existing = (await tx`SELECT 1 FROM box
+                                   WHERE project_id = ${ctx.projectId} AND kind = ${kind} LIMIT 1`) as unknown[];
       if (existing.length > 0) reject("E-BOX-LIMIT");
       await tx`INSERT INTO box (id, project_id, kind, status, opening_status, created_on, created_at)
                VALUES (${boxId}, ${ctx.projectId}, ${kind}, ${"active"},
                        ${opening.unknown ? "unknown" : "known"}, ${ctx.today}, now())`;
       return null;
-    },
-    extraWrites: async ({ tx, operationId }) => {
-      for (const entry of entries) {
-        const entryId = crypto.randomUUID();
-        await tx`INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, created_at)
-                 VALUES (${entryId}, ${ctx.projectId}, ${operationId}, ${entry.entryType}, ${entry.effectiveOn}, now())`;
-        for (const posting of entry.postings) {
-          await tx`INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, rev_kind, delta_minor)
-                   VALUES (${crypto.randomUUID()}, ${ctx.projectId}, ${entryId}, ${posting.account},
-                           ${posting.refId ?? null}, ${posting.category ?? null}, ${posting.revKind ?? null},
-                           ${posting.deltaFils})`;
-        }
-      }
     },
   };
 }

@@ -13,13 +13,24 @@
  * (worker side) because the domain must not import worker code. §11
  * rejections map to the error envelope; no Arabic strings (the client maps
  * error codes to catalog text).
+ *
+ * Trust boundary (binding for every route in this file):
+ *  - The TARGET PROJECT is never taken from the request. It is the signed-in
+ *    account's own project (R-24); a body `projectId` may only repeat it,
+ *    and anything else is the same 404 as "no project" — the surface never
+ *    confirms that another project exists.
+ *  - Nothing persists before the operation's input is validated: the planner
+ *    runs first, so its rejections are plain 400s with no row behind them;
+ *    every row the operation needs is written by the handler's ONE
+ *    transaction (R-12).
+ *  - Bodies go through the shared JSON reader (SRV-02 256 KiB cap).
  */
 import postgres from "postgres";
 import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
-import { HttpError, jsonResponse } from "../http.ts";
+import { HttpError, jsonResponse, requireJsonBody } from "../http.ts";
 import { authedRoute } from "../routes.ts";
-import type { ApiRouter } from "../router.ts";
+import { readJsonBody, type ApiRouter } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
 import { applyManageOperation, type ManageOperationOutcome } from "../application/manage/operationHandler.ts";
 import { planSetup } from "../../../../src/domain/manage/operations/setup.js";
@@ -27,24 +38,33 @@ import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planAddPriorBalance } from "../../../../src/domain/manage/operations/addPriorBalance.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
-/** Resolve the signed-in caller's project (R-24: one per app account);
- * 404 when none exists yet. */
-async function requireProject(sql: postgres.Sql, auth: AuthenticatedContext): Promise<string> {
+/** Body of a Manage v2 write request: the shared reader (JSON content type,
+ * SRV-02 256 KiB cap, malformed JSON → 400), then a JSON object. */
+async function readBody(request: Request): Promise<Record<string, unknown>> {
+  return requireJsonBody(await readJsonBody(request));
+}
+
+/** The signed-in caller's project (R-24: one per app account). `claimed` is
+ * the projectId the request body repeats, when it does: it may only EQUAL
+ * the caller's own project, never choose the target. Someone else's project,
+ * an unknown id and "no project yet" all answer the same 404. */
+async function requireProject(
+  sql: postgres.Sql,
+  auth: AuthenticatedContext,
+  claimed: unknown,
+): Promise<string> {
+  if (claimed !== undefined && claimed !== null && typeof claimed !== "string") {
+    throw new HttpError(400, "bad_request", { field: "projectId" });
+  }
   const rows = await sql`SELECT id FROM project WHERE owner_account_id = ${auth.identityId}`;
   const project = rows[0] as { id: string } | undefined;
-  if (project === undefined) {
+  if (
+    project === undefined ||
+    (typeof claimed === "string" && claimed.length > 0 && claimed !== project.id)
+  ) {
     throw new HttpError(404, "not_found", { surface: "manage_v2_project" });
   }
   return project.id;
-}
-
-/** Body of a Manage v2 write request (JSON object). */
-async function readBody(request: Request): Promise<Record<string, unknown>> {
-  const body = (await request.json()) as unknown;
-  if (body === null || typeof body !== "object" || Array.isArray(body)) {
-    throw new HttpError(400, "bad_request", { field: "body" });
-  }
-  return body as Record<string, unknown>;
 }
 
 /** Map §11 rejections to the HTTP error envelope (400 + the code). */
@@ -55,13 +75,30 @@ function toHttpError(error: unknown): never {
   throw error;
 }
 
-/** Compose a domain plan with the M2.4 handler: the ONE transaction. */
+/** Run a planner through the §11 → 400 mapping: its rejections are
+ * synchronous throws, thrown before anything persists. */
+function planOr400<T>(make: () => T): T {
+  try {
+    return make();
+  } catch (error) {
+    toHttpError(error);
+  }
+}
+
+/** Compose a validated domain plan with the M2.4 handler: the ONE
+ * transaction. A refused idempotency key (same key, different body; still
+ * in flight) is a 409 — never a 200 the client could mistake for a saved
+ * operation. */
 async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<ManageOperationOutcome> {
   try {
-    return await applyManageOperation(sql, plan.write, {
+    const outcome = await applyManageOperation(sql, plan.write, {
       ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
       ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
     });
+    if (outcome.outcome === "conflict") {
+      throw new HttpError(409, "conflict", { code: outcome.reason });
+    }
+    return outcome;
   } catch (error) {
     toHttpError(error);
   }
@@ -73,31 +110,46 @@ export function registerManageV2Routes(router: ApiRouter): void {
     authedRoute(async (ctx, auth) => {
       const sql = rawSqlOf(ctx.env);
       const body = await readBody(ctx.request);
-      // The project row is infrastructure OP-SETUP brings into being (R-24:
-      // one project per app account). It is created BEFORE the operation's
-      // transaction because the idempotency reservation (M2.4) carries an FK
-      // to it; an existing project → the honest 409. The box rows, Q1
-      // entries and the operation itself stay atomic in the transaction.
-      const existing = await sql`SELECT id FROM project WHERE owner_account_id = ${auth.identityId}`;
-      if (existing.length > 0) {
-        throw new HttpError(409, "conflict", { surface: "manage_v2_project_exists" });
-      }
-      const projectId = crypto.randomUUID();
-      await sql`INSERT INTO project (id, name, owner_account_id, created_at)
-                VALUES (${projectId}, ${typeof body.projectName === "string" ? body.projectName : ""},
-                        ${auth.identityId}, now())
-                ON CONFLICT (owner_account_id) DO NOTHING`;
-      const outcome = await runPlan(
-        sql,
+      const today = ammanDateString(Date.now());
+      const buildPlan = (projectId: string): OperationPlan =>
         planSetup({
           projectId,
           createdByAccountId: auth.identityId,
           requestId: body.requestId,
-          today: ammanDateString(Date.now()),
+          today,
           projectName: body.projectName,
           boxes: body.boxes,
-        }),
-      );
+        });
+
+      // OP-SETUP brings the project into being (R-24: one project per app
+      // account). The order is the guarantee that an invalid first setup
+      // strands nobody — nothing persists before the input has validated:
+      //   1. the plan validates (a §11 rejection is a plain 400, no row);
+      //   2. the project row is created. The account's existing project is
+      //      reused, so a retried request replays (T55) and a project left
+      //      without boxes by an aborted first setup is completed; the row
+      //      must exist before the transaction because the handler's
+      //      idempotency reservation references it;
+      //   3. the handler writes the operation, the boxes and the Q1 entries.
+      const own = await sql`SELECT id FROM project WHERE owner_account_id = ${auth.identityId}`;
+      let projectId = own.length > 0 ? String((own[0] as { id: string }).id) : crypto.randomUUID();
+      let plan = planOr400(() => buildPlan(projectId));
+      if (own.length === 0) {
+        const projectName = (plan.write.payload as { projectName: string }).projectName;
+        const inserted = await sql`INSERT INTO project (id, name, owner_account_id, created_at)
+                                  VALUES (${projectId}, ${projectName}, ${auth.identityId}, now())
+                                  ON CONFLICT (owner_account_id) DO NOTHING
+                                  RETURNING id`;
+        if (inserted.length === 0) {
+          // A concurrent first setup for this account won the slot: go on
+          // with ITS project (a duplicate request then replays or hits the
+          // R-9 live check inside the transaction).
+          const winner = await sql`SELECT id FROM project WHERE owner_account_id = ${auth.identityId}`;
+          projectId = String((winner[0] as { id: string }).id);
+          plan = buildPlan(projectId);
+        }
+      }
+      const outcome = await runPlan(sql, plan);
       // The client needs the project id its account now owns (subsequent
       // operations address it) — carried on the setup response, not
       // re-queried by the client from any list.
@@ -110,21 +162,18 @@ export function registerManageV2Routes(router: ApiRouter): void {
     authedRoute(async (ctx, auth) => {
       const sql = rawSqlOf(ctx.env);
       const body = await readBody(ctx.request);
-      const explicitProjectId = typeof body.projectId === "string" ? body.projectId : "";
-      const projectId = explicitProjectId.length > 0 ? explicitProjectId : await requireProject(sql, auth);
-      return jsonResponse(
-        await runPlan(
-          sql,
-          planAddBox({
-            projectId,
-            createdByAccountId: auth.identityId,
-            requestId: body.requestId,
-            today: ammanDateString(Date.now()),
-            kind: body.kind,
-            opening: body.opening,
-          }),
-        ),
+      const projectId = await requireProject(sql, auth, body.projectId);
+      const plan = planOr400(() =>
+        planAddBox({
+          projectId,
+          createdByAccountId: auth.identityId,
+          requestId: body.requestId,
+          today: ammanDateString(Date.now()),
+          kind: body.kind,
+          opening: body.opening,
+        }),
       );
+      return jsonResponse(await runPlan(sql, plan));
     }),
   );
 
@@ -133,23 +182,20 @@ export function registerManageV2Routes(router: ApiRouter): void {
     authedRoute(async (ctx, auth) => {
       const sql = rawSqlOf(ctx.env);
       const body = await readBody(ctx.request);
-      const explicitProjectId = typeof body.projectId === "string" ? body.projectId : "";
-      const projectId = explicitProjectId.length > 0 ? explicitProjectId : await requireProject(sql, auth);
-      return jsonResponse(
-        await runPlan(
-          sql,
-          planAddPriorBalance({
-            projectId,
-            createdByAccountId: auth.identityId,
-            requestId: body.requestId,
-            today: ammanDateString(Date.now()),
-            direction: body.direction,
-            counterpartyName: body.counterpartyName,
-            amountFils: body.amountFils,
-            originOn: body.originOn,
-          }),
-        ),
+      const projectId = await requireProject(sql, auth, body.projectId);
+      const plan = planOr400(() =>
+        planAddPriorBalance({
+          projectId,
+          createdByAccountId: auth.identityId,
+          requestId: body.requestId,
+          today: ammanDateString(Date.now()),
+          direction: body.direction,
+          counterpartyName: body.counterpartyName,
+          amountFils: body.amountFils,
+          originOn: body.originOn,
+        }),
       );
+      return jsonResponse(await runPlan(sql, plan));
     }),
   );
 }

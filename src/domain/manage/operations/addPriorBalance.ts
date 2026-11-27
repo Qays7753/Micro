@@ -66,6 +66,9 @@ export function planAddPriorBalance(input: AddPriorBalanceInput): OperationPlan 
         },
       ],
       payload: { direction, originOn },
+      // Idempotency identity (R-25): the validated inputs only — the line
+      // id is generated per planning.
+      intent: { direction, counterpartyName, amountFils, originOn },
       entries,
     },
   };

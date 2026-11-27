@@ -110,6 +110,14 @@ export interface ManageOperationWrite {
   /** Entries BUILT AND VALIDATED by the M2.2 domain builder (never raw
    * postings): the §3.8 per-entry equation is already enforced there. */
   entries: BuiltLedgerEntry[];
+  /** The client's validated INTENT — every input the plan was built from
+   * and NO server-generated id. It is what the idempotency request hash
+   * covers (R-25/T55): a retried request builds a fresh plan whose
+   * generated ids (boxes, balance lines…) differ and must still replay, so
+   * the hash covers the intent, never the derived entries and lines.
+   * Planners set it; without it the whole write minus the request id is
+   * hashed (the M2.4 default). */
+  intent?: unknown;
 }
 
 /** The stored result replayed verbatim on a duplicate request. */
@@ -184,15 +192,33 @@ function timestamptz(ms: number): string {
   return new Date(ms).toISOString();
 }
 
-/** Canonical request hash: the full write intent EXCEPT the reserved
- * request id itself — a different body under the same key is the explicit
- * E-IDEMPOTENCY-CONFLICT (SRV-03 §2.5). JSON with sorted keys would be
- * over-engineering here: the object is built in one place, so the literal
- * serialization is stable for identical intents. */
+/** Canonical request hash: the request's INTENT — who asks, for which
+ * project, which operation with which effective date, and the planner's
+ * validated inputs (`write.intent`). A different intent under the same key
+ * is the explicit E-IDEMPOTENCY-CONFLICT (SRV-03 §2.5). The plan's entries
+ * and balance lines are deliberately NOT hashed: the domain derives them
+ * from the intent, and they carry server-generated ids — a retried request
+ * plans again with fresh ids and must replay, not conflict. A write without
+ * an intent (the M2.4 default) hashes everything but the request id.
+ * JSON with sorted keys would be over-engineering here: the intent is
+ * built in one place (the planner), so its serialization is stable for
+ * identical requests. */
 async function requestHashOf(write: ManageOperationWrite): Promise<string> {
-  const { requestId: _ignored, ...rest } = write;
-  void _ignored;
-  const serialized = JSON.stringify(rest);
+  let basis: unknown;
+  if (write.intent !== undefined) {
+    basis = {
+      projectId: write.projectId,
+      createdByAccountId: write.createdByAccountId,
+      kind: write.kind,
+      effectiveOn: write.effectiveOn,
+      intent: write.intent,
+    };
+  } else {
+    const { requestId: ignored, ...rest } = write;
+    void ignored;
+    basis = rest;
+  }
+  const serialized = JSON.stringify(basis);
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(serialized));
   return Array.from(new Uint8Array(digest))
     .map(byte => byte.toString(16).padStart(2, "0"))
