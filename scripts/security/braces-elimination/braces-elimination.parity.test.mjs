@@ -232,7 +232,11 @@ test(
     // asserted from the CURRENT run, not from the fixture.
     const actualGlob = pass1.find((r) => r.label === "micro-actual-glob-json");
     assert.equal(actualGlob.exitCode, 0, "the design-guards stylelint invocation must stay clean");
-    assert.equal(actualGlob.report.length, 5, "the Micro CSS file set must be exactly 5 files");
+    /* M5.1 (مانج-في₂ المرحلة 5، نفس-الـPR 2026-11-28): مجموعة CSS
+     * الإنتاج صارت 6 ملفات — أُضيف styles/manage.css (عقود أسطح مانج فوق
+     * توكنات --vf-*؛ نظيف في stylelint بلا تحذير واحد كما يثبت الشرط
+     * التالي). نفس-الـPR مع الكود الذي أضاف الملف. */
+    assert.equal(actualGlob.report.length, 6, "the Micro CSS file set must be exactly 6 files");
     assert.ok(
       actualGlob.report.every((r) => r.warnings.length === 0 && r.errored === false),
       "no warnings or errors are acceptable on the production CSS set",

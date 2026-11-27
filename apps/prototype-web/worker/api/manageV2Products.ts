@@ -38,7 +38,10 @@ export function registerManageV2ProductRoutes(router: ApiRouter): void {
       try {
         const product = await saveProduct(sql, {
           projectId,
-          productId: body.productId,
+          /* The body's projectId is an unvalidated JSON value; the app layer
+           * owns the existence check (ProductNotFound below) — the cast only
+           * bridges the HTTP envelope to the typed input. */
+          productId: body.productId as string,
           name: body.name,
           ...(body.unitLabel === undefined ? {} : { unitLabel: body.unitLabel }),
           unitPriceFils: body.unitPriceFils,

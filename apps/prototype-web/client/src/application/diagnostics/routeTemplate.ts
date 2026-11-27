@@ -24,9 +24,13 @@
  * قبل :type، وrecurring/new قبل recurring/:id) كي لا يبتلعه.
  * الاستكمال المستمر (G02/Q129 — أمر المالك 7593b9c4، نفس-الـPR 2026-11-22):
  * أُضيف قسم admin بلا مسارات فرعية — لوحة المشرف مسار واحد مسطح.
+ *
+ * M5.1 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR
+ * 2026-11-28): قسم manage — مسارات مانج-في₂ الجديدة (البداية start أولًا؛
+ * تُمد المجموعة بمهام المرحلة مع مساراتها).
  */
 const ROUTE_GROUPS =
-  "admin ask assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market:listing/:id,review,vendor,vendor/new,vendor/:id delivery:booking/new,booking/:id,drivers,review driver:booking/:id orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,hour-value,idea-review,integrity,invoice-share,sales-quantity";
+  "admin ask assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id manage:start market:listing/:id,review,vendor,vendor/new,vendor/:id delivery:booking/new,booking/:id,drivers,review driver:booking/:id orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,hour-value,idea-review,integrity,invoice-share,sales-quantity";
 
 const ROUTE_TEMPLATES: string[] = ["/"];
 for (const group of ROUTE_GROUPS.split(" ")) {

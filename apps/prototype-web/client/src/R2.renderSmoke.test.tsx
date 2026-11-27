@@ -53,8 +53,9 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (83 = 82 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
- * و/admin أُضيف G02/Q129 بالاستكمال المستمر 2026-11-22)؛ المسارات ذات
+/* كل مسارات الموجّه المسجّلة (84 = 83 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
+ * و/admin أُضيف G02/Q129 بالاستكمال المستمر 2026-11-22، و/manage/start أُضيف
+ * مانج-في₂ M5.1 2026-11-28)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
  * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
  * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
@@ -155,6 +156,7 @@ const ROUTES: readonly string[] = [
   "/direct-sales/sale-x",
   "/share/preview",
   "/setup",
+  "/manage/start",
 ];
 
 async function mountApp() {

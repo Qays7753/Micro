@@ -113,6 +113,11 @@ const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
 /* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): المشاركة ملغاة بالكامل — لا مسار
  * معاينة مشاركة بعد الآن؛ ما يبقى هو تنزيل الكشف (016) والنسخ الاحتياطي
  * (044) بأدواتهما الخاصة. */
+/* M5.1 (مانج-في₂ المرحلة 5 — UX §1 خريطة التطبيق): أسطح مانج الجديدة تحت
+ * `pages/manage/` بمساراتها الخاصة؛ نموذج البداية P-01 عمق كامل (ورقة) —
+ * يفتح من البطاقة الافتتاحية عند غياب مشروع مالي (R-24: الحساب الواحد
+ * مشروع واحد). */
+const ManageStartPage = lazy(() => import("@/pages/manage/StartPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -137,6 +142,7 @@ export function MicroRouter() {
          * وتبقى كما هي. */}
         <StartupGate onSettled={() => setGateSettled(true)}>
           <Switch>
+            <Route path="/manage/start" component={ManageStartPage} />
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />

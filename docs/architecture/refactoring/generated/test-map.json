@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "3d4eeaf3f314664845fafcd7adc821aadaeaf970",
+  "head": "f225aea18b56cd941fbc68205467cee1fbc5d179",
   "pages": {
-    "total": 76,
+    "total": 77,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -574,6 +574,12 @@
         "kind": "named-reference",
         "evidence": [
           "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/manage/StartPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/StartPage.dom.test.tsx"
         ]
       }
     },

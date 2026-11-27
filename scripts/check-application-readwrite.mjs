@@ -195,6 +195,20 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "manage/strings/ar.ts",
   "manage/strings/index.ts",
   "manage/strings/keys.ts",
+  /* M5.1 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR
+   * 2026-11-28): بيتا عميل مانج الجديدان — api (نداءات HTTP رفيععة عبر باب
+   * الشبكة المعتمد: قراءات §8 وكتابات §5 بمفاتيح تكرار، لا كتابة تخزين
+   * أبدًا) وpresentation (تنسيق إدخال/عرض خالص + خرائط أخطاء §11)؛ كلاهما
+   * قراءة صرفة بالمعنى الحرفي (لا يستدعيان أي فعل save/commit/delete/
+   * replace/clear على أي منفذ). صنّفا في نفس الـPR وفق قاعدة D-04/R10A-F-019. */
+  "manage/api/errors.ts",
+  "manage/api/index.ts",
+  "manage/api/reads.ts",
+  "manage/api/writes.ts",
+  "manage/presentation/display.ts",
+  "manage/presentation/errorText.ts",
+  "manage/presentation/index.ts",
+  "manage/presentation/moneyInput.ts",
   /* S10 (UNIT-030 — أمر b56967d8، DOC-019): بيت أدوات التخطيط النقي — دوال
    * حساب بلا أي تخزين (حفظ T01 في بيت التقديرات)؛ انضم للجسم بفحص
    * الخاصية نفسه: صفر أفعال كتابة نصيًا وتشغيليًا. */

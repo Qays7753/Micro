@@ -11,6 +11,8 @@
 @import "./styles/theme-dark.css";
 /* W3 (brand launch splash): one-shot startup assembly — component-owned styles. */
 @import "./styles/brand-launch-splash.css";
+/* M5.1 (Manage v2 phase 5): أسطح مانج — عقود موحّدة فوق توكنات --vf-*. */
+@import "./styles/manage.css";
 
 @custom-variant dark (&:is(.dark *));
 

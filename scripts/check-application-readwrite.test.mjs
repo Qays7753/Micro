@@ -147,7 +147,7 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
   /* EX-D21 (DOC-037، Phase B — 2026-11-14): +network/askMicroService.ts — 74 -> 75. */
-  it("the live repository passes at the baseline: 83 corpus files, zero violations (M1.9a 2026-11-26)", () => {
+  it("the live repository passes at the baseline: 91 corpus files, zero violations (M5.1 2026-11-28)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
@@ -178,10 +178,10 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * بيت كتالوج نصوص مانج (manage/strings/keys.ts وar.ts وبابه index.ts —
      * مفاتيح وقيم ثابتة وبحث فاشلًا مغلقًا؛ صفر حالة وصفر كتابة تخزين)؛
      * 80 ← 83 بتصنيف موثق نفس-الـPR (قاعدة D-04 — تصحيح M1.9a المعتمد). */
-    expect(result.stats.readLikeCorpus).toBe(83);
-    expect(result.stats.readLikeBaseline).toBe(83);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(83);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(83);
+    expect(result.stats.readLikeCorpus).toBe(91);
+    expect(result.stats.readLikeBaseline).toBe(91);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(91);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(91);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

@@ -1,0 +1,276 @@
+/*
+ * M5.1 (Manage v2 phase 5): أنماط أسطح مانج — عقود موحّدة فوق توكنات
+ * المشروع (--vf-*) حصرًا؛ لا لون خام ولا حجم خارج النظام. البنية: ورقة
+ * كاملة للنماذج (Sheet)، وحقول، وبطاقات قراءة، وصفوف قوائم — RTL دائمًا.
+ */
+
+/* -- الورقة الكاملة (كل نموذج P-50+ يفتح كورقة، UX §1.2) ------------------ */
+.micro-manage-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--vf-surface-page);
+}
+.micro-manage-sheet__title {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--vf-ink);
+  font-size: var(--vf-text-title-size);
+  font-weight: 600;
+}
+.micro-manage-sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+.micro-manage-sheet__save {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+  background: var(--vf-surface);
+  border-top: 1px solid var(--vf-border);
+}
+
+/* -- الحقل النصي الحر ------------------------------------------------------ */
+.micro-manage-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.micro-manage-field__label {
+  margin: 0;
+  color: var(--vf-ink);
+  font-size: var(--vf-text-label-size);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.micro-manage-field__input {
+  min-height: var(--vf-control-height);
+  border: 1px solid var(--vf-border-interactive);
+  border-radius: var(--vf-radius-control);
+  padding: var(--space-2) var(--space-3);
+  color: var(--vf-ink);
+  background: var(--vf-surface);
+  font: inherit;
+}
+.micro-manage-field__input:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: 1px;
+}
+.micro-manage-field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--vf-error);
+  font-size: var(--vf-text-label-size);
+  line-height: 1.4;
+}
+
+/* -- حقل المبلغ C-01 (لاحقة «د» ثابتة — R-22) ----------------------------- */
+.micro-manage-amount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--vf-control-height);
+  border: 1px solid var(--vf-border-interactive);
+  border-radius: var(--vf-radius-control);
+  padding: 0 var(--space-3);
+  background: var(--vf-surface);
+}
+.micro-manage-amount__input {
+  flex: 1;
+  min-width: 0;
+  min-height: calc(var(--vf-control-height) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--vf-ink);
+  font-family: var(--font-numeric);
+  font-size: var(--vf-text-amount-size);
+  font-weight: 600;
+}
+.micro-manage-amount__input:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: -2px;
+}
+.micro-manage-amount__input:disabled {
+  color: var(--vf-ink-secondary);
+}
+.micro-manage-amount__suffix {
+  color: var(--vf-ink-secondary);
+  font-size: var(--vf-text-label-size);
+}
+.micro-manage-amount--disabled .micro-manage-amount {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+/* -- خيار «لا أعرف الآن» وأمثاله (مفتاح اختيار) --------------------------- */
+.micro-manage-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--vf-ink);
+  font-size: var(--vf-text-label-size);
+  line-height: 1.4;
+}
+.micro-manage-check > input {
+  width: var(--vf-icon-md);
+  height: var(--vf-icon-md);
+  accent-color: var(--vf-clay-interactive);
+}
+
+/* -- بطاقات القراءة (مشروعي الآن / المالية) -------------------------------- */
+.micro-manage-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--vf-surface);
+  border: 1px solid var(--vf-border);
+  border-radius: var(--vf-radius-card);
+}
+.micro-manage-card__title {
+  margin: 0;
+  color: var(--vf-ink);
+  font-size: var(--vf-text-label-size);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.micro-manage-card__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--vf-ink);
+  font-size: var(--vf-text-body-size);
+  line-height: 1.6;
+}
+.micro-manage-card__line--secondary {
+  color: var(--vf-ink-secondary);
+  font-size: var(--vf-text-label-size);
+}
+.micro-manage-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* -- رأس الصفحة المتفرعة (زر رجوع + عنوان) -------------------------------- */
+.micro-manage-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+.micro-manage-head__title {
+  margin: 0;
+  color: var(--vf-ink);
+  font-size: var(--vf-text-title-size);
+  font-weight: 600;
+  flex: 1;
+}
+
+/* -- قائمة صفوف (C-09/C-10) ----------------------------------------------- */
+.micro-manage-rows {
+  display: flex;
+  flex-direction: column;
+  background: var(--vf-surface);
+  border: 1px solid var(--vf-border);
+  border-radius: var(--vf-radius-card);
+}
+.micro-manage-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--vf-border);
+  text-align: start;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.micro-manage-rows .micro-manage-row:last-child {
+  border-bottom: none;
+}
+.micro-manage-row__main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.micro-manage-row__title {
+  color: var(--vf-ink);
+  font-size: var(--vf-text-body-size);
+  font-weight: 500;
+}
+.micro-manage-row__amount {
+  color: var(--vf-ink);
+  font-family: var(--font-numeric);
+  font-size: var(--vf-text-amount-size);
+  font-weight: 600;
+}
+.micro-manage-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--vf-ink-secondary);
+  font-size: var(--vf-text-label-size);
+  line-height: 1.4;
+}
+.micro-manage-row__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* -- شارة الحالة ----------------------------------------------------------- */
+.micro-manage-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--vf-radius-control);
+  border: 1px solid var(--vf-border-interactive);
+  color: var(--vf-ink-secondary);
+  font-size: var(--vf-text-caption-size);
+  line-height: 1.6;
+}
+.micro-manage-chip--warning {
+  border-color: var(--vf-warning);
+  color: var(--vf-warning);
+}
+.micro-manage-chip--error {
+  border-color: var(--vf-error);
+  color: var(--vf-error);
+}
+
+/* -- الحاوية العامة للتبويبات --------------------------------------------- */
+.micro-manage-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+.micro-manage-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.micro-manage-section__title {
+  margin: 0;
+  color: var(--vf-ink-secondary);
+  font-size: var(--vf-text-label-size);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.micro-manage-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--vf-clay-interactive);
+  font-size: var(--vf-text-label-size);
+  font-weight: 500;
+  cursor: pointer;
+}

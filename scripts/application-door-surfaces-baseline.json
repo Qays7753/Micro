@@ -17,7 +17,8 @@
     "الملحق §10.2-7 (DOC-041/WS-251 — أمر المالك 2026-11-22، نفس-الـPR): باب الشبكة أضاف دالتي موافقة اسأل Micro القابلة للسحب (grantAskConsent/revokeAskConsent) ونوع حالة الحكم AskGovernance (الموافقة + الحدان اليوميان: ٢٠ سؤالًا و١٠٠٠٠ نيورون بلا مسار مدفوع) — توسيع مقصود موثق (PC-3)؛ مستهلكه صفحة AskMicro واختبارات AskMicro.governance.dom.",
     "الملحق §10.2 (DOC-041/WS-251 — أمر المالك 2026-11-22، نفس-الـPR): باب جديد لبيت اسأل Micro (application/ask) — السجل المحلي النصي وبناء الحدث المالي المقترح؛ تسجيل الباب الجديد بأساسه المضبوط (4 قيم ونوع واحد) كسابقة باب admin المسجل بأمر الاستكمال نفسه (PC-3 مؤرخ).",
     "الملحق §10.2-7-2 (قرار المالك 2026-11-22 — DOC-041/WS-251، إعادة إرساء موثقة بنفس الـPR): باب اسأل أعيد إرساؤه — الدرجان الحرّان القديمان (loadAskHistory/recordAskExchange) خرجا ودخلت الخدمة القابلة للحقن AskHistoryService تركّبها جذر التركيب كالمعتاد، بعد أن صار السجل المحلي عند منفذ التخزين في المهايئين كليهما (نمط مسودات النماذج — listAskHistory/saveAskHistoryEntry)؛ النوع AskHistoryEntry كما هو.",
-    "M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، 2026-11-26، نفس الـPR): باب كتالوج نصوص مانج الجديد manage/strings سُجل بسطحه الحي المضبوط — ٣ قيم (MANAGE_STRING_KEYS وMANAGE_STRINGS_AR وt) ونوع واحد (ManageStringKey). نص مهمة M1.9a توقع أيضًا translate وTextCatalog ولم تنفذهما M1.8 (مواصفة M1.8 تسمي t(key) وحدها) — الأساس يثبت السطح الحي لا التوقع (PC-3 مؤرخ)؛ التسجيل بتصحيح M1.9a المعتمد من المالك."
+    "M1.9a (Wave C fix-up — §10/§11 + §14.2/D-7، 2026-11-26، نفس الـPR): باب كتالوج نصوص مانج الجديد manage/strings سُجل بسطحه الحي المضبوط — ٣ قيم (MANAGE_STRING_KEYS وMANAGE_STRINGS_AR وt) ونوع واحد (ManageStringKey). نص مهمة M1.9a توقع أيضًا translate وTextCatalog ولم تنفذهما M1.8 (مواصفة M1.8 تسمي t(key) وحدها) — الأساس يثبت السطح الحي لا التوقع (PC-3 مؤرخ)؛ التسجيل بتصحيح M1.9a المعتمد من المالك.",
+    "M5.1 (مانج-في₂ المرحلة 5 — أمر المالك phase-5-prompt-EN.md، نفس-الـPR 2026-11-28): بابان جديدان لبيت مانج العميل — manage/api (عميل HTTP رفيع لعمليات §5 وقراءات §8: ٤ قيم و٨ أنواع) وmanage/presentation (تنسيق الإدخال R-1a/R-20 والعرض R-19/R-21 واستيفاء الكتالوج وخرائط الأخطاء: ٨ قيم) — سابقة باب manage/strings نفسها (PC-3 مؤرخ)."
   ],
   "doors": {
     "activity": {
@@ -620,6 +621,37 @@
       "type": [
         "ManageStringKey"
       ]
+    },
+    "manage/api": {
+      "value": [
+        "fetchManageFigures",
+        "isNetworkFailure",
+        "manageErrorCode",
+        "setupProject"
+      ],
+      "type": [
+        "Figure",
+        "ManageFiguresResponse",
+        "ManageOperationResult",
+        "ManagePeriod",
+        "ManageWriteOutcome",
+        "SetupBoxOpening",
+        "SetupBoxSlot",
+        "UnknownFigure"
+      ]
+    },
+    "manage/presentation": {
+      "value": [
+        "MANAGE_FILS_PER_JOD",
+        "ageTextR19",
+        "fill",
+        "formatDateR21",
+        "formatMonthR21",
+        "jodInputText",
+        "manageErrorText",
+        "parseJodInputToFils"
+      ],
+      "type": []
     }
   },
   "rootFiles": [

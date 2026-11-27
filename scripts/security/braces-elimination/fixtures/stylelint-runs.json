@@ -34,6 +34,14 @@
     "warnings": []
    },
    {
+    "source": "<ROOT>/apps/prototype-web/client/src/styles/manage.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
     "source": "<ROOT>/apps/prototype-web/client/src/styles/primitives.css",
     "deprecations": [],
     "invalidOptionWarnings": [],
@@ -58,7 +66,7 @@
     "warnings": []
    }
   ],
-  "raw": "[{\"source\":\"<ROOT>/apps/prototype-web/client/src/index.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/primitives.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]}]"
+  "raw": "[{\"source\":\"<ROOT>/apps/prototype-web/client/src/index.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/primitives.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]}]"
  },
  {
   "label": "corpus-all",

@@ -282,7 +282,8 @@ describe("M4.3 T58 — the card left unstarted / «لاحقاً»", () => {
     await withSql(async sql => {
       const detected = await detectAbsence(sql, { projectId, today: AMMAN_TODAY });
       expect(detected).toBeNull();
-      const events = (await sql`SELECT 1 FROM absence_event WHERE project_id = ${projectId}`) as unknown[];
+      const events =
+        (await sql`SELECT 1 FROM absence_event WHERE project_id = ${projectId}`) as unknown as unknown[];
       expect(events).toHaveLength(0);
     });
   });

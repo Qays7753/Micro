@@ -6,14 +6,24 @@
   },
   "workspaces": {
     ".": {
-      "entry": ["src/domain/manage/index.ts", "src/domain/costing/index.ts", "src/domain/planning/index.ts"],
-      "project": ["src/domain/manage/**", "src/domain/costing/**", "src/domain/planning/**"]
+      "entry": [
+        "src/domain/manage/index.ts",
+        "src/domain/costing/index.ts",
+        "src/domain/planning/index.ts"
+      ],
+      "project": [
+        "src/domain/manage/**",
+        "src/domain/costing/**",
+        "src/domain/planning/**"
+      ]
     },
     "apps/prototype-web": {
       "entry": [
         "client/src/application/manage/strings/index.ts",
         "client/src/application/planning/index.ts",
-        "client/src/application/estimates/index.ts"
+        "client/src/application/estimates/index.ts",
+        "client/src/application/manage/api/index.ts",
+        "client/src/application/manage/presentation/index.ts"
       ],
       "project": [
         "client/src/application/manage/**",
@@ -21,9 +31,15 @@
         "client/src/application/estimates/**"
       ],
       "paths": {
-        "@/*": ["./client/src/*"],
-        "@micro-domain/*": ["../../src/domain/*"],
-        "virtual:pwa-register": ["./client/src/pwa/registerSW.virtual.ts"]
+        "@/*": [
+          "./client/src/*"
+        ],
+        "@micro-domain/*": [
+          "../../src/domain/*"
+        ],
+        "virtual:pwa-register": [
+          "./client/src/pwa/registerSW.virtual.ts"
+        ]
       }
     }
   }
