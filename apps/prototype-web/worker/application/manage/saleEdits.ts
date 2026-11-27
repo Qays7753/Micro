@@ -146,3 +146,38 @@ export async function updateSaleFields(
     updatedAt: updated.updated_at === null ? null : new Date(updated.updated_at).toISOString(),
   };
 }
+
+/* ── M3.11 — the tracker actions (§5 OP-TRACKER-HIDE / OP-TRACKER-ADD) ── */
+
+/** M3.11 — OP-TRACKER-HIDE (§5, UX P-78): `hidden_from_tracker = true` —
+ * the flag ONLY (the sale stays tracked; P-20's visible set is
+ * tracked && !hidden, so it leaves the tracker). A direct field update per
+ * R-17/D-14: no operation row, no ledger row — «سيُخفى الطلب من المتتبّع،
+ * وتبقى حركاته المالية كما هي» (P-78, T31). The thin wrapper over the
+ * audited update path keeps the fixed semantics server-side. */
+export function hideSaleFromTracker(
+  sql: postgres.Sql,
+  input: { projectId: string; saleId: unknown },
+): Promise<SaleFieldsEditResult> {
+  return updateSaleFields(sql, {
+    projectId: input.projectId,
+    saleId: input.saleId,
+    hiddenFromTracker: true,
+  });
+}
+
+/** M3.11 — OP-TRACKER-ADD (§5): `tracked = true` AND
+ * `hidden_from_tracker = false` — BOTH flags in one action (the §5 fixed
+ * semantics; the generic /sale-fields stays the P-60 edit form's surface).
+ * A direct field update (R-17/D-14): no operation row, no ledger row. */
+export function addSaleToTracker(
+  sql: postgres.Sql,
+  input: { projectId: string; saleId: unknown },
+): Promise<SaleFieldsEditResult> {
+  return updateSaleFields(sql, {
+    projectId: input.projectId,
+    saleId: input.saleId,
+    tracked: true,
+    hiddenFromTracker: false,
+  });
+}

@@ -16,6 +16,9 @@
 import { HttpError } from "../http.ts";
 import { authedRoute } from "../routes.ts";
 import type { ApiRouter } from "../router.ts";
+import type { RouteContext } from "../router.ts";
+import type { AuthenticatedContext } from "../auth/session.ts";
+import type postgres from "postgres";
 import { planSaleCreate } from "../../../../src/domain/manage/operations/saleCreate.js";
 import { planPrepayment } from "../../../../src/domain/manage/operations/prepayment.js";
 import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js";
@@ -24,7 +27,12 @@ import { planCancelSale } from "../../../../src/domain/manage/operations/cancelS
 import { planReturn } from "../../../../src/domain/manage/operations/saleReturn.js";
 import { planPriceCorrection } from "../../../../src/domain/manage/operations/priceCorrection.js";
 import { planUndoDelivery } from "../../../../src/domain/manage/operations/undoDelivery.js";
-import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
+import {
+  SaleNotFound,
+  addSaleToTracker,
+  hideSaleFromTracker,
+  updateSaleFields,
+} from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
 export function registerManageV2SaleRoutes(router: ApiRouter): void {
@@ -211,6 +219,28 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
       return jsonResponse(await runPlan(sql, plan));
     }),
   );
+
+  // M3.11 — the tracker actions (§5 OP-TRACKER-HIDE / OP-TRACKER-ADD, UX
+  // P-78): the FIXED §5 semantics as direct field updates (R-17/D-14 — no
+  // operation row, no ledger row; T31: «ما بيغير ولا رقم»). Hide sets
+  // hidden_from_tracker only; add sets tracked = true AND
+  // hidden_from_tracker = false.
+  const trackerAction =
+    (action: (sql: postgres.Sql, input: { projectId: string; saleId: unknown }) => Promise<unknown>) =>
+    async (ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> => {
+      const { sql, projectId, body } = await projectWrite(ctx, auth);
+      try {
+        const sale = await action(sql, { projectId, saleId: body.saleId });
+        return jsonResponse({ sale });
+      } catch (error) {
+        if (error instanceof SaleNotFound) {
+          throw new HttpError(404, "not_found", { surface: "manage_v2_sale" });
+        }
+        toHttpError(error);
+      }
+    };
+  router.post("api/manage-v2/tracker-hide", authedRoute(trackerAction(hideSaleFromTracker)));
+  router.post("api/manage-v2/tracker-add", authedRoute(trackerAction(addSaleToTracker)));
 
   // M3.2 — the non-financial field edits (R-17/D-14, T44): customer name,
   // note, registered date, tracker flags — a direct update with no
