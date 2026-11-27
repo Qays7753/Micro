@@ -133,6 +133,31 @@ export function periodOverlapsIncompleteAbsence(
   return absences.some(a => a.complete !== true && a.startedOn <= range.to && a.endedOn >= range.from);
 }
 
+/** R-8: is the reconciliation due? ≥7 days since the LAST reconciliation
+ * (or the project's creation) AND ≥1 money operation since the anchor —
+ * a money operation = any operation with at least one BOX posting. The
+ * 7-day check is DATE-granular (the rule's own granularity); "since" is
+ * a TIMESTAMP comparison, so an operation created minutes after the
+ * anchor counts while the anchor operation itself (the OP-SETUP that
+ * completes the creation, or the reconciliation) never does — OP-SETUP
+ * is excluded by kind as well (it IS the beginning, not activity since
+ * it). Pure — the log surface feeds it the loaded values. */
+export function reconciliationDue(input: {
+  today: string;
+  /** The anchor's DAY: the last reconciliation's performed_on, else the
+   * project's creation day. */
+  anchorDay: string;
+  /** The anchor's MOMENT (a timestamptz text): the last reconciliation's
+   * created_at, else the project's created_at. */
+  anchorAt: string;
+  /** created_at (timestamptz text) of every operation with ≥1 BOX
+   * posting other than OP-SETUP. */
+  moneyOperationAt: string[];
+}): boolean {
+  if (dayIndex(input.today) - dayIndex(input.anchorDay) < 7) return false;
+  return input.moneyOperationAt.some(at => at > input.anchorAt);
+}
+
 /** The per-10 ratio (§8 + binding interpretation 4): round_half_up to one
  * decimal, ONCE, at display; hidden when net sales ≤ 0 (never a division by
  * a non-positive denominator, never ∞ or 0 as a ratio); net profit < 0

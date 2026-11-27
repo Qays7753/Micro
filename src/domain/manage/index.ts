@@ -126,6 +126,7 @@ export {
   periodRangeOf,
   profitBarsOf,
   periodOverlapsIncompleteAbsence,
+  reconciliationDue,
   expectedProfitFils,
 } from "./figures/index.js";
 export type { OpenBalanceLine } from "./operations/allocation.js";

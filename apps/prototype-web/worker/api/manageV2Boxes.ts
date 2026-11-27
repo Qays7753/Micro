@@ -15,7 +15,10 @@ import { planMergeBoxes } from "../../../../src/domain/manage/operations/mergeBo
 import { planSplitBoxes } from "../../../../src/domain/manage/operations/splitBoxes.js";
 import { planReconcile } from "../../../../src/domain/manage/operations/reconcile.js";
 import { detectAbsence } from "../application/manage/absence.js";
-import { jsonResponse, planOr400, projectWrite, runPlan } from "./manageV2Shared.ts";
+import { readReconciliationLog } from "../application/manage/reconciliationLog.js";
+import { ammanDateString } from "../clock.ts";
+import { rawSqlOf } from "../db/db.ts";
+import { jsonResponse, planOr400, projectWrite, requireProject, runPlan } from "./manageV2Shared.ts";
 
 export function registerManageV2BoxRoutes(router: ApiRouter): void {
   // M4.1 — OP-MERGE-BOXES (§5): the Q14 that zeroes the account into
@@ -87,6 +90,19 @@ export function registerManageV2BoxRoutes(router: ApiRouter): void {
       const { sql, projectId, today } = await projectWrite(ctx, auth);
       const absence = await detectAbsence(sql, { projectId, today });
       return jsonResponse({ absence });
+    }),
+  );
+
+  // M4.5 — the reconciliation log (§3.10) + R-8's due flag. Read-only:
+  // no body, no idempotency reservation; the project is the signed-in
+  // caller's own (R-24) — the figures route's posture.
+  router.get(
+    "api/manage-v2/reconciliations",
+    authedRoute(async (ctx, auth) => {
+      const sql = rawSqlOf(ctx.env);
+      const projectId = await requireProject(sql, auth, undefined);
+      const log = await readReconciliationLog(sql, projectId, ammanDateString(Date.now()));
+      return jsonResponse(log);
     }),
   );
 }
