@@ -151,6 +151,9 @@ export { planPay } from "./operations/pay.js";
 export { planWriteOff } from "./operations/writeOff.js";
 export { planCorrect } from "./operations/correct.js";
 export { planCancelOperation } from "./operations/cancelOperation.js";
+/* M3.9 (phase 3): OP-UNDO-DELIVERY — الباب المعلن نفسه. */
+export type { UndoDeliveryInput } from "./operations/undoDelivery.js";
+export { planUndoDelivery } from "./operations/undoDelivery.js";
 /* M3.8 (phase 3): OP-PRICE-CORRECTION — الباب المعلن نفسه. */
 export type { PriceCorrectionInput } from "./operations/priceCorrection.js";
 export { planPriceCorrection } from "./operations/priceCorrection.js";

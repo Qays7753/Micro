@@ -23,6 +23,7 @@ import { planSaleDeliveryCost } from "../../../../src/domain/manage/operations/s
 import { planCancelSale } from "../../../../src/domain/manage/operations/cancelSale.js";
 import { planReturn } from "../../../../src/domain/manage/operations/saleReturn.js";
 import { planPriceCorrection } from "../../../../src/domain/manage/operations/priceCorrection.js";
+import { planUndoDelivery } from "../../../../src/domain/manage/operations/undoDelivery.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -185,6 +186,26 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           today,
           saleId: body.saleId,
           newPriceFils: body.newPriceFils,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.9 — OP-UNDO-DELIVERY (§5): reverse the delivery and its tied
+  // collections/write-offs/overpayments; the collected money becomes a
+  // prepayment (Q4s at the same box, amount and date).
+  router.post(
+    "api/manage-v2/undo-delivery",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planUndoDelivery({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
