@@ -96,6 +96,9 @@ export interface ManageOperationWrite {
   effectiveOn: string;
   /** §3.7 display amount (fils); the entries are the financial truth. */
   amountFils: number;
+  /** §3.7 corrects_operation_id — set on the replacement of a corrected
+   * operation (M2.10 OP-CORRECT): the new version of the operation. */
+  correctsOperationId?: string;
   counterpartyName?: string;
   boxId?: string;
   saleId?: string;
@@ -182,6 +185,22 @@ export interface ManageOperationOptions {
     operationId: string;
     entryIds: string[];
   }) => Promise<Record<string, unknown> | undefined>;
+  /**
+   * M2.10 (OP-CORRECT / OP-CANCEL-OPERATION): the correction's SECOND
+   * phase — runs inside the same transaction AFTER every standard write is
+   * visible (the Q20 reversals of `write.entries` included), so the
+   * corrected operation's planner sees the POST-REVERSAL state (T52: the
+   * collection's line outstanding restored before the new allocation).
+   * The balance lines and entries it returns are written BY THE HANDLER
+   * (one ledger writer) and their entry ids join `result.entryIds`. A
+   * rejection anywhere rolls back everything including the reversals
+   * (R-12).
+   */
+  revisionEntries?: (context: {
+    tx: postgres.TransactionSql<Record<string, unknown>>;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<{ entries: BuiltLedgerEntry[]; balanceLines?: ManageBalanceLineWrite[] }>;
 }
 
 /** A reserved-but-never-stored row older than this is a dead reservation
@@ -212,6 +231,31 @@ function operationUuid(): string {
  * string is the unambiguous TIMESTAMPTZ input form. */
 function timestamptz(ms: number): string {
   return new Date(ms).toISOString();
+}
+
+/** Write one BUILT entry and its postings — the SINGLE ledger writer's
+ * insert, shared by the standard phase and the revision phase (M2.10).
+ * Returns the entry id. */
+async function writeEntry(
+  tx: postgres.TransactionSql<Record<string, unknown>>,
+  projectId: string,
+  operationId: string,
+  entry: BuiltLedgerEntry,
+  createdAt: string,
+): Promise<string> {
+  const entryId = operationUuid();
+  await tx`
+    INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, reverses_entry_id, created_at)
+    VALUES (${entryId}, ${projectId}, ${operationId}, ${entry.entryType}, ${entry.effectiveOn},
+            ${entry.reversesEntryId ?? null}, ${createdAt})`;
+  for (const posting of entry.postings) {
+    await tx`
+      INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, rev_kind, delta_minor)
+      VALUES (${operationUuid()}, ${projectId}, ${entryId}, ${posting.account},
+              ${posting.refId ?? null}, ${posting.category ?? null}, ${posting.revKind ?? null},
+              ${posting.deltaFils})`;
+  }
+  return entryId;
 }
 
 /** Canonical request hash: the request's INTENT — who asks, for which
@@ -330,9 +374,10 @@ export async function applyManageOperation(
     // injected-failure hook fails right after it to prove full rollback.
     await tx`
       INSERT INTO operation
-        (id, project_id, kind, effective_on, status, box_id, sale_id, balance_line_id, counterparty_name,
+        (id, project_id, kind, effective_on, status, corrects_operation_id, box_id, sale_id, balance_line_id, counterparty_name,
          category, amount_minor, delivery_cost_minor, payload, note, created_by_account_id, created_at)
       VALUES (${operationId}, ${write.projectId}, ${write.kind}, ${write.effectiveOn}, ${"active"},
+              ${write.correctsOperationId ?? null},
               ${write.boxId ?? null}, ${write.saleId ?? null}, ${write.balanceLineId ?? null},
               ${write.counterpartyName ?? null},
               ${write.category ?? null}, ${write.amountFils}, ${write.deliveryCostFils ?? null},
@@ -355,19 +400,7 @@ export async function applyManageOperation(
     // ── Entries + postings (§3.8, append-only inserts) ──────────────────
     const entryIds: string[] = [];
     for (const entry of write.entries) {
-      const entryId = operationUuid();
-      entryIds.push(entryId);
-      await tx`
-        INSERT INTO ledger_entry (id, project_id, operation_id, entry_type, effective_on, reverses_entry_id, created_at)
-        VALUES (${entryId}, ${write.projectId}, ${operationId}, ${entry.entryType}, ${entry.effectiveOn},
-                ${entry.reversesEntryId ?? null}, ${timestamptz(now)})`;
-      for (const posting of entry.postings) {
-        await tx`
-          INSERT INTO ledger_posting (id, project_id, entry_id, account, ref_id, category, rev_kind, delta_minor)
-          VALUES (${operationUuid()}, ${write.projectId}, ${entryId}, ${posting.account},
-                  ${posting.refId ?? null}, ${posting.category ?? null}, ${posting.revKind ?? null},
-                  ${posting.deltaFils})`;
-      }
+      entryIds.push(await writeEntry(tx, write.projectId, operationId, entry, timestamptz(now)));
     }
 
     // ── Store the response INSIDE the same transaction, then commit ─────
@@ -381,6 +414,22 @@ export async function applyManageOperation(
     // Operation-specific writes (box/sale rows…), same transaction (R-12).
     if (options.extraWrites !== undefined) {
       await options.extraWrites({ tx, operationId, entryIds });
+    }
+    // The correction's second phase (M2.10): the corrected operation's
+    // planner runs against the POST-REVERSAL state; the handler stays the
+    // single ledger writer and the ids join the result.
+    if (options.revisionEntries !== undefined) {
+      const revision = await options.revisionEntries({ tx, operationId, entryIds });
+      for (const line of revision.balanceLines ?? []) {
+        await tx`
+          INSERT INTO balance_line
+            (id, project_id, direction, kind, counterparty_name, origin_on, sale_id, origin_operation_id)
+          VALUES (${line.id}, ${write.projectId}, ${line.direction}, ${line.kind},
+                  ${line.counterpartyName ?? null}, ${line.originOn}, ${line.saleId ?? null}, ${operationId})`;
+      }
+      for (const entry of revision.entries) {
+        entryIds.push(await writeEntry(tx, write.projectId, operationId, entry, timestamptz(now)));
+      }
     }
     // Operation-specific result data (e.g. a warning about the resulting
     // state), decided by the plan now that every write is visible.

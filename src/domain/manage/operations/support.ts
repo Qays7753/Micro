@@ -216,6 +216,9 @@ export interface OperationWritePlan {
   kind: ManageOperationKind;
   effectiveOn: string;
   amountFils: number;
+  /** §3.7 corrects_operation_id — set on the replacement of a corrected
+   * operation (M2.10 OP-CORRECT): the new version of the operation. */
+  correctsOperationId?: string;
   counterpartyName?: string;
   boxId?: string;
   saleId?: string;
@@ -262,6 +265,18 @@ export type PlanResultData = (context: {
   entryIds: string[];
 }) => Promise<Record<string, unknown> | undefined>;
 
+/** M2.10 (OP-CORRECT): the correction's SECOND phase — runs inside the
+ * same transaction after every standard write is visible (the Q20
+ * reversals included), so the corrected operation's planner sees the
+ * POST-REVERSAL state. The balance lines and entries returned here are
+ * written by the M2.4 handler (single ledger writer) and their entry ids
+ * join the result. */
+export type PlanRevisionEntries = (context: {
+  tx: TxQuery;
+  operationId: string;
+  entryIds: string[];
+}) => Promise<{ entries: BuiltLedgerEntry[]; balanceLines?: PlanBalanceLine[] }>;
+
 /** A complete §5 operation plan: the handler composes it inside its one
  * transaction (SRV-03 reservation + writes + response). */
 export interface OperationPlan {
@@ -269,4 +284,5 @@ export interface OperationPlan {
   loadState?: PlanLoadState | undefined;
   extraWrites?: PlanExtraWrites | undefined;
   resultData?: PlanResultData | undefined;
+  revisionEntries?: PlanRevisionEntries | undefined;
 }

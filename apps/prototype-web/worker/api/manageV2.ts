@@ -2,10 +2,10 @@
  * Manage v2 phase 2, wave G+: HTTP surface for the §5 operations over the
  * new §3 tables — OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE (M2.5),
  * OP-EXPENSE (M2.6), OP-OWNER-DEPOSIT / OP-OWNER-WITHDRAWAL / OP-TRANSFER
- * (M2.7), OP-COLLECT / OP-PAY (M2.8), OP-WRITE-OFF (M2.9); later waves add
- * their operations here. One route file for the whole Manage v2 write
- * surface (`/api/manage-v2/*`); the M2.4 handler owns the transaction and
- * the atomic idempotency.
+ * (M2.7), OP-COLLECT / OP-PAY (M2.8), OP-WRITE-OFF (M2.9), OP-CORRECT /
+ * OP-CANCEL-OPERATION (M2.10); later waves add their operations here. One
+ * route file for the whole Manage v2 write surface (`/api/manage-v2/*`);
+ * the M2.4 handler owns the transaction and the atomic idempotency.
  *
  * Shape (§14.1 + the M1.6 boundary): the route ONLY adapts HTTP —
  * authenticate, resolve the caller's project (R-24: one project per app
@@ -47,6 +47,8 @@ import { planTransfer } from "../../../../src/domain/manage/operations/transfer.
 import { planCollect } from "../../../../src/domain/manage/operations/collect.js";
 import { planPay } from "../../../../src/domain/manage/operations/pay.js";
 import { planWriteOff } from "../../../../src/domain/manage/operations/writeOff.js";
+import { planCorrect } from "../../../../src/domain/manage/operations/correct.js";
+import { planCancelOperation } from "../../../../src/domain/manage/operations/cancelOperation.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
 /** Body of a Manage v2 write request: the shared reader (JSON content type,
@@ -106,6 +108,7 @@ async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<ManageOp
       ...(plan.loadState !== undefined ? { loadState: plan.loadState } : {}),
       ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
       ...(plan.resultData !== undefined ? { resultData: plan.resultData } : {}),
+      ...(plan.revisionEntries !== undefined ? { revisionEntries: plan.revisionEntries } : {}),
     });
     if (outcome.outcome === "conflict") {
       throw new HttpError(409, "conflict", { code: outcome.reason });
@@ -378,6 +381,45 @@ export function registerManageV2Routes(router: ApiRouter): void {
           balanceLineId: body.balanceLineId,
           ...(body.amountFils === undefined ? {} : { amountFils: body.amountFils }),
           effectiveOn: body.effectiveOn,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M2.10 — OP-CORRECT / OP-CANCEL-OPERATION (§5): reversal-and-repost in
+  // one atomic operation; the settled-figure validation (INV-2 on the
+  // final state) rejects with E-CORRECTION-BREAKS-BALANCES and rolls
+  // everything back, the original included.
+  router.post(
+    "api/manage-v2/correct",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planCorrect({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          operationId: body.operationId,
+          inputs: body.inputs,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  router.post(
+    "api/manage-v2/cancel-operation",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planCancelOperation({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          operationId: body.operationId,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
