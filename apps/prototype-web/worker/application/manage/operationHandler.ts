@@ -201,6 +201,42 @@ export interface ManageOperationOptions {
     operationId: string;
     entryIds: string[];
   }) => Promise<{ entries: BuiltLedgerEntry[]; balanceLines?: ManageBalanceLineWrite[] }>;
+  /**
+   * M3.4 (OP-DELIVER's immediate collection, §5): a SECOND §5 operation in
+   * the SAME transaction under the SAME reservation — "created together
+   * atomically", two correctable rows (R-28's grouped row is display).
+   * The factory runs after every primary write is visible (the remainder
+   * line exists), returns the companion's plan (a normal planner plan —
+   * M2.8's OP-COLLECT), or undefined for none. The handler then writes the
+   * companion's operation row + balance lines + entries (the one ledger
+   * writer), runs its extraWrites/resultData, appends its entry ids to the
+   * response and nests its summary under result.data.companion. A
+   * rejection anywhere rolls back BOTH operations (R-12).
+   */
+  companion?: (primary: {
+    write: ManageOperationWrite;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<ManageCompanionPlan | undefined>;
+}
+
+/** A companion operation's plan (M3.4) — structurally the planner surface:
+ * its loadState runs after the companion's operation row exists? No — the
+ * same order as the primary: loadState first, then the row, then its
+ * balance lines and entries. */
+export interface ManageCompanionPlan {
+  write: ManageOperationWrite;
+  loadState?: (tx: postgres.TransactionSql<Record<string, unknown>>) => Promise<unknown>;
+  extraWrites?: (context: {
+    tx: postgres.TransactionSql<Record<string, unknown>>;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<void>;
+  resultData?: (context: {
+    tx: postgres.TransactionSql<Record<string, unknown>>;
+    operationId: string;
+    entryIds: string[];
+  }) => Promise<Record<string, unknown> | undefined>;
 }
 
 /** A reserved-but-never-stored row older than this is a dead reservation
@@ -436,6 +472,62 @@ export async function applyManageOperation(
     if (options.resultData !== undefined) {
       const data = await options.resultData({ tx, operationId, entryIds });
       if (data !== undefined) result.data = data;
+    }
+    // The companion operation (M3.4): a SECOND §5 operation in this same
+    // transaction — its plan's loadState sees the primary's writes (the
+    // fresh remainder line), then its row, balance lines and entries are
+    // written by this same single ledger writer, and its summary nests
+    // under result.data.companion (the response describes the REQUEST's
+    // whole effect; a replay returns it verbatim).
+    if (options.companion !== undefined) {
+      const companionPlan = await options.companion({ write, operationId, entryIds });
+      if (companionPlan !== undefined) {
+        if (companionPlan.loadState !== undefined) {
+          await companionPlan.loadState(tx);
+        }
+        const companionId = operationUuid();
+        await tx`
+          INSERT INTO operation
+            (id, project_id, kind, effective_on, status, corrects_operation_id, box_id, sale_id, balance_line_id, counterparty_name,
+             category, amount_minor, delivery_cost_minor, payload, note, created_by_account_id, created_at)
+          VALUES (${companionId}, ${companionPlan.write.projectId}, ${companionPlan.write.kind},
+                  ${companionPlan.write.effectiveOn}, ${"active"},
+                  ${companionPlan.write.correctsOperationId ?? null},
+                  ${companionPlan.write.boxId ?? null}, ${companionPlan.write.saleId ?? null},
+                  ${companionPlan.write.balanceLineId ?? null},
+                  ${companionPlan.write.counterpartyName ?? null},
+                  ${companionPlan.write.category ?? null}, ${companionPlan.write.amountFils},
+                  ${companionPlan.write.deliveryCostFils ?? null},
+                  ${companionPlan.write.payload === undefined ? null : JSON.stringify(companionPlan.write.payload)},
+                  ${companionPlan.write.note ?? null}, ${companionPlan.write.createdByAccountId}, ${timestamptz(now)})`;
+        for (const line of companionPlan.write.balanceLines ?? []) {
+          await tx`
+            INSERT INTO balance_line
+              (id, project_id, direction, kind, counterparty_name, origin_on, sale_id, origin_operation_id)
+            VALUES (${line.id}, ${companionPlan.write.projectId}, ${line.direction}, ${line.kind},
+                    ${line.counterpartyName ?? null}, ${line.originOn}, ${line.saleId ?? null}, ${companionId})`;
+        }
+        const companionEntryIds: string[] = [];
+        for (const entry of companionPlan.write.entries) {
+          companionEntryIds.push(await writeEntry(tx, write.projectId, companionId, entry, timestamptz(now)));
+        }
+        if (companionPlan.extraWrites !== undefined) {
+          await companionPlan.extraWrites({ tx, operationId: companionId, entryIds: companionEntryIds });
+        }
+        result.entryIds.push(...companionEntryIds);
+        let companionData: Record<string, unknown> | undefined;
+        if (companionPlan.resultData !== undefined) {
+          companionData = await companionPlan.resultData({
+            tx,
+            operationId: companionId,
+            entryIds: companionEntryIds,
+          });
+        }
+        result.data = {
+          ...(result.data ?? {}),
+          companion: { operationId: companionId, kind: companionPlan.write.kind, ...(companionData ?? {}) },
+        };
+      }
     }
     await tx`
       UPDATE manage_v2_idempotency

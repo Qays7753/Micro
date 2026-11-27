@@ -18,6 +18,7 @@ import { authedRoute } from "../routes.ts";
 import type { ApiRouter } from "../router.ts";
 import { planSaleCreate } from "../../../../src/domain/manage/operations/saleCreate.js";
 import { planPrepayment } from "../../../../src/domain/manage/operations/prepayment.js";
+import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -65,6 +66,35 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           amountFils: body.amountFils,
           box: body.box,
           ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.4 — OP-DELIVER (§5): Q5 at the actual delivery date (the §5
+  // default rules), the remainder/refund line, and the optional immediate
+  // collection as a SEPARATE OP-COLLECT in the same transaction.
+  router.post(
+    "api/manage-v2/deliver",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planDeliver({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          ...(body.actualDeliveryOn === undefined ? {} : { actualDeliveryOn: body.actualDeliveryOn }),
+          ...(body.collection === undefined
+            ? {}
+            : {
+                collection: {
+                  amountFils: (body.collection as Record<string, unknown>).amountFils,
+                  box: (body.collection as Record<string, unknown>).box,
+                },
+              }),
         }),
       );
       return jsonResponse(await runPlan(sql, plan));

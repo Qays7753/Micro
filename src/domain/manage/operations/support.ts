@@ -278,6 +278,16 @@ export type PlanRevisionEntries = (context: {
   entryIds: string[];
 }) => Promise<{ entries: BuiltLedgerEntry[]; balanceLines?: PlanBalanceLine[] }>;
 
+/** M3.4 (OP-DELIVER's immediate collection, §5): the companion operation —
+ * a SECOND §5 plan (M2.8's OP-COLLECT) created together atomically in the
+ * handler's one transaction. The factory runs after every primary write is
+ * visible (the fresh remainder line exists). */
+export type PlanCompanion = (primary: {
+  write: OperationWritePlan;
+  operationId: string;
+  entryIds: string[];
+}) => Promise<OperationPlan | undefined>;
+
 /** A complete §5 operation plan: the handler composes it inside its one
  * transaction (SRV-03 reservation + writes + response). */
 export interface OperationPlan {
@@ -286,4 +296,5 @@ export interface OperationPlan {
   extraWrites?: PlanExtraWrites | undefined;
   resultData?: PlanResultData | undefined;
   revisionEntries?: PlanRevisionEntries | undefined;
+  companion?: PlanCompanion | undefined;
 }

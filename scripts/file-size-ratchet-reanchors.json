@@ -12846,6 +12846,25 @@
     "trigger": "within-band-growth rule — the one read module (M3.2's additions: resolved sale-line names + salesList fields + openSales) measured 682->745 nbLOC",
     "ocRef": "ARCH-007"
    }
+  },
+  {
+   "id": "arch007-2026-11-27-m34-handler-companion",
+   "date": "2026-11-27",
+   "path": "apps/prototype-web/worker/application/manage/operationHandler.ts",
+   "from": {
+    "nbLoc": 426,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 517,
+    "band": "WATCH"
+   },
+   "reason": "M3.4 (مانج-في₂ المرحلة 3): توسيع المعالج M2.4 بآلية «العملية المرافقة» — §5 OP-DELIVER حرفيًا: «التسليم والتحصيل الفوري عمليتان منفصلتان تُنشآن معًا ذرّيًا» — نفس المعاملة ونفس حجز idempotency الواحد: مصفوفة العملية الثانية وقيودها بنفس كاتب القيود الواحد، ونتيجتها تُداخل تحت result.data.companion؛ كل رفض يرجع العمليتين معًا (R-12). النمو داخل WATCH موثق هنا.",
+   "authorization": {
+    "ownerReview": "Phase-3 continuous execution under the approved phase-3 prompt (same governing program as the M2.11/M2.12/M2.13/M3.2 manage entries); establishment entry recorded in the M3.4 task commit per the documented same-PR protocol.",
+    "trigger": "within-band-growth rule — the M3.4 companion mechanism (a spec-mandated second §5 operation in the one transaction) measured 426->517 nbLOC",
+    "ocRef": "ARCH-007"
+   }
   }
  ]
 }

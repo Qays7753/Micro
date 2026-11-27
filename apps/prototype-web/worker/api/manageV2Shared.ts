@@ -87,6 +87,7 @@ export async function runPlan(sql: postgres.Sql, plan: OperationPlan): Promise<M
       ...(plan.extraWrites !== undefined ? { extraWrites: plan.extraWrites } : {}),
       ...(plan.resultData !== undefined ? { resultData: plan.resultData } : {}),
       ...(plan.revisionEntries !== undefined ? { revisionEntries: plan.revisionEntries } : {}),
+      ...(plan.companion !== undefined ? { companion: plan.companion } : {}),
     });
     if (outcome.outcome === "conflict") {
       throw new HttpError(409, "conflict", { code: outcome.reason });
