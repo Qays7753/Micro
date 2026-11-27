@@ -113,6 +113,9 @@ export type { WriteOffInput } from "./operations/writeOff.js";
 /* M2.10 (wave H): التصحيح والإلغاء — الباب المعلن نفسه. */
 export type { CorrectInput } from "./operations/correct.js";
 export type { CancelOperationInput } from "./operations/cancelOperation.js";
+/* M2.11 (wave I): مساعدات الأشكال الصرفة لموديول القراءة — الباب المعلن نفسه. */
+export type { FigurePeriodKind, PerTenRatio, PeriodRange } from "./figures/index.js";
+export { displayDate, perTenRatio, periodLabel, periodRangeOf } from "./figures/index.js";
 export type { OpenBalanceLine } from "./operations/allocation.js";
 export {
   OperationRejected,

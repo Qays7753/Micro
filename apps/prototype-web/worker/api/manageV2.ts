@@ -49,6 +49,7 @@ import { planPay } from "../../../../src/domain/manage/operations/pay.js";
 import { planWriteOff } from "../../../../src/domain/manage/operations/writeOff.js";
 import { planCorrect } from "../../../../src/domain/manage/operations/correct.js";
 import { planCancelOperation } from "../../../../src/domain/manage/operations/cancelOperation.js";
+import { computeManageFigures } from "../application/manage/readModel.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
 /** Body of a Manage v2 write request: the shared reader (JSON content type,
@@ -406,6 +407,24 @@ export function registerManageV2Routes(router: ApiRouter): void {
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M2.11 — the one read module (§8/§8.2): every displayed figure comes
+  // from HERE, formatted and label-keyed — the client only renders (R-23).
+  // Read-only: no body, no idempotency reservation; the project is the
+  // signed-in caller's own (R-24).
+  router.get(
+    "api/manage-v2/figures",
+    authedRoute(async (ctx, auth) => {
+      const sql = rawSqlOf(ctx.env);
+      const projectId = await requireProject(sql, auth, undefined);
+      const period = new URL(ctx.request.url).searchParams.get("period") ?? "month";
+      if (period !== "week" && period !== "month" && period !== "year" && period !== "since_start") {
+        throw new HttpError(400, "bad_request", { field: "period" });
+      }
+      const figures = await computeManageFigures(sql, projectId, ammanDateString(Date.now()), period);
+      return jsonResponse(figures);
     }),
   );
 

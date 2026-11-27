@@ -12751,6 +12751,25 @@
         "trigger": "wave-d-m1.10-doc-index-manage-v2-coverage",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "arch007-2026-11-27-m211-figures-route",
+      "date": "2026-11-27",
+      "path": "apps/prototype-web/worker/api/manageV2.ts",
+      "from": {
+        "nbLoc": 409,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 427,
+        "band": "WATCH"
+      },
+      "reason": "M2.11 (مانج-في₂ المرحلة 2 — الموجة I): مسار القراءة الواحد GET /api/manage-v2/figures (موديول القراءة §8/§8.2 بخيار الفترة) على واجهة الكتابة نفسها — الحارس يشمل الملف كله فينمو نموًا موثقًا داخل الشريط نفسه؛ لا تغيير دلالات كتابة.",
+      "authorization": {
+        "ownerReview": "Phase-2 wave I execution under the approved continuous phase-2 prompt (same governing program as the M1.9a/M1.10 entries); same-PR re-anchor per the documented protocol.",
+        "trigger": "M2.11 task: the read module's route joins the manage v2 surface file",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }
