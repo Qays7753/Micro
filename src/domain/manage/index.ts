@@ -151,6 +151,9 @@ export { planPay } from "./operations/pay.js";
 export { planWriteOff } from "./operations/writeOff.js";
 export { planCorrect } from "./operations/correct.js";
 export { planCancelOperation } from "./operations/cancelOperation.js";
+/* M3.5 (phase 3): OP-SALE-DELIVERY-COST — الباب المعلن نفسه. */
+export type { SaleDeliveryCostInput } from "./operations/saleDeliveryCost.js";
+export { planSaleDeliveryCost } from "./operations/saleDeliveryCost.js";
 /* M3.4 (phase 3): OP-DELIVER + التحصيل الفوري — الباب المعلن نفسه. */
 export type { DeliverCollectionInput, DeliverInput } from "./operations/deliver.js";
 export { planDeliver } from "./operations/deliver.js";

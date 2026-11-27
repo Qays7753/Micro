@@ -19,6 +19,7 @@ import type { ApiRouter } from "../router.ts";
 import { planSaleCreate } from "../../../../src/domain/manage/operations/saleCreate.js";
 import { planPrepayment } from "../../../../src/domain/manage/operations/prepayment.js";
 import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js";
+import { planSaleDeliveryCost } from "../../../../src/domain/manage/operations/saleDeliveryCost.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -95,6 +96,29 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
                   box: (body.collection as Record<string, unknown>).box,
                 },
               }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.5 — OP-SALE-DELIVERY-COST (§5): the sale's delivery cost — Q8 of
+  // the internal-only category sale_delivery (from a box, or personal
+  // money through cash, R-18); any sale state except cancelled.
+  router.post(
+    "api/manage-v2/sale-delivery-cost",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planSaleDeliveryCost({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          amountFils: body.amountFils,
+          source: body.source,
+          ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
