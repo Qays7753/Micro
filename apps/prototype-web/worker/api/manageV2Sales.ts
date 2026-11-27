@@ -21,6 +21,7 @@ import { planPrepayment } from "../../../../src/domain/manage/operations/prepaym
 import { planDeliver } from "../../../../src/domain/manage/operations/deliver.js";
 import { planSaleDeliveryCost } from "../../../../src/domain/manage/operations/saleDeliveryCost.js";
 import { planCancelSale } from "../../../../src/domain/manage/operations/cancelSale.js";
+import { planReturn } from "../../../../src/domain/manage/operations/saleReturn.js";
 import { SaleNotFound, updateSaleFields } from "../application/manage/saleEdits.js";
 import { jsonResponse, planOr400, projectWrite, runPlan, toHttpError } from "./manageV2Shared.ts";
 
@@ -141,6 +142,28 @@ export function registerManageV2SaleRoutes(router: ApiRouter): void {
           saleId: body.saleId,
           ...(body.keptFils === undefined ? {} : { keptFils: body.keptFils }),
           ...(body.refund === undefined ? {} : { refund: body.refund as never }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M3.7 — OP-RETURN (§5): Q16 on a delivered sale — REV −r dated the
+  // return date, x off the remainder, y refunded now or later.
+  router.post(
+    "api/manage-v2/return",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planReturn({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          saleId: body.saleId,
+          amountFils: body.amountFils,
+          refund: body.refund as never,
+          ...(body.effectiveOn === undefined ? {} : { effectiveOn: body.effectiveOn }),
         }),
       );
       return jsonResponse(await runPlan(sql, plan));

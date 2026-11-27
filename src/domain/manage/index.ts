@@ -151,6 +151,9 @@ export { planPay } from "./operations/pay.js";
 export { planWriteOff } from "./operations/writeOff.js";
 export { planCorrect } from "./operations/correct.js";
 export { planCancelOperation } from "./operations/cancelOperation.js";
+/* M3.7 (phase 3): OP-RETURN — الباب المعلن نفسه. */
+export type { ReturnInput, ReturnRefundInput } from "./operations/saleReturn.js";
+export { planReturn } from "./operations/saleReturn.js";
 /* M3.6 (phase 3): OP-CANCEL-SALE — الباب المعلن نفسه. */
 export type { CancelSaleInput, CancelSaleRefundInput } from "./operations/cancelSale.js";
 export { planCancelSale } from "./operations/cancelSale.js";
