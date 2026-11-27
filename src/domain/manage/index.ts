@@ -108,6 +108,8 @@ export type { TransferInput } from "./operations/transfer.js";
 /* M2.8 (wave H): التحصيل والدفع بالتخصيص بالاسم — الباب المعلن نفسه. */
 export type { CollectInput, CollectShortfall } from "./operations/collect.js";
 export type { PayInput } from "./operations/pay.js";
+/* M2.9 (wave H): الشطب المستقل — الباب المعلن نفسه. */
+export type { WriteOffInput } from "./operations/writeOff.js";
 export type { OpenBalanceLine } from "./operations/allocation.js";
 export {
   OperationRejected,
@@ -128,3 +130,4 @@ export { planOwnerDeposit, planOwnerWithdrawal } from "./operations/ownerMoney.j
 export { planTransfer } from "./operations/transfer.js";
 export { planCollect } from "./operations/collect.js";
 export { planPay } from "./operations/pay.js";
+export { planWriteOff } from "./operations/writeOff.js";

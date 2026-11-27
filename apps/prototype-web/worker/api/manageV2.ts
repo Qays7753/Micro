@@ -2,10 +2,10 @@
  * Manage v2 phase 2, wave G+: HTTP surface for the §5 operations over the
  * new §3 tables — OP-SETUP / OP-ADD-BOX / OP-ADD-PRIOR-BALANCE (M2.5),
  * OP-EXPENSE (M2.6), OP-OWNER-DEPOSIT / OP-OWNER-WITHDRAWAL / OP-TRANSFER
- * (M2.7), OP-COLLECT / OP-PAY (M2.8); later waves add their operations
- * here. One route file for the whole Manage v2 write surface
- * (`/api/manage-v2/*`); the M2.4 handler owns the transaction and the
- * atomic idempotency.
+ * (M2.7), OP-COLLECT / OP-PAY (M2.8), OP-WRITE-OFF (M2.9); later waves add
+ * their operations here. One route file for the whole Manage v2 write
+ * surface (`/api/manage-v2/*`); the M2.4 handler owns the transaction and
+ * the atomic idempotency.
  *
  * Shape (§14.1 + the M1.6 boundary): the route ONLY adapts HTTP —
  * authenticate, resolve the caller's project (R-24: one project per app
@@ -46,6 +46,7 @@ import {
 import { planTransfer } from "../../../../src/domain/manage/operations/transfer.js";
 import { planCollect } from "../../../../src/domain/manage/operations/collect.js";
 import { planPay } from "../../../../src/domain/manage/operations/pay.js";
+import { planWriteOff } from "../../../../src/domain/manage/operations/writeOff.js";
 import { OperationRejected, type OperationPlan } from "../../../../src/domain/manage/operations/support.js";
 
 /** Body of a Manage v2 write request: the shared reader (JSON content type,
@@ -355,6 +356,28 @@ export function registerManageV2Routes(router: ApiRouter): void {
           ...(body.counterpartyName === undefined ? {} : { counterpartyName: body.counterpartyName }),
           effectiveOn: body.effectiveOn,
           ...(body.priorBalance === undefined ? {} : { priorBalance: body.priorBalance }),
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
+  // M2.9 — OP-WRITE-OFF (§5): the standalone write-off on an open to_me
+  // line, full (default) or partial, with the loan_given → OWN_OUT
+  // treatment. No box moves.
+  router.post(
+    "api/manage-v2/write-off",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body, createdByAccountId, today } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planWriteOff({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          balanceLineId: body.balanceLineId,
+          ...(body.amountFils === undefined ? {} : { amountFils: body.amountFils }),
+          effectiveOn: body.effectiveOn,
         }),
       );
       return jsonResponse(await runPlan(sql, plan));
