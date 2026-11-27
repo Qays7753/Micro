@@ -12789,6 +12789,25 @@
         "trigger": "new-file-enters-band rule — the one §8/§8.2 read module (M2.11) measured 682 nbLOC at establishment",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "arch007-2026-11-27-m212-projlife-manage-branch",
+      "date": "2026-11-27",
+      "path": "apps/prototype-web/worker/api/projectLifecycle.ts",
+      "from": {
+        "nbLoc": 301,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 409,
+        "band": "WATCH"
+      },
+      "reason": "M2.12 (مانج-في₂ المرحلة 2 — الموجة J): فرع مانج في ملف دورة حياة المشروع — مسارا التصدير والحذف نفساهما يخدمان مشروع مانج-في₂ (§14.6/SRV-07): مظروف v2 كامل الجداول بقراءة مقفولة FOR SHARE وبصمة بيانات مستقرة، وحذف export-first بالبصمة + رمز التأكيد داخل معاملة واحدة بترتيب FK آمن مع تعطيل/إعادة تسليح حارسي append-only داخلها؛ ممرّ الشكل UUID يفصل الفرعين فبقاء سلوك v1 حرفيًا (اختباراته 4/4).",
+      "authorization": {
+        "ownerReview": "Phase-2 wave J execution under the approved continuous phase-2 prompt (same governing program as the M2.10/M2.11 manage entries); same-PR re-anchor per the documented protocol.",
+        "trigger": "M2.12 task: the project lifecycle endpoints gain the Manage v2 branch (export v2 envelope + export-first digest deletion)",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }

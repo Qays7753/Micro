@@ -23,12 +23,34 @@
 import { nowMs } from "../clock.ts";
 import { randomToken } from "../crypto.ts";
 import { newId, type Db } from "../db/db.ts";
+import { rawSqlOf } from "../db/db.ts";
 import { HttpError, jsonResponse } from "../http.ts";
 import { readJsonBody, type RouteContext } from "../router.ts";
 import type { AuthenticatedContext } from "../auth/session.ts";
+import { deleteManageProject, exportManageProject } from "../application/manage/exportDelete.js";
 
 function db(ctx: RouteContext): Db {
   return ctx.env.DB;
+}
+
+/** The MANAGE branch (M2.12 — §14.6/SRV-07): the same lifecycle endpoints
+ * serve a Manage v2 project when the path id is the caller's own `project`
+ * row (R-24: owner-scoped, one project per app account). Returns the id
+ * when the branch applies, null when the v1 workspace path must run.
+ * The UUID shape gate comes FIRST: v1 workspace ids are prefixed tokens
+ * (`ws_…`), and a non-UUID against `project.id` (UUID) is a PostgreSQL
+ * syntax error, not an empty result — the v1 path must never see it. */
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function manageProjectIdOf(ctx: RouteContext, auth: AuthenticatedContext): Promise<string | null> {
+  const pathId = ctx.params.id ?? "";
+  if (!UUID_SHAPE.test(pathId)) {
+    return null;
+  }
+  const sql = rawSqlOf(ctx.env);
+  const rows =
+    await sql`SELECT id FROM project WHERE id = ${pathId} AND owner_account_id = ${auth.identityId}`;
+  return rows.length === 0 ? null : String(rows[0]!.id);
 }
 
 export const PROJECT_EXPORT_FORMAT = "micro-project-export";
@@ -75,6 +97,53 @@ async function requireProjectOwner(ctx: RouteContext, auth: AuthenticatedContext
  * record count and content digest.
  */
 export async function exportProject(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  // The MANAGE branch (M2.12): a Manage v2 project exports the v2 envelope
+  // under a locked read — every §3 table's rows with a data-only digest.
+  const manageProjectId = await manageProjectIdOf(ctx, auth);
+  if (manageProjectId !== null) {
+    const sql = rawSqlOf(ctx.env);
+    try {
+      const { envelope } = await exportManageProject(sql, manageProjectId);
+      return jsonResponse({
+        format: envelope.format,
+        version: envelope.version,
+        exportedAt: envelope.exportedAt,
+        digest: envelope.digest,
+        counts: {
+          boxes: envelope.boxes.length,
+          products: envelope.products.length,
+          sales: envelope.sales.length,
+          balanceLines: envelope.balanceLines.length,
+          operations: envelope.operations.length,
+          entries: envelope.entries.length,
+          postings: envelope.postings.length,
+        },
+        data: {
+          project: envelope.project,
+          boxes: envelope.boxes,
+          products: envelope.products,
+          productComponents: envelope.productComponents,
+          sales: envelope.sales,
+          saleLines: envelope.saleLines,
+          balanceLines: envelope.balanceLines,
+          operations: envelope.operations,
+          entries: envelope.entries,
+          postings: envelope.postings,
+          absences: envelope.absences,
+          reconciliations: envelope.reconciliations,
+          reconciliationBoxes: envelope.reconciliationBoxes,
+          idempotency: envelope.idempotency,
+        },
+      });
+    } catch (error) {
+      // Only the honest not-found race maps to 404 — a real failure must
+      // surface as itself, never masked (and never leaked as raw text).
+      if (/not_found/.test(String(error))) {
+        throw new HttpError(404, "not_found", { reason: "project_not_found" });
+      }
+      throw error;
+    }
+  }
   const workspace = await requireProjectOwner(ctx, auth);
   if (workspace.deleted_at !== null) {
     throw new HttpError(409, "conflict", { reason: "project_already_deleted" });
@@ -207,6 +276,47 @@ export async function exportProject(ctx: RouteContext, auth: AuthenticatedContex
  * the minimal audit/security records. Everything commits atomically.
  */
 export async function deleteProject(ctx: RouteContext, auth: AuthenticatedContext): Promise<Response> {
+  // The MANAGE branch (M2.12 — §14.6): the ONLY path allowed to delete
+  // ledger rows. Export-first is enforced by the DATA digest: the caller
+  // must carry the digest of a CURRENT export and the exact confirmation
+  // token; the digest is verified INSIDE the deletion transaction (under the
+  // row lock — SRV-07), and the deletion itself is one atomic transaction.
+  const manageProjectId = await manageProjectIdOf(ctx, auth);
+  if (manageProjectId !== null) {
+    const body = (await readJsonBody(ctx.request)) as { confirm?: unknown; exportDigest?: unknown };
+    if (body.confirm !== PROJECT_DELETE_CONFIRM_TOKEN) {
+      throw new HttpError(400, "bad_request", {
+        field: "confirm",
+        reason: "confirmation_token_required",
+        message: "التأكيد يحتاج كتابة كلمة «حذف» نفسها — لا حذف بالخطأ أبدًا.",
+      });
+    }
+    if (typeof body.exportDigest !== "string" || body.exportDigest.length === 0) {
+      throw new HttpError(409, "conflict", {
+        reason: "export_required",
+        message: "صدّر بيانات مشروعك أولًا ثم أكّد الحذف — لا حذف بلا تصدير مسبق.",
+      });
+    }
+    const sql = rawSqlOf(ctx.env);
+    try {
+      const result = await deleteManageProject(sql, manageProjectId, {
+        expectedDigest: body.exportDigest,
+      });
+      return jsonResponse({ ok: true, deleted: result.deleted, deletedAt: nowMs() });
+    } catch (error) {
+      // The closed error list (MNG-LOCAL-05 posture — no raw text out).
+      if (/project_already_deleted/.test(String(error))) {
+        throw new HttpError(409, "conflict", { reason: "project_already_deleted" });
+      }
+      if (/export_digest_mismatch/.test(String(error))) {
+        throw new HttpError(409, "conflict", {
+          reason: "export_required",
+          message: "صدّر بيانات مشروعك أولًا ثم أكّد الحذف — لا حذف بلا تصدير مسبق.",
+        });
+      }
+      throw error;
+    }
+  }
   const workspace = await requireProjectOwner(ctx, auth);
   if (workspace.deleted_at !== null) {
     throw new HttpError(409, "conflict", { reason: "project_already_deleted" });
