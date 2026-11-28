@@ -83,6 +83,9 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   /* M5.3: محرر المنتج P-23/P-24 — ورقة عمق كاملة (النموذج يخفي الشريط). */
   "/manage/products/new": "مانج: منتج جديد P-23 فارغة — ورقة عمق (M5.3)",
   "/manage/products/:id": "مانج: محرر المنتج P-23 معبّأة + تأكيد الأرشفة P-24 — ورقة عمق (M5.3)",
+  "/manage/boxes/add": "مانج: إضافة صندوق P-38 — ورقة عمق (M5.5)",
+  "/manage/boxes/merge": "مانج: دمج الصندوقين P-39 — ورقة تأكيد عمق (M5.5)",
+  "/manage/boxes/split": "مانج: فصل الصندوقين P-40 — ورقة عمق (M5.5)",
   "/direct-sales/new": "بيع مباشر جديد — محرر فعل واحد",
   "/direct-sales/:id": "تعديل/تصحيح بيع مباشر — محرر",
   "/orders/new": "طلب جديد — محرر مسودة كامل",
@@ -203,7 +206,8 @@ const SURFACE_ROUTES: readonly string[] = [
   "/manage/finance",
   "/manage/finance/income",
   "/manage/finance/position",
-  "/manage/finance/sources",
+  "/manage/finance/sources" /* M5.5: الصناديق P-37 — قارئ يبقي الشريط السفلي (U-005). */,
+  "/manage/boxes",
   "/settings",
   "/profile",
 ];

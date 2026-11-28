@@ -220,6 +220,11 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
    * P-22 (بيته — فُتح منها) بلا سياق. */
   "/manage/products/new": "/manage/products",
   "/manage/products/:id": "/manage/products",
+  /* M5.5 (مانج-في₂ المرحلة 5): أوراق الصناديق P-38/P-39/P-40 تعود إلى
+   * P-37 (بيتها). */
+  "/manage/boxes/add": "/manage/boxes",
+  "/manage/boxes/merge": "/manage/boxes",
+  "/manage/boxes/split": "/manage/boxes",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */

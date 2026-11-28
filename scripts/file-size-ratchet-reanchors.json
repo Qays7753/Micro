@@ -13375,16 +13375,16 @@
         "band": "WATCH"
       },
       "to": {
-        "nbLoc": 685,
+        "nbLoc": 688,
         "band": "WATCH"
       },
-      "reason": "M5.4: تسجيل سطح باب api الموسع — قيمة قراءة واحدة (fetchRecentActivity — آخر 5 حركات C-10 للصفحة P-30 §10) ونوع واحد (ActivityRow)؛ نفس نمط M5.3.",
+      "reason": "M5.4+M5.5: تسجيل سطح باب api الموسع — قيمة قراءة واحدة (fetchRecentActivity) ونوع (ActivityRow) في M5.4، وثلاث كتابات في M5.5 (addManageBox/mergeManageBoxes/splitManageBoxes — عمليات الصناديق §5)؛ نفس نمط M5.3.",
       "authorization": {
         "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.3 doors-baseline entry); the deliberate surface widening registered in the same task commit per PC-3.",
-        "trigger": "within-band-growth rule — chained M5.4 measured 617->685 nbLOC",
+        "trigger": "within-band-growth rule — chained M5.4+M5.5 measured 617->688 nbLOC",
         "ocRef": "ARCH-007"
       },
-      "trigger": "within-band-growth rule — chained M5.4 measured 617->685 nbLOC"
+      "trigger": "within-band-growth rule — chained M5.4+M5.5 measured 617->688 nbLOC"
     },
     {
       "id": "arch007-2026-11-28-m54-stylelint-fixture-manage-finance-css",
@@ -13405,6 +13405,86 @@
         "ocRef": "ARCH-007"
       },
       "trigger": "within-band-growth rule — chained M5.4 measured 1307->1331 nbLOC (M5.3 entry covered to 1323)"
+    },
+    {
+      "id": "arch007-2026-11-28-m55-microroutertsx",
+      "date": "2026-11-28",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 299,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 378,
+        "band": "NORMAL"
+      },
+      "reason": "M5.5: مسارات الصناديق الأربعة (P-37 سطح وP-38/39/40 أوراق عمق) بالاستيراد الكسول — نفس نمط M5.1–M5.4.",
+      "authorization": {
+        "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1–M5.4 reanchors); the deliberate surface widening registered in the same task commit per PC-3.",
+        "trigger": "within-band-growth rule — chained M5.5 measured 299->378 nbLOC",
+        "ocRef": "ARCH-007"
+      },
+      "trigger": "within-band-growth rule — chained M5.5 measured 299->378 nbLOC"
+    },
+    {
+      "id": "arch007-2026-11-28-m55-navigationcontractts",
+      "date": "2026-11-28",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 243,
+        "band": "NORMAL"
+      },
+      "reason": "M5.5: بدائل رجوع أوراق الصناديق P-38/P-39/P-40 تعود إلى P-37 (بيتها).",
+      "authorization": {
+        "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1–M5.4 reanchors); the deliberate surface widening registered in the same task commit per PC-3.",
+        "trigger": "within-band-growth rule — chained M5.5 measured 226->243 nbLOC",
+        "ocRef": "ARCH-007"
+      },
+      "trigger": "within-band-growth rule — chained M5.5 measured 226->243 nbLOC"
+    },
+    {
+      "id": "arch007-2026-11-28-m55-routeclassifierts",
+      "date": "2026-11-28",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 100,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 115,
+        "band": "NORMAL"
+      },
+      "reason": "M5.5: نمط عمق واحد لأوراق الصناديق الثلاث P-38/P-39/P-40 (النماذج تخفي الشريط — UX §1.2).",
+      "authorization": {
+        "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1–M5.4 reanchors); the deliberate surface widening registered in the same task commit per PC-3.",
+        "trigger": "within-band-growth rule — chained M5.5 measured 100->115 nbLOC",
+        "ocRef": "ARCH-007"
+      },
+      "trigger": "within-band-growth rule — chained M5.5 measured 100->115 nbLOC"
+    },
+    {
+      "id": "arch007-2026-11-28-m55-routetemplatets",
+      "date": "2026-11-28",
+      "path": "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "reason": "M5.5: مجموعة manage تُمد بمسارات الصناديق الأربعة — نفس نمط M5.1–M5.4.",
+      "authorization": {
+        "ownerReview": "Phase-5 continuous execution under the approved phase-5 prompt (docs/manage-v2/tasks/phase-5-prompt-EN.md — same governing program as the M5.1–M5.4 reanchors); the deliberate surface widening registered in the same task commit per PC-3.",
+        "trigger": "within-band-growth rule — chained M5.5 measured 58->68 nbLOC",
+        "ocRef": "ARCH-007"
+      },
+      "trigger": "within-band-growth rule — chained M5.5 measured 58->68 nbLOC"
     }
   ]
 }

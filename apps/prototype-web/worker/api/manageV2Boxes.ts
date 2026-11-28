@@ -13,6 +13,7 @@ import { authedRoute } from "../routes.ts";
 import type { ApiRouter } from "../router.ts";
 import { planMergeBoxes } from "../../../../src/domain/manage/operations/mergeBoxes.js";
 import { planSplitBoxes } from "../../../../src/domain/manage/operations/splitBoxes.js";
+import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planReconcile } from "../../../../src/domain/manage/operations/reconcile.js";
 import { detectAbsence } from "../application/manage/absence.js";
 import { readReconciliationLog } from "../application/manage/reconciliationLog.js";
@@ -21,6 +22,27 @@ import { rawSqlOf } from "../db/db.ts";
 import { jsonResponse, planOr400, projectWrite, requireProject, runPlan } from "./manageV2Shared.ts";
 
 export function registerManageV2BoxRoutes(router: ApiRouter): void {
+  // M5.5 — OP-ADD-BOX (§5): add the missing box kind (P-38: the account)
+  // with its opening — Q1 TODAY when known (R-26 exception), none when
+  // unknown. The kind comes from the body; P-38 always sends "account".
+  router.post(
+    "api/manage-v2/add-box",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, createdByAccountId, today, body } = await projectWrite(ctx, auth);
+      const plan = planOr400(() =>
+        planAddBox({
+          projectId,
+          createdByAccountId,
+          requestId: body.requestId,
+          today,
+          kind: body.kind,
+          opening: body.opening,
+        }),
+      );
+      return jsonResponse(await runPlan(sql, plan));
+    }),
+  );
+
   // M4.1 — OP-MERGE-BOXES (§5): the Q14 that zeroes the account into
   // cash, then the account row merged. No inputs beyond the context.
   router.post(

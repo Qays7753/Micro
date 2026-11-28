@@ -132,3 +132,36 @@ export function setupProject(input: {
     input.requestId,
   );
 }
+
+/** M5.5 — OP-ADD-BOX (§5، P-38): إضافة الصندوق الناقص (الحساب دائمًا من
+ *  الواجهة — النقد موجود من البداية) بافتتاحه: Q1 اليوم إذا معروف. */
+export function addManageBox(input: {
+  requestId: string;
+  kind: "cash" | "account";
+  opening: SetupBoxOpening;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite(
+    "/api/manage-v2/add-box",
+    { requestId: input.requestId, kind: input.kind, opening: input.opening },
+    input.requestId,
+  );
+}
+
+/** M5.5 — OP-MERGE-BOXES (§5، P-39): دمج الصندوقين — Q14 يُصفّر الحساب
+ *  إلى النقد ثم يُدمج صف الحساب. لا مدخلات. */
+export function mergeManageBoxes(requestId: string): Promise<ManageWriteOutcome> {
+  return manageWrite("/api/manage-v2/merge-boxes", { requestId }, requestId);
+}
+
+/** M5.5 — OP-SPLIT-BOXES (§5، P-40): فصل الصندوقين — إعادة تفعيل الحساب
+ *  المدموج + مبلغ المستخدم قيدًا نقد→حساب (0 = تفعيل بلا قيد). */
+export function splitManageBoxes(input: {
+  requestId: string;
+  amountFils: number;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite(
+    "/api/manage-v2/split-boxes",
+    { requestId: input.requestId, amountFils: input.amountFils },
+    input.requestId,
+  );
+}

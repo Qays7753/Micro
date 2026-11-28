@@ -144,6 +144,12 @@ const ManageFinancePage = lazy(() => import("@/pages/manage/FinancePage"));
 const ManageIncomePage = lazy(() => import("@/pages/manage/IncomePage"));
 const ManagePositionPage = lazy(() => import("@/pages/manage/PositionPage"));
 const ManageSourcesPage = lazy(() => import("@/pages/manage/SourcesPage"));
+/* M5.5: الصناديق P-37 سطح قراءة (U-005) وP-38/P-39/P-40 أوراق عمق كاملة
+ * (النماذج تخفي الشريط — UX §1.2). */
+const ManageBoxesPage = lazy(() => import("@/pages/manage/BoxesPage"));
+const ManageBoxAddPage = lazy(() => import("@/pages/manage/BoxAddPage"));
+const ManageBoxMergePage = lazy(() => import("@/pages/manage/BoxMergePage"));
+const ManageBoxSplitPage = lazy(() => import("@/pages/manage/BoxSplitPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -183,6 +189,11 @@ export function MicroRouter() {
             <Route path="/manage/finance/position" component={ManagePositionPage} />
             <Route path="/manage/finance/sources" component={ManageSourcesPage} />
             <Route path="/manage/finance" component={ManageFinancePage} />
+            {/* M5.5: الصناديق — الأوراق الأخص قبل سطح P-37. */}
+            <Route path="/manage/boxes/add" component={ManageBoxAddPage} />
+            <Route path="/manage/boxes/merge" component={ManageBoxMergePage} />
+            <Route path="/manage/boxes/split" component={ManageBoxSplitPage} />
+            <Route path="/manage/boxes" component={ManageBoxesPage} />
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />

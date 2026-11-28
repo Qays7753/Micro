@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "d5b7a4c8632d6c8015d9c512b5fb1d2412b838bd",
+  "head": "e8237a13942489fed8dc47c0ddeb36e2e313c92d",
   "pages": {
-    "total": 90,
+    "total": 94,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -574,6 +574,30 @@
         "kind": "named-reference",
         "evidence": [
           "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BoxAddPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/BoxPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BoxMergePage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/BoxPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BoxSplitPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/BoxPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BoxesPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/BoxPages.dom.test.tsx"
         ]
       },
       "pages/manage/FinancePage.tsx": {
