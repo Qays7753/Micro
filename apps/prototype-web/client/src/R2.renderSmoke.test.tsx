@@ -53,9 +53,9 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (93 = 92 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
+/* كل مسارات الموجّه المسجّلة (97 = 96 نمطًا + المسار الافتراضي؛ /ask أُضيف EX-D21،
  * و/admin أُضيف G02/Q129 بالاستكمال المستمر 2026-11-22، و/manage/start أُضيف
- * مانج-في₂ M5.1 2026-11-28)؛ المسارات ذات
+ * مانج-في₂ M5.1 2026-11-28، ومسارات المالية الأربعة أُضيفت M5.4)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
  * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
  * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
@@ -166,6 +166,10 @@ const ROUTES: readonly string[] = [
   "/manage/products",
   "/manage/products/new",
   "/manage/products/product-x",
+  "/manage/finance",
+  "/manage/finance/income",
+  "/manage/finance/position",
+  "/manage/finance/sources",
 ];
 
 async function mountApp() {

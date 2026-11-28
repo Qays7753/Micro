@@ -23,6 +23,9 @@ import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
 /* §4 بند ٥: مسارات عنوانها h1 هو نفسه تسمية التنقل — الترويسة تعرض الاسم وحده */
 const CONTEXT_REPEATS_H1 = new Set([
   "/finance",
+  /* M5.4: صفحة المالية القديمة تقاعدت من المقعد — صفحة مانج P-30 تحمل
+   * h1ها الخفي (التبويب هو العنوان الظاهر). */
+  "/manage/finance",
   "/schedule",
   "/settings",
   "/inventory",
@@ -93,7 +96,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
   }, [profiles, dataVersion]);
   const isGuest = hasLocalProject === false && !sessionLoading && session.authenticated === false;
   const navItems = isGuest
-    ? primaryNavigation.filter(item => item.href !== "/finance" && item.href !== "/orders")
+    ? primaryNavigation.filter(item => item.href !== "/manage/finance" && item.href !== "/orders")
     : primaryNavigation;
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";

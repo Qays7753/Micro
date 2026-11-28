@@ -155,6 +155,9 @@ interface SaleLineRow {
   quantity_milli: number;
   unit_price_minor: number | null;
   unit_cost_minor: number | null;
+  /** M5.4 (P-30 الأعلى مبيعاً «({qty} {unit})»): وحدة عرض المنتج الحالية —
+   * خارج اللقطة §3.5 (لا تحملها)، كسابقة P-21 (سطر واحد للوحدة الحالية). */
+  unit_label: string | null;
 }
 
 interface Snapshot {
@@ -197,8 +200,11 @@ async function loadSnapshot(sql: postgres.Sql, projectId: string, today: string)
            cancelled_on::text AS cancelled_on, tracked, hidden_from_tracker
     FROM sale WHERE project_id = ${projectId}`) as unknown as SaleRow[];
   const saleLineRows = (await sql`
-    SELECT id, sale_id, product_id, description, quantity_milli, unit_price_minor, unit_cost_minor
-    FROM sale_line WHERE project_id = ${projectId}`) as Array<{
+    SELECT l.id, l.sale_id, l.product_id, l.description, l.quantity_milli, l.unit_price_minor,
+           l.unit_cost_minor, p.unit_label
+    FROM sale_line l
+    LEFT JOIN product p ON p.id = l.product_id AND p.project_id = l.project_id
+    WHERE l.project_id = ${projectId}`) as Array<{
     id: string;
     sale_id: string;
     product_id: string | null;
@@ -206,6 +212,7 @@ async function loadSnapshot(sql: postgres.Sql, projectId: string, today: string)
     quantity_milli: number;
     unit_price_minor: string | number | null;
     unit_cost_minor: string | number | null;
+    unit_label: string | null;
   }>;
   const saleLines: SaleLineRow[] = saleLineRows.map(l => ({
     id: l.id,
@@ -215,6 +222,7 @@ async function loadSnapshot(sql: postgres.Sql, projectId: string, today: string)
     quantity_milli: Number(l.quantity_milli),
     unit_price_minor: l.unit_price_minor === null ? null : Number(l.unit_price_minor),
     unit_cost_minor: l.unit_cost_minor === null ? null : Number(l.unit_cost_minor),
+    unit_label: l.unit_label === null ? null : String(l.unit_label),
   }));
   const absenceRows = (await sql`
     SELECT started_on::text AS started_on, ended_on::text AS ended_on, complete
@@ -363,13 +371,20 @@ export interface ManageFiguresResponse {
   unexplained: { fils: number; shown: boolean; text: string };
   netWorth: Figure;
   netWorthSources: {
-    openingFils: number;
+    /** الافتتاح مجهول مع صندوق مجهول (§8.2) — null، وباقي المصادر معروفة. */
+    openingFils: number | null;
+    openingText: string | null;
     ownerDepositsFils: number;
+    ownerDepositsText: string;
     ownerWithdrawalsFils: number;
+    ownerWithdrawalsText: string;
     netProfitSinceStartFils: number;
+    netProfitSinceStartText: string;
     unexplainedFils: number;
-    totalFils: number;
-  } | null;
+    unexplainedText: string;
+    totalFils: number | null;
+    totalText: string | null;
+  };
   overdueReceivables: Array<{
     lineId: string;
     counterpartyName: string | null;
@@ -416,7 +431,13 @@ export interface ManageFiguresResponse {
     prepaymentFils: number;
     fullAmountFils: number | null;
   }>;
-  topSellers: Array<{ productId: string; name: string; valueFils: number; quantityText: string }>;
+  topSellers: Array<{
+    productId: string;
+    name: string;
+    valueFils: number;
+    quantityText: string;
+    unitLabel: string | null;
+  }>;
   topProfit: Array<{ productId: string; name: string; profitFils: number; perUnitText: string }>;
   bars: Array<{ label: string; from: string; to: string; netProfitFils: number; incomplete: boolean }>;
   flags: { newUser: boolean; incompletePeriod: boolean; unknownBalance: boolean };
@@ -429,6 +450,8 @@ interface TopSellerEntry {
   quantityMilli: number;
   costKnown: boolean;
   profitFils: number;
+  /** M5.4: وحدة العرض الحالية للمنتج (سطر واحد للمنتج — آخر سطر مقروء). */
+  unitLabel: string | null;
 }
 
 /** The §8 top-sellers/top-profit set: product lines of sales delivered in
@@ -451,6 +474,7 @@ function topProductEntries(s: Snapshot, range: PeriodRange): TopSellerEntry[] {
         quantityMilli: 0,
         costKnown: true,
         profitFils: 0,
+        unitLabel: line.unit_label,
       };
       entry.valueFils += value;
       entry.quantityMilli += line.quantity_milli;
@@ -459,6 +483,9 @@ function topProductEntries(s: Snapshot, range: PeriodRange): TopSellerEntry[] {
       } else {
         entry.costKnown = false;
       }
+      /* آخر سطر مقروء يحمل وحدة العرض الحالية (الوحدة عرض لا رقم — أي سطر
+       * صالح؛ اتحاد الأسطر لوحدات مختلفة غير وارد عمليًا لمنتج واحد). */
+      if (line.unit_label !== null) entry.unitLabel = line.unit_label;
       byProduct.set(line.product_id!, entry);
     }
   }
@@ -662,15 +689,31 @@ export async function computeManageFigures(
     ) +
     sumWhere(s, "REV", p => p.rev_kind === "return" || p.rev_kind === "write_off", sinceStart) -
     sumAccount(s, "EXP", sinceStart);
-  const sources = unknownBalance
-    ? null
-    : {
-        openingFils: sumAccount(s, "OPEN"),
-        ownerDepositsFils: sumAccount(s, "OWN_IN"),
-        ownerWithdrawalsFils: sumAccount(s, "OWN_OUT"),
-        netProfitSinceStartFils: netProfitSinceStart,
-        unexplainedFils: sumAccount(s, "UNEXP"),
-      };
+  /* المصادر (§8): الافتتاح وحده مجهول مع صندوق مجهول (§8.2 — P-33 يعرض
+   * «غير معروف حتى المطابقة» على الرصيد الافتتاحي وصافي القيمة فقط، وباقي
+   * المصادر تبقى معروفة لأن قيودها كلها محسوبة). */
+  const openingFils = unknownBalance ? null : sumAccount(s, "OPEN");
+  const ownerDepositsFils = sumAccount(s, "OWN_IN");
+  const ownerWithdrawalsFils = sumAccount(s, "OWN_OUT");
+  const unexplainedSinceFils = sumAccount(s, "UNEXP");
+  const totalFils =
+    openingFils === null
+      ? null
+      : openingFils + ownerDepositsFils - ownerWithdrawalsFils + netProfitSinceStart + unexplainedSinceFils;
+  const sources = {
+    openingFils,
+    openingText: openingFils === null ? null : money(openingFils).text,
+    ownerDepositsFils,
+    ownerDepositsText: money(ownerDepositsFils).text,
+    ownerWithdrawalsFils,
+    ownerWithdrawalsText: money(ownerWithdrawalsFils).text,
+    netProfitSinceStartFils: netProfitSinceStart,
+    netProfitSinceStartText: money(netProfitSinceStart).text,
+    unexplainedFils: unexplainedSinceFils,
+    unexplainedText: money(unexplainedSinceFils).text,
+    totalFils,
+    totalText: totalFils === null ? null : money(totalFils).text,
+  };
 
   const salesList = salesListRows(s, today, lineFigures);
 
@@ -683,6 +726,7 @@ export async function computeManageFigures(
       name: e.name,
       valueFils: e.valueFils,
       quantityText: quantityText(e.quantityMilli),
+      unitLabel: e.unitLabel,
     }));
   const topProfit = [...products]
     .filter(e => e.costKnown)
@@ -761,18 +805,7 @@ export async function computeManageFigures(
     materialsAlert,
     unexplained: { fils: unexplainedFils, shown: unexplainedFils !== 0, text: money(unexplainedFils).text },
     netWorth: unknownBalance ? unknown() : money(netWorthFils),
-    netWorthSources:
-      sources === null
-        ? null
-        : {
-            ...sources,
-            totalFils:
-              sources.openingFils +
-              sources.ownerDepositsFils -
-              sources.ownerWithdrawalsFils +
-              sources.netProfitSinceStartFils +
-              sources.unexplainedFils,
-          },
+    netWorthSources: sources,
     overdueReceivables: lineFigures
       .filter(l => l.line.direction === "to_me" && l.outstanding > 0 && l.line.origin_on <= overdueBefore)
       .map(l => ({

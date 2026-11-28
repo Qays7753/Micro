@@ -1,0 +1,82 @@
+/* M5.4 (مانج-في₂ المرحلة 5 — P-30/P-34/P-35/P-36): سطح مالية مانج —
+ * بطاقات قابلة للتطوير وأشرطة أفقية داخل البطاقة («الرسومات جوا البطاقات»).
+ * طول الشريط هندسة CSS خالصة (flexGrow نسبي) — لا حساب مالي في الواجهة.
+ * ملف سطح مستقل (قسمة السطح — كل ملف أسطح مانج تحت شريط المراجعة 400). */
+
+/* عنوان البطاقة القابل للتطوير: زر بلا زخرفة واضحة للكبس. */
+.micro-manage-card__toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: var(--vf-ink);
+}
+.micro-manage-card__toggle:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: 2px;
+}
+
+/* -- الأشرطة الأفقية (P-34 الأعلى مبيعاً · P-35 الأعلى ربحاً · P-36 المصاريف
+ *    حسب التصنيف · أعمدة الربح داخل بطاقة صافي الربح) ------------------- */
+.micro-manage-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.micro-manage-bars__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--vf-text-label-size);
+}
+.micro-manage-bars__label {
+  flex: 0 0 32%;
+  color: var(--vf-ink);
+  overflow-wrap: anywhere;
+}
+.micro-manage-bars__track {
+  display: flex;
+  flex: 1 1 auto;
+  height: var(--space-3);
+  background: var(--vf-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.micro-manage-bars__fill {
+  background: var(--vf-clay-interactive);
+  border-radius: 999px;
+}
+.micro-manage-bars__bar--negative .micro-manage-bars__fill {
+  background: var(--vf-danger, var(--vf-ink-secondary));
+}
+.micro-manage-bars__bar--incomplete .micro-manage-bars__fill {
+  opacity: 0.55;
+}
+.micro-manage-bars__rest {
+  background: transparent;
+}
+.micro-manage-bars__value {
+  flex: 0 0 auto;
+  min-width: 30%;
+  color: var(--vf-ink-secondary);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* قسم قابل للكبس (الصناديق ← P-37): زر بعرض كامل يلف محتوى القسم. */
+button.micro-manage-section {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+button.micro-manage-section:focus-visible {
+  outline: 2px solid var(--vf-focus);
+  outline-offset: 2px;
+}

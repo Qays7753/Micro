@@ -52,20 +52,34 @@ export interface ManageFiguresResponse {
   equipment: Figure;
   personalWithdrawals: Figure;
   ownerDeposits: Figure;
-  perTenRatio: { perTenText: string; shown: boolean } | { perTen: string | null };
+  /** §8 النسبة لكل 10 دنانير — شكل الدومين الحرفي من موديول القراءة: نسبة
+   *  بنصها، أو خسارة (S-LOSS بدل الجملة)، أو مخفية (صافي مبيعات ≤ 0). */
+  perTenRatio:
+    | { kind: "ratio"; tenths: number; text: string }
+    | { kind: "loss"; labelKey: "S-LOSS" }
+    | { kind: "hidden"; labelKey: "c.withdrawals_only" };
   biggestExpense: { category: string; fils: number; text: string } | null;
   expensesByCategory: Array<{ category: string; fils: number; text: string }>;
   materialsAlert: boolean;
   unexplained: { fils: number; shown: boolean; text: string };
   netWorth: Figure | UnknownFigure;
+  /** مصادر صافي القيمة (§8 — P-33): كل مصدر بفلسه الخام ونصه الجاهز
+   *  (٣ منازل — تقرير). الافتتاح والمجموع null مع رصيد مجهول (§8.2)،
+   *  وباقي المصادر معروفة لأن قيودها كلها محسوبة. */
   netWorthSources: {
-    openingFils: number;
+    openingFils: number | null;
+    openingText: string | null;
     ownerDepositsFils: number;
+    ownerDepositsText: string;
     ownerWithdrawalsFils: number;
+    ownerWithdrawalsText: string;
     netProfitSinceStartFils: number;
+    netProfitSinceStartText: string;
     unexplainedFils: number;
-    totalFils: number;
-  } | null;
+    unexplainedText: string;
+    totalFils: number | null;
+    totalText: string | null;
+  };
   overdueReceivables: Array<{
     lineId: string;
     counterpartyName: string | null;
@@ -110,7 +124,13 @@ export interface ManageFiguresResponse {
     prepaymentFils: number;
     fullAmountFils: number | null;
   }>;
-  topSellers: Array<{ productId: string; name: string; valueFils: number; quantityText: string }>;
+  topSellers: Array<{
+    productId: string;
+    name: string;
+    valueFils: number;
+    quantityText: string;
+    unitLabel: string | null;
+  }>;
   topProfit: Array<{ productId: string; name: string; profitFils: number; perUnitText: string }>;
   bars: Array<{ label: string; from: string; to: string; netProfitFils: number; incomplete: boolean }>;
   flags: { newUser: boolean; incompletePeriod: boolean; unknownBalance: boolean };
@@ -239,6 +259,30 @@ export interface ProductItem {
   unitCostFils: number | null;
   archived: boolean;
   components: Array<{ name: string; costFils: number }>;
+}
+
+/** صف حركة C-10 (M5.4 — P-30 §10): آخر 5 حركات بنصوص الخادم. */
+export interface ActivityRow {
+  operationId: string;
+  kind: string;
+  effectiveOn: string;
+  name: string | null;
+  amountText: string | null;
+  deliveryCostText: string | null;
+  boxKind: string | null;
+  corrected: boolean;
+  cancelled: boolean;
+  saleId: string | null;
+  saleStatus: string | null;
+  /** تسمية ج-١ الشرطية (اتجاه السابق/مصدر الإيداع/نوع السحب) من payload. */
+  variant: string | null;
+  /** تصنيف المصروف (§10.2 — تسمية صف المصروف). */
+  category: string | null;
+}
+
+/** M5.4 — آخر 5 حركات (P-30 §10): صفوف C-10 بنصوص الخادم. */
+export function fetchRecentActivity(): Promise<{ activity: ActivityRow[] }> {
+  return apiFetch<{ activity: ActivityRow[] }>("/api/manage-v2/recent-activity");
 }
 
 /** M5.3 — تفاصيل الطلب (P-21). */

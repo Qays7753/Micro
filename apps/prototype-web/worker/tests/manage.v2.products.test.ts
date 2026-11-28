@@ -490,9 +490,16 @@ describe("M3.1 T14 — منسف ×10 (25/18) + كنافة ×5 (12/6), default 31
     // Expected profit 90: 300 − (10×18 + 5×6).
     expect(figures.salesList.find(s => s.id === saleId)?.expectedProfitFils).toBe(90_000);
     // Top sellers: منسف 250 (10), كنافة 60 (5).
+    // M5.4: وحدة العرض الحالية للمنتج تصل مع الصف (جملة P-34 «{qty} {unit}»).
     expect(figures.topSellers).toEqual([
-      { productId: expect.any(String), name: "منسف", valueFils: 250_000, quantityText: "10" },
-      { productId: expect.any(String), name: "كنافة", valueFils: 60_000, quantityText: "5" },
+      {
+        productId: expect.any(String),
+        name: "منسف",
+        valueFils: 250_000,
+        quantityText: "10",
+        unitLabel: null,
+      },
+      { productId: expect.any(String), name: "كنافة", valueFils: 60_000, quantityText: "5", unitLabel: null },
     ]);
     // Top profit: منسف 70 (7.0/unit), كنافة 30 (6.0/unit).
     expect(figures.topProfit).toEqual([

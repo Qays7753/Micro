@@ -15,6 +15,8 @@
 @import "./styles/manage.css";
 /* M5.3: شريط أسبوع المتتبّع P-20 — ملف سطح مستقل فوق الأساس. */
 @import "./styles/manage-tracker.css";
+/* M5.4: بطاقات المالية القابلة للتطوير وأشرطتها (P-30/P-34–P-36). */
+@import "./styles/manage-finance.css";
 
 @custom-variant dark (&:is(.dark *));
 

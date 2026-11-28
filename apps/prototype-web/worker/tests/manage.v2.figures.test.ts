@@ -265,13 +265,20 @@ describe("M2.11 S1 — the worked example (since start)", () => {
     expect(f.materialsAlert).toBe(true);
     // Net worth = sources (S1: 375,000 = opening 300,000 + profit 75,000).
     expect(f.netWorth).toMatchObject({ fils: 375_000 });
+    // M5.4: كل مصدر بنصه الجاهز (٣ منازل — تقرير P-33).
     expect(f.netWorthSources).toEqual({
       openingFils: 300_000,
+      openingText: "300.000 د",
       ownerDepositsFils: 0,
+      ownerDepositsText: "0.000 د",
       ownerWithdrawalsFils: 0,
+      ownerWithdrawalsText: "0.000 د",
       netProfitSinceStartFils: 75_000,
+      netProfitSinceStartText: "75.000 د",
       unexplainedFils: 0,
+      unexplainedText: "0.000 د",
       totalFils: 375_000,
+      totalText: "375.000 د",
     });
     // §8.2: the sale's derived values (expected profit 65,000 = 250 − 180 − 5).
     const sale = f.salesList.find(s => s.expectedProfitFils !== null || s.finalPriceFils === 250_000)!;
@@ -364,13 +371,20 @@ describe("M2.11 S9 / S7 — withdrawals, S-LOSS and the unexplained difference",
     expect(f.boxes[0]).toMatchObject({ balanceFils: 300_000 });
     expect(f.netProfit).toMatchObject({ fils: -25_000 });
     expect(f.netWorth).toMatchObject({ fils: 300_000 });
+    // M5.4: نصوص المصادر جاهزة، والسالب بإشارته (تقرير P-33).
     expect(f.netWorthSources).toEqual({
       openingFils: 340_000,
+      openingText: "340.000 د",
       ownerDepositsFils: 0,
+      ownerDepositsText: "0.000 د",
       ownerWithdrawalsFils: 10_000,
+      ownerWithdrawalsText: "10.000 د",
       netProfitSinceStartFils: -25_000,
+      netProfitSinceStartText: "-25.000 د",
       unexplainedFils: -5_000,
+      unexplainedText: "-5.000 د",
       totalFils: 300_000,
+      totalText: "300.000 د",
     });
     // Negative profit: S-LOSS INSTEAD of the ratio sentence (§8).
     expect(f.perTenRatio).toEqual({ kind: "loss", labelKey: "S-LOSS" });
@@ -431,9 +445,16 @@ describe("M2.11 T14 — منسف ×10 (25/18) + كنافة ×5 (12/6), final 300
     // Expected profit 90: 300 − (10×18 + 5×6).
     expect(f.salesList[0]).toMatchObject({ expectedProfitFils: 90_000, finalPriceFils: 300_000 });
     // Top sellers: منسف 250 (10), كنافة 60 (5).
+    // M5.4: وحدة العرض الحالية للمنتج تصل مع الصف (جملة P-34 «{qty} {unit}»).
     expect(f.topSellers).toEqual([
-      { productId: expect.any(String), name: "منسف", valueFils: 250_000, quantityText: "10" },
-      { productId: expect.any(String), name: "كنافة", valueFils: 60_000, quantityText: "5" },
+      {
+        productId: expect.any(String),
+        name: "منسف",
+        valueFils: 250_000,
+        quantityText: "10",
+        unitLabel: null,
+      },
+      { productId: expect.any(String), name: "كنافة", valueFils: 60_000, quantityText: "5", unitLabel: null },
     ]);
     // Top profit: منسف 70 (7.0/unit), كنافة 30 (6.0/unit).
     expect(f.topProfit).toEqual([
@@ -535,7 +556,13 @@ describe("M2.11 — unknown opening balances and the flags", () => {
     });
     expect(f.totalBalance).toEqual({ fils: null, labelKey: "l.unknown_balance" });
     expect(f.netWorth).toEqual({ fils: null, labelKey: "l.unknown_balance" });
-    expect(f.netWorthSources).toBeNull();
+    // M5.4: الافتتاح والمجموع مجهولان، وباقي المصادر معروفة (§8.2/P-33).
+    expect(f.netWorthSources).toMatchObject({
+      openingFils: null,
+      openingText: null,
+      totalFils: null,
+      totalText: null,
+    });
     expect(f.flags.unknownBalance).toBe(true);
     // The incomplete flag: any active box with an unknown opening.
     expect(f.flags.incompletePeriod).toBe(true);

@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4d0cc793edfc246f7d0246728302c487eb417a6b",
+  "head": "d5b7a4c8632d6c8015d9c512b5fb1d2412b838bd",
   "pages": {
-    "total": 86,
+    "total": 90,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -576,10 +576,28 @@
           "pages/admin/AdminPanel.dom.test.tsx"
         ]
       },
+      "pages/manage/FinancePage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/FinancePages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/IncomePage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/FinancePages.dom.test.tsx"
+        ]
+      },
       "pages/manage/NowPage.tsx": {
         "kind": "direct",
         "evidence": [
           "pages/manage/NowPage.dom.test.tsx"
+        ]
+      },
+      "pages/manage/PositionPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/FinancePages.dom.test.tsx"
         ]
       },
       "pages/manage/ProductEditorPage.tsx": {
@@ -622,6 +640,12 @@
         "kind": "direct",
         "evidence": [
           "pages/manage/ReturnFlow.dom.test.tsx"
+        ]
+      },
+      "pages/manage/SourcesPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/FinancePages.dom.test.tsx"
         ]
       },
       "pages/manage/StartPage.tsx": {

@@ -34,7 +34,8 @@ const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
 const DeliveryReview = lazy(() => import("@/pages/DeliveryReview"));
 const Schedule = lazy(() => import("@/pages/Schedule"));
 const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
-const Finance = lazy(() => import("@/pages/Finance"));
+/* M5.4: صفحة المالية القديمة (pages/Finance.tsx) تبقى بملفها حتى حذف
+ * المرحلة ٦ — مقعد «/finance» صار مالية مانج P-30. */
 /* Wave 4.2 — P-4.2-4 (F01): «المالية ← المزيد» — سطح قراءة يبقي الشريط السفلي. */
 /* UNIT-013 / AF-D (تنفيذ S15 بالأمر الموحد §5): دليل «المزيد» 014 فقد
  * استقلاله — لوحة وظائف المالية داخل 013 هي الفهرسة الوحيدة؛ المسار
@@ -137,6 +138,12 @@ const ManageTrackerPage = lazy(() => import("@/pages/manage/TrackerPage"));
 const ManageSaleDetailPage = lazy(() => import("@/pages/manage/SaleDetailPage"));
 const ManageProductsPage = lazy(() => import("@/pages/manage/ProductsPage"));
 const ManageProductEditorPage = lazy(() => import("@/pages/manage/ProductEditorPage"));
+/* M5.4: المالية P-30 في مقعد تبويب «المالية» + تقاريرها P-31/P-32/P-33
+ * (قارئات يبقين الشريط السفلي — U-005). */
+const ManageFinancePage = lazy(() => import("@/pages/manage/FinancePage"));
+const ManageIncomePage = lazy(() => import("@/pages/manage/IncomePage"));
+const ManagePositionPage = lazy(() => import("@/pages/manage/PositionPage"));
+const ManageSourcesPage = lazy(() => import("@/pages/manage/SourcesPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -171,6 +178,11 @@ export function MicroRouter() {
             <Route path="/manage/products/new" component={ManageProductEditorPage} />
             <Route path="/manage/products/:id" component={ManageProductEditorPage} />
             <Route path="/manage/products" component={ManageProductsPage} />
+            {/* M5.4: تقارير المالية P-31/P-32/P-33 — الأكثر تحديدًا قبل P-30. */}
+            <Route path="/manage/finance/income" component={ManageIncomePage} />
+            <Route path="/manage/finance/position" component={ManagePositionPage} />
+            <Route path="/manage/finance/sources" component={ManageSourcesPage} />
+            <Route path="/manage/finance" component={ManageFinancePage} />
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
@@ -304,7 +316,10 @@ export function MicroRouter() {
             <Route path="/loans/:id" component={LoanDetail} />
             <Route path="/loans" component={Loans} />
             <Route path="/parties" component={Parties} />
-            <Route path="/finance" component={Finance} />
+            {/* M5.4 (مانج-في₂ المرحلة 5 — UX P-30): مقعد «المالية» يفتح مالية
+             * مانج (نمط M5.2/M5.3 في مقعدَي «/» و«الطلبات»)؛ صفحة المالية
+             * القديمة تبقى بملفها حتى حذف المرحلة ٦. */}
+            <Route path="/finance" component={ManageFinancePage} />
             {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
             {/* UNIT-013: /finance/more يقود إلى المالية — لا صفحة أكثر. */}
             <Route path="/finance/more">

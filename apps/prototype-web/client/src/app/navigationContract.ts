@@ -230,6 +230,8 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/orders/")) return "/orders";
   if (pathname.startsWith("/direct-sales/")) return "/orders";
   if (pathname.startsWith("/schedule/")) return "/schedule";
+  /* M5.4: تقارير المالية P-31/P-32/P-33 تعود إلى P-30 (بيتها). */
+  if (pathname.startsWith("/manage/finance/")) return "/manage/finance";
   if (pathname.startsWith("/finance/")) return "/finance";
   if (pathname.startsWith("/suppliers/")) return "/suppliers";
   if (pathname.startsWith("/cash/")) return "/cash";

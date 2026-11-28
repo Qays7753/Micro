@@ -237,8 +237,11 @@ test(
      * توكنات --vf-*؛ نظيف في stylelint بلا تحذير واحد كما يثبت الشرط
      * التالي). نفس-الـPR مع الكود الذي أضاف الملف.
      * M5.3 (نفس-الـPR 2026-11-28): 6→7 — أُضيف styles/manage-tracker.css
-     * (شريط أسبوع المتتبّع P-20 — قسمة السطح فوق الأساس؛ نظيف كذلك). */
-    assert.equal(actualGlob.report.length, 7, "the Micro CSS file set must be exactly 7 files");
+     * (شريط أسبوع المتتبّع P-20 — قسمة السطح فوق الأساس؛ نظيف كذلك).
+     * M5.4 (نفس-الـPR 2026-11-28): 7→8 — أُضيف styles/manage-finance.css
+     * (بطاقات المالية القابلة للتطوير وأشرطتها P-30/P-34–P-36 — قسمة
+     * السطح فوق الأساس؛ نظيف كذلك). */
+    assert.equal(actualGlob.report.length, 8, "the Micro CSS file set must be exactly 8 files");
     assert.ok(
       actualGlob.report.every((r) => r.warnings.length === 0 && r.errored === false),
       "no warnings or errors are acceptable on the production CSS set",

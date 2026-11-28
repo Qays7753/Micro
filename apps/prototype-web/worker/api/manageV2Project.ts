@@ -11,6 +11,7 @@ import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
 import { ProjectNotFound, readProjectState, renameProject } from "../application/manage/projectState.js";
 import { readSaleRows } from "../application/manage/saleRows.js";
+import { readRecentActivity } from "../application/manage/activityRows.js";
 import { SaleDetailsNotFound, readSaleDetails } from "../application/manage/saleDetails.js";
 import { projectRead, projectWrite } from "./manageV2Shared.ts";
 import { jsonResponse } from "../http.ts";
@@ -36,6 +37,16 @@ export function registerManageV2ProjectRoutes(router: ApiRouter): void {
       const { sql, projectId } = await projectRead(ctx, auth);
       const rows = await readSaleRows(sql, projectId, ammanDateString(Date.now()));
       return jsonResponse({ sales: rows });
+    }),
+  );
+
+  // M5.4 — P-30 §10: the latest five movements (C-10 rows). Read-only.
+  router.get(
+    "api/manage-v2/recent-activity",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId } = await projectRead(ctx, auth);
+      const rows = await readRecentActivity(sql, projectId, ammanDateString(Date.now()));
+      return jsonResponse({ activity: rows });
     }),
   );
 

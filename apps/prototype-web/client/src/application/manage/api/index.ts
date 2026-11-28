@@ -27,6 +27,7 @@ export {
   fetchManageSaleRows,
   fetchSaleDetails,
   fetchManageProducts,
+  fetchRecentActivity,
   type ManagePeriod,
   type ManageFiguresResponse,
   type Figure,
@@ -36,4 +37,5 @@ export {
   type SaleRow,
   type SaleDetailsResponse,
   type ProductItem,
+  type ActivityRow,
 } from "./reads.js";

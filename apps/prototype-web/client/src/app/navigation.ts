@@ -18,7 +18,9 @@ export type NavigationItem = { href: string; label: string; icon: LucideIcon };
  * الشريط؛ المقر والترتيب والأيقونة كما هم. لا مقعد سادس للإعدادات أو
  * الأدوات أو اسأل Micro. */
 export const primaryNavigation: readonly NavigationItem[] = [
-  { href: "/finance", label: "المالية", icon: WalletCards },
+  /* M5.4 (مانج-في₂ المرحلة 5 — UX P-30): مقعد «المالية» يفتح مالية مانج
+   * والتسمية من كتالوج مانج (tab.finance) — المقر والترتيب كما هما. */
+  { href: "/manage/finance", label: manageT("tab.finance"), icon: WalletCards },
   { href: "/orders", label: "الطلبات", icon: ClipboardList },
   /* M5.2 (قرار ١١/D-12): «الرئيسية» ← «مشروعي الآن» — التعديل الوحيد
    * المسموح على الشريط السفلي؛ التسمية من كتالوج مانج (s.now). */

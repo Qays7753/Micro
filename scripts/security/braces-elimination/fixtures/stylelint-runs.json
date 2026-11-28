@@ -34,6 +34,14 @@
         "warnings": []
       },
       {
+        "source": "<ROOT>/apps/prototype-web/client/src/styles/manage-finance.css",
+        "deprecations": [],
+        "invalidOptionWarnings": [],
+        "parseErrors": [],
+        "errored": false,
+        "warnings": []
+      },
+      {
         "source": "<ROOT>/apps/prototype-web/client/src/styles/manage-tracker.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
@@ -74,7 +82,7 @@
         "warnings": []
       }
     ],
-    "raw": "[{\"source\":\"<ROOT>/apps/prototype-web/client/src/index.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage-tracker.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/primitives.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]}]"
+    "raw": "[{\"source\":\"<ROOT>/apps/prototype-web/client/src/index.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage-finance.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage-tracker.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/manage.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/primitives.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]}]"
   },
   {
     "label": "corpus-all",
@@ -149,7 +157,7 @@
         "warnings": []
       },
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],
@@ -394,7 +402,7 @@
         "warnings": []
       },
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],
@@ -532,7 +540,7 @@
         "warnings": []
       },
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],
@@ -646,7 +654,7 @@
     "exitCode": 0,
     "report": [
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],
@@ -773,7 +781,7 @@
         "warnings": []
       },
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],
@@ -912,7 +920,7 @@
         "warnings": []
       },
       {
-        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+        "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-\u00fc/\u062f\u0644\u064a\u0644.css",
         "deprecations": [],
         "invalidOptionWarnings": [],
         "parseErrors": [],

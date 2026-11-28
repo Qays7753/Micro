@@ -197,6 +197,13 @@ const SURFACE_ROUTES: readonly string[] = [
   "/manage/tracker",
   "/manage/sale/:id",
   "/manage/products",
+  /* M5.4 (مانج-في₂ المرحلة 5): مالية مانج P-30 في مقعد التبويب وتقاريرها
+   * P-31/P-32/P-33 — قارئات يبقين الشريط السفلي (U-005: الرسوم والنماذج
+   * وحدها العمق). */
+  "/manage/finance",
+  "/manage/finance/income",
+  "/manage/finance/position",
+  "/manage/finance/sources",
   "/settings",
   "/profile",
 ];
