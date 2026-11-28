@@ -159,6 +159,36 @@ export function addPriorBalance(input: {
   return manageWrite("/api/manage-v2/add-prior-balance", { ...input }, input.requestId);
 }
 
+/** M5.7 — OP-RECONCILE (§7.1، P-50 «التالي»/P-52 «إنهاء»): إنهاء المطابقة —
+ *  Q19 لكل صندوق بفرقه الباقي + سجل §3.10؛ السياق routine أو
+ *  first_unknown_opening، والموجود لكل صندوق فعّال. */
+export function finishReconcile(input: {
+  requestId: string;
+  context: "routine" | "first_unknown_opening" | "return_after_absence";
+  boxes: Array<{ boxId: string; countedFils: number }>;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite(
+    "/api/manage-v2/reconcile",
+    { requestId: input.requestId, context: input.context, boxes: input.boxes },
+    input.requestId,
+  );
+}
+
+/** M5.7 — OP-TRANSFER (§5، P-51 «تأكيد»): اقتراح التحويل — min |Δ| من
+ *  الصندوق السالب إلى الموجب، قيد Q14 بتاريخ اليوم. */
+export function transferBetweenBoxes(input: {
+  requestId: string;
+  fromBox: "cash" | "account";
+  toBox: "cash" | "account";
+  amountFils: number;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite(
+    "/api/manage-v2/transfer",
+    { requestId: input.requestId, fromBox: input.fromBox, toBox: input.toBox, amountFils: input.amountFils },
+    input.requestId,
+  );
+}
+
 /** M5.5 — OP-MERGE-BOXES (§5، P-39): دمج الصندوقين — Q14 يُصفّر الحساب
  *  إلى النقد ثم يُدمج صف الحساب. لا مدخلات. */
 export function mergeManageBoxes(requestId: string): Promise<ManageWriteOutcome> {

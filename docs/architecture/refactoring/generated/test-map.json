@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "d4d71b67402f704067f76575f056ce7f17cb499e",
+  "head": "cf41e7383deaeb6ae47f69664f13f2fb17305d51",
   "pages": {
-    "total": 99,
+    "total": 100,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -664,6 +664,12 @@
         "kind": "direct",
         "evidence": [
           "pages/manage/ProductsPage.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ReconcilePage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ReconcilePage.dom.test.tsx"
         ]
       },
       "pages/manage/ReturnBalancesPage.tsx": {

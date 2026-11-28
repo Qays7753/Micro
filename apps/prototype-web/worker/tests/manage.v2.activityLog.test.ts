@@ -13,6 +13,7 @@
  */
 import type postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { startWorker, type WorkerInstance } from "./harness.ts";
 import { fileSqlUrl, resultOf, runPlan, scopedClient, setupProject } from "./manage.v2.helpers.ts";
 import { readActivityLog } from "../application/manage/activityLog.js";
 import { readOperationDetails, readBalanceLineDetails } from "../application/manage/operationDetails.js";
@@ -25,12 +26,17 @@ import { planOwnerDeposit } from "../../../../src/domain/manage/operations/owner
 import { planPriceCorrection } from "../../../../src/domain/manage/operations/priceCorrection.js";
 import type { SetupBoxSlot } from "../../../../src/domain/manage/operations/setup.js";
 
+let worker: WorkerInstance;
 let dbUrl = "";
 
 beforeAll(async () => {
-  dbUrl = await fileSqlUrl();
+  worker = await startWorker();
+  dbUrl = await fileSqlUrl(worker);
 });
-afterAll(() => undefined);
+
+afterAll(async () => {
+  await worker.close();
+});
 
 const AMMAN_TODAY = "2026-11-28";
 
@@ -114,14 +120,15 @@ describe("M5.6 — the activity log (P-41 + R-28)", () => {
       );
       const log = await readActivityLog(sql, ctx.projectId, AMMAN_TODAY);
       const group = log.rows.find(row => row.compound);
-      expect(group).toMatchObject({
+      expect(group).toBeDefined();
+      expect(group!).toMatchObject({
         compound: true,
         labelKey: "op.sale",
         amountText: "25.000 د",
         effectiveOn: AMMAN_TODAY,
         saleId,
       });
-      expect(group!.compound && group.members.map(m => m.kind)).toEqual(
+      expect(group?.compound ? group.members.map(m => m.kind) : []).toEqual(
         expect.arrayContaining(["OP-SALE-CREATE", "OP-DELIVER", "OP-COLLECT"]),
       );
       /* None of the members stands alone. */
@@ -174,10 +181,12 @@ describe("M5.6 — the activity log (P-41 + R-28)", () => {
       const compounds = log.rows.filter(row => row.compound);
       expect(compounds).toHaveLength(2);
       const orderGroup = compounds.find(c => c.compound && c.effectiveOn === "2026-11-25");
+      expect(orderGroup).toBeDefined();
       expect(orderGroup).toMatchObject({ labelKey: "op.sale", amountText: "80.000 د" });
       const deliveryGroup = compounds.find(c => c.compound && c.effectiveOn === "2026-11-27");
-      expect(deliveryGroup).toMatchObject({ labelKey: "op.deliver", amountText: "80.000 د" });
-      expect(deliveryGroup!.compound && deliveryGroup.members.map(m => m.kind)).toEqual(
+      expect(deliveryGroup).toBeDefined();
+      expect(deliveryGroup!).toMatchObject({ labelKey: "op.deliver", amountText: "80.000 د" });
+      expect(deliveryGroup?.compound ? deliveryGroup.members.map(m => m.kind) : []).toEqual(
         expect.arrayContaining(["OP-DELIVER", "OP-COLLECT"]),
       );
     });
@@ -405,8 +414,6 @@ describe("M5.6 — balance line details (P-45)", () => {
           saleId,
         }),
       );
-      const { readModel } = await import("../application/manage/readModel.js");
-      void readModel;
       const figuresModule = await import("../application/manage/readModel.js");
       const figures = await figuresModule.computeManageFigures(sql, ctx.projectId, AMMAN_TODAY, "month");
       const remainder = figures.balanceLines.find(

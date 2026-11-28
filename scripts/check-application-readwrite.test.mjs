@@ -182,11 +182,11 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * (manage/api/writes.ts) غادرت الجسم بإعادة تصنيف مؤرخة: دالة حفظ
      * المنتج saveManageProduct (فعل «حفظ» P-23 الحرفي) جعلت نصها كاتبًا
      * نصيًا وبابه الصادق كذلك (كتابات HTTP بلا كتابة تخزين) — التعليق
-     * الموثق في READ_LIKE_CORPUS_BASELINE نفسه؛ 91 ← 90 (قاعدة D-04). */
-    expect(result.stats.readLikeCorpus).toBe(90);
-    expect(result.stats.readLikeBaseline).toBe(90);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(90);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(90);
+     * الموثق في READ_LIKE_CORPUS_BASELINE نفسه؛ 91 ← 90 (قاعدة D-04)؛ M5.7: shapes.ts انضمت — 90 ← 91. */
+    expect(result.stats.readLikeCorpus).toBe(91);
+    expect(result.stats.readLikeBaseline).toBe(91);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(91);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(91);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

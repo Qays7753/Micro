@@ -17,6 +17,7 @@ import { planAddBox } from "../../../../src/domain/manage/operations/addBox.js";
 import { planReconcile } from "../../../../src/domain/manage/operations/reconcile.js";
 import { detectAbsence } from "../application/manage/absence.js";
 import { readReconciliationLog } from "../application/manage/reconciliationLog.js";
+import { readReconcileDiff } from "../application/manage/reconcileDiff.js";
 import { ammanDateString } from "../clock.ts";
 import { rawSqlOf } from "../db/db.ts";
 import { jsonResponse, planOr400, projectWrite, requireProject, runPlan } from "./manageV2Shared.ts";
@@ -112,6 +113,18 @@ export function registerManageV2BoxRoutes(router: ApiRouter): void {
       const { sql, projectId, today } = await projectWrite(ctx, auth);
       const absence = await detectAbsence(sql, { projectId, today });
       return jsonResponse({ absence });
+    }),
+  );
+
+  // M5.7 — P-50 «التالي»: the per-box differences (recorded from the ONE
+  // read module, counted entered, Δ and the §7.1-2 proposal) — a READ with
+  // a body (the counted amounts); no write, no idempotency reservation.
+  router.post(
+    "api/manage-v2/reconcile-diff",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId, body } = await projectWrite(ctx, auth);
+      const counted = Array.isArray(body.boxes) ? body.boxes : [];
+      return jsonResponse(await readReconcileDiff(sql, projectId, ammanDateString(Date.now()), counted));
     }),
   );
 

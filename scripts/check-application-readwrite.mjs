@@ -207,6 +207,9 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "manage/api/errors.ts",
   "manage/api/index.ts",
   "manage/api/reads.ts",
+  /* M5.7 (قسمة السطح): أشكال قراءات مانج — أنواع فقط (قراءة صرفة بلا أي
+   * فعل كتابة)؛ انضمت للجسم بفحص الخاصية نفسه في نفس الـPR. */
+  "manage/api/shapes.ts",
   "manage/presentation/display.ts",
   "manage/presentation/errorText.ts",
   "manage/presentation/index.ts",

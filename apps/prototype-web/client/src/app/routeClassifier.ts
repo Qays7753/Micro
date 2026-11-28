@@ -99,6 +99,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/manage\/boxes\/(add|merge|split)$/,
   /* M5.6: إضافة مستحق/التزام سابق P-46 — نموذج عمق. */
   /^\/manage\/balances\/add-prior$/,
+  /* M5.7: نافذة المطابقة P-50–P-53 — تدفق عمق متصل الخطوات. */
+  /^\/manage\/reconcile$/,
 ];
 
 /* مشتق المسار المجرد من موضع كامل — ملكية نظام المسار (R10-B4/OD-12:

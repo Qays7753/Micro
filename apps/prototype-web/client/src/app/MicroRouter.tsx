@@ -157,6 +157,8 @@ const ManageActivityDetailPage = lazy(() => import("@/pages/manage/ActivityDetai
 const ManageBalancesPage = lazy(() => import("@/pages/manage/BalancesPage"));
 const ManageBalanceLinePage = lazy(() => import("@/pages/manage/BalanceLinePage"));
 const ManageAddPriorPage = lazy(() => import("@/pages/manage/AddPriorPage"));
+/* M5.7: نافذة المطابقة P-50–P-53 — تدفق عمق واحد متصل الخطوات (يخفي الشريط). */
+const ManageReconcilePage = lazy(() => import("@/pages/manage/ReconcilePage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -201,6 +203,7 @@ export function MicroRouter() {
             <Route path="/manage/balances/add-prior" component={ManageAddPriorPage} />
             <Route path="/manage/balances/:id" component={ManageBalanceLinePage} />
             <Route path="/manage/balances" component={ManageBalancesPage} />
+            <Route path="/manage/reconcile" component={ManageReconcilePage} />
             <Route path="/manage/activity/:id" component={ManageActivityDetailPage} />
             <Route path="/manage/activity" component={ManageActivityPage} />
             <Route path="/manage/boxes/add" component={ManageBoxAddPage} />

@@ -84,6 +84,7 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/manage/products/new": "مانج: منتج جديد P-23 فارغة — ورقة عمق (M5.3)",
   "/manage/products/:id": "مانج: محرر المنتج P-23 معبّأة + تأكيد الأرشفة P-24 — ورقة عمق (M5.3)",
   "/manage/balances/add-prior": "مانج: إضافة مستحق/التزام سابق P-46 — ورقة عمق (M5.6)",
+  "/manage/reconcile": "مانج: نافذة المطابقة P-50–P-53 — تدفق عمق متصل (M5.7)",
   "/manage/boxes/add": "مانج: إضافة صندوق P-38 — ورقة عمق (M5.5)",
   "/manage/boxes/merge": "مانج: دمج الصندوقين P-39 — ورقة تأكيد عمق (M5.5)",
   "/manage/boxes/split": "مانج: فصل الصندوقين P-40 — ورقة عمق (M5.5)",

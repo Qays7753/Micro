@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note. | Dated additions (2026-11-22, Post-Group 6 continuous completion/DOC-041, owner order 7593b9c4): (G01) network door +4 values/+2 types for the account role-lifecycle commands (final decision ب/Q5); (G02) the NEW admin door registered with its exact surface — the Q129 Platform Admin panel unit (pages/admin + application/admin) built as a separate unit for later extraction, zero Manage financial access. | M5.4 (2026-11-28, Phase-5 continuous execution): manage/api door +1 value (fetchRecentActivity — آخر 5 حركات C-10 للصفحة P-30 §10) و+1 type (ActivityRow)؛ المسار GET /api/manage-v2/recent-activity قراءة فقط خلف R-24. | M5.5 (2026-11-28, Phase-5 continuous execution): manage/api door +3 values (addManageBox/mergeManageBoxes/splitManageBoxes — كتابات عمليات الصناديق §5 P-38/P-39/P-40). | M5.6 (2026-11-28, Phase-5 continuous execution): manage/api door +4 values (fetchActivityLog/fetchOperationDetails/fetchBalanceLine قراءات P-41/P-42/P-45 + addPriorBalance كتابة P-46) و+5 types.",
+  "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note. | Dated additions (2026-11-22, Post-Group 6 continuous completion/DOC-041, owner order 7593b9c4): (G01) network door +4 values/+2 types for the account role-lifecycle commands (final decision ب/Q5); (G02) the NEW admin door registered with its exact surface — the Q129 Platform Admin panel unit (pages/admin + application/admin) built as a separate unit for later extraction, zero Manage financial access. | M5.4 (2026-11-28, Phase-5 continuous execution): manage/api door +1 value (fetchRecentActivity — آخر 5 حركات C-10 للصفحة P-30 §10) و+1 type (ActivityRow)؛ المسار GET /api/manage-v2/recent-activity قراءة فقط خلف R-24. | M5.5 (2026-11-28, Phase-5 continuous execution): manage/api door +3 values (addManageBox/mergeManageBoxes/splitManageBoxes — كتابات عمليات الصناديق §5 P-38/P-39/P-40). | M5.6 (2026-11-28, Phase-5 continuous execution): manage/api door +4 values (fetchActivityLog/fetchOperationDetails/fetchBalanceLine قراءات P-41/P-42/P-45 + addPriorBalance كتابة P-46) و+5 types. | M5.7 (2026-11-28, Phase-5): +3 values (فروق المطابقة قراءةً وإنهاؤها وتحويل §7.1-2) و+2 types.",
   "notes": [
     "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
     "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging.",
@@ -639,8 +639,10 @@
         "fetchManageSaleRows",
         "fetchOperationDetails",
         "fetchRecentActivity",
+        "fetchReconcileDiff",
         "fetchReconciliationLog",
         "fetchSaleDetails",
+        "finishReconcile",
         "hideSaleFromTracker",
         "isNetworkFailure",
         "manageErrorCode",
@@ -649,7 +651,8 @@
         "renameProject",
         "saveManageProduct",
         "setupProject",
-        "splitManageBoxes"
+        "splitManageBoxes",
+        "transferBetweenBoxes"
       ],
       "type": [
         "ActivityCompoundRow",
@@ -665,6 +668,8 @@
         "OperationVersion",
         "ProductItem",
         "ProjectStateResponse",
+        "ReconcileBoxDiff",
+        "ReconcileDiffResponse",
         "ReconciliationLogResponse",
         "SaleDetailsResponse",
         "SaleRow",
