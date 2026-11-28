@@ -12,6 +12,13 @@ import { rawSqlOf } from "../db/db.ts";
 import { ProjectNotFound, readProjectState, renameProject } from "../application/manage/projectState.js";
 import { readSaleRows } from "../application/manage/saleRows.js";
 import { readRecentActivity } from "../application/manage/activityRows.js";
+import { readActivityLog } from "../application/manage/activityLog.js";
+import {
+  LineNotFound,
+  OperationNotFound,
+  readBalanceLineDetails,
+  readOperationDetails,
+} from "../application/manage/operationDetails.js";
 import { SaleDetailsNotFound, readSaleDetails } from "../application/manage/saleDetails.js";
 import { projectRead, projectWrite } from "./manageV2Shared.ts";
 import { jsonResponse } from "../http.ts";
@@ -47,6 +54,75 @@ export function registerManageV2ProjectRoutes(router: ApiRouter): void {
       const { sql, projectId } = await projectRead(ctx, auth);
       const rows = await readRecentActivity(sql, projectId, ammanDateString(Date.now()));
       return jsonResponse({ activity: rows });
+    }),
+  );
+
+  // M5.6 — P-41 the full activity log (§10/ج-1/R-28): search + type group +
+  // period filters applied server-side; compound rows carry their members.
+  // Read-only.
+  router.get(
+    "api/manage-v2/activity",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId } = await projectRead(ctx, auth);
+      const url = new URL(ctx.request.url);
+      const typeParam = url.searchParams.get("type");
+      const periodParam = url.searchParams.get("period");
+      const log = await readActivityLog(sql, projectId, ammanDateString(Date.now()), {
+        search: url.searchParams.get("search") ?? undefined,
+        type: (
+          [
+            "all",
+            "rep.opening",
+            "op.sale",
+            "op.collect",
+            "op.pay",
+            "op.expense",
+            "op.deposit",
+            "op.withdraw",
+            "op.transfer",
+            "op.reconcile",
+          ] as const
+        ).includes(typeParam as never)
+          ? (typeParam as never)
+          : undefined,
+        period: (["week", "month", "year", "since_start"] as const).includes(periodParam as never)
+          ? (periodParam as never)
+          : undefined,
+      });
+      return jsonResponse(log);
+    }),
+  );
+
+  // M5.6 — P-42/P-43 one operation's details + its previous versions.
+  // Read-only; the unified 404 for a foreign/unknown id (R-24).
+  router.get(
+    "api/manage-v2/activity/:id",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId } = await projectRead(ctx, auth);
+      try {
+        return jsonResponse(
+          await readOperationDetails(sql, projectId, ctx.params.id!, ammanDateString(Date.now())),
+        );
+      } catch (error) {
+        if (error instanceof OperationNotFound) return new Response("Not Found", { status: 404 });
+        throw error;
+      }
+    }),
+  );
+
+  // M5.6 — P-45 one balance line + its movements (C-10 rows). Read-only.
+  router.get(
+    "api/manage-v2/line/:id",
+    authedRoute(async (ctx, auth) => {
+      const { sql, projectId } = await projectRead(ctx, auth);
+      try {
+        return jsonResponse(
+          await readBalanceLineDetails(sql, projectId, ctx.params.id!, ammanDateString(Date.now())),
+        );
+      } catch (error) {
+        if (error instanceof LineNotFound) return new Response("Not Found", { status: 404 });
+        throw error;
+      }
     }),
   );
 

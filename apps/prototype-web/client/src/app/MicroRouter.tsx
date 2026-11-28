@@ -150,6 +150,13 @@ const ManageBoxesPage = lazy(() => import("@/pages/manage/BoxesPage"));
 const ManageBoxAddPage = lazy(() => import("@/pages/manage/BoxAddPage"));
 const ManageBoxMergePage = lazy(() => import("@/pages/manage/BoxMergePage"));
 const ManageBoxSplitPage = lazy(() => import("@/pages/manage/BoxSplitPage"));
+/* M5.6: الحركات والمستحقات — P-41/P-42/P-44/P-45 قارئات (U-005) وP-46
+ * ورقة عمق كاملة (النموذج يخفي الشريط). */
+const ManageActivityPage = lazy(() => import("@/pages/manage/ActivityPage"));
+const ManageActivityDetailPage = lazy(() => import("@/pages/manage/ActivityDetailPage"));
+const ManageBalancesPage = lazy(() => import("@/pages/manage/BalancesPage"));
+const ManageBalanceLinePage = lazy(() => import("@/pages/manage/BalanceLinePage"));
+const ManageAddPriorPage = lazy(() => import("@/pages/manage/AddPriorPage"));
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -190,6 +197,12 @@ export function MicroRouter() {
             <Route path="/manage/finance/sources" component={ManageSourcesPage} />
             <Route path="/manage/finance" component={ManageFinancePage} />
             {/* M5.5: الصناديق — الأوراق الأخص قبل سطح P-37. */}
+            {/* M5.6: الحركات والمستحقات — الأخص قبل القوائم. */}
+            <Route path="/manage/balances/add-prior" component={ManageAddPriorPage} />
+            <Route path="/manage/balances/:id" component={ManageBalanceLinePage} />
+            <Route path="/manage/balances" component={ManageBalancesPage} />
+            <Route path="/manage/activity/:id" component={ManageActivityDetailPage} />
+            <Route path="/manage/activity" component={ManageActivityPage} />
             <Route path="/manage/boxes/add" component={ManageBoxAddPage} />
             <Route path="/manage/boxes/merge" component={ManageBoxMergePage} />
             <Route path="/manage/boxes/split" component={ManageBoxSplitPage} />

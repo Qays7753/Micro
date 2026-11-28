@@ -147,6 +147,18 @@ export function addManageBox(input: {
   );
 }
 
+/** M5.6 — OP-ADD-PRIOR-BALANCE (§5، P-46): تسجيل مبلغ من قبل للمتابعة
+ *  فقط — Q2/Q3 بلا حركة فلوس (لا يربح ولا يخسر). */
+export function addPriorBalance(input: {
+  requestId: string;
+  direction: "to_me" | "by_me";
+  counterpartyName: string;
+  amountFils: number;
+  originOn?: string;
+}): Promise<ManageWriteOutcome> {
+  return manageWrite("/api/manage-v2/add-prior-balance", { ...input }, input.requestId);
+}
+
 /** M5.5 — OP-MERGE-BOXES (§5، P-39): دمج الصندوقين — Q14 يُصفّر الحساب
  *  إلى النقد ثم يُدمج صف الحساب. لا مدخلات. */
 export function mergeManageBoxes(requestId: string): Promise<ManageWriteOutcome> {

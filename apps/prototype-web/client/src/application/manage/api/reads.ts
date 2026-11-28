@@ -285,6 +285,108 @@ export function fetchRecentActivity(): Promise<{ activity: ActivityRow[] }> {
   return apiFetch<{ activity: ActivityRow[] }>("/api/manage-v2/recent-activity");
 }
 
+/** صف مجمّع R-28 (M5.6 — P-41): أجزاؤه ومبلغه حسب القاعدة. */
+export interface ActivityCompoundRow {
+  compound: true;
+  groupId: string;
+  labelKey: "op.sale" | "op.deliver";
+  effectiveOn: string;
+  name: string | null;
+  amountText: string | null;
+  saleId: string;
+  saleStatus: string | null;
+  corrected: boolean;
+  cancelled: boolean;
+  members: Array<{
+    operationId: string;
+    kind: string;
+    amountText: string | null;
+    corrected: boolean;
+    cancelled: boolean;
+  }>;
+}
+
+/** صف السجل (M5.6 — P-41): مفرد أو مجمّع (R-28). */
+export type ActivityLogRow = (ActivityRow & { compound: false }) | ActivityCompoundRow;
+
+/** فلاتر السجل (P-41): بحث بالاسم + مجموعة ج-١ + الفترة. */
+export interface ActivityLogFilters {
+  search?: string;
+  type?:
+    | "all"
+    | "rep.opening"
+    | "op.sale"
+    | "op.collect"
+    | "op.pay"
+    | "op.expense"
+    | "op.deposit"
+    | "op.withdraw"
+    | "op.transfer"
+    | "op.reconcile";
+  period?: ManagePeriod;
+}
+
+/** M5.6 — السجل الكامل (P-41): التجميع والفلاتر في الخادم. */
+export function fetchActivityLog(filters: ActivityLogFilters = {}): Promise<{ rows: ActivityLogRow[] }> {
+  const params = new URLSearchParams();
+  if (filters.search !== undefined && filters.search.length > 0) params.set("search", filters.search);
+  if (filters.type !== undefined) params.set("type", filters.type);
+  if (filters.period !== undefined) params.set("period", filters.period);
+  const query = params.toString();
+  return apiFetch<{ rows: ActivityLogRow[] }>(
+    `/api/manage-v2/activity${query.length > 0 ? `?${query}` : ""}`,
+  );
+}
+
+/** نسخة الحركة (M5.6 — P-42/P-43). */
+export interface OperationVersion {
+  operationId: string;
+  kind: string;
+  effectiveOn: string;
+  amountText: string | null;
+  deliveryCostText: string | null;
+  boxKind: string | null;
+  personalMoney: boolean;
+  name: string | null;
+  category: string | null;
+  note: string | null;
+  saleId: string | null;
+  saleStatus: string | null;
+  corrected: boolean;
+  cancelled: boolean;
+  variant: string | null;
+}
+
+/** M5.6 — تفاصيل حركة (P-42) + نسخها السابقة (P-43). */
+export function fetchOperationDetails(
+  operationId: string,
+): Promise<OperationVersion & { previousVersions: OperationVersion[] }> {
+  return apiFetch<OperationVersion & { previousVersions: OperationVersion[] }>(
+    `/api/manage-v2/activity/${encodeURIComponent(operationId)}`,
+  );
+}
+
+/** خط رصيد وحركاته (M5.6 — P-45). */
+export interface BalanceLineDetails {
+  line: {
+    id: string;
+    direction: string;
+    kind: string;
+    counterpartyName: string | null;
+    originOn: string;
+    outstandingFils: number;
+    outstandingText: string;
+    overdue: boolean;
+    saleId: string | null;
+  };
+  movements: ActivityRow[];
+}
+
+/** M5.6 — تفاصيل المستحق أو الالتزام (P-45). */
+export function fetchBalanceLine(lineId: string): Promise<BalanceLineDetails> {
+  return apiFetch<BalanceLineDetails>(`/api/manage-v2/line/${encodeURIComponent(lineId)}`);
+}
+
 /** M5.3 — تفاصيل الطلب (P-21). */
 export function fetchSaleDetails(saleId: string): Promise<SaleDetailsResponse> {
   return apiFetch<SaleDetailsResponse>(`/api/manage-v2/sale/${encodeURIComponent(saleId)}`);

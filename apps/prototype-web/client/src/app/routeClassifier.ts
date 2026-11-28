@@ -97,6 +97,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/manage\/products\/(new|[^/]+)$/,
   /* M5.5: أوراق الصناديق P-38/P-39/P-40 — نماذج عمق تخفي الشريط. */
   /^\/manage\/boxes\/(add|merge|split)$/,
+  /* M5.6: إضافة مستحق/التزام سابق P-46 — نموذج عمق. */
+  /^\/manage\/balances\/add-prior$/,
 ];
 
 /* مشتق المسار المجرد من موضع كامل — ملكية نظام المسار (R10-B4/OD-12:

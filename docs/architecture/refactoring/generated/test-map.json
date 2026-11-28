@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "e8237a13942489fed8dc47c0ddeb36e2e313c92d",
+  "head": "d4d71b67402f704067f76575f056ce7f17cb499e",
   "pages": {
-    "total": 94,
+    "total": 99,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -574,6 +574,36 @@
         "kind": "named-reference",
         "evidence": [
           "pages/admin/AdminPanel.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ActivityDetailPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ActivityPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/ActivityPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ActivityPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/AddPriorPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ActivityPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BalanceLinePage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ActivityPages.dom.test.tsx"
+        ]
+      },
+      "pages/manage/BalancesPage.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/manage/ActivityPages.dom.test.tsx"
         ]
       },
       "pages/manage/BoxAddPage.tsx": {

@@ -225,6 +225,8 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/manage/boxes/add": "/manage/boxes",
   "/manage/boxes/merge": "/manage/boxes",
   "/manage/boxes/split": "/manage/boxes",
+  /* M5.6: إضافة مستحق/التزام سابق P-46 تعود إلى P-44 (بيتها). */
+  "/manage/balances/add-prior": "/manage/balances",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */
